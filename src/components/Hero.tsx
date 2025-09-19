@@ -19,41 +19,41 @@ const Hero = () => {
   };
 
   return (
-    <section className="relative min-h-screen bg-gradient-main bg-gradient-mesh flex items-center justify-center">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20">
+    <section className="relative min-h-screen bg-gradient-main bg-gradient-mesh flex items-center justify-center pt-20">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-20">
         <div className="max-w-4xl mx-auto text-center space-y-12">
           {/* Main Heading */}
           <div className="space-y-6">
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-tight">
               Servicios del hogar
               <span className="text-primary block bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
                 confiables y seguros
               </span>
             </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground leading-relaxed max-w-3xl mx-auto px-4">
               Conectamos profesionales verificados con personas que necesitan servicios del hogar. 
               Seguridad garantizada, calidad asegurada.
             </p>
           </div>
 
           {/* Search Bar */}
-          <div className="bg-gradient-glass backdrop-blur-glass border border-white/30 rounded-3xl p-8 shadow-floating max-w-2xl mx-auto">
-            <div className="space-y-6">
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-6 sm:p-8 shadow-[0_8px_32px_rgba(31,38,135,0.37)] max-w-2xl mx-auto">
+            <div className="space-y-4 sm:space-y-6">
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-muted-foreground" />
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground" />
                 <Input
                   placeholder="¿Qué servicio necesitas? Ej: Limpieza, Reparaciones..."
-                  className="pl-14 pr-4 py-4 text-lg bg-background/50 border-white/20 rounded-2xl focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm"
+                  className="pl-12 sm:pl-14 pr-4 py-3 sm:py-4 text-base sm:text-lg bg-white/20 border-white/30 rounded-2xl focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm placeholder:text-white/70 text-white"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                 />
               </div>
               <div className="relative">
-                <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-muted-foreground" />
+                <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground" />
                 <Input
                   placeholder="¿Dónde? Ciudad, colonia..."
-                  className="pl-14 pr-4 py-4 text-lg bg-background/50 border-white/20 rounded-2xl focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm"
+                  className="pl-12 sm:pl-14 pr-4 py-3 sm:py-4 text-base sm:text-lg bg-white/20 border-white/30 rounded-2xl focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm placeholder:text-white/70 text-white"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
@@ -63,22 +63,22 @@ const Hero = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-6 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center px-4">
             <ModernButton 
-              variant="glow"
+              variant="glass"
               size="xl" 
-              className="w-full sm:w-auto min-w-[240px]"
+              className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px] bg-white/10 backdrop-blur-md border-white/30 hover:bg-white/20 text-white shadow-[0_8px_32px_rgba(31,38,135,0.37)]"
               onClick={handleSearch}
             >
-              <Search className="mr-3 h-6 w-6" />
-              Contratar Servicios
+              <Search className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
+              <span className="text-sm sm:text-base">Contratar Servicios</span>
             </ModernButton>
             <ModernButton 
               variant="glass" 
               size="xl"
-              className="w-full sm:w-auto min-w-[240px]"
+              className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px] bg-white/10 backdrop-blur-md border-white/30 hover:bg-white/20 text-white shadow-[0_8px_32px_rgba(31,38,135,0.37)]"
             >
-              Ofrecer Servicios
+              <span className="text-sm sm:text-base">Ofrecer Servicios</span>
             </ModernButton>
           </div>
 
