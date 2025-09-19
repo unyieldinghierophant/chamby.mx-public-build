@@ -36,15 +36,15 @@ const Hero = () => {
           </div>
 
           {/* Search Bar */}
-          <div className="relative max-w-2xl mx-auto">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 sm:h-6 sm:w-6 text-gray-500" />
+          <div className="relative max-w-xl mx-auto">
             <Input
               placeholder="Arregla cualquier cosa con Chamby!"
-              className="pl-12 sm:pl-14 pr-6 py-3 sm:py-4 text-base sm:text-lg bg-white/90 border-gray-300 rounded-2xl focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm placeholder:text-gray-500 text-gray-900 text-left"
+              className="pl-6 pr-12 py-4 text-lg bg-white/90 border-gray-300 rounded-2xl focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm placeholder:text-gray-500 text-gray-900 text-left w-full"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
             />
+            <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-gray-400 cursor-pointer" onClick={handleSearch} />
           </div>
 
           {/* Action Buttons */}
