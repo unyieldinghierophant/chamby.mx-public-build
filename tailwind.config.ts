@@ -69,14 +69,22 @@ export default {
         },
       },
       backgroundImage: {
-        'gradient-subtle': 'var(--gradient-subtle)',
+        'gradient-main': 'var(--gradient-main)',
         'gradient-hero': 'var(--gradient-hero)',
         'gradient-card': 'var(--gradient-card)',
+        'gradient-button': 'var(--gradient-button)',
+        'gradient-glass': 'var(--gradient-glass)',
+        'gradient-mesh': 'var(--gradient-mesh)',
       },
       boxShadow: {
-        'subtle': 'var(--shadow-subtle)',
-        'card': 'var(--shadow-card)',
-        'elevated': 'var(--shadow-elevated)',
+        'soft': 'var(--shadow-soft)',
+        'raised': 'var(--shadow-raised)',
+        'floating': 'var(--shadow-floating)',
+        'glow': 'var(--shadow-glow)',
+        'inner': 'var(--shadow-inner)',
+      },
+      backdropBlur: {
+        'glass': 'var(--backdrop-blur)',
       },
       borderRadius: {
         lg: "var(--radius)",

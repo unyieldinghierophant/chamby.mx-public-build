@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { ModernButton } from "@/components/ui/modern-button";
 import { ArrowRight, Wrench, Sparkles, TreePine, Palette, Zap, Car } from "lucide-react";
 import cleaningImage from "@/assets/service-cleaning.jpg";
 import repairImage from "@/assets/service-repair.jpg";
@@ -43,11 +43,11 @@ const Services = () => {
   ];
 
   return (
-    <section id="servicios" className="py-20 bg-background">
+    <section id="servicios" className="py-20 bg-gradient-main">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4 bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
             Servicios más populares
           </h2>
           <p className="text-lg text-muted-foreground">
@@ -61,7 +61,7 @@ const Services = () => {
           {popularServices.map((service, index) => (
             <Card 
               key={index} 
-              className="group hover:shadow-elevated transition-all duration-300 border-border bg-gradient-card overflow-hidden"
+              className="group hover:shadow-floating transition-all duration-300 border-0 bg-gradient-card shadow-raised overflow-hidden backdrop-blur-glass hover:scale-[1.02]"
             >
               <div className="relative h-48 overflow-hidden">
                 <img 
@@ -69,9 +69,9 @@ const Services = () => {
                   alt={service.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 <div className="absolute bottom-4 left-4 text-white">
-                  <div className="flex items-center space-x-2 text-sm">
+                  <div className="flex items-center space-x-2 text-sm bg-black/30 rounded-full px-3 py-1 backdrop-blur-sm">
                     <span>⭐ {service.rating}</span>
                     <span>•</span>
                     <span>{service.providers} profesionales</span>
@@ -82,23 +82,25 @@ const Services = () => {
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-primary-light rounded-lg flex items-center justify-center">
-                      <service.icon className="h-5 w-5 text-primary" />
+                    <div className="w-12 h-12 bg-gradient-button rounded-xl flex items-center justify-center shadow-glow">
+                      <service.icon className="h-6 w-6 text-primary-foreground" />
                     </div>
                     <h3 className="text-xl font-semibold text-foreground">{service.title}</h3>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-semibold text-primary">{service.price}</div>
+                    <div className="text-sm font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">
+                      {service.price}
+                    </div>
                   </div>
                 </div>
               </CardHeader>
 
               <CardContent className="pt-0">
                 <p className="text-muted-foreground mb-4">{service.description}</p>
-                <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground group">
+                <ModernButton variant="primary" className="w-full group">
                   Ver profesionales
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                </Button>
+                </ModernButton>
               </CardContent>
             </Card>
           ))}
@@ -111,9 +113,11 @@ const Services = () => {
             {allServices.map((service, index) => (
               <div 
                 key={index}
-                className="flex items-center space-x-3 p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors cursor-pointer"
+                className="flex items-center space-x-3 p-4 rounded-xl bg-gradient-card border border-white/20 hover:bg-gradient-glass hover:shadow-raised transition-all cursor-pointer backdrop-blur-glass"
               >
-                <service.icon className="h-5 w-5 text-primary" />
+                <div className="w-10 h-10 bg-gradient-button rounded-lg flex items-center justify-center shadow-soft">
+                  <service.icon className="h-5 w-5 text-primary-foreground" />
+                </div>
                 <div className="text-left">
                   <div className="font-medium text-foreground">{service.title}</div>
                   <div className="text-sm text-muted-foreground">{service.count}</div>
@@ -122,14 +126,10 @@ const Services = () => {
             ))}
           </div>
           
-          <Button 
-            variant="outline" 
-            size="lg"
-            className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-          >
+          <ModernButton variant="outline" size="lg">
             Ver todos los servicios
             <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
+          </ModernButton>
         </div>
       </div>
     </section>
