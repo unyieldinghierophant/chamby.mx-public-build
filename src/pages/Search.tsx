@@ -66,46 +66,46 @@ const SearchPage = () => {
     <div className="min-h-screen bg-gradient-main">
       {/* Header */}
       <div className="bg-gradient-glass backdrop-blur-glass border-b border-white/20 sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <Link to="/">
                 <ModernButton variant="glass" size="icon">
-                  <ArrowLeft className="h-5 w-5" />
+                  <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
                 </ModernButton>
               </Link>
-              <h1 className="text-2xl font-bold text-foreground">Buscar Servicios</h1>
+              <h1 className="text-lg sm:text-2xl font-bold text-foreground">Buscar Servicios</h1>
             </div>
             
-            <ModernButton variant="glass">
-              <Filter className="mr-2 h-4 w-4" />
-              Filtros
+            <ModernButton variant="glass" className="text-xs sm:text-sm">
+              <Filter className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Filtros</span>
             </ModernButton>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-4 gap-8">
-          {/* Sidebar - Categories & Filters */}
-          <div className="lg:col-span-1">
+      <div className="container mx-auto px-4 py-4 sm:py-8">
+        <div className="flex flex-col lg:grid lg:grid-cols-4 gap-4 sm:gap-8">
+          {/* Sidebar - Categories & Filters - Hidden on mobile, show as modal/drawer */}
+          <div className="lg:col-span-1 order-2 lg:order-1">
             <Card className="bg-gradient-card shadow-raised border-0 backdrop-blur-glass">
-              <CardHeader>
-                <h3 className="text-lg font-semibold text-foreground">Categorías</h3>
+              <CardHeader className="pb-3 sm:pb-6">
+                <h3 className="text-base sm:text-lg font-semibold text-foreground">Categorías</h3>
               </CardHeader>
-              <CardContent className="space-y-2">
+              <CardContent className="space-y-1 sm:space-y-2 pt-0">
                 {categories.map((category) => (
                   <button
                     key={category.id}
                     onClick={() => setSelectedCategory(category.id)}
-                    className={`w-full flex items-center justify-between p-3 rounded-lg transition-all ${
+                    className={`w-full flex items-center justify-between p-2 sm:p-3 rounded-lg transition-all text-sm sm:text-base ${
                       selectedCategory === category.id
                         ? 'bg-gradient-button text-primary-foreground shadow-soft'
                         : 'hover:bg-gradient-glass text-foreground hover:shadow-soft'
                     }`}
                   >
                     <span className="font-medium">{category.name}</span>
-                    <Badge variant="secondary" className="bg-white/20">
+                    <Badge variant="secondary" className="bg-white/20 text-xs">
                       {category.count}
                     </Badge>
                   </button>
@@ -115,22 +115,24 @@ const SearchPage = () => {
           </div>
 
           {/* Main Content */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 order-1 lg:order-2">
             {/* Search Bar */}
-            <Card className="bg-gradient-glass backdrop-blur-glass shadow-floating border-0 mb-8">
-              <CardContent className="p-6">
-                <div className="relative">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    placeholder="¿Qué servicio necesitas? Ej: limpieza semanal, reparar grifo..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-12 pr-4 h-14 text-lg bg-gradient-card border-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 shadow-inner"
-                  />
+            <Card className="bg-gradient-glass backdrop-blur-glass shadow-floating border-0 mb-4 sm:mb-8">
+              <CardContent className="p-3 sm:p-6">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 sm:relative">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+                    <Input
+                      placeholder="¿Qué servicio necesitas?"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10 sm:pl-12 pr-3 sm:pr-4 h-10 sm:h-14 text-sm sm:text-lg bg-gradient-card border-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 shadow-inner"
+                    />
+                  </div>
                   <ModernButton 
                     variant="primary" 
-                    size="lg"
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                    size="default"
+                    className="sm:absolute sm:right-2 sm:top-1/2 sm:transform sm:-translate-y-1/2 w-full sm:w-auto"
                   >
                     Buscar
                   </ModernButton>
@@ -139,15 +141,15 @@ const SearchPage = () => {
             </Card>
 
             {/* Results Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-2">
               <div>
-                <h2 className="text-xl font-semibold text-foreground">
+                <h2 className="text-lg sm:text-xl font-semibold text-foreground">
                   {professionals.length} profesionales disponibles
                 </h2>
-                <p className="text-muted-foreground">En tu área - Ciudad de México</p>
+                <p className="text-sm text-muted-foreground">En tu área - Ciudad de México</p>
               </div>
               
-              <select className="bg-gradient-card border border-white/20 rounded-lg px-4 py-2 text-foreground shadow-soft">
+              <select className="bg-gradient-card border border-white/20 rounded-lg px-3 py-2 text-sm sm:text-base text-foreground shadow-soft w-full sm:w-auto">
                 <option>Más relevantes</option>
                 <option>Mejor calificados</option>
                 <option>Precio: menor a mayor</option>
@@ -156,71 +158,75 @@ const SearchPage = () => {
             </div>
 
             {/* Professional Cards */}
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {professionals.map((pro) => (
                 <Card key={pro.id} className="bg-gradient-card shadow-raised border-0 hover:shadow-floating transition-all duration-300 group overflow-hidden">
-                  <CardContent className="p-6">
-                    <div className="flex items-start space-x-6">
-                      {/* Profile Image */}
-                      <div className="relative">
-                        <div className="w-20 h-20 bg-gradient-glass rounded-xl shadow-soft overflow-hidden">
-                          <img 
-                            src={pro.image} 
-                            alt={pro.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        {pro.verified && (
-                          <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-gradient-button rounded-full flex items-center justify-center shadow-glow">
-                            <Shield className="h-4 w-4 text-primary-foreground" />
+                  <CardContent className="p-3 sm:p-6">
+                    <div className="flex flex-col sm:flex-row sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
+                      {/* Profile Image & Basic Info */}
+                      <div className="flex items-center space-x-4 sm:flex-col sm:items-center sm:space-x-0 sm:space-y-2">
+                        <div className="relative">
+                          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-glass rounded-xl shadow-soft overflow-hidden">
+                            <img 
+                              src={pro.image} 
+                              alt={pro.name}
+                              className="w-full h-full object-cover"
+                            />
                           </div>
-                        )}
+                          {pro.verified && (
+                            <div className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 w-6 h-6 sm:w-8 sm:h-8 bg-gradient-button rounded-full flex items-center justify-center shadow-glow">
+                              <Shield className="h-3 w-3 sm:h-4 sm:w-4 text-primary-foreground" />
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="flex-1 sm:text-center">
+                          <h3 className="text-lg sm:text-xl font-semibold text-foreground group-hover:text-primary transition-colors">
+                            {pro.name}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">{pro.service}</p>
+                        </div>
                       </div>
 
                       {/* Professional Info */}
                       <div className="flex-1">
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <h3 className="text-xl font-semibold text-foreground group-hover:text-primary transition-colors">
-                              {pro.name}
-                            </h3>
-                            <p className="text-muted-foreground">{pro.service}</p>
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3 gap-2">
+                          <div className="order-2 sm:order-1">
+                            {/* Rating & Distance */}
+                            <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-2">
+                              <div className="flex items-center space-x-1">
+                                <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                                <span className="font-semibold text-sm sm:text-base">{pro.rating}</span>
+                                <span className="text-xs sm:text-sm text-muted-foreground">({pro.reviews} reseñas)</span>
+                              </div>
+                              
+                              <div className="flex items-center space-x-1 text-muted-foreground text-xs sm:text-sm">
+                                <MapPin className="h-3 w-3 sm:h-4 sm:w-4" />
+                                <span>{pro.distance}</span>
+                              </div>
+                            </div>
                           </div>
                           
-                          <div className="text-right">
-                            <div className="text-2xl font-bold text-primary">{pro.price}</div>
+                          <div className="text-right order-1 sm:order-2">
+                            <div className="text-xl sm:text-2xl font-bold text-primary">{pro.price}</div>
                             {pro.available ? (
-                              <Badge className="bg-green-100 text-green-700 border-green-200">
+                              <Badge className="bg-green-100 text-green-700 border-green-200 text-xs">
                                 <Clock className="mr-1 h-3 w-3" />
                                 Disponible hoy
                               </Badge>
                             ) : (
-                              <Badge variant="secondary">No disponible</Badge>
+                              <Badge variant="secondary" className="text-xs">No disponible</Badge>
                             )}
                           </div>
                         </div>
 
-                        {/* Rating & Distance */}
-                        <div className="flex items-center space-x-4 mb-4">
-                          <div className="flex items-center space-x-1">
-                            <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                            <span className="font-semibold">{pro.rating}</span>
-                            <span className="text-muted-foreground">({pro.reviews} reseñas)</span>
-                          </div>
-                          
-                          <div className="flex items-center space-x-1 text-muted-foreground">
-                            <MapPin className="h-4 w-4" />
-                            <span>{pro.distance}</span>
-                          </div>
-                        </div>
-
                         {/* Badges */}
-                        <div className="flex flex-wrap gap-2 mb-4">
+                        <div className="flex flex-wrap gap-1 sm:gap-2 mb-3 sm:mb-4">
                           {pro.badges.map((badge, index) => (
                             <Badge 
                               key={index} 
                               variant="outline" 
-                              className="bg-gradient-glass border-primary/20 text-primary"
+                              className="bg-gradient-glass border-primary/20 text-primary text-xs"
                             >
                               {badge}
                             </Badge>
@@ -228,11 +234,11 @@ const SearchPage = () => {
                         </div>
 
                         {/* Actions */}
-                        <div className="flex space-x-3">
-                          <ModernButton variant="primary" size="lg" className="flex-1">
+                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                          <ModernButton variant="primary" size="default" className="flex-1 text-sm sm:text-base">
                             Ver Perfil & Contratar
                           </ModernButton>
-                          <ModernButton variant="glass" size="lg">
+                          <ModernButton variant="glass" size="default" className="sm:w-auto text-sm sm:text-base">
                             Mensaje
                           </ModernButton>
                         </div>

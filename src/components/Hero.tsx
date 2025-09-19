@@ -38,27 +38,15 @@ const Hero = () => {
 
           {/* Search Bar */}
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-6 sm:p-8 shadow-[0_8px_32px_rgba(31,38,135,0.37)] max-w-2xl mx-auto">
-            <div className="space-y-4 sm:space-y-6">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground" />
-                <Input
-                  placeholder="¿Qué servicio necesitas? Ej: Limpieza, Reparaciones..."
-                  className="pl-12 sm:pl-14 pr-4 py-3 sm:py-4 text-base sm:text-lg bg-white/20 border-white/30 rounded-2xl focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm placeholder:text-white/70 text-white"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                />
-              </div>
-              <div className="relative">
-                <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground" />
-                <Input
-                  placeholder="¿Dónde? Ciudad, colonia..."
-                  className="pl-12 sm:pl-14 pr-4 py-3 sm:py-4 text-base sm:text-lg bg-white/20 border-white/30 rounded-2xl focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm placeholder:text-white/70 text-white"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                />
-              </div>
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 sm:h-6 sm:w-6 text-white/70" />
+              <Input
+                placeholder="Arregla cualquier cosa con Chamby!"
+                className="pl-12 sm:pl-14 pr-4 py-3 sm:py-4 text-base sm:text-lg bg-white/20 border-white/30 rounded-2xl focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm placeholder:text-white/70 text-white"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              />
             </div>
           </div>
 
@@ -67,16 +55,16 @@ const Hero = () => {
             <ModernButton 
               variant="glass"
               size="xl" 
-              className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px] bg-white/10 backdrop-blur-md border-white/30 hover:bg-white/20 text-white shadow-[0_8px_32px_rgba(31,38,135,0.37)]"
+              className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px] bg-white/20 backdrop-blur-md border-white/30 hover:bg-white/30 text-gray-900 font-semibold shadow-[0_8px_32px_rgba(31,38,135,0.37)]"
               onClick={handleSearch}
             >
-              <Search className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
+              <Search className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6 text-gray-900" />
               <span className="text-sm sm:text-base">Contratar Servicios</span>
             </ModernButton>
             <ModernButton 
               variant="glass" 
               size="xl"
-              className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px] bg-white/10 backdrop-blur-md border-white/30 hover:bg-white/20 text-white shadow-[0_8px_32px_rgba(31,38,135,0.37)]"
+              className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px] bg-white/20 backdrop-blur-md border-white/30 hover:bg-white/30 text-gray-900 font-semibold shadow-[0_8px_32px_rgba(31,38,135,0.37)]"
             >
               <span className="text-sm sm:text-base">Ofrecer Servicios</span>
             </ModernButton>
