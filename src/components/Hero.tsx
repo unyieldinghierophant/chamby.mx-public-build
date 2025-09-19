@@ -31,8 +31,7 @@ const Hero = () => {
               </span>
             </h1>
             <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground leading-relaxed max-w-3xl mx-auto px-4">
-              Conectamos profesionales verificados con personas que necesitan servicios del hogar. 
-              Seguridad garantizada, calidad asegurada.
+              Conectamos a la gente que sabe solucionar con gente que necesita soluciones
             </p>
           </div>
 
