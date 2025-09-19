@@ -10,21 +10,21 @@ const Hero = () => {
         <div className="grid lg:grid-cols-2 gap-12 items-center min-h-[calc(100vh-120px)]">
           {/* Hero Content */}
           <div className="space-y-8">
-            <div className="space-y-4">
+            <div className="space-y-4 text-center lg:text-left">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight">
                 Servicios del hogar
                 <span className="text-primary block bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
                   confiables y seguros
                 </span>
               </h1>
-              <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-xl">
+              <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-xl mx-auto lg:mx-0">
                 Conectamos profesionales verificados con personas que necesitan servicios del hogar. 
                 Seguridad garantizada, calidad asegurada.
               </p>
             </div>
 
             {/* Trust Indicators */}
-            <div className="flex items-center space-x-6 text-sm text-muted-foreground">
+            <div className="flex items-center justify-center lg:justify-start space-x-6 text-sm text-muted-foreground">
               <div className="flex items-center space-x-2 bg-gradient-glass rounded-full px-4 py-2 shadow-soft backdrop-blur-glass">
                 <Shield className="h-5 w-5 text-primary" />
                 <span>Profesionales verificados</span>
@@ -36,7 +36,7 @@ const Hero = () => {
             </div>
 
             {/* Call to Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Link to="/search">
                 <ModernButton 
                   variant="glow"
