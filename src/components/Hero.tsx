@@ -4,12 +4,10 @@ import { Search, Shield, Star, MapPin } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import heroImage from "@/assets/hero-services.jpg";
-
 const Hero = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [location, setLocation] = useState("");
   const navigate = useNavigate();
-
   const handleSearch = () => {
     if (searchQuery.trim()) {
       navigate(`/search?q=${encodeURIComponent(searchQuery)}&location=${encodeURIComponent(location)}`);
@@ -17,16 +15,14 @@ const Hero = () => {
       navigate('/search');
     }
   };
-
-  return (
-    <section className="relative min-h-screen bg-gradient-main bg-gradient-mesh flex items-center justify-center pt-20">
+  return <section className="relative min-h-screen bg-gradient-main bg-gradient-mesh flex items-center justify-center pt-20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-20">
         <div className="max-w-4xl mx-auto text-center space-y-12">
           {/* Main Heading */}
           <div className="space-y-6">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-tight">
               Servicios del hogar
-              <span className="text-primary block bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+              <span className="text-primary block bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent mx-0 px-px py-[3px]">
                 confiables y seguros
               </span>
             </h1>
@@ -37,32 +33,17 @@ const Hero = () => {
 
           {/* Search Bar */}
           <div className="relative max-w-xl mx-auto">
-            <Input
-              placeholder="Arregla cualquier cosa con Chamby!"
-              className="pl-6 pr-12 py-4 text-lg bg-white/90 border-gray-300 rounded-2xl focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm placeholder:text-gray-500 text-gray-900 text-left w-full"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-            />
+            <Input placeholder="Arregla cualquier cosa con Chamby!" className="pl-6 pr-12 py-4 text-lg bg-white/90 border-gray-300 rounded-2xl focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm placeholder:text-gray-500 text-gray-900 text-left w-full" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleSearch()} />
             <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-gray-400 cursor-pointer" onClick={handleSearch} />
           </div>
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center px-4">
-            <ModernButton 
-              variant="glass"
-              size="xl" 
-              className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px] bg-white/20 backdrop-blur-md border-white/30 hover:bg-white/30 text-gray-900 font-semibold shadow-[0_8px_32px_rgba(31,38,135,0.37)]"
-              onClick={handleSearch}
-            >
+            <ModernButton variant="glass" size="xl" className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px] bg-white/20 backdrop-blur-md border-white/30 hover:bg-white/30 text-gray-900 font-semibold shadow-[0_8px_32px_rgba(31,38,135,0.37)]" onClick={handleSearch}>
               <Search className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6 text-gray-900" />
               <span className="text-sm sm:text-base">Contratar Servicios</span>
             </ModernButton>
-            <ModernButton 
-              variant="glass" 
-              size="xl"
-              className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px] bg-white/20 backdrop-blur-md border-white/30 hover:bg-white/30 text-gray-900 font-semibold shadow-[0_8px_32px_rgba(31,38,135,0.37)]"
-            >
+            <ModernButton variant="glass" size="xl" className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px] bg-white/20 backdrop-blur-md border-white/30 hover:bg-white/30 text-gray-900 font-semibold shadow-[0_8px_32px_rgba(31,38,135,0.37)]">
               <span className="text-sm sm:text-base">Ofrecer Servicios</span>
             </ModernButton>
           </div>
@@ -96,8 +77,6 @@ const Hero = () => {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default Hero;
