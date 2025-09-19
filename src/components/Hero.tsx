@@ -37,17 +37,15 @@ const Hero = () => {
           </div>
 
           {/* Search Bar */}
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-6 sm:p-8 shadow-[0_8px_32px_rgba(31,38,135,0.37)] max-w-2xl mx-auto">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 sm:h-6 sm:w-6 text-white/70" />
-              <Input
-                placeholder="Arregla cualquier cosa con Chamby!"
-                className="pl-12 sm:pl-14 pr-4 py-3 sm:py-4 text-base sm:text-lg bg-white/20 border-white/30 rounded-2xl focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm placeholder:text-white/70 text-white"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              />
-            </div>
+          <div className="relative max-w-2xl mx-auto">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 sm:h-6 sm:w-6 text-gray-500" />
+            <Input
+              placeholder="Arregla cualquier cosa con Chamby!"
+              className="pl-12 sm:pl-14 pr-4 py-3 sm:py-4 text-base sm:text-lg bg-white/90 border-gray-300 rounded-2xl focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm placeholder:text-gray-500 text-gray-900"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+            />
           </div>
 
           {/* Action Buttons */}
