@@ -22,6 +22,7 @@ export default {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          light: "hsl(var(--primary-light))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -47,6 +48,15 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        /* Chamby.mx Custom Colors */
+        chamby: {
+          green: "hsl(var(--primary))",
+          "green-light": "hsl(var(--primary-light))",
+          silver: "hsl(var(--silver))",
+          "silver-light": "hsl(var(--silver-light))",
+          "off-white": "hsl(var(--off-white))",
+          black: "hsl(var(--deep-black))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -57,6 +67,16 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+      },
+      backgroundImage: {
+        'gradient-subtle': 'var(--gradient-subtle)',
+        'gradient-hero': 'var(--gradient-hero)',
+        'gradient-card': 'var(--gradient-card)',
+      },
+      boxShadow: {
+        'subtle': 'var(--shadow-subtle)',
+        'card': 'var(--shadow-card)',
+        'elevated': 'var(--shadow-elevated)',
       },
       borderRadius: {
         lg: "var(--radius)",
