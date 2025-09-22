@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-import JobCreationForm from '@/components/JobCreationForm';
+import ServiceCreationWizard from '@/components/ServiceCreationWizard';
 import { 
   Plus, 
   Calendar, 
@@ -255,8 +255,8 @@ const TaskerDashboard = () => {
                       Crear Servicio
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-2xl">
-                    <JobCreationForm 
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <ServiceCreationWizard 
                       onSuccess={() => {
                         setShowJobForm(false);
                         refetchJobs();

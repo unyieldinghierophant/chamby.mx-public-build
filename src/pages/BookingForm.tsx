@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useAvailability } from '@/hooks/useAvailability';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Calendar as CalendarIcon, Clock, MapPin, User, Star } from 'lucide-react';
 import { format } from 'date-fns';
@@ -41,6 +42,9 @@ const BookingForm = () => {
   const [duration, setDuration] = useState(1);
   const [address, setAddress] = useState('');
   const [specialInstructions, setSpecialInstructions] = useState('');
+  
+  // Get provider availability
+  const { getAvailableSlots } = useAvailability(job?.provider_id);
 
   useEffect(() => {
     if (jobId) {
@@ -129,10 +133,17 @@ const BookingForm = () => {
     }
   };
 
-  const timeSlots = [
+  const timeSlots = selectedDate ? getAvailableSlots(selectedDate) : [];
+
+  // Fallback time slots if availability system is not ready
+  const fallbackTimeSlots = [
     '08:00', '09:00', '10:00', '11:00', '12:00', '13:00',
     '14:00', '15:00', '16:00', '17:00', '18:00', '19:00'
   ];
+
+  const availableTimeSlots = timeSlots.length > 0 
+    ? timeSlots.filter(slot => !slot.isBooked).map(slot => slot.start)
+    : fallbackTimeSlots;
 
   if (loading) {
     return (
@@ -241,19 +252,22 @@ const BookingForm = () => {
                           <Calendar
                             mode="single"
                             selected={selectedDate}
-                            onSelect={setSelectedDate}
+                            onSelect={(date) => {
+                              setSelectedDate(date);
+                              setSelectedTime(''); // Reset time when date changes
+                            }}
                             disabled={(date) => date < new Date()}
+                            className="p-3 pointer-events-auto"
                             initialFocus
                           />
                         </PopoverContent>
                       </Popover>
                     </div>
 
-                    {/* Time Selection */}
                     <div className="space-y-2">
                       <Label>Hora *</Label>
                       <div className="grid grid-cols-4 gap-2">
-                        {timeSlots.map((time) => (
+                        {availableTimeSlots.map((time) => (
                           <Button
                             key={time}
                             type="button"
@@ -265,6 +279,11 @@ const BookingForm = () => {
                           </Button>
                         ))}
                       </div>
+                      {selectedDate && availableTimeSlots.length === 0 && (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          No hay horarios disponibles para esta fecha. Selecciona otra fecha.
+                        </p>
+                      )}
                     </div>
 
                     {/* Duration */}
