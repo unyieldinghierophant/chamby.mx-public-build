@@ -83,7 +83,6 @@ const JobFeed = () => {
                     <SelectValue placeholder="Todas las categorías" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas las categorías</SelectItem>
                     {JOB_CATEGORIES.map((cat) => (
                       <SelectItem key={cat} value={cat}>
                         {cat}
