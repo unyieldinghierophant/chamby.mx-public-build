@@ -8,7 +8,7 @@ const Header = () => {
   return (
     <header className="absolute top-0 left-0 right-0 z-50 bg-transparent backdrop-blur-sm">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20 md:h-16">
+        <div className="flex items-center justify-between h-20 md:h-16 px-8 md:px-16">
           {/* Logo */}
           <div className="flex-shrink-0">
             <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
@@ -22,13 +22,13 @@ const Header = () => {
           {/* Desktop Buttons */}
           <div className="hidden md:flex items-center space-x-4">
             <ModernButton variant="outline">
-              Become a Tasker
+              Ser Tasker
             </ModernButton>
             <ModernButton variant="glass">
-              Login
+              Iniciar Sesión
             </ModernButton>
             <ModernButton variant="primary">
-              Sign Up
+              Registrarse
             </ModernButton>
           </div>
 
@@ -50,13 +50,13 @@ const Header = () => {
             <div className="px-2 pt-2 pb-3 space-y-1">
               <div className="flex flex-col space-y-2 px-3 pt-2">
                 <ModernButton variant="outline" className="w-full">
-                  Become a Tasker
+                  Ser Tasker
                 </ModernButton>
                 <ModernButton variant="glass" className="w-full">
-                  Login
+                  Iniciar Sesión
                 </ModernButton>
                 <ModernButton variant="primary" className="w-full">
-                  Sign Up
+                  Registrarse
                 </ModernButton>
               </div>
             </div>
