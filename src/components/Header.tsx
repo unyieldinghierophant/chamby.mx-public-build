@@ -2,7 +2,7 @@ import { ModernButton } from "@/components/ui/modern-button";
 import { Button } from "@/components/ui/button";
 import { Menu, X, LogOut, User, Settings, CreditCard, Shield } from "lucide-react";
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   DropdownMenu,
@@ -19,6 +19,7 @@ const Header = () => {
   const { user, signOut } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   
   // Hide tasker-specific links on main customer landing page
   const isCustomerLandingPage = location.pathname === '/';
@@ -35,9 +36,12 @@ const Header = () => {
         <div className="flex items-center justify-between h-20 md:h-16 px-8 md:px-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+            <button 
+              onClick={() => navigate('/')}
+              className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent hover:opacity-80 transition-opacity cursor-pointer"
+            >
               Chamby.mx
-            </h1>
+            </button>
           </div>
 
           {/* Spacer for desktop */}
