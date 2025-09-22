@@ -20,14 +20,10 @@ const Index = () => {
     // Redirect users based on their role and verification status
     if (user && profile && role) {
       if (role === 'provider') {
-        // Provider users go to tasker dashboard if verified, onboarding if not
-        if (profile.is_tasker && profile.verification_status === 'verified') {
-          navigate('/tasker-dashboard');
-        } else if (profile.is_tasker) {
-          navigate('/tasker-onboarding');
-        }
+        // Provider users go to provider dashboard
+        navigate('/provider-dashboard');
       }
-      // Client users stay on the main page
+      // Client users stay on the main page to browse jobs
     }
   }, [user, profile, role, navigate]);
 

@@ -37,9 +37,9 @@ const Auth = () => {
   useEffect(() => {
     if (user && !roleLoading && role) {
       if (role === 'provider') {
-        navigate('/tasker-dashboard');
+        navigate('/provider-dashboard');
       } else if (role === 'client') {
-        navigate('/search');
+        navigate('/jobs');
       }
     }
   }, [user, role, roleLoading, navigate]);

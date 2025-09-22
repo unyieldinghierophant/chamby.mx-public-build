@@ -13,6 +13,8 @@ import Dashboard from "./pages/Dashboard";
 import TaskerDashboard from "./pages/TaskerDashboard";
 import TaskerProfile from "./pages/TaskerProfile";
 import UserProfile from "./pages/UserProfile";
+import JobFeed from "./pages/JobFeed";
+import ProviderDashboard from "./pages/ProviderDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 
@@ -28,8 +30,17 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/search" element={<Search />} />
+            <Route path="/jobs" element={<JobFeed />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/provider" element={<ProviderLanding />} />
+            <Route 
+              path="/provider-dashboard" 
+              element={
+                <ProtectedRoute requireAuth>
+                  <ProviderDashboard />
+                </ProtectedRoute>
+              } 
+            />
             <Route 
               path="/tasker-onboarding" 
               element={

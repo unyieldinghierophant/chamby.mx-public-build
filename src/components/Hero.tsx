@@ -10,9 +10,9 @@ const Hero = () => {
   const navigate = useNavigate();
   const handleSearch = () => {
     if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}&location=${encodeURIComponent(location)}`);
+      navigate(`/jobs?q=${encodeURIComponent(searchQuery)}&location=${encodeURIComponent(location)}`);
     } else {
-      navigate('/search');
+      navigate('/jobs');
     }
   };
   return <section className="relative min-h-screen bg-gradient-main bg-gradient-mesh flex items-center justify-center pt-20">
@@ -47,7 +47,7 @@ const Hero = () => {
               variant="glass" 
               size="xl" 
               className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px] bg-white/20 backdrop-blur-md border-white/30 hover:bg-white/30 text-gray-900 font-semibold shadow-[0_8px_32px_rgba(31,38,135,0.37)]"
-              onClick={() => navigate('/provider')}
+              onClick={() => navigate('/auth')}
             >
               <span className="text-sm sm:text-base">Ofrecer Servicios</span>
             </ModernButton>
