@@ -1,9 +1,10 @@
+import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useVerificationStatus } from "@/hooks/useVerificationStatus";
 import { ModernButton } from "@/components/ui/modern-button";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, User, Settings, CreditCard, Shield } from "lucide-react";
-import { useState } from "react";
+import { Menu, X, LogOut, User, Settings, CreditCard, Shield, Plus } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,10 +14,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import JobListingForm from "@/components/JobListingForm";
+import VerificationOverlay from "@/components/VerificationOverlay";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showJobForm, setShowJobForm] = useState(false);
+  const [showVerificationOverlay, setShowVerificationOverlay] = useState(false);
   const { user, signOut } = useAuth();
+  const { isVerified, loading: verificationLoading } = useVerificationStatus();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -28,6 +35,16 @@ const Header = () => {
     setIsLoggingOut(true);
     await signOut();
     setIsLoggingOut(false);
+  };
+
+  const handleListServices = () => {
+    if (verificationLoading) return;
+    
+    if (isVerified) {
+      setShowJobForm(true);
+    } else {
+      setShowVerificationOverlay(true);
+    }
   };
 
   return (
@@ -58,11 +75,16 @@ const Header = () => {
                         Mi Dashboard
                       </ModernButton>
                     </Link>
-                    <Link to="/tasker-onboarding">
-                      <ModernButton variant="outline" size="sm">
-                        Completar Perfil
-                      </ModernButton>
-                    </Link>
+                    <ModernButton 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleListServices}
+                      disabled={verificationLoading}
+                      className="flex items-center gap-2"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Lista tus Servicios
+                    </ModernButton>
                   </>
                 )}
                 
@@ -185,11 +207,15 @@ const Header = () => {
                             Mi Dashboard
                           </ModernButton>
                         </Link>
-                        <Link to="/tasker-onboarding">
-                          <ModernButton variant="outline" className="w-full">
-                            Completar Perfil
-                          </ModernButton>
-                        </Link>
+                        <ModernButton 
+                          variant="outline" 
+                          className="w-full flex items-center gap-2"
+                          onClick={handleListServices}
+                          disabled={verificationLoading}
+                        >
+                          <Plus className="h-4 w-4" />
+                          Lista tus Servicios
+                        </ModernButton>
                       </>
                     )}
                     
@@ -227,6 +253,24 @@ const Header = () => {
           </div>
         )}
       </div>
+
+      {/* Job Listing Dialog */}
+      <Dialog open={showJobForm} onOpenChange={setShowJobForm}>
+        <DialogContent className="max-w-2xl">
+          <JobListingForm 
+            onClose={() => setShowJobForm(false)}
+            onSuccess={() => {
+              setShowJobForm(false);
+              // Could add a success toast here
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Verification Overlay */}
+      {showVerificationOverlay && (
+        <VerificationOverlay onClose={() => setShowVerificationOverlay(false)} />
+      )}
     </header>
   );
 };

@@ -23,7 +23,7 @@ const ProviderLanding = () => {
   const navigate = useNavigate();
 
   const handleGetStarted = () => {
-    navigate('/auth?role=provider');
+    navigate('/tasker-onboarding');
   };
 
   const valueProps = [
@@ -87,40 +87,46 @@ const ProviderLanding = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-200">
       <Header />
       
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden">
-        {/* Background Icons */}
+        {/* Background Icons - Positioned around the text */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-32 left-16">
-            <div className="w-20 h-20 bg-white/20 backdrop-blur-xl rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.3)] border border-white/30 flex items-center justify-center transform rotate-12 hover:rotate-6 transition-transform duration-300">
-              <Home size={32} className="text-gray-600/60" />
+          <div className="absolute top-16 left-8">
+            <div className="w-20 h-20 bg-white/20 backdrop-blur-xl rounded-2xl shadow-[0_16px_32px_rgba(0,0,0,0.2),inset_0_2px_0_rgba(255,255,255,0.4)] border border-white/40 flex items-center justify-center transform rotate-12 hover:rotate-6 transition-transform duration-300">
+              <Home size={32} className="text-gray-600/50" />
             </div>
           </div>
           
-          <div className="absolute top-40 right-20">
-            <div className="w-16 h-16 bg-white/20 backdrop-blur-xl rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.3)] border border-white/30 flex items-center justify-center transform -rotate-12 hover:rotate-0 transition-transform duration-300">
-              <Wrench size={24} className="text-gray-600/60" />
+          <div className="absolute top-24 right-16">
+            <div className="w-16 h-16 bg-white/20 backdrop-blur-xl rounded-xl shadow-[0_12px_24px_rgba(0,0,0,0.18),inset_0_1px_0_rgba(255,255,255,0.35)] border border-white/35 flex items-center justify-center transform -rotate-12 hover:rotate-0 transition-transform duration-300">
+              <Wrench size={24} className="text-gray-600/50" />
             </div>
           </div>
           
-          <div className="absolute top-1/2 left-8 transform -translate-y-1/2">
-            <div className="w-20 h-20 bg-white/20 backdrop-blur-xl rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.3)] border border-white/30 flex items-center justify-center transform rotate-45 hover:rotate-12 transition-transform duration-300">
-              <Droplets size={28} className="text-gray-600/60" />
+          <div className="absolute top-80 left-4">
+            <div className="w-18 h-18 bg-white/20 backdrop-blur-xl rounded-2xl shadow-[0_14px_28px_rgba(0,0,0,0.19),inset_0_1px_0_rgba(255,255,255,0.38)] border border-white/38 flex items-center justify-center transform rotate-45 hover:rotate-12 transition-transform duration-300">
+              <Droplets size={28} className="text-gray-600/50" />
             </div>
           </div>
           
-          <div className="absolute top-1/2 right-12 transform -translate-y-1/2">
-            <div className="w-24 h-24 bg-white/20 backdrop-blur-xl rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.3)] border border-white/30 flex items-center justify-center transform -rotate-6 hover:rotate-6 transition-transform duration-300">
-              <Truck size={32} className="text-gray-600/60" />
+          <div className="absolute top-96 right-8">
+            <div className="w-24 h-24 bg-white/20 backdrop-blur-xl rounded-2xl shadow-[0_18px_36px_rgba(0,0,0,0.22),inset_0_2px_0_rgba(255,255,255,0.42)] border border-white/42 flex items-center justify-center transform -rotate-6 hover:rotate-6 transition-transform duration-300">
+              <Truck size={32} className="text-gray-600/50" />
             </div>
           </div>
           
-          <div className="absolute bottom-32 left-24">
-            <div className="w-16 h-16 bg-white/20 backdrop-blur-xl rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.3)] border border-white/30 flex items-center justify-center transform rotate-20 hover:rotate-0 transition-transform duration-300">
-              <SprayCan size={24} className="text-gray-600/60" />
+          <div className="absolute bottom-40 left-16">
+            <div className="w-16 h-16 bg-white/20 backdrop-blur-xl rounded-xl shadow-[0_12px_24px_rgba(0,0,0,0.18),inset_0_1px_0_rgba(255,255,255,0.35)] border border-white/35 flex items-center justify-center transform rotate-20 hover:rotate-0 transition-transform duration-300">
+              <SprayCan size={24} className="text-gray-600/50" />
+            </div>
+          </div>
+          
+          <div className="absolute bottom-24 right-20">
+            <div className="w-20 h-20 bg-white/20 backdrop-blur-xl rounded-2xl shadow-[0_16px_32px_rgba(0,0,0,0.2),inset_0_2px_0_rgba(255,255,255,0.4)] border border-white/40 flex items-center justify-center transform -rotate-15 hover:rotate-0 transition-transform duration-300">
+              <Home size={30} className="text-gray-600/50" />
             </div>
           </div>
         </div>
@@ -159,7 +165,7 @@ const ProviderLanding = () => {
                 size="xl" 
                 className="border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-4 text-lg"
               >
-                Ver Testimonios
+                Lista tus Servicios
               </ModernButton>
             </div>
 
