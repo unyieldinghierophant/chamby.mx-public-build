@@ -4,14 +4,14 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const modernButtonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 relative overflow-hidden group",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 relative overflow-hidden group",
   {
     variants: {
       variant: {
-        primary: "bg-gradient-button/80 text-white shadow-floating hover:shadow-[0_16px_50px_-8px_hsl(210_15_50%/0.4),0_0_0_1px_hsl(210_15_80%),inset_0_1px_0_hsl(150_60_55%)] hover:scale-[1.02] active:scale-[0.98] active:shadow-raised before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/25 before:to-transparent before:opacity-0 hover:before:opacity-100 before:transition-opacity transform-gpu backdrop-blur-sm",
-        glass: "bg-white/5 backdrop-blur-glass border border-white/20 text-black shadow-raised hover:shadow-floating hover:bg-white/10 hover:scale-[1.02] active:scale-[0.98] active:shadow-soft transform-gpu",
-        glow: "bg-gradient-button/70 text-white shadow-[0_0_32px_hsl(150_60_45%/0.5),0_16px_40px_-8px_hsl(210_15_50%/0.3),inset_0_1px_0_hsl(150_60_55%)] hover:shadow-[0_0_48px_hsl(150_60_45%/0.7),0_20px_50px_-8px_hsl(210_15_50%/0.4)] hover:scale-[1.02] active:scale-[0.98] transform-gpu backdrop-blur-sm",
-        outline: "border-2 border-primary/30 bg-white/5 backdrop-blur-sm text-black hover:bg-primary/10 hover:text-white shadow-raised hover:shadow-floating hover:scale-[1.02] active:scale-[0.98] active:shadow-soft transform-gpu",
+        primary: "bg-gradient-glass-button backdrop-blur-glass border-[var(--glass-border-foggy)] text-chamby-black shadow-button-3d hover:shadow-button-hover active:shadow-button-active transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200",
+        glass: "bg-gradient-glass-button backdrop-blur-glass border-[var(--glass-border-foggy)] text-chamby-black shadow-button-3d hover:shadow-button-hover active:shadow-button-active transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200",
+        glow: "bg-gradient-glass-button backdrop-blur-glass border-[var(--glass-border-foggy)] text-chamby-black shadow-button-3d hover:shadow-button-hover active:shadow-button-active transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 hover:shadow-glow",
+        outline: "bg-gradient-glass-button backdrop-blur-glass border-[var(--glass-border-foggy)] text-chamby-black shadow-button-3d hover:shadow-button-hover active:shadow-button-active transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200",
       },
       size: {
         default: "h-12 px-6 py-3",
@@ -22,7 +22,7 @@ const modernButtonVariants = cva(
       },
     },
     defaultVariants: {
-      variant: "primary",
+      variant: "glass",
       size: "default",
     },
   }

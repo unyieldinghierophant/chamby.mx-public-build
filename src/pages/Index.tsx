@@ -35,10 +35,18 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <main>
-        <Hero />
-        <Services />
-        <HowItWorks />
-        <Trust />
+        <div className="animate-fade-in">
+          <Hero />
+        </div>
+        <div className="animate-blur-fade" style={{ animationDelay: '0.3s' }}>
+          <Services />
+        </div>
+        <div className="animate-blur-fade" style={{ animationDelay: '0.6s' }}>
+          <HowItWorks />
+        </div>
+        <div className="animate-blur-fade" style={{ animationDelay: '0.9s' }}>
+          <Trust />
+        </div>
       </main>
       <Footer />
     </div>

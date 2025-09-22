@@ -74,6 +74,7 @@ export default {
         'gradient-card': 'var(--gradient-card)',
         'gradient-button': 'var(--gradient-button)',
         'gradient-glass': 'var(--gradient-glass)',
+        'gradient-glass-button': 'var(--gradient-glass-button)',
         'gradient-mesh': 'var(--gradient-mesh)',
       },
       boxShadow: {
@@ -82,6 +83,9 @@ export default {
         'floating': 'var(--shadow-floating)',
         'glow': 'var(--shadow-glow)',
         'inner': 'var(--shadow-inner)',
+        'button-3d': 'var(--shadow-button-3d)',
+        'button-hover': 'var(--shadow-button-hover)',
+        'button-active': 'var(--shadow-button-active)',
       },
       backdropBlur: {
         'glass': 'var(--backdrop-blur)',
@@ -108,10 +112,32 @@ export default {
             height: "0",
           },
         },
+        "fade-in": {
+          "0%": {
+            opacity: "0",
+            transform: "translateY(20px)"
+          },
+          "100%": {
+            opacity: "1",
+            transform: "translateY(0)"
+          }
+        },
+        "blur-fade": {
+          "0%": {
+            opacity: "0",
+            filter: "blur(8px)"
+          },
+          "100%": {
+            opacity: "1",
+            filter: "blur(0px)"
+          }
+        }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "fade-in": "fade-in 0.6s ease-out",
+        "blur-fade": "blur-fade 0.8s ease-out",
       },
     },
   },
