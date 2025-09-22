@@ -75,16 +75,6 @@ const Header = () => {
                         Mi Dashboard
                       </ModernButton>
                     </Link>
-                    <ModernButton 
-                      variant="outline" 
-                      size="sm"
-                      onClick={handleListServices}
-                      disabled={verificationLoading}
-                      className="flex items-center gap-2"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Lista tus Servicios
-                    </ModernButton>
                   </>
                 )}
                 
@@ -207,15 +197,6 @@ const Header = () => {
                             Mi Dashboard
                           </ModernButton>
                         </Link>
-                        <ModernButton 
-                          variant="outline" 
-                          className="w-full flex items-center gap-2"
-                          onClick={handleListServices}
-                          disabled={verificationLoading}
-                        >
-                          <Plus className="h-4 w-4" />
-                          Lista tus Servicios
-                        </ModernButton>
                       </>
                     )}
                     
