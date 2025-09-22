@@ -13,9 +13,11 @@ import Dashboard from "./pages/Dashboard";
 import TaskerDashboard from "./pages/TaskerDashboard";
 import TaskerProfile from "./pages/TaskerProfile";
 import UserProfile from "./pages/UserProfile";
-import JobFeed from "./pages/JobFeed";
+import JobListing from "./pages/JobListing";
 import ProviderDashboard from "./pages/ProviderDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
+import BookingForm from "./pages/BookingForm";
+import BookingSummary from "./pages/BookingSummary";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,9 +32,11 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/search" element={<Search />} />
-            <Route path="/jobs" element={<JobFeed />} />
+            <Route path="/jobs" element={<JobListing />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/provider" element={<ProviderLanding />} />
+            <Route path="/provider-landing" element={<ProviderLanding />} />
+            <Route path="/booking/:jobId" element={<BookingForm />} />
+            <Route path="/booking-summary/:bookingId" element={<BookingSummary />} />
             <Route 
               path="/provider-dashboard" 
               element={

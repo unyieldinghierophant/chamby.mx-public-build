@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
+import { useTaskerJobs } from '@/hooks/useTaskerJobs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import JobCreationForm from '@/components/JobCreationForm';
 import { 
   Plus, 
   Calendar, 
@@ -36,8 +39,10 @@ interface Booking {
 const TaskerDashboard = () => {
   const { user } = useAuth();
   const { profile } = useProfile();
+  const { jobs: taskerJobs, loading: jobsLoading, refetch: refetchJobs } = useTaskerJobs();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showJobForm, setShowJobForm] = useState(false);
   const [earnings, setEarnings] = useState({
     thisMonth: 0,
     total: 0,
@@ -243,10 +248,23 @@ const TaskerDashboard = () => {
                 <h2 className="text-2xl font-semibold text-foreground">
                   Gestión de Trabajos
                 </h2>
-                <Button className="bg-primary hover:bg-primary/90">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Crear Servicio
-                </Button>
+                <Dialog open={showJobForm} onOpenChange={setShowJobForm}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-primary hover:bg-primary/90">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Crear Servicio
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <JobCreationForm 
+                      onSuccess={() => {
+                        setShowJobForm(false);
+                        refetchJobs();
+                      }}
+                      onClose={() => setShowJobForm(false)}
+                    />
+                  </DialogContent>
+                </Dialog>
               </div>
 
               <div className="grid gap-6 lg:grid-cols-2">
