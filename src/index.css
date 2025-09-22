@@ -9,25 +9,25 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* Chamby.mx Design System - Modern Home Services Marketplace */
-    --background: 0 0% 98.5%;
+    --background: 210 20% 96%;
     --foreground: 0 0% 15%;
 
-    --card: 0 0% 100%;
+    --card: 210 25% 98%;
     --card-foreground: 0 0% 15%;
 
-    --popover: 0 0% 100%;
+    --popover: 210 25% 98%;
     --popover-foreground: 0 0% 15%;
 
-    /* Primary Green - Professional & Trustworthy */
-    --primary: 150 60% 35%;
+    /* Primary Deep Aqua - Professional & Modern */
+    --primary: 185 70% 35%;
     --primary-foreground: 0 0% 98%;
-    --primary-light: 150 45% 85%;
+    --primary-light: 185 55% 85%;
 
     /* Secondary Silver/Grey */
-    --secondary: 210 15% 92%;
+    --secondary: 210 20% 88%;
     --secondary-foreground: 0 0% 25%;
 
-    --muted: 210 15% 95%;
+    --muted: 210 18% 92%;
     --muted-foreground: 0 0% 45%;
 
     --accent: 270 45% 88%;
@@ -36,29 +36,29 @@ All colors MUST be HSL.
     --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 210 20% 88%;
-    --input: 210 20% 90%;
-    --ring: 150 60% 35%;
+    --border: 210 25% 85%;
+    --input: 210 25% 87%;
+    --ring: 185 70% 35%;
 
     /* Custom Chamby Colors */
-    --off-white: 0 0% 98.5%;
-    --silver: 210 15% 75%;
-    --silver-light: 210 10% 88%;
+    --off-white: 210 20% 96%;
+    --silver: 210 20% 70%;
+    --silver-light: 210 18% 82%;
     --deep-black: 0 0% 8%;
     
     /* Modern Gradients */
-    --gradient-main: linear-gradient(135deg, hsl(210 15% 98%) 0%, hsl(210 12% 94%) 50%, hsl(200 10% 90%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(150 65% 42%) 0%, hsl(150 70% 35%) 50%, hsl(150 75% 30%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(210 15% 99%) 30%, hsl(210 12% 96%) 100%);
-    --gradient-button: linear-gradient(135deg, hsl(150 60% 45%) 0%, hsl(150 65% 38%) 50%, hsl(150 70% 32%) 100%);
-    --gradient-glass: linear-gradient(145deg, hsl(0 0% 100% / 0.9) 0%, hsl(210 15% 95% / 0.8) 100%);
-    --gradient-mesh: radial-gradient(circle at 20% 80%, hsl(150 60% 45% / 0.3) 0%, transparent 50%), radial-gradient(circle at 80% 20%, hsl(210 15% 85% / 0.4) 0%, transparent 50%);
+    --gradient-main: linear-gradient(135deg, hsl(210 20% 96%) 0%, hsl(210 18% 92%) 50%, hsl(210 15% 88%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(185 75% 42%) 0%, hsl(185 80% 35%) 50%, hsl(185 85% 30%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(210 25% 98%) 0%, hsl(210 20% 96%) 30%, hsl(210 18% 93%) 100%);
+    --gradient-button: linear-gradient(135deg, hsl(185 70% 45%) 0%, hsl(185 75% 38%) 50%, hsl(185 80% 32%) 100%);
+    --gradient-glass: linear-gradient(145deg, hsl(210 25% 98% / 0.9) 0%, hsl(210 20% 92% / 0.8) 100%);
+    --gradient-mesh: radial-gradient(circle at 20% 80%, hsl(185 70% 45% / 0.3) 0%, transparent 50%), radial-gradient(circle at 80% 20%, hsl(210 20% 85% / 0.4) 0%, transparent 50%);
     
     /* Modern Shadows & Glows */
-    --shadow-soft: 0 4px 16px -4px hsl(210 15% 70% / 0.2);
-    --shadow-raised: 0 8px 24px -6px hsl(210 15% 60% / 0.25), 0 0 0 1px hsl(210 15% 85%);
-    --shadow-floating: 0 16px 40px -8px hsl(210 15% 50% / 0.3), 0 0 0 1px hsl(210 15% 80%);
-    --shadow-glow: 0 0 32px hsl(150 60% 45% / 0.4);
+    --shadow-soft: 0 4px 16px -4px hsl(210 20% 65% / 0.25);
+    --shadow-raised: 0 8px 24px -6px hsl(210 20% 55% / 0.3), 0 0 0 1px hsl(210 20% 80%);
+    --shadow-floating: 0 16px 40px -8px hsl(210 20% 45% / 0.35), 0 0 0 1px hsl(210 20% 75%);
+    --shadow-glow: 0 0 32px hsl(185 70% 45% / 0.4);
     --shadow-inner: inset 0 2px 4px hsl(210 15% 75% / 0.2);
     
     /* Glass & Blur Effects */
