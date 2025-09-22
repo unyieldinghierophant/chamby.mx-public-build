@@ -15,27 +15,22 @@ import Header from "@/components/Header";
 import { 
   User, 
   Lock, 
-  Shield, 
-  Bell, 
   CreditCard, 
   Calendar,
-  Building,
-  Wallet,
-  Receipt,
-  Trash2,
   Camera,
   Save,
-  AlertTriangle
+  AlertTriangle,
+  Bell,
+  Trash2
 } from "lucide-react";
 import { useSearchParams, Navigate } from "react-router-dom";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from 'sonner';
 
 const UserProfile = () => {
   const { user } = useAuth();
   const { profile, loading, updateProfile } = useProfile();
   const [searchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'profile';
-  const { toast } = useToast();
   
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -62,24 +57,13 @@ const UserProfile = () => {
     try {
       const result = await updateProfile(formData);
       if (result?.error) {
-        toast({
-          title: "Error",
-          description: "No se pudo actualizar el perfil",
-          variant: "destructive",
-        });
+        toast.error("No se pudo actualizar el perfil");
       } else {
-        toast({
-          title: "Perfil actualizado",
-          description: "Los cambios se guardaron correctamente",
-        });
+        toast.success("Perfil actualizado correctamente");
         setIsEditing(false);
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Ocurrió un error inesperado",
-        variant: "destructive",
-      });
+      toast.error("Ocurrió un error inesperado");
     } finally {
       setIsSaving(false);
     }
@@ -107,58 +91,39 @@ const UserProfile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/20">
+    <div className="min-h-screen bg-gradient-main bg-gradient-mesh">
       <Header />
       
       <main className="pt-24 pb-16">
         <div className="container mx-auto px-4 max-w-4xl">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Mi Cuenta</h1>
+            <h1 className="text-3xl font-bold text-foreground mb-2">Mi Cuenta</h1>
             <p className="text-muted-foreground">Gestiona tu información personal y configuración</p>
           </div>
 
           <Tabs value={activeTab} className="space-y-6">
-            <TabsList className="grid grid-cols-4 lg:grid-cols-9 w-full bg-background/60 backdrop-blur-sm border border-border/50">
+            <TabsList className="grid grid-cols-2 md:grid-cols-4 w-full bg-card/95 backdrop-blur-sm shadow-raised">
               <TabsTrigger value="profile" className="flex items-center gap-2">
                 <User className="w-4 h-4" />
-                <span className="hidden sm:inline">Perfil</span>
+                <span>Perfil</span>
               </TabsTrigger>
               <TabsTrigger value="security" className="flex items-center gap-2">
                 <Lock className="w-4 h-4" />
-                <span className="hidden sm:inline">Seguridad</span>
-              </TabsTrigger>
-              <TabsTrigger value="notifications" className="flex items-center gap-2">
-                <Bell className="w-4 h-4" />
-                <span className="hidden sm:inline">Notificaciones</span>
+                <span>Seguridad</span>
               </TabsTrigger>
               <TabsTrigger value="billing" className="flex items-center gap-2">
                 <CreditCard className="w-4 h-4" />
-                <span className="hidden sm:inline">Facturación</span>
+                <span>Pagos</span>
               </TabsTrigger>
-              <TabsTrigger value="tasks" className="flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
-                <span className="hidden sm:inline">Tareas</span>
-              </TabsTrigger>
-              <TabsTrigger value="business" className="flex items-center gap-2">
-                <Building className="w-4 h-4" />
-                <span className="hidden sm:inline">Negocio</span>
-              </TabsTrigger>
-              <TabsTrigger value="balance" className="flex items-center gap-2">
-                <Wallet className="w-4 h-4" />
-                <span className="hidden sm:inline">Balance</span>
-              </TabsTrigger>
-              <TabsTrigger value="transactions" className="flex items-center gap-2">
-                <Receipt className="w-4 h-4" />
-                <span className="hidden sm:inline">Transacciones</span>
-              </TabsTrigger>
-              <TabsTrigger value="danger" className="flex items-center gap-2 text-destructive">
-                <Trash2 className="w-4 h-4" />
-                <span className="hidden sm:inline">Eliminar</span>
+              <TabsTrigger value="settings" className="flex items-center gap-2">
+                <Bell className="w-4 h-4" />
+                <span>Config</span>
               </TabsTrigger>
             </TabsList>
 
+            {/* Profile Tab */}
             <TabsContent value="profile" className="space-y-6">
-              <Card className="bg-background/60 backdrop-blur-sm border-border/50">
+              <Card className="bg-card/95 backdrop-blur-sm shadow-raised">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <User className="w-5 h-5" />
@@ -170,14 +135,14 @@ const UserProfile = () => {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {/* Avatar Section */}
-                  <div className="flex items-center space-x-4">
-                    <Avatar className="h-20 w-20">
+                  <div className="flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-6">
+                    <Avatar className="h-24 w-24 mx-auto md:mx-0">
                       <AvatarImage src={profile?.avatar_url || ''} />
-                      <AvatarFallback className="text-lg">
+                      <AvatarFallback className="text-xl">
                         {profile?.full_name ? getInitials(profile.full_name) : 'U'}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="space-y-2">
+                    <div className="text-center md:text-left space-y-2">
                       <Button variant="outline" size="sm">
                         <Camera className="w-4 h-4 mr-2" />
                         Cambiar Foto
@@ -191,18 +156,32 @@ const UserProfile = () => {
                   <Separator />
 
                   {/* Form Fields */}
-                  <div className="grid gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="full_name">Nombre Completo</Label>
-                      <Input
-                        id="full_name"
-                        value={formData.full_name}
-                        onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                        disabled={!isEditing}
-                      />
+                  <div className="space-y-4">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="full_name">Nombre Completo</Label>
+                        <Input
+                          id="full_name"
+                          value={formData.full_name}
+                          onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                          disabled={!isEditing}
+                          placeholder="Tu nombre completo"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="phone">Teléfono</Label>
+                        <Input
+                          id="phone"
+                          value={formData.phone}
+                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                          disabled={!isEditing}
+                          placeholder="Tu número de teléfono"
+                        />
+                      </div>
                     </div>
-                    
-                    <div className="grid gap-2">
+
+                    <div className="space-y-2">
                       <Label htmlFor="email">Email</Label>
                       <Input
                         id="email"
@@ -215,38 +194,42 @@ const UserProfile = () => {
                       </p>
                     </div>
                     
-                    <div className="grid gap-2">
-                      <Label htmlFor="phone">Teléfono</Label>
-                      <Input
-                        id="phone"
-                        value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        disabled={!isEditing}
-                      />
-                    </div>
-                    
-                    <div className="grid gap-2">
-                      <Label htmlFor="bio">Biografía</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="bio">Acerca de ti</Label>
                       <Textarea
                         id="bio"
                         value={formData.bio}
                         onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                         disabled={!isEditing}
                         rows={3}
+                        placeholder="Cuéntanos un poco sobre ti..."
                       />
                     </div>
 
                     {profile?.is_tasker && (
-                      <div className="grid gap-2">
-                        <Label>Estado de Verificación</Label>
-                        <Badge variant={profile.verification_status === 'verified' ? 'default' : 'secondary'}>
-                          {profile.verification_status === 'verified' ? 'Verificado' : 'Pendiente'}
-                        </Badge>
+                      <div className="p-4 bg-muted/50 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <Label>Estado de Verificación</Label>
+                            <p className="text-sm text-muted-foreground">
+                              {profile.verification_status === 'verified' 
+                                ? 'Tu cuenta está verificada' 
+                                : 'Verificación pendiente'
+                              }
+                            </p>
+                          </div>
+                          <Badge 
+                            variant={profile.verification_status === 'verified' ? 'default' : 'secondary'}
+                            className="ml-2"
+                          >
+                            {profile.verification_status === 'verified' ? 'Verificado' : 'Pendiente'}
+                          </Badge>
+                        </div>
                       </div>
                     )}
                   </div>
 
-                  <div className="flex justify-end space-x-2">
+                  <div className="flex flex-col md:flex-row justify-end space-y-2 md:space-y-0 md:space-x-2 pt-4">
                     {isEditing ? (
                       <>
                         <Button
@@ -261,16 +244,24 @@ const UserProfile = () => {
                               });
                             }
                           }}
+                          className="w-full md:w-auto"
                         >
                           Cancelar
                         </Button>
-                        <Button onClick={handleSave} disabled={isSaving}>
+                        <Button 
+                          onClick={handleSave} 
+                          disabled={isSaving}
+                          className="w-full md:w-auto"
+                        >
                           <Save className="w-4 h-4 mr-2" />
                           {isSaving ? 'Guardando...' : 'Guardar Cambios'}
                         </Button>
                       </>
                     ) : (
-                      <Button onClick={() => setIsEditing(true)}>
+                      <Button 
+                        onClick={() => setIsEditing(true)}
+                        className="w-full md:w-auto"
+                      >
                         Editar Perfil
                       </Button>
                     )}
@@ -279,11 +270,12 @@ const UserProfile = () => {
               </Card>
             </TabsContent>
 
+            {/* Security Tab */}
             <TabsContent value="security" className="space-y-6">
-              <Card className="bg-background/60 backdrop-blur-sm border-border/50">
+              <Card className="bg-card/95 backdrop-blur-sm shadow-raised">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Shield className="w-5 h-5" />
+                    <Lock className="w-5 h-5" />
                     Seguridad de la Cuenta
                   </CardTitle>
                   <CardDescription>
@@ -296,7 +288,7 @@ const UserProfile = () => {
                       <div>
                         <h4 className="font-medium">Contraseña</h4>
                         <p className="text-sm text-muted-foreground">
-                          Última actualización: hace 30 días
+                          Cambia tu contraseña regularmente por seguridad
                         </p>
                       </div>
                       <Button variant="outline">Cambiar</Button>
@@ -311,138 +303,152 @@ const UserProfile = () => {
                       </div>
                       <Button variant="outline">Configurar</Button>
                     </div>
+
+                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                      <div>
+                        <h4 className="font-medium">Sesiones Activas</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Revisa dónde has iniciado sesión
+                        </p>
+                      </div>
+                      <Button variant="outline">Ver Sesiones</Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             </TabsContent>
 
-            <TabsContent value="notifications" className="space-y-6">
-              <Card className="bg-background/60 backdrop-blur-sm border-border/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Bell className="w-5 h-5" />
-                    Notificaciones
-                  </CardTitle>
-                  <CardDescription>
-                    Configura cómo y cuándo quieres recibir notificaciones
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">Configuración de notificaciones próximamente...</p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
+            {/* Billing Tab */}
             <TabsContent value="billing" className="space-y-6">
-              <Card className="bg-background/60 backdrop-blur-sm border-border/50">
+              <Card className="bg-card/95 backdrop-blur-sm shadow-raised">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <CreditCard className="w-5 h-5" />
-                    Información de Facturación
+                    Métodos de Pago
                   </CardTitle>
                   <CardDescription>
-                    Gestiona tus métodos de pago y facturación
+                    Gestiona tus métodos de pago y historial de transacciones
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">Información de facturación próximamente...</p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="tasks" className="space-y-6">
-              <Card className="bg-background/60 backdrop-blur-sm border-border/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Calendar className="w-5 h-5" />
-                    Cancelar una Tarea
-                  </CardTitle>
-                  <CardDescription>
-                    Cancela tareas programadas si es necesario
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">Gestión de tareas próximamente...</p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="business" className="space-y-6">
-              <Card className="bg-background/60 backdrop-blur-sm border-border/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Building className="w-5 h-5" />
-                    Información del Negocio
-                  </CardTitle>
-                  <CardDescription>
-                    Información fiscal y de empresa (solo para taskers)
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {profile?.is_tasker ? (
-                    <p className="text-muted-foreground">Información del negocio próximamente...</p>
-                  ) : (
-                    <p className="text-muted-foreground">Esta sección es solo para taskers.</p>
+                <CardContent className="space-y-4">
+                  <div className="text-center py-8">
+                    <CreditCard className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium mb-2">No hay métodos de pago</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Agrega una tarjeta o método de pago para comenzar
+                    </p>
+                    <Button>Agregar Método de Pago</Button>
+                  </div>
+                  
+                  {profile?.is_tasker && (
+                    <>
+                      <Separator />
+                      <div className="space-y-4">
+                        <h4 className="font-medium">Información de Facturación</h4>
+                        <div className="grid md:grid-cols-2 gap-4 text-sm">
+                          <div className="p-4 bg-muted/50 rounded-lg">
+                            <p className="font-medium mb-1">Ganancias Este Mes</p>
+                            <p className="text-2xl font-bold text-primary">$0</p>
+                          </div>
+                          <div className="p-4 bg-muted/50 rounded-lg">
+                            <p className="font-medium mb-1">Total Disponible</p>
+                            <p className="text-2xl font-bold text-green-600">$0</p>
+                          </div>
+                        </div>
+                      </div>
+                    </>
                   )}
                 </CardContent>
               </Card>
             </TabsContent>
 
-            <TabsContent value="balance" className="space-y-6">
-              <Card className="bg-background/60 backdrop-blur-sm border-border/50">
+            {/* Settings Tab */}
+            <TabsContent value="settings" className="space-y-6">
+              <Card className="bg-card/95 backdrop-blur-sm shadow-raised">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Wallet className="w-5 h-5" />
-                    Balance de la Cuenta
+                    <Bell className="w-5 h-5" />
+                    Configuración y Notificaciones
                   </CardTitle>
                   <CardDescription>
-                    Revisa tu balance actual y retiros
+                    Personaliza cómo quieres usar la plataforma
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">Balance de cuenta próximamente...</p>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <h4 className="font-medium">Notificaciones por Email</h4>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-3 border rounded-lg">
+                        <div>
+                          <p className="font-medium">Nuevas reservas</p>
+                          <p className="text-sm text-muted-foreground">Cuando alguien reserve tus servicios</p>
+                        </div>
+                        <input type="checkbox" className="rounded" defaultChecked />
+                      </div>
+                      
+                      <div className="flex items-center justify-between p-3 border rounded-lg">
+                        <div>
+                          <p className="font-medium">Recordatorios</p>
+                          <p className="text-sm text-muted-foreground">Recordatorios de citas próximas</p>
+                        </div>
+                        <input type="checkbox" className="rounded" defaultChecked />
+                      </div>
+                      
+                      <div className="flex items-center justify-between p-3 border rounded-lg">
+                        <div>
+                          <p className="font-medium">Promociones</p>
+                          <p className="text-sm text-muted-foreground">Ofertas especiales y novedades</p>
+                        </div>
+                        <input type="checkbox" className="rounded" />
+                      </div>
+                    </div>
+                  </div>
 
-            <TabsContent value="transactions" className="space-y-6">
-              <Card className="bg-background/60 backdrop-blur-sm border-border/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Receipt className="w-5 h-5" />
-                    Historial de Transacciones
-                  </CardTitle>
-                  <CardDescription>
-                    Revisa todas tus transacciones y pagos
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">Historial de transacciones próximamente...</p>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                  <Separator />
 
-            <TabsContent value="danger" className="space-y-6">
-              <Card className="bg-background/60 backdrop-blur-sm border-border/50 border-destructive/20">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-destructive">
-                    <AlertTriangle className="w-5 h-5" />
-                    Zona de Peligro
-                  </CardTitle>
-                  <CardDescription>
-                    Acciones irreversibles para tu cuenta
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="p-4 border border-destructive/20 rounded-lg bg-destructive/5">
-                    <h4 className="font-medium text-destructive mb-2">Eliminar Cuenta</h4>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Esta acción no se puede deshacer. Se eliminarán permanentemente todos tus datos.
-                    </p>
-                    <Button variant="destructive" size="sm">
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Eliminar mi cuenta
-                    </Button>
+                  <div className="space-y-4">
+                    <h4 className="font-medium">Preferencias de Privacidad</h4>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-3 border rounded-lg">
+                        <div>
+                          <p className="font-medium">Perfil público</p>
+                          <p className="text-sm text-muted-foreground">Permite que otros vean tu perfil</p>
+                        </div>
+                        <input type="checkbox" className="rounded" defaultChecked />
+                      </div>
+                      
+                      <div className="flex items-center justify-between p-3 border rounded-lg">
+                        <div>
+                          <p className="font-medium">Mostrar calificaciones</p>
+                          <p className="text-sm text-muted-foreground">Mostrar tus calificaciones públicamente</p>
+                        </div>
+                        <input type="checkbox" className="rounded" defaultChecked />
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Danger Zone */}
+                  <div className="space-y-4">
+                    <h4 className="font-medium text-destructive flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4" />
+                      Zona de Peligro
+                    </h4>
+                    <div className="p-4 border border-destructive/20 rounded-lg bg-destructive/5">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">Eliminar Cuenta</p>
+                          <p className="text-sm text-muted-foreground">
+                            Esta acción no se puede deshacer
+                          </p>
+                        </div>
+                        <Button variant="destructive" size="sm">
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Eliminar
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
