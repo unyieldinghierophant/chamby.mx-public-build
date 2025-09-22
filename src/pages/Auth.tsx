@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Navigate, useSearchParams } from 'react-router-dom';
+import { Navigate, useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserRole } from '@/hooks/useUserRole';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +14,8 @@ import { toast } from 'sonner';
 
 const Auth = () => {
   const { user, signUp, signIn } = useAuth();
+  const { role, loading: roleLoading } = useUserRole();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [searchParams] = useSearchParams();
   const roleParam = searchParams.get('role');
@@ -30,9 +33,27 @@ const Auth = () => {
     email: '', password: '', fullName: '', phone: ''
   });
 
-  // If user is already logged in, redirect to home
-  if (user) {
-    return <Navigate to="/" replace />;
+  // Handle role-based redirects after authentication
+  useEffect(() => {
+    if (user && !roleLoading && role) {
+      if (role === 'provider') {
+        navigate('/tasker-dashboard');
+      } else if (role === 'client') {
+        navigate('/search');
+      }
+    }
+  }, [user, role, roleLoading, navigate]);
+
+  // Show loading while checking user role
+  if (user && roleLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Cargando...</p>
+        </div>
+      </div>
+    );
   }
 
   const handleLogin = async (e: React.FormEvent) => {
