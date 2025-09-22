@@ -22,7 +22,7 @@ const Hero = () => {
           <div className="space-y-6">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-tight">
               Servicios del hogar
-              <span className="text-primary block bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent mx-0 px-px py-[3px]">
+              <span className="text-primary block bg-gradient-to-r from-[hsl(var(--primary-dark))] to-primary bg-clip-text text-transparent mx-0 px-px py-[3px]">
                 confiables y seguros
               </span>
             </h1>
