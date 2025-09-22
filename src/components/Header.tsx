@@ -1,9 +1,18 @@
 import { ModernButton } from "@/components/ui/modern-button";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, User } from "lucide-react";
+import { Menu, X, LogOut, User, Settings, CreditCard, Shield } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -38,19 +47,11 @@ const Header = () => {
           <div className="hidden md:flex items-center space-x-4">
             {user ? (
               <div className="flex items-center space-x-4">
-                <span className="text-sm font-medium text-primary">
-                  {user.user_metadata?.full_name || user.email}
-                </span>
                 {user.user_metadata?.is_tasker && !isCustomerLandingPage && (
                   <>
                     <Link to="/tasker-dashboard">
                       <ModernButton variant="outline" size="sm">
                         Mi Dashboard
-                      </ModernButton>
-                    </Link>
-                    <Link to="/tasker-profile">
-                      <ModernButton variant="outline" size="sm">
-                        Mi Perfil
                       </ModernButton>
                     </Link>
                     <Link to="/tasker-onboarding">
@@ -60,15 +61,59 @@ const Header = () => {
                     </Link>
                   </>
                 )}
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleSignOut}
-                  disabled={isLoggingOut}
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  {isLoggingOut ? 'Saliendo...' : 'Salir'}
-                </Button>
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="glass" size="sm" className="flex items-center space-x-2">
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage src={user.user_metadata?.avatar_url} />
+                        <AvatarFallback className="text-xs">
+                          {(user.user_metadata?.full_name || user.email || "U").charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm font-medium">
+                        {user.user_metadata?.full_name || user.email}
+                      </span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56 bg-background/95 backdrop-blur-md border-border/50">
+                    <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/profile" className="flex items-center">
+                        <User className="w-4 h-4 mr-2" />
+                        Ver Perfil
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/profile?tab=security" className="flex items-center">
+                        <Shield className="w-4 h-4 mr-2" />
+                        Seguridad
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/profile?tab=billing" className="flex items-center">
+                        <CreditCard className="w-4 h-4 mr-2" />
+                        Facturación
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/profile?tab=settings" className="flex items-center">
+                        <Settings className="w-4 h-4 mr-2" />
+                        Configuración
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={handleSignOut}
+                      disabled={isLoggingOut}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      {isLoggingOut ? 'Saliendo...' : 'Cerrar Sesión'}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             ) : (
               <>
@@ -110,21 +155,30 @@ const Header = () => {
               <div className="flex flex-col space-y-2 px-3 pt-2">
                 {user ? (
                   <>
-                    <div className="text-center py-2">
+                    <div className="flex items-center justify-center py-2 space-x-2">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={user.user_metadata?.avatar_url} />
+                        <AvatarFallback>
+                          {(user.user_metadata?.full_name || user.email || "U").charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
                       <span className="text-sm font-medium text-primary">
                         {user.user_metadata?.full_name || user.email}
                       </span>
                     </div>
+                    
+                    <Link to="/profile">
+                      <ModernButton variant="outline" className="w-full">
+                        <User className="w-4 h-4 mr-2" />
+                        Ver Perfil
+                      </ModernButton>
+                    </Link>
+                    
                     {user.user_metadata?.is_tasker && !isCustomerLandingPage && (
                       <>
                         <Link to="/tasker-dashboard">
                           <ModernButton variant="outline" className="w-full">
                             Mi Dashboard
-                          </ModernButton>
-                        </Link>
-                        <Link to="/tasker-profile">
-                          <ModernButton variant="outline" className="w-full">
-                            Mi Perfil
                           </ModernButton>
                         </Link>
                         <Link to="/tasker-onboarding">
@@ -134,6 +188,7 @@ const Header = () => {
                         </Link>
                       </>
                     )}
+                    
                     <Button 
                       variant="outline" 
                       className="w-full"
@@ -141,7 +196,7 @@ const Header = () => {
                       disabled={isLoggingOut}
                     >
                       <LogOut className="w-4 h-4 mr-2" />
-                      {isLoggingOut ? 'Saliendo...' : 'Salir'}
+                      {isLoggingOut ? 'Saliendo...' : 'Cerrar Sesión'}
                     </Button>
                   </>
                 ) : (
