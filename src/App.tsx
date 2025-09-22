@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Search from "./pages/Search";
 import Auth from "./pages/Auth";
+import ProviderLanding from "./pages/ProviderLanding";
 import TaskerOnboarding from "./pages/TaskerOnboarding";
 import Dashboard from "./pages/Dashboard";
 import TaskerDashboard from "./pages/TaskerDashboard";
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/search" element={<Search />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/provider" element={<ProviderLanding />} />
             <Route 
               path="/tasker-onboarding" 
               element={
