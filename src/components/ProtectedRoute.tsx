@@ -29,8 +29,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/auth" replace />;
   }
 
-  if (requireTasker && (!user || !user.user_metadata?.is_tasker)) {
-    return <Navigate to="/" replace />;
+  // For tasker routes, we'll let the component handle the verification
+  // to avoid inconsistencies with profile loading
+  if (requireTasker && !user) {
+    return <Navigate to="/auth" replace />;
   }
 
   return <>{children}</>;

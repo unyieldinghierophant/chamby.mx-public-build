@@ -119,10 +119,17 @@ const TaskerOnboarding = () => {
     }
   };
 
-  // Redirect if not authenticated or not a tasker
+  // Redirect if not authenticated
   if (loading) return <div>Cargando...</div>;
   if (!user) return <Navigate to="/auth" replace />;
-  if (profile && !profile.is_tasker) return <Navigate to="/" replace />;
+  
+  // Check if user is a tasker from user_metadata first, then from profile
+  const isTasker = user.user_metadata?.is_tasker || profile?.is_tasker;
+  
+  // Only redirect if we have profile data and user is definitely not a tasker
+  if (profile && !isTasker && !user.user_metadata?.is_tasker) {
+    return <Navigate to="/" replace />;
+  }
 
   const handleFileSelect = (docType: string, file: File) => {
     setDocuments(prev => prev.map(doc => 
