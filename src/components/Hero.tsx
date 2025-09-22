@@ -1,13 +1,15 @@
 import { ModernButton } from "@/components/ui/modern-button";
 import { Input } from "@/components/ui/input";
-import { Search, Shield, Star, MapPin } from "lucide-react";
+import { Search, Shield, Star, MapPin, Home, Wrench, Droplets, Truck, SprayCan } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import heroImage from "@/assets/hero-services.jpg";
+
 const Hero = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [location, setLocation] = useState("");
   const navigate = useNavigate();
+  
   const handleSearch = () => {
     if (searchQuery.trim()) {
       navigate(`/jobs?q=${encodeURIComponent(searchQuery)}&location=${encodeURIComponent(location)}`);
@@ -15,8 +17,53 @@ const Hero = () => {
       navigate('/jobs');
     }
   };
-  return <section className="relative min-h-screen bg-gradient-main bg-gradient-mesh flex items-center justify-center pt-20">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-20">
+  
+  return (
+    <section className="relative min-h-screen bg-gradient-main bg-gradient-mesh flex items-center justify-center pt-20 overflow-hidden">
+      {/* Embossed Background Icons */}
+      <div className="absolute inset-0 pointer-events-none">
+        {/* House Icon */}
+        <div className="absolute top-1/4 left-1/4 transform -translate-x-1/2 -translate-y-1/2">
+          <Home 
+            size={120} 
+            className="text-muted-foreground opacity-20 blur-[0.5px] shadow-[inset_-4px_-4px_8px_rgba(255,255,255,0.3),inset_4px_4px_8px_rgba(0,0,0,0.1)] rounded-full p-6 bg-gradient-to-br from-background/30 to-background/10" 
+          />
+        </div>
+        
+        {/* Wrench Icon */}
+        <div className="absolute top-1/3 right-1/4 transform translate-x-1/2 -translate-y-1/2">
+          <Wrench 
+            size={100} 
+            className="text-muted-foreground opacity-25 blur-[0.5px] shadow-[inset_-4px_-4px_8px_rgba(255,255,255,0.3),inset_4px_4px_8px_rgba(0,0,0,0.1)] rounded-full p-5 bg-gradient-to-br from-background/30 to-background/10" 
+          />
+        </div>
+        
+        {/* Droplets Icon */}
+        <div className="absolute bottom-1/3 left-1/5 transform -translate-x-1/2 translate-y-1/2">
+          <Droplets 
+            size={90} 
+            className="text-muted-foreground opacity-30 blur-[0.5px] shadow-[inset_-4px_-4px_8px_rgba(255,255,255,0.3),inset_4px_4px_8px_rgba(0,0,0,0.1)] rounded-full p-4 bg-gradient-to-br from-background/30 to-background/10" 
+          />
+        </div>
+        
+        {/* Truck Icon */}
+        <div className="absolute top-2/3 right-1/5 transform translate-x-1/2 translate-y-1/2">
+          <Truck 
+            size={110} 
+            className="text-muted-foreground opacity-20 blur-[0.5px] shadow-[inset_-4px_-4px_8px_rgba(255,255,255,0.3),inset_4px_4px_8px_rgba(0,0,0,0.1)] rounded-full p-5 bg-gradient-to-br from-background/30 to-background/10" 
+          />
+        </div>
+        
+        {/* SprayCan Icon */}
+        <div className="absolute bottom-1/4 right-1/3 transform translate-x-1/2 translate-y-1/2">
+          <SprayCan 
+            size={85} 
+            className="text-muted-foreground opacity-25 blur-[0.5px] shadow-[inset_-4px_-4px_8px_rgba(255,255,255,0.3),inset_4px_4px_8px_rgba(0,0,0,0.1)] rounded-full p-4 bg-gradient-to-br from-background/30 to-background/10" 
+          />
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-20 relative z-10">
         <div className="max-w-4xl mx-auto text-center space-y-12">
           {/* Main Heading */}
           <div className="space-y-6">
@@ -82,6 +129,8 @@ const Hero = () => {
           </div>
         </div>
       </div>
-    </section>;
+    </section>
+  );
 };
+
 export default Hero;
