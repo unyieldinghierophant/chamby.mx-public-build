@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useVerificationStatus } from "@/hooks/useVerificationStatus";
 import { ModernButton } from "@/components/ui/modern-button";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, User, Settings, CreditCard, Shield, Plus } from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Menu, X, LogOut, User, Settings, CreditCard, Shield } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,22 +13,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import JobListingForm from "@/components/JobListingForm";
-import VerificationOverlay from "@/components/VerificationOverlay";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [showJobForm, setShowJobForm] = useState(false);
-  const [showVerificationOverlay, setShowVerificationOverlay] = useState(false);
   const { user, signOut } = useAuth();
-  const { isVerified, loading: verificationLoading } = useVerificationStatus();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const location = useLocation();
   const navigate = useNavigate();
-  
-  // Hide tasker-specific links on main customer landing page
-  const isCustomerLandingPage = location.pathname === '/';
 
   const handleSignOut = async () => {
     setIsLoggingOut(true);
@@ -37,15 +26,7 @@ const Header = () => {
     setIsLoggingOut(false);
   };
 
-  const handleListServices = () => {
-    if (verificationLoading) return;
-    
-    if (isVerified) {
-      setShowJobForm(true);
-    } else {
-      setShowVerificationOverlay(true);
-    }
-  };
+  const isTasker = user?.user_metadata?.is_tasker;
 
   return (
     <header className="absolute top-0 left-0 right-0 z-50 bg-transparent backdrop-blur-sm">
@@ -64,20 +45,20 @@ const Header = () => {
           {/* Spacer for desktop */}
           <div className="hidden md:block flex-1"></div>
 
-          {/* Desktop Buttons */}
+          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
             {user ? (
               <div className="flex items-center space-x-4">
-                {user.user_metadata?.is_tasker && !isCustomerLandingPage && (
-                  <>
-                    <Link to="/tasker-dashboard">
-                      <ModernButton variant="outline" size="sm">
-                        Mi Dashboard
-                      </ModernButton>
-                    </Link>
-                  </>
+                {/* Dashboard Link for Taskers */}
+                {isTasker && (
+                  <Link to="/tasker-dashboard">
+                    <ModernButton variant="outline" size="sm">
+                      Mi Dashboard
+                    </ModernButton>
+                  </Link>
                 )}
                 
+                {/* Profile Dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="glass" size="sm" className="flex items-center space-x-2">
@@ -132,8 +113,9 @@ const Header = () => {
                 </DropdownMenu>
               </div>
             ) : (
+              /* Not logged in - show auth buttons */
               <>
-                <Link to="/auth">
+                <Link to="/provider-landing">
                   <ModernButton variant="outline">
                     Ser Tasker
                   </ModernButton>
@@ -171,6 +153,7 @@ const Header = () => {
               <div className="flex flex-col space-y-2 px-3 pt-2">
                 {user ? (
                   <>
+                    {/* User info */}
                     <div className="flex items-center justify-center py-2 space-x-2">
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={user.user_metadata?.avatar_url} />
@@ -183,6 +166,16 @@ const Header = () => {
                       </span>
                     </div>
                     
+                    {/* Dashboard for taskers */}
+                    {isTasker && (
+                      <Link to="/tasker-dashboard">
+                        <ModernButton variant="outline" className="w-full">
+                          Mi Dashboard
+                        </ModernButton>
+                      </Link>
+                    )}
+                    
+                    {/* Profile link */}
                     <Link to="/profile">
                       <ModernButton variant="outline" className="w-full">
                         <User className="w-4 h-4 mr-2" />
@@ -190,16 +183,7 @@ const Header = () => {
                       </ModernButton>
                     </Link>
                     
-                    {user.user_metadata?.is_tasker && !isCustomerLandingPage && (
-                      <>
-                        <Link to="/tasker-dashboard">
-                          <ModernButton variant="outline" className="w-full">
-                            Mi Dashboard
-                          </ModernButton>
-                        </Link>
-                      </>
-                    )}
-                    
+                    {/* Sign out */}
                     <Button 
                       variant="outline" 
                       className="w-full"
@@ -211,8 +195,9 @@ const Header = () => {
                     </Button>
                   </>
                 ) : (
+                  /* Not logged in - mobile auth buttons */
                   <>
-                    <Link to="/auth">
+                    <Link to="/provider-landing">
                       <ModernButton variant="outline" className="w-full">
                         Ser Tasker
                       </ModernButton>
@@ -234,24 +219,6 @@ const Header = () => {
           </div>
         )}
       </div>
-
-      {/* Job Listing Dialog */}
-      <Dialog open={showJobForm} onOpenChange={setShowJobForm}>
-        <DialogContent className="max-w-2xl">
-          <JobListingForm 
-            onClose={() => setShowJobForm(false)}
-            onSuccess={() => {
-              setShowJobForm(false);
-              // Could add a success toast here
-            }}
-          />
-        </DialogContent>
-      </Dialog>
-
-      {/* Verification Overlay */}
-      {showVerificationOverlay && (
-        <VerificationOverlay onClose={() => setShowVerificationOverlay(false)} />
-      )}
     </header>
   );
 };
