@@ -24,42 +24,37 @@ const Hero = () => {
       <div className="absolute inset-0 pointer-events-none">
         {/* House Icon */}
         <div className="absolute top-1/4 left-1/4 transform -translate-x-1/2 -translate-y-1/2">
-          <Home 
-            size={120} 
-            className="text-muted-foreground opacity-20 blur-[0.5px] shadow-[inset_-4px_-4px_8px_rgba(255,255,255,0.3),inset_4px_4px_8px_rgba(0,0,0,0.1)] rounded-full p-6 bg-gradient-to-br from-background/30 to-background/10" 
-          />
+          <div className="w-24 h-24 bg-white/10 backdrop-blur-xl rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] border border-white/20 flex items-center justify-center">
+            <Home size={40} className="text-white/40" />
+          </div>
         </div>
         
         {/* Wrench Icon */}
         <div className="absolute top-1/3 right-1/4 transform translate-x-1/2 -translate-y-1/2">
-          <Wrench 
-            size={100} 
-            className="text-muted-foreground opacity-25 blur-[0.5px] shadow-[inset_-4px_-4px_8px_rgba(255,255,255,0.3),inset_4px_4px_8px_rgba(0,0,0,0.1)] rounded-full p-5 bg-gradient-to-br from-background/30 to-background/10" 
-          />
+          <div className="w-20 h-20 bg-white/10 backdrop-blur-xl rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] border border-white/20 flex items-center justify-center">
+            <Wrench size={32} className="text-white/40" />
+          </div>
         </div>
         
         {/* Droplets Icon */}
         <div className="absolute bottom-1/3 left-1/5 transform -translate-x-1/2 translate-y-1/2">
-          <Droplets 
-            size={90} 
-            className="text-muted-foreground opacity-30 blur-[0.5px] shadow-[inset_-4px_-4px_8px_rgba(255,255,255,0.3),inset_4px_4px_8px_rgba(0,0,0,0.1)] rounded-full p-4 bg-gradient-to-br from-background/30 to-background/10" 
-          />
+          <div className="w-16 h-16 bg-white/10 backdrop-blur-xl rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] border border-white/20 flex items-center justify-center">
+            <Droplets size={28} className="text-white/40" />
+          </div>
         </div>
         
         {/* Truck Icon */}
         <div className="absolute top-2/3 right-1/5 transform translate-x-1/2 translate-y-1/2">
-          <Truck 
-            size={110} 
-            className="text-muted-foreground opacity-20 blur-[0.5px] shadow-[inset_-4px_-4px_8px_rgba(255,255,255,0.3),inset_4px_4px_8px_rgba(0,0,0,0.1)] rounded-full p-5 bg-gradient-to-br from-background/30 to-background/10" 
-          />
+          <div className="w-24 h-24 bg-white/10 backdrop-blur-xl rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] border border-white/20 flex items-center justify-center">
+            <Truck size={36} className="text-white/40" />
+          </div>
         </div>
         
         {/* SprayCan Icon */}
         <div className="absolute bottom-1/4 right-1/3 transform translate-x-1/2 translate-y-1/2">
-          <SprayCan 
-            size={85} 
-            className="text-muted-foreground opacity-25 blur-[0.5px] shadow-[inset_-4px_-4px_8px_rgba(255,255,255,0.3),inset_4px_4px_8px_rgba(0,0,0,0.1)] rounded-full p-4 bg-gradient-to-br from-background/30 to-background/10" 
-          />
+          <div className="w-16 h-16 bg-white/10 backdrop-blur-xl rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] border border-white/20 flex items-center justify-center">
+            <SprayCan size={24} className="text-white/40" />
+          </div>
         </div>
       </div>
 
