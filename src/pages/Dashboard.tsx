@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle, Clock, XCircle, FileText, Upload } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Clock, XCircle, FileText, Upload, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -152,7 +152,14 @@ const Dashboard = () => {
                 </div>
               )}
 
-              {(profile?.verification_status === 'pending' || profile?.verification_status === 'rejected') && (
+              {profile?.verification_status === 'verified' ? (
+                <Link to="/tasker-profile">
+                  <Button className="w-full">
+                    <User className="w-4 h-4 mr-2" />
+                    Ver Mi Perfil
+                  </Button>
+                </Link>
+              ) : (profile?.verification_status === 'pending' || profile?.verification_status === 'rejected') && (
                 <Link to="/tasker-onboarding">
                   <Button className="w-full">
                     <Upload className="w-4 h-4 mr-2" />

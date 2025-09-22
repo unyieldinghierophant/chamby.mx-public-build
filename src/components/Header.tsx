@@ -44,6 +44,11 @@ const Header = () => {
                         Mi Dashboard
                       </ModernButton>
                     </Link>
+                    <Link to="/tasker-profile">
+                      <ModernButton variant="outline" size="sm">
+                        Mi Perfil
+                      </ModernButton>
+                    </Link>
                     <Link to="/tasker-onboarding">
                       <ModernButton variant="outline" size="sm">
                         Completar Perfil
@@ -111,6 +116,11 @@ const Header = () => {
                         <Link to="/dashboard">
                           <ModernButton variant="outline" className="w-full">
                             Mi Dashboard
+                          </ModernButton>
+                        </Link>
+                        <Link to="/tasker-profile">
+                          <ModernButton variant="outline" className="w-full">
+                            Mi Perfil
                           </ModernButton>
                         </Link>
                         <Link to="/tasker-onboarding">
