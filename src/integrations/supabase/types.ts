@@ -124,6 +124,7 @@ export type Database = {
           file_url: string | null
           id: string
           uploaded_at: string | null
+          verification_status: string | null
         }
         Insert: {
           client_id?: string | null
@@ -131,6 +132,7 @@ export type Database = {
           file_url?: string | null
           id?: string
           uploaded_at?: string | null
+          verification_status?: string | null
         }
         Update: {
           client_id?: string | null
@@ -138,6 +140,7 @@ export type Database = {
           file_url?: string | null
           id?: string
           uploaded_at?: string | null
+          verification_status?: string | null
         }
         Relationships: [
           {
@@ -164,6 +167,7 @@ export type Database = {
           total_reviews: number | null
           updated_at: string
           user_id: string
+          verification_status: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -179,6 +183,7 @@ export type Database = {
           total_reviews?: number | null
           updated_at?: string
           user_id: string
+          verification_status?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -194,6 +199,7 @@ export type Database = {
           total_reviews?: number | null
           updated_at?: string
           user_id?: string
+          verification_status?: string | null
         }
         Relationships: []
       }
