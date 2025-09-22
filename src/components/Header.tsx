@@ -16,33 +16,16 @@ const Header = () => {
             </h1>
           </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <a href="#servicios" className="text-foreground hover:text-primary transition-colors font-medium relative group">
-              Servicios
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-button transition-all duration-300 group-hover:w-full"></span>
-            </a>
-            <a href="#como-funciona" className="text-foreground hover:text-primary transition-colors font-medium relative group">
-              Cómo Funciona
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-button transition-all duration-300 group-hover:w-full"></span>
-            </a>
-            <a href="#seguridad" className="text-foreground hover:text-primary transition-colors font-medium relative group">
-              Seguridad
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-button transition-all duration-300 group-hover:w-full"></span>
-            </a>
-            <a href="#contacto" className="text-foreground hover:text-primary transition-colors font-medium relative group">
-              Contacto
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-button transition-all duration-300 group-hover:w-full"></span>
-            </a>
-          </nav>
-
           {/* Desktop Buttons */}
           <div className="hidden md:flex items-center space-x-4">
+            <ModernButton variant="outline">
+              Become a Tasker
+            </ModernButton>
             <ModernButton variant="glass">
-              Iniciar Sesión
+              Login
             </ModernButton>
             <ModernButton variant="primary">
-              Registrarse
+              Sign Up
             </ModernButton>
           </div>
 
@@ -62,40 +45,15 @@ const Header = () => {
         {isMenuOpen && (
           <div className="md:hidden border-t border-white/10 bg-gradient-glass backdrop-blur-glass shadow-soft rounded-b-2xl mx-4">
             <div className="px-2 pt-2 pb-3 space-y-1">
-              <a
-                href="#servicios"
-                className="block px-3 py-2 text-foreground hover:text-primary transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Servicios
-              </a>
-              <a
-                href="#como-funciona"
-                className="block px-3 py-2 text-foreground hover:text-primary transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Cómo Funciona
-              </a>
-              <a
-                href="#seguridad"
-                className="block px-3 py-2 text-foreground hover:text-primary transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Seguridad
-              </a>
-              <a
-                href="#contacto"
-                className="block px-3 py-2 text-foreground hover:text-primary transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Contacto
-              </a>
               <div className="flex flex-col space-y-2 px-3 pt-2">
+                <ModernButton variant="outline" className="w-full">
+                  Become a Tasker
+                </ModernButton>
                 <ModernButton variant="glass" className="w-full">
-                  Iniciar Sesión
+                  Login
                 </ModernButton>
                 <ModernButton variant="primary" className="w-full">
-                  Registrarse
+                  Sign Up
                 </ModernButton>
               </div>
             </div>
