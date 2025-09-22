@@ -39,7 +39,7 @@ const Header = () => {
                 </span>
                 {user.user_metadata?.is_tasker && (
                   <>
-                    <Link to="/dashboard">
+                    <Link to="/tasker-dashboard">
                       <ModernButton variant="outline" size="sm">
                         Mi Dashboard
                       </ModernButton>
@@ -113,7 +113,7 @@ const Header = () => {
                     </div>
                     {user.user_metadata?.is_tasker && (
                       <>
-                        <Link to="/dashboard">
+                        <Link to="/tasker-dashboard">
                           <ModernButton variant="outline" className="w-full">
                             Mi Dashboard
                           </ModernButton>

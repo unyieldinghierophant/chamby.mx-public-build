@@ -9,6 +9,7 @@ import Search from "./pages/Search";
 import Auth from "./pages/Auth";
 import TaskerOnboarding from "./pages/TaskerOnboarding";
 import Dashboard from "./pages/Dashboard";
+import TaskerDashboard from "./pages/TaskerDashboard";
 import TaskerProfile from "./pages/TaskerProfile";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
@@ -39,6 +40,14 @@ const App = () => (
               element={
                 <ProtectedRoute requireTasker>
                   <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/tasker-dashboard" 
+              element={
+                <ProtectedRoute requireTasker>
+                  <TaskerDashboard />
                 </ProtectedRoute>
               } 
             />
