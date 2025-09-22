@@ -19,41 +19,48 @@ const Hero = () => {
   };
   
   return (
-    <section className="relative min-h-screen bg-gradient-main bg-gradient-mesh flex items-center justify-center pt-20 overflow-hidden">
-      {/* Embossed Background Icons */}
+    <section className="relative min-h-screen bg-gray-100 flex items-center justify-center pt-20 overflow-hidden">
+      {/* 3D Glass Morphic Background Icons */}
       <div className="absolute inset-0 pointer-events-none">
-        {/* House Icon */}
-        <div className="absolute top-1/4 left-1/4 transform -translate-x-1/2 -translate-y-1/2">
-          <div className="w-24 h-24 bg-white/10 backdrop-blur-xl rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] border border-white/20 flex items-center justify-center">
-            <Home size={40} className="text-white/40" />
+        {/* House Icon - Top Left */}
+        <div className="absolute top-32 left-16 transform">
+          <div className="w-20 h-20 bg-white/20 backdrop-blur-xl rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.3)] border border-white/30 flex items-center justify-center transform rotate-12 hover:rotate-6 transition-transform duration-300">
+            <Home size={32} className="text-gray-600/60" />
           </div>
         </div>
         
-        {/* Wrench Icon */}
-        <div className="absolute top-1/3 right-1/4 transform translate-x-1/2 -translate-y-1/2">
-          <div className="w-20 h-20 bg-white/10 backdrop-blur-xl rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] border border-white/20 flex items-center justify-center">
-            <Wrench size={32} className="text-white/40" />
+        {/* Wrench Icon - Top Right */}
+        <div className="absolute top-40 right-20 transform">
+          <div className="w-16 h-16 bg-white/20 backdrop-blur-xl rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.3)] border border-white/30 flex items-center justify-center transform -rotate-12 hover:rotate-0 transition-transform duration-300">
+            <Wrench size={24} className="text-gray-600/60" />
           </div>
         </div>
         
-        {/* Droplets Icon */}
-        <div className="absolute bottom-1/3 left-1/5 transform -translate-x-1/2 translate-y-1/2">
-          <div className="w-16 h-16 bg-white/10 backdrop-blur-xl rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] border border-white/20 flex items-center justify-center">
-            <Droplets size={28} className="text-white/40" />
+        {/* Droplets Icon - Left Side */}
+        <div className="absolute top-1/2 left-8 transform -translate-y-1/2">
+          <div className="w-20 h-20 bg-white/20 backdrop-blur-xl rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.3)] border border-white/30 flex items-center justify-center transform rotate-45 hover:rotate-12 transition-transform duration-300">
+            <Droplets size={28} className="text-gray-600/60" />
           </div>
         </div>
         
-        {/* Truck Icon */}
-        <div className="absolute top-2/3 right-1/5 transform translate-x-1/2 translate-y-1/2">
-          <div className="w-24 h-24 bg-white/10 backdrop-blur-xl rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] border border-white/20 flex items-center justify-center">
-            <Truck size={36} className="text-white/40" />
+        {/* Truck Icon - Right Side */}
+        <div className="absolute top-1/2 right-12 transform -translate-y-1/2">
+          <div className="w-24 h-24 bg-white/20 backdrop-blur-xl rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.3)] border border-white/30 flex items-center justify-center transform -rotate-6 hover:rotate-6 transition-transform duration-300">
+            <Truck size={32} className="text-gray-600/60" />
           </div>
         </div>
         
-        {/* SprayCan Icon */}
-        <div className="absolute bottom-1/4 right-1/3 transform translate-x-1/2 translate-y-1/2">
-          <div className="w-16 h-16 bg-white/10 backdrop-blur-xl rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] border border-white/20 flex items-center justify-center">
-            <SprayCan size={24} className="text-white/40" />
+        {/* SprayCan Icon - Bottom Left */}
+        <div className="absolute bottom-32 left-24 transform">
+          <div className="w-16 h-16 bg-white/20 backdrop-blur-xl rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.3)] border border-white/30 flex items-center justify-center transform rotate-20 hover:rotate-0 transition-transform duration-300">
+            <SprayCan size={24} className="text-gray-600/60" />
+          </div>
+        </div>
+        
+        {/* Additional Icon - Bottom Right */}
+        <div className="absolute bottom-28 right-16 transform">
+          <div className="w-20 h-20 bg-white/20 backdrop-blur-xl rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.3)] border border-white/30 flex items-center justify-center transform -rotate-15 hover:rotate-3 transition-transform duration-300">
+            <Shield size={28} className="text-gray-600/60" />
           </div>
         </div>
       </div>
