@@ -35,7 +35,7 @@ const Header = () => {
           {/* Logo */}
           <div className="flex-shrink-0">
             <button 
-              onClick={() => navigate(isTasker ? '/tasker-dashboard' : '/')}
+              onClick={() => navigate(isTasker ? '/provider-landing' : '/')}
               className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent hover:opacity-80 transition-opacity cursor-pointer"
             >
               Chamby.mx
