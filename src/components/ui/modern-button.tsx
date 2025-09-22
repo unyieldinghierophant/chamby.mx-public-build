@@ -8,10 +8,10 @@ const modernButtonVariants = cva(
   {
     variants: {
       variant: {
-        primary: "bg-gradient-button text-primary-foreground shadow-floating hover:shadow-[0_16px_50px_-8px_hsl(210_15_50%/0.4),0_0_0_1px_hsl(210_15_80%),inset_0_1px_0_hsl(150_60_55%)] hover:scale-[1.02] active:scale-[0.98] active:shadow-raised before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/25 before:to-transparent before:opacity-0 hover:before:opacity-100 before:transition-opacity transform-gpu",
-        glass: "bg-gradient-glass backdrop-blur-glass border border-white/30 text-foreground shadow-raised hover:shadow-floating hover:bg-gradient-to-r hover:from-white/35 hover:to-white/15 hover:scale-[1.02] active:scale-[0.98] active:shadow-soft transform-gpu inset-shadow",
-        glow: "bg-gradient-button text-primary-foreground shadow-[0_0_32px_hsl(150_60_45%/0.5),0_16px_40px_-8px_hsl(210_15_50%/0.3),inset_0_1px_0_hsl(150_60_55%)] hover:shadow-[0_0_48px_hsl(150_60_45%/0.7),0_20px_50px_-8px_hsl(210_15_50%/0.4)] hover:scale-[1.02] active:scale-[0.98] transform-gpu",
-        outline: "border-2 border-primary/30 bg-gradient-card text-primary hover:bg-gradient-button hover:text-primary-foreground shadow-raised hover:shadow-floating hover:scale-[1.02] active:scale-[0.98] active:shadow-soft transform-gpu inset-shadow",
+        primary: "bg-gradient-button/80 text-primary-foreground shadow-floating hover:shadow-[0_16px_50px_-8px_hsl(210_15_50%/0.4),0_0_0_1px_hsl(210_15_80%),inset_0_1px_0_hsl(150_60_55%)] hover:scale-[1.02] active:scale-[0.98] active:shadow-raised before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/25 before:to-transparent before:opacity-0 hover:before:opacity-100 before:transition-opacity transform-gpu backdrop-blur-sm",
+        glass: "bg-white/5 backdrop-blur-glass border border-white/20 text-foreground shadow-raised hover:shadow-floating hover:bg-white/10 hover:scale-[1.02] active:scale-[0.98] active:shadow-soft transform-gpu",
+        glow: "bg-gradient-button/70 text-primary-foreground shadow-[0_0_32px_hsl(150_60_45%/0.5),0_16px_40px_-8px_hsl(210_15_50%/0.3),inset_0_1px_0_hsl(150_60_55%)] hover:shadow-[0_0_48px_hsl(150_60_45%/0.7),0_20px_50px_-8px_hsl(210_15_50%/0.4)] hover:scale-[1.02] active:scale-[0.98] transform-gpu backdrop-blur-sm",
+        outline: "border-2 border-primary/30 bg-white/5 backdrop-blur-sm text-primary hover:bg-primary/10 hover:text-primary shadow-raised hover:shadow-floating hover:scale-[1.02] active:scale-[0.98] active:shadow-soft transform-gpu",
       },
       size: {
         default: "h-12 px-6 py-3",

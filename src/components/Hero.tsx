@@ -22,7 +22,7 @@ const Hero = () => {
           <div className="space-y-6">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-tight">
               Servicios del hogar
-              <span className="text-primary block bg-gradient-to-r from-[hsl(var(--primary-dark))] to-primary bg-clip-text text-transparent mx-0 px-px py-[3px]">
+              <span className="block bg-gradient-to-r from-[hsl(var(--primary-dark))] via-primary to-[hsl(var(--primary-light))] bg-clip-text text-transparent mx-0 px-px py-[3px] drop-shadow-[0_0_20px_hsl(var(--primary)_/_0.5)]" style={{filter: 'drop-shadow(0 0 20px hsl(var(--primary) / 0.3))'}}>
                 confiables y seguros
               </span>
             </h1>
