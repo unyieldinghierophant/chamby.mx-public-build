@@ -2,13 +2,17 @@ import { ModernButton } from "@/components/ui/modern-button";
 import { Button } from "@/components/ui/button";
 import { Menu, X, LogOut, User } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, signOut } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const location = useLocation();
+  
+  // Hide tasker-specific links on main customer landing page
+  const isCustomerLandingPage = location.pathname === '/';
 
   const handleSignOut = async () => {
     setIsLoggingOut(true);
@@ -37,7 +41,7 @@ const Header = () => {
                 <span className="text-sm font-medium text-primary">
                   {user.user_metadata?.full_name || user.email}
                 </span>
-                {user.user_metadata?.is_tasker && (
+                {user.user_metadata?.is_tasker && !isCustomerLandingPage && (
                   <>
                     <Link to="/tasker-dashboard">
                       <ModernButton variant="outline" size="sm">
@@ -111,7 +115,7 @@ const Header = () => {
                         {user.user_metadata?.full_name || user.email}
                       </span>
                     </div>
-                    {user.user_metadata?.is_tasker && (
+                    {user.user_metadata?.is_tasker && !isCustomerLandingPage && (
                       <>
                         <Link to="/tasker-dashboard">
                           <ModernButton variant="outline" className="w-full">
