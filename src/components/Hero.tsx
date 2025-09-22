@@ -43,7 +43,12 @@ const Hero = () => {
               <Search className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6 text-gray-900" />
               <span className="text-sm sm:text-base">Contratar Servicios</span>
             </ModernButton>
-            <ModernButton variant="glass" size="xl" className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px] bg-white/20 backdrop-blur-md border-white/30 hover:bg-white/30 text-gray-900 font-semibold shadow-[0_8px_32px_rgba(31,38,135,0.37)]">
+            <ModernButton 
+              variant="glass" 
+              size="xl" 
+              className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px] bg-white/20 backdrop-blur-md border-white/30 hover:bg-white/30 text-gray-900 font-semibold shadow-[0_8px_32px_rgba(31,38,135,0.37)]"
+              onClick={() => navigate('/auth?role=provider')}
+            >
               <span className="text-sm sm:text-base">Ofrecer Servicios</span>
             </ModernButton>
           </div>

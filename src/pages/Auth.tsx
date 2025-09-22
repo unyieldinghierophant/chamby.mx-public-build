@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Navigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,12 @@ import { toast } from 'sonner';
 const Auth = () => {
   const { user, signUp, signIn } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [searchParams] = useSearchParams();
+  const roleParam = searchParams.get('role');
+  const [activeTab, setActiveTab] = useState(() => {
+    if (roleParam === 'provider') return 'tasker';
+    return 'login';
+  });
   
   // Form states
   const [loginData, setLoginData] = useState({ email: '', password: '' });
@@ -53,7 +59,8 @@ const Auth = () => {
       userSignupData.password,
       userSignupData.fullName,
       userSignupData.phone,
-      false // is not a tasker
+      false, // is not a tasker
+      'client' // role
     );
     
     if (error) {
@@ -74,7 +81,8 @@ const Auth = () => {
       taskerSignupData.password,
       taskerSignupData.fullName,
       taskerSignupData.phone,
-      true // is a tasker
+      true, // is a tasker
+      'provider' // role
     );
     
     if (error) {
@@ -104,7 +112,7 @@ const Auth = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="login" className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="login">Iniciar Sesión</TabsTrigger>
                 <TabsTrigger value="user">

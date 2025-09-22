@@ -6,7 +6,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string, phone?: string, isTasker?: boolean) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName: string, phone?: string, isTasker?: boolean, role?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
@@ -46,7 +46,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string, phone?: string, isTasker?: boolean) => {
+  const signUp = async (email: string, password: string, fullName: string, phone?: string, isTasker?: boolean, role?: string) => {
     const redirectUrl = `${window.location.origin}/`;
     
     const { data, error } = await supabase.auth.signUp({
@@ -57,7 +57,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         data: {
           full_name: fullName,
           phone: phone,
-          is_tasker: isTasker || false
+          is_tasker: isTasker || false,
+          role: role || 'client'
         }
       }
     });
