@@ -138,7 +138,7 @@ const Auth = () => {
     <div className="min-h-screen bg-gradient-main bg-gradient-mesh flex items-center justify-center py-12 px-4">
       <div className="w-full max-w-md">
         <Link 
-          to="/" 
+          to="/user-landing" 
           className="inline-flex items-center text-primary hover:text-primary-dark mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />

@@ -69,7 +69,7 @@ const SearchPage = () => {
         <div className="container mx-auto px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 sm:space-x-4">
-              <Link to="/">
+              <Link to="/user-landing">
                 <ModernButton variant="glass" size="icon">
                   <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
                 </ModernButton>

@@ -117,7 +117,7 @@ const TaskerProfile = () => {
   if (!user) return <Navigate to="/auth" replace />;
   
   const isTasker = user.user_metadata?.is_tasker || profile?.is_tasker;
-  if (profile && !isTasker) return <Navigate to="/" replace />;
+  if (profile && !isTasker) return <Navigate to="/user-landing" replace />;
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

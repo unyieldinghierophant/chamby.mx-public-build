@@ -128,7 +128,7 @@ const TaskerOnboarding = () => {
   
   // Only redirect if we have profile data and user is definitely not a tasker
   if (profile && !isTasker && !user.user_metadata?.is_tasker) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/user-landing" replace />;
   }
 
   const handleFileSelect = (docType: string, file: File) => {
@@ -242,7 +242,7 @@ const TaskerOnboarding = () => {
             <Badge variant="secondary" className="w-full justify-center py-2">
               Estado: Pendiente de Verificación
             </Badge>
-            <Link to="/">
+            <Link to="/user-landing">
               <Button className="w-full">
                 Ir al Inicio
               </Button>
@@ -257,7 +257,7 @@ const TaskerOnboarding = () => {
     <div className="min-h-screen bg-gradient-main bg-gradient-mesh py-12 px-4">
       <div className="max-w-2xl mx-auto">
         <Link 
-          to="/" 
+          to="/user-landing" 
           className="inline-flex items-center text-primary hover:text-primary-dark mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />

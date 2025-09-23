@@ -37,7 +37,7 @@ const Header = () => {
           {/* Logo */}
           <div className="flex-shrink-0">
             <button 
-              onClick={() => navigate(isTasker ? '/tasker-landing' : '/')}
+              onClick={() => navigate(isTasker ? '/tasker-landing' : '/user-landing')}
               className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent hover:opacity-80 transition-opacity cursor-pointer"
             >
               Chamby.mx
@@ -107,7 +107,7 @@ const Header = () => {
                     {(isTasker || role === 'provider') && (
                       <>
                         <DropdownMenuItem asChild>
-                          <Link to="/" className="flex items-center">
+                          <Link to="/user-landing" className="flex items-center">
                             <Users className="w-4 h-4 mr-2" />
                             Vista de Cliente
                           </Link>

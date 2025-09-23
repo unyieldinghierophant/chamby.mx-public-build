@@ -113,7 +113,7 @@ const TaskerVerification = () => {
     <div className="min-h-screen bg-gradient-main bg-gradient-mesh py-12 px-4">
       <div className="max-w-4xl mx-auto">
         <Link 
-          to="/" 
+          to="/user-landing" 
           className="inline-flex items-center text-primary hover:text-primary-dark mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
