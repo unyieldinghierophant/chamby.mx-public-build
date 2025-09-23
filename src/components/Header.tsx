@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserRole } from "@/hooks/useUserRole";
 import { ModernButton } from "@/components/ui/modern-button";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, User, Settings, CreditCard, Shield } from "lucide-react";
+import { Menu, X, LogOut, User, Settings, CreditCard, Shield, Users } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
@@ -17,6 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, signOut } = useAuth();
+  const { role } = useUserRole();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const navigate = useNavigate();
 
@@ -83,24 +85,36 @@ const Header = () => {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link to="/profile?tab=security" className="flex items-center">
+                      <Link to="/profile/security" className="flex items-center">
                         <Shield className="w-4 h-4 mr-2" />
                         Seguridad
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link to="/profile?tab=billing" className="flex items-center">
+                      <Link to="/profile/payments" className="flex items-center">
                         <CreditCard className="w-4 h-4 mr-2" />
                         Facturación
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link to="/profile?tab=settings" className="flex items-center">
+                      <Link to="/profile/general" className="flex items-center">
                         <Settings className="w-4 h-4 mr-2" />
                         Configuración
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
+                    {/* Vista de Usuario para Providers */}
+                    {(isTasker || role === 'provider') && (
+                      <>
+                        <DropdownMenuItem asChild>
+                          <Link to="/" className="flex items-center">
+                            <Users className="w-4 h-4 mr-2" />
+                            Vista de Cliente
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                      </>
+                    )}
                     <DropdownMenuItem 
                       onClick={handleSignOut}
                       disabled={isLoggingOut}

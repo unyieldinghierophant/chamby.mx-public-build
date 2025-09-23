@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,17 +9,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import Header from "@/components/Header";
-import { User, Camera, Save, ArrowLeft } from "lucide-react";
+import { User, Camera, Save, ArrowLeft, Upload, Loader2 } from "lucide-react";
 import { Link, Navigate } from "react-router-dom";
 import { toast } from 'sonner';
+import { supabase } from "@/integrations/supabase/client";
 
 const ProfileSettings = () => {
   const { user } = useAuth();
   const { profile, loading, updateProfile } = useProfile();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
     phone: '',
@@ -52,6 +56,71 @@ const ProfileSettings = () => {
       toast.error("Ocurrió un error inesperado");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Por favor selecciona una imagen válida');
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('La imagen debe ser menor a 2MB');
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+
+    try {
+      // Delete old avatar if exists
+      if (profile?.avatar_url) {
+        const oldPath = profile.avatar_url.split('/').pop();
+        if (oldPath) {
+          await supabase.storage
+            .from('avatars')
+            .remove([`${user.id}/${oldPath}`]);
+        }
+      }
+
+      // Upload new avatar
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // Update profile with new avatar URL
+      const result = await updateProfile({ avatar_url: publicUrl });
+      
+      if (result?.error) {
+        throw new Error('Failed to update profile');
+      }
+
+      toast.success('Foto de perfil actualizada correctamente');
+    } catch (error: any) {
+      console.error('Avatar upload error:', error);
+      toast.error('Error al subir la foto de perfil');
+    } finally {
+      setIsUploadingAvatar(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -104,16 +173,44 @@ const ProfileSettings = () => {
             <CardContent className="space-y-6">
               {/* Avatar Section */}
               <div className="flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-6">
-                <Avatar className="h-24 w-24 mx-auto md:mx-0">
-                  <AvatarImage src={profile?.avatar_url || ''} />
-                  <AvatarFallback className="text-xl">
-                    {profile?.full_name ? getInitials(profile.full_name) : 'U'}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="relative mx-auto md:mx-0">
+                  <Avatar className="h-24 w-24">
+                    <AvatarImage src={profile?.avatar_url || ''} />
+                    <AvatarFallback className="text-xl">
+                      {profile?.full_name ? getInitials(profile.full_name) : 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  {isUploadingAvatar && (
+                    <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                      <Loader2 className="w-6 h-6 text-white animate-spin" />
+                    </div>
+                  )}
+                </div>
                 <div className="text-center md:text-left space-y-2">
-                  <Button variant="outline" size="sm">
-                    <Camera className="w-4 h-4 mr-2" />
-                    Cambiar Foto
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarUpload}
+                    className="hidden"
+                  />
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploadingAvatar}
+                  >
+                    {isUploadingAvatar ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Subiendo...
+                      </>
+                    ) : (
+                      <>
+                        <Camera className="w-4 h-4 mr-2" />
+                        Cambiar Foto
+                      </>
+                    )}
                   </Button>
                   <p className="text-sm text-muted-foreground">
                     JPG, PNG o GIF. Máximo 2MB.
