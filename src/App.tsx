@@ -22,6 +22,10 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import BookingForm from "./pages/BookingForm";
 import BookingSummary from "./pages/BookingSummary";
 import NotFound from "./pages/NotFound";
+import MobileJobs from "./pages/MobileJobs";
+import MobileFavorites from "./pages/MobileFavorites";
+import MobileProfile from "./pages/MobileProfile";
+import ProviderProfile from "./pages/ProviderProfile";
 
 const queryClient = new QueryClient();
 
@@ -121,6 +125,32 @@ const App = () => (
                 </ProtectedRoute>
               } 
             />
+            {/* Mobile-specific routes */}
+            <Route 
+              path="/mobile-jobs" 
+              element={
+                <ProtectedRoute requireAuth>
+                  <MobileJobs />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/mobile-favorites" 
+              element={
+                <ProtectedRoute requireAuth>
+                  <MobileFavorites />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/mobile-profile" 
+              element={
+                <ProtectedRoute requireAuth>
+                  <MobileProfile />
+                </ProtectedRoute>
+              } 
+            />
+            <Route path="/provider/:id" element={<ProviderProfile />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

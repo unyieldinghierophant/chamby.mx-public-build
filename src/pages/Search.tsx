@@ -4,12 +4,22 @@ import { ModernButton } from "@/components/ui/modern-button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Search, MapPin, Star, Clock, Shield, Filter } from "lucide-react";
+import { ArrowLeft, Search, MapPin, Star, Clock, Shield, Filter, Heart, Calendar } from "lucide-react";
 import { Link } from "react-router-dom";
+import MobileBottomNav from "@/components/MobileBottomNav";
 
 const SearchPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [favorites, setFavorites] = useState<number[]>([]);
+
+  const toggleFavorite = (id: number) => {
+    setFavorites(prev => 
+      prev.includes(id) 
+        ? prev.filter(fav => fav !== id)
+        : [...prev, id]
+    );
+  };
 
   const categories = [
     { id: "all", name: "Todos", count: 245 },
@@ -63,7 +73,7 @@ const SearchPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-main">
+    <div className="min-h-screen bg-gradient-main mobile-pb-nav">
       {/* Header */}
       <div className="bg-gradient-glass backdrop-blur-glass border-b border-white/20 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3 sm:py-4">
@@ -238,9 +248,25 @@ const SearchPage = () => {
                           <ModernButton variant="primary" size="default" className="flex-1 text-sm sm:text-base">
                             Ver Perfil & Contratar
                           </ModernButton>
-                          <ModernButton variant="glass" size="default" className="sm:w-auto text-sm sm:text-base">
-                            Mensaje
-                          </ModernButton>
+                          <div className="flex gap-2 sm:gap-3">
+                            <ModernButton variant="glass" size="default" className="sm:w-auto text-sm sm:text-base">
+                              Mensaje
+                            </ModernButton>
+                            {/* Mobile-specific buttons */}
+                            <div className="md:hidden flex gap-2">
+                              <ModernButton 
+                                variant={favorites.includes(pro.id) ? "primary" : "glass"}
+                                size="sm"
+                                onClick={() => toggleFavorite(pro.id)}
+                                className="px-2"
+                              >
+                                <Heart className={`h-4 w-4 ${favorites.includes(pro.id) ? 'fill-current' : ''}`} />
+                              </ModernButton>
+                              <ModernButton variant="outline" size="sm" className="px-2">
+                                <Calendar className="h-4 w-4" />
+                              </ModernButton>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -250,6 +276,10 @@ const SearchPage = () => {
             </div>
           </div>
         </div>
+      </div>
+      {/* Mobile bottom navigation */}
+      <div className="mobile-only">
+        <MobileBottomNav />
       </div>
     </div>
   );

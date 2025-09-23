@@ -9,6 +9,7 @@ import Services from "@/components/Services";
 import HowItWorks from "@/components/HowItWorks";
 import Trust from "@/components/Trust";
 import Footer from "@/components/Footer";
+import MobileBottomNav from "@/components/MobileBottomNav";
 
 const Index = () => {
   const { user } = useAuth();
@@ -28,7 +29,7 @@ const Index = () => {
   }, [user, profile, role, navigate]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background mobile-pb-nav">
       <Header />
       <main>
         <div className="animate-fade-in">
@@ -44,7 +45,14 @@ const Index = () => {
           <Trust />
         </div>
       </main>
-      <Footer />
+      {/* Desktop footer, hide on mobile */}
+      <div className="desktop-only">
+        <Footer />
+      </div>
+      {/* Mobile bottom navigation */}
+      <div className="mobile-only">
+        <MobileBottomNav />
+      </div>
     </div>
   );
 };

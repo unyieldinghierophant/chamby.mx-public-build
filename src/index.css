@@ -142,3 +142,18 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Mobile-specific utilities */
+@layer utilities {
+  .mobile-pb-nav {
+    @apply pb-20 md:pb-0;
+  }
+  
+  .mobile-only {
+    @apply block md:hidden;
+  }
+  
+  .desktop-only {
+    @apply hidden md:block;
+  }
+}
