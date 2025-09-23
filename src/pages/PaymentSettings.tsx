@@ -8,8 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import Header from "@/components/Header";
-import { CreditCard, ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { CreditCard, ArrowLeft, Plus, Trash2, CheckCircle, AlertTriangle } from "lucide-react";
 import { Link, Navigate } from "react-router-dom";
 import { toast } from 'sonner';
 
@@ -21,6 +22,12 @@ interface PaymentMethod {
   expiryMonth?: number;
   expiryYear?: number;
   isDefault: boolean;
+}
+
+interface CardValidation {
+  isValid: boolean;
+  brand: string;
+  errors: string[];
 }
 
 const PaymentSettings = () => {
@@ -35,6 +42,126 @@ const PaymentSettings = () => {
     cvc: '',
     name: ''
   });
+  
+  const [cardValidation, setCardValidation] = useState<CardValidation>({
+    isValid: false,
+    brand: '',
+    errors: []
+  });
+
+  // Card brand detection patterns
+  const cardPatterns = {
+    visa: /^4[0-9]{0,15}$/,
+    mastercard: /^5[1-5][0-9]{0,14}$|^2[2-7][0-9]{0,14}$/,
+    amex: /^3[47][0-9]{0,13}$/,
+    discover: /^6(?:011|5[0-9]{2})[0-9]{0,12}$/,
+    dinersclub: /^3[0689][0-9]{0,11}$/,
+    jcb: /^(?:2131|1800|35\d{3})\d{0,11}$/
+  };
+
+  const cardBrandNames = {
+    visa: 'Visa',
+    mastercard: 'Mastercard',
+    amex: 'American Express',
+    discover: 'Discover',
+    dinersclub: 'Diners Club',
+    jcb: 'JCB'
+  };
+
+  // Luhn algorithm for card number validation
+  const validateCardNumber = (number: string): boolean => {
+    const cleanNumber = number.replace(/\s/g, '');
+    if (!/^\d+$/.test(cleanNumber) || cleanNumber.length < 13 || cleanNumber.length > 19) {
+      return false;
+    }
+    
+    let sum = 0;
+    let isEven = false;
+    
+    for (let i = cleanNumber.length - 1; i >= 0; i--) {
+      let digit = parseInt(cleanNumber[i]);
+      
+      if (isEven) {
+        digit *= 2;
+        if (digit > 9) {
+          digit -= 9;
+        }
+      }
+      
+      sum += digit;
+      isEven = !isEven;
+    }
+    
+    return sum % 10 === 0;
+  };
+
+  // Detect card brand
+  const detectCardBrand = (number: string): string => {
+    const cleanNumber = number.replace(/\s/g, '');
+    
+    for (const [brand, pattern] of Object.entries(cardPatterns)) {
+      if (pattern.test(cleanNumber)) {
+        return brand;
+      }
+    }
+    
+    return '';
+  };
+
+  // Validate entire card form
+  const validateCard = (cardNumber: string, expiryMonth: string, expiryYear: string, cvc: string): CardValidation => {
+    const errors: string[] = [];
+    const cleanNumber = cardNumber.replace(/\s/g, '');
+    const brand = detectCardBrand(cardNumber);
+    
+    // Card number validation
+    if (!cleanNumber) {
+      errors.push('Número de tarjeta requerido');
+    } else if (!validateCardNumber(cleanNumber)) {
+      errors.push('Número de tarjeta inválido');
+    }
+    
+    // Expiry validation
+    if (!expiryMonth || !expiryYear) {
+      errors.push('Fecha de expiración requerida');
+    } else {
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear();
+      const currentMonth = currentDate.getMonth() + 1;
+      const expYear = parseInt(expiryYear);
+      const expMonth = parseInt(expiryMonth);
+      
+      if (expYear < currentYear || (expYear === currentYear && expMonth < currentMonth)) {
+        errors.push('La tarjeta ha expirado');
+      }
+    }
+    
+    // CVC validation
+    if (!cvc) {
+      errors.push('CVC requerido');
+    } else {
+      const expectedLength = brand === 'amex' ? 4 : 3;
+      if (cvc.length !== expectedLength) {
+        errors.push(`CVC debe tener ${expectedLength} dígitos`);
+      }
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      brand,
+      errors
+    };
+  };
+
+  // Update validation when form changes
+  useEffect(() => {
+    if (cardForm.cardNumber || cardForm.expiryMonth || cardForm.expiryYear || cardForm.cvc) {
+      const validation = validateCard(cardForm.cardNumber, cardForm.expiryMonth, cardForm.expiryYear, cardForm.cvc);
+      setCardValidation(validation);
+    } else {
+      setCardValidation({ isValid: false, brand: '', errors: [] });
+    }
+  }, [cardForm]);
 
   if (loading) {
     return (
@@ -89,19 +216,35 @@ const PaymentSettings = () => {
 
   const formatCardNumber = (value: string) => {
     const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-    const matches = v.match(/\d{4,16}/g);
-    const match = matches && matches[0] || '';
-    const parts = [];
-
-    for (let i = 0, len = match.length; i < len; i += 4) {
-      parts.push(match.substring(i, i + 4));
+    const brand = detectCardBrand(v);
+    
+    // American Express uses 4-6-5 format
+    if (brand === 'amex') {
+      const matches = v.match(/^(\d{0,4})(\d{0,6})(\d{0,5})$/);
+      if (matches) {
+        return [matches[1], matches[2], matches[3]].filter(Boolean).join(' ');
+      }
     }
-
-    if (parts.length) {
-      return parts.join(' ');
-    } else {
-      return v;
+    
+    // Standard 4-4-4-4 format for other cards
+    const matches = v.match(/\d{1,4}/g);
+    if (matches) {
+      return matches.join(' ');
     }
+    
+    return v;
+  };
+
+  const getCardIcon = (brand: string) => {
+    const icons = {
+      visa: '💳',
+      mastercard: '💳',
+      amex: '💳',
+      discover: '💳',
+      dinersclub: '💳',
+      jcb: '💳'
+    };
+    return icons[brand as keyof typeof icons] || '💳';
   };
 
   return (
@@ -197,13 +340,36 @@ const PaymentSettings = () => {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="card-number">Número de tarjeta</Label>
-                        <Input
-                          id="card-number"
-                          value={cardForm.cardNumber}
-                          onChange={(e) => setCardForm({...cardForm, cardNumber: formatCardNumber(e.target.value)})}
-                          placeholder="1234 5678 9012 3456"
-                          maxLength={19}
-                        />
+                        <div className="relative">
+                          <Input
+                            id="card-number"
+                            value={cardForm.cardNumber}
+                            onChange={(e) => setCardForm({...cardForm, cardNumber: formatCardNumber(e.target.value)})}
+                            placeholder="1234 5678 9012 3456"
+                            maxLength={cardValidation.brand === 'amex' ? 17 : 19}
+                            className={`pr-12 ${cardValidation.brand && cardForm.cardNumber ? 'border-green-500' : ''}`}
+                          />
+                          {cardValidation.brand && (
+                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+                              <span className="text-xs font-medium text-muted-foreground">
+                                {cardBrandNames[cardValidation.brand as keyof typeof cardBrandNames]}
+                              </span>
+                              <span>{getCardIcon(cardValidation.brand)}</span>
+                            </div>
+                          )}
+                        </div>
+                        {cardForm.cardNumber && !validateCardNumber(cardForm.cardNumber) && (
+                          <p className="text-sm text-destructive flex items-center gap-1">
+                            <AlertTriangle className="w-3 h-3" />
+                            Número de tarjeta inválido
+                          </p>
+                        )}
+                        {cardForm.cardNumber && validateCardNumber(cardForm.cardNumber) && (
+                          <p className="text-sm text-green-600 flex items-center gap-1">
+                            <CheckCircle className="w-3 h-3" />
+                            Número válido
+                          </p>
+                        )}
                       </div>
                       <div className="grid grid-cols-3 gap-3">
                         <div className="space-y-2">
@@ -247,17 +413,48 @@ const PaymentSettings = () => {
                           <Input
                             id="cvc"
                             value={cardForm.cvc}
-                            onChange={(e) => setCardForm({...cardForm, cvc: e.target.value.replace(/\D/g, '').slice(0, 4)})}
-                            placeholder="123"
-                            maxLength={4}
+                            onChange={(e) => {
+                              const maxLength = cardValidation.brand === 'amex' ? 4 : 3;
+                              setCardForm({...cardForm, cvc: e.target.value.replace(/\D/g, '').slice(0, maxLength)});
+                            }}
+                            placeholder={cardValidation.brand === 'amex' ? '1234' : '123'}
+                            maxLength={cardValidation.brand === 'amex' ? 4 : 3}
+                            className={cardForm.cvc && cardForm.cvc.length === (cardValidation.brand === 'amex' ? 4 : 3) ? 'border-green-500' : ''}
                           />
+                          <p className="text-xs text-muted-foreground">
+                            {cardValidation.brand === 'amex' ? '4 dígitos en el frente' : '3 dígitos en el reverso'}
+                          </p>
                         </div>
                       </div>
                     </div>
+                    
+                    {/* Validation Summary */}
+                    {cardValidation.errors.length > 0 && (
+                      <Alert variant="destructive">
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertDescription>
+                          <ul className="list-disc list-inside space-y-1">
+                            {cardValidation.errors.map((error, index) => (
+                              <li key={index}>{error}</li>
+                            ))}
+                          </ul>
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                    
+                    {cardValidation.isValid && (
+                      <Alert>
+                        <CheckCircle className="h-4 w-4" />
+                        <AlertDescription>
+                          ✅ Tarjeta {cardBrandNames[cardValidation.brand as keyof typeof cardBrandNames]} válida y lista para agregar
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                    
                     <DialogFooter>
                       <Button
                         onClick={handleAddCard}
-                        disabled={isAddingCard || !cardForm.cardNumber || !cardForm.name || !cardForm.expiryMonth || !cardForm.expiryYear || !cardForm.cvc}
+                        disabled={isAddingCard || !cardValidation.isValid || !cardForm.name}
                       >
                         {isAddingCard ? "Agregando..." : "Agregar Tarjeta"}
                       </Button>
