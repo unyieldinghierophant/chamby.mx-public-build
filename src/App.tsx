@@ -13,6 +13,10 @@ import Dashboard from "./pages/Dashboard";
 import TaskerDashboard from "./pages/TaskerDashboard";
 import TaskerProfile from "./pages/TaskerProfile";
 import UserProfile from "./pages/UserProfile";
+import ProfileSettings from "./pages/ProfileSettings";
+import SecuritySettings from "./pages/SecuritySettings";
+import PaymentSettings from "./pages/PaymentSettings";
+import GeneralSettings from "./pages/GeneralSettings";
 import JobListing from "./pages/JobListing";
 import ProviderDashboard from "./pages/ProviderDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -82,6 +86,38 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <UserProfile />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/profile/settings" 
+              element={
+                <ProtectedRoute>
+                  <ProfileSettings />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/profile/security" 
+              element={
+                <ProtectedRoute>
+                  <SecuritySettings />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/profile/payments" 
+              element={
+                <ProtectedRoute>
+                  <PaymentSettings />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/profile/general" 
+              element={
+                <ProtectedRoute>
+                  <GeneralSettings />
                 </ProtectedRoute>
               } 
             />
