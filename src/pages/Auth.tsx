@@ -41,7 +41,7 @@ const Auth = () => {
       if (role === 'provider') {
         navigate('/provider-dashboard');
       } else if (role === 'client') {
-        navigate('/jobs');
+        navigate('/search');
       }
     }
   }, [user, role, roleLoading, navigate]);

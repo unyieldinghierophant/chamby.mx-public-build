@@ -9,7 +9,7 @@ import Search from "./pages/Search";
 import Auth from "./pages/Auth";
 import ProviderLanding from "./pages/ProviderLanding";
 import TaskerOnboarding from "./pages/TaskerOnboarding";
-import Dashboard from "./pages/Dashboard";
+import TaskerVerification from "./pages/TaskerVerification";
 import TaskerDashboard from "./pages/TaskerDashboard";
 import TaskerProfile from "./pages/TaskerProfile";
 import UserProfile from "./pages/UserProfile";
@@ -17,7 +17,6 @@ import ProfileSettings from "./pages/ProfileSettings";
 import SecuritySettings from "./pages/SecuritySettings";
 import PaymentSettings from "./pages/PaymentSettings";
 import GeneralSettings from "./pages/GeneralSettings";
-import JobListing from "./pages/JobListing";
 import ProviderDashboard from "./pages/ProviderDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import BookingForm from "./pages/BookingForm";
@@ -36,7 +35,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/search" element={<Search />} />
-            <Route path="/jobs" element={<JobListing />} />
+            <Route path="/jobs" element={<Search />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/provider-landing" element={<ProviderLanding />} />
             <Route path="/booking/:jobId" element={<BookingForm />} />
@@ -58,10 +57,10 @@ const App = () => (
               } 
             />
             <Route 
-              path="/dashboard" 
+              path="/taskerverification" 
               element={
                 <ProtectedRoute requireTasker>
-                  <Dashboard />
+                  <TaskerVerification />
                 </ProtectedRoute>
               } 
             />

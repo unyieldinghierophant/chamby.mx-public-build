@@ -214,11 +214,11 @@ const TaskerProfile = () => {
     <div className="min-h-screen bg-gradient-main bg-gradient-mesh py-12 px-4">
       <div className="max-w-4xl mx-auto">
         <Link 
-          to="/dashboard" 
+          to="/taskerverification" 
           className="inline-flex items-center text-primary hover:text-primary-dark mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Volver al Dashboard
+          Volver a Verificación
         </Link>
 
         <div className="grid gap-6 lg:grid-cols-3">

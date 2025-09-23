@@ -23,7 +23,7 @@ interface Document {
   uploaded_at: string;
 }
 
-const Dashboard = () => {
+const TaskerVerification = () => {
   const { user } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -223,4 +223,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default TaskerVerification;
