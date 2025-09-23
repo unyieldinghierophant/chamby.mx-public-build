@@ -13,7 +13,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
 const Auth = () => {
-  const { user, signUp, signIn } = useAuth();
+  const { user, signUp, signIn, resetPassword } = useAuth();
   const { role, loading: roleLoading } = useUserRole();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -32,6 +32,8 @@ const Auth = () => {
   const [taskerSignupData, setTaskerSignupData] = useState({
     email: '', password: '', fullName: '', phone: ''
   });
+  const [resetEmail, setResetEmail] = useState('');
+  const [showResetForm, setShowResetForm] = useState(false);
 
   // Handle role-based redirects after authentication
   useEffect(() => {
@@ -115,6 +117,23 @@ const Auth = () => {
     setLoading(false);
   };
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    const { error } = await resetPassword(resetEmail);
+    
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success('Se ha enviado un email de recuperación. Revisa tu bandeja de entrada.');
+      setShowResetForm(false);
+      setResetEmail('');
+    }
+    
+    setLoading(false);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-main bg-gradient-mesh flex items-center justify-center py-12 px-4">
       <div className="w-full max-w-md">
@@ -172,7 +191,52 @@ const Auth = () => {
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
                   </Button>
+                  <div className="text-center">
+                    <button
+                      type="button"
+                      onClick={() => setShowResetForm(true)}
+                      className="text-sm text-primary hover:text-primary-dark transition-colors"
+                    >
+                      ¿Olvidaste tu contraseña?
+                    </button>
+                  </div>
                 </form>
+
+                {/* Reset Password Form */}
+                {showResetForm && (
+                  <div className="mt-4 p-4 border border-border rounded-lg bg-muted/50">
+                    <h3 className="font-medium mb-3">Recuperar Contraseña</h3>
+                    <form onSubmit={handleResetPassword} className="space-y-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="reset-email">Email</Label>
+                        <Input
+                          id="reset-email"
+                          type="email"
+                          value={resetEmail}
+                          onChange={(e) => setResetEmail(e.target.value)}
+                          placeholder="Ingresa tu email"
+                          required
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <Button type="submit" size="sm" disabled={loading}>
+                          {loading ? 'Enviando...' : 'Enviar'}
+                        </Button>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setShowResetForm(false);
+                            setResetEmail('');
+                          }}
+                        >
+                          Cancelar
+                        </Button>
+                      </div>
+                    </form>
+                  </div>
+                )}
               </TabsContent>
 
               {/* User Signup Tab */}
