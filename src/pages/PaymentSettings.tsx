@@ -238,14 +238,86 @@ const PaymentSettings = () => {
   const getCardIcon = (brand: string) => {
     const icons = {
       visa: '💳',
-      mastercard: '💳',
-      amex: '💳',
-      discover: '💳',
-      dinersclub: '💳',
-      jcb: '💳'
+      mastercard: '🔴',
+      amex: '🔷',
+      discover: '🟠',
+      dinersclub: '🔵',
+      jcb: '🟢'
     };
     return icons[brand as keyof typeof icons] || '💳';
   };
+
+  const getCardGradient = (brand: string) => {
+    const gradients = {
+      visa: 'bg-gradient-to-r from-blue-600 to-blue-800',
+      mastercard: 'bg-gradient-to-r from-red-500 to-orange-600',
+      amex: 'bg-gradient-to-r from-green-600 to-teal-700',
+      discover: 'bg-gradient-to-r from-orange-500 to-amber-600',
+      dinersclub: 'bg-gradient-to-r from-purple-600 to-indigo-700',
+      jcb: 'bg-gradient-to-r from-green-500 to-emerald-600'
+    };
+    return gradients[brand as keyof typeof gradients] || 'bg-gradient-to-r from-gray-600 to-gray-800';
+  };
+
+  // Animate card preview
+  const CardPreview = ({ brand, cardNumber, name, expiryMonth, expiryYear }: {
+    brand: string;
+    cardNumber: string;
+    name: string;
+    expiryMonth: string;
+    expiryYear: string;
+  }) => (
+    <div className="animate-scale-in">
+      <div className={`relative w-80 h-48 rounded-xl shadow-2xl transform transition-all duration-500 hover:scale-105 ${getCardGradient(brand)}`}>
+        {/* Card shine effect */}
+        <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 animate-pulse"></div>
+        
+        {/* Card content */}
+        <div className="relative p-6 h-full flex flex-col justify-between text-white">
+          {/* Card brand and type */}
+          <div className="flex justify-between items-start">
+            <div className="text-sm font-light opacity-80">DÉBITO/CRÉDITO</div>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">{getCardIcon(brand)}</span>
+              <span className="font-bold text-lg">
+                {cardBrandNames[brand as keyof typeof cardBrandNames] || 'TARJETA'}
+              </span>
+            </div>
+          </div>
+
+          {/* Card number */}
+          <div className="space-y-4">
+            <div className="font-mono text-xl tracking-wider">
+              {cardNumber || '•••• •••• •••• ••••'}
+            </div>
+            
+            {/* Card details */}
+            <div className="flex justify-between items-end">
+              <div className="space-y-1">
+                <div className="text-xs opacity-60">TITULAR</div>
+                <div className="font-medium text-sm">
+                  {name?.toUpperCase() || 'NOMBRE APELLIDO'}
+                </div>
+              </div>
+              <div className="space-y-1 text-right">
+                <div className="text-xs opacity-60">VENCE</div>
+                <div className="font-mono text-sm">
+                  {expiryMonth && expiryYear ? `${expiryMonth}/${expiryYear.slice(-2)}` : 'MM/AA'}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Card pattern overlay */}
+        <div className="absolute top-0 left-0 w-full h-full rounded-xl opacity-20">
+          <div className="absolute top-4 right-4 w-12 h-8 bg-white/20 rounded-sm"></div>
+          <div className="absolute bottom-8 left-6 w-8 h-6 bg-white/30 rounded-full"></div>
+          <div className="absolute bottom-8 left-16 w-6 h-4 bg-white/30 rounded-full"></div>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gradient-main bg-gradient-mesh">
@@ -321,23 +393,37 @@ const PaymentSettings = () => {
                       Agregar Método de Pago
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                      <DialogTitle>Agregar Tarjeta</DialogTitle>
-                      <DialogDescription>
-                        Ingresa los datos de tu tarjeta de crédito o débito
-                      </DialogDescription>
-                    </DialogHeader>
+                    <DialogContent className="sm:max-w-[500px]">
+                      <DialogHeader>
+                        <DialogTitle>Agregar Tarjeta</DialogTitle>
+                        <DialogDescription>
+                          Ingresa los datos de tu tarjeta de crédito o débito
+                        </DialogDescription>
+                      </DialogHeader>
+
+                      {/* Animated Card Preview */}
+                      {cardValidation.brand && cardForm.cardNumber.replace(/\s/g, '').length >= 4 && (
+                        <div className="flex justify-center mb-6 animate-fade-in">
+                          <CardPreview
+                            brand={cardValidation.brand}
+                            cardNumber={cardForm.cardNumber}
+                            name={cardForm.name}
+                            expiryMonth={cardForm.expiryMonth}
+                            expiryYear={cardForm.expiryYear}
+                          />
+                        </div>
+                      )}
                     <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="card-name">Nombre en la tarjeta</Label>
-                        <Input
-                          id="card-name"
-                          value={cardForm.name}
-                          onChange={(e) => setCardForm({...cardForm, name: e.target.value})}
-                          placeholder="Juan Pérez"
-                        />
-                      </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="card-name">Nombre en la tarjeta</Label>
+                          <Input
+                            id="card-name"
+                            value={cardForm.name}
+                            onChange={(e) => setCardForm({...cardForm, name: e.target.value.toUpperCase()})}
+                            placeholder="JUAN PÉREZ"
+                            className="uppercase"
+                          />
+                        </div>
                       <div className="space-y-2">
                         <Label htmlFor="card-number">Número de tarjeta</Label>
                         <div className="relative">
