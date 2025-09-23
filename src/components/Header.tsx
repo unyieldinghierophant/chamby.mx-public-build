@@ -4,7 +4,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { ModernButton } from "@/components/ui/modern-button";
 import { Button } from "@/components/ui/button";
 import { Menu, X, LogOut, User, Settings, CreditCard, Shield, Users } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +21,7 @@ const Header = () => {
   const { role } = useUserRole();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSignOut = async () => {
     setIsLoggingOut(true);
@@ -29,6 +30,14 @@ const Header = () => {
   };
 
   const isTasker = user?.user_metadata?.is_tasker;
+  
+  // Determine if we're on a tasker page based on current route
+  const isOnTaskerPage = location.pathname.startsWith('/tasker') || location.pathname === '/provider-dashboard';
+  
+  // Determine where the logo should navigate based on current page context
+  const getLogoDestination = () => {
+    return isOnTaskerPage ? '/tasker-landing' : '/user-landing';
+  };
 
   return (
     <header className="absolute top-0 left-0 right-0 z-50 bg-transparent backdrop-blur-sm">
@@ -37,7 +46,7 @@ const Header = () => {
           {/* Logo */}
           <div className="flex-shrink-0">
             <button 
-              onClick={() => navigate(isTasker ? '/tasker-landing' : '/user-landing')}
+              onClick={() => navigate(getLogoDestination())}
               className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent hover:opacity-80 transition-opacity cursor-pointer"
             >
               Chamby.mx
@@ -52,7 +61,7 @@ const Header = () => {
             {user ? (
               <div className="flex items-center space-x-4">
                 {/* Dashboard Link for Taskers only */}
-                {isTasker && (
+                {isTasker && isOnTaskerPage && (
                   <Link to="/tasker-dashboard">
                     <ModernButton variant="outline" size="sm">
                       Mi Dashboard
@@ -104,7 +113,7 @@ const Header = () => {
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     {/* Vista de Usuario para Providers */}
-                    {isTasker && (
+                    {isTasker && isOnTaskerPage && (
                       <>
                         <DropdownMenuItem asChild>
                           <Link to="/user-landing" className="flex items-center">
@@ -181,7 +190,7 @@ const Header = () => {
                     </div>
                     
                     {/* Dashboard for taskers only */}
-                    {isTasker && (
+                    {isTasker && isOnTaskerPage && (
                       <Link to="/tasker-dashboard">
                         <ModernButton variant="outline" className="w-full">
                           Mi Dashboard
