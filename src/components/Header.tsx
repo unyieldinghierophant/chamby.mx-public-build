@@ -51,8 +51,8 @@ const Header = () => {
           <div className="hidden md:flex items-center space-x-4">
             {user ? (
               <div className="flex items-center space-x-4">
-                {/* Dashboard Link for Taskers */}
-                {isTasker && (
+                {/* Dashboard Link for Taskers/Providers only */}
+                {(isTasker && role === 'provider') && (
                   <Link to="/tasker-dashboard">
                     <ModernButton variant="outline" size="sm">
                       Mi Dashboard
@@ -180,8 +180,8 @@ const Header = () => {
                       </span>
                     </div>
                     
-                    {/* Dashboard for taskers */}
-                    {isTasker && (
+                    {/* Dashboard for taskers/providers only */}
+                    {(isTasker && role === 'provider') && (
                       <Link to="/tasker-dashboard">
                         <ModernButton variant="outline" className="w-full">
                           Mi Dashboard
