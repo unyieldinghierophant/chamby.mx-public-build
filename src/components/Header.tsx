@@ -37,7 +37,7 @@ const Header = () => {
           {/* Logo */}
           <div className="flex-shrink-0">
             <button 
-              onClick={() => navigate(isTasker ? '/provider-landing' : '/')}
+              onClick={() => navigate(isTasker ? '/tasker-landing' : '/')}
               className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent hover:opacity-80 transition-opacity cursor-pointer"
             >
               Chamby.mx
@@ -129,7 +129,7 @@ const Header = () => {
             ) : (
               /* Not logged in - show auth buttons */
               <>
-                <Link to="/provider-landing">
+                <Link to="/tasker-landing">
                   <ModernButton variant="outline">
                     Ser Tasker
                   </ModernButton>
@@ -211,7 +211,7 @@ const Header = () => {
                 ) : (
                   /* Not logged in - mobile auth buttons */
                   <>
-                    <Link to="/provider-landing">
+                    <Link to="/tasker-landing">
                       <ModernButton variant="outline" className="w-full">
                         Ser Tasker
                       </ModernButton>

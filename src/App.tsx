@@ -37,7 +37,7 @@ const App = () => (
             <Route path="/search" element={<Search />} />
             <Route path="/jobs" element={<Search />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/provider-landing" element={<ProviderLanding />} />
+            <Route path="/tasker-landing" element={<ProviderLanding />} />
             <Route path="/booking/:jobId" element={<BookingForm />} />
             <Route path="/booking-summary/:bookingId" element={<BookingSummary />} />
             <Route 
