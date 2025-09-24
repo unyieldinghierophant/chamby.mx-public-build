@@ -288,7 +288,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_public_provider_profiles: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          avatar_url: string
+          bio: string
+          full_name: string
+          hourly_rate: number
+          id: string
+          is_tasker: boolean
+          rating: number
+          skills: string[]
+          total_reviews: number
+          verification_status: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
