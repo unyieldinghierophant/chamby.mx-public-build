@@ -23,7 +23,7 @@ const ProviderLanding = () => {
   const navigate = useNavigate();
 
   const handleGetStarted = () => {
-    navigate('/auth?role=provider');
+    navigate('/tasker-onboarding');
   };
 
   const valueProps = [

@@ -21,7 +21,6 @@ const Auth = () => {
   const roleParam = searchParams.get('role');
   const [activeTab, setActiveTab] = useState(() => {
     if (roleParam === 'provider') return 'tasker';
-    if (roleParam === 'client') return 'user';
     return 'login';
   });
   
