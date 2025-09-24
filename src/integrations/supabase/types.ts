@@ -296,7 +296,6 @@ export type Database = {
           full_name: string
           hourly_rate: number
           id: string
-          is_tasker: boolean
           rating: number
           skills: string[]
           total_reviews: number
