@@ -6,13 +6,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Header from "@/components/Header";
-import { Lock, ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { Lock, ArrowLeft, Eye, EyeOff, Shield, Activity } from "lucide-react";
 import { Link, Navigate } from "react-router-dom";
 import { toast } from 'sonner';
 import { supabase } from "@/integrations/supabase/client";
+import { useSecurityMonitoring } from "@/hooks/useSecurityMonitoring";
+import SecurityAlert from "@/components/SecurityAlert";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 const SecuritySettings = () => {
   const { user } = useAuth();
+  const { recentActivity, loading: activityLoading, error: activityError } = useSecurityMonitoring();
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -23,10 +28,18 @@ const SecuritySettings = () => {
     confirmPassword: ''
   });
 
+  const getActionColor = (action: string) => {
+    switch (action) {
+      case 'INSERT': return 'default';
+      case 'UPDATE': return 'secondary';
+      case 'DELETE': return 'destructive';
+      default: return 'outline';
+    }
+  };
+
   if (!user) {
     return <Navigate to="/auth" replace />;
   }
-
   const handlePasswordChange = async () => {
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
       toast.error("Las nuevas contraseñas no coinciden");
@@ -89,6 +102,10 @@ const SecuritySettings = () => {
           </div>
 
           <div className="space-y-6">
+            <SecurityAlert title="Estado de Seguridad">
+              Tu cuenta está protegida con auditoría de acciones, limitación de intentos y 
+              políticas de acceso avanzadas.
+            </SecurityAlert>
             <Card className="bg-card/95 backdrop-blur-sm shadow-raised">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -187,21 +204,102 @@ const SecuritySettings = () => {
                     </Button>
                   </div>
 
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <h4 className="font-medium">Actividad de Seguridad</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Monitorea las acciones realizadas en tu cuenta
+                      </p>
+                    </div>
+                    <Badge variant="default">
+                      <Activity className="w-3 h-3 mr-1" />
+                      Activo
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-card/95 backdrop-blur-sm shadow-raised">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="w-5 h-5" />
+                  Registro de Actividad
+                </CardTitle>
+                <CardDescription>
+                  Últimas acciones de seguridad en tu cuenta
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {activityLoading && (
+                  <div className="text-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+                    <p className="mt-2 text-sm text-muted-foreground">Cargando actividad...</p>
+                  </div>
+                )}
+
+                {activityError && (
+                  <SecurityAlert variant="destructive">
+                    Error al cargar la actividad: {activityError}
+                  </SecurityAlert>
+                )}
+
+                {!activityLoading && !activityError && recentActivity.length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No hay actividad reciente registrada
+                  </p>
+                )}
+
+                {!activityLoading && !activityError && recentActivity.length > 0 && (
+                  <div className="space-y-3">
+                    {recentActivity.map((event, index) => (
+                      <div key={event.id}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <Badge variant={getActionColor(event.action)}>
+                              {event.action}
+                            </Badge>
+                            <span className="text-sm font-medium capitalize">
+                              {event.table_name}
+                            </span>
+                          </div>
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(event.created_at).toLocaleDateString('es-ES', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </span>
+                        </div>
+                        {index < recentActivity.length - 1 && <Separator className="mt-3" />}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="bg-card/95 backdrop-blur-sm shadow-raised">
+              <CardHeader>
+                <CardTitle>Configuración Pendiente</CardTitle>
+                <CardDescription>
+                  Ajustes adicionales de seguridad recomendados
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <SecurityAlert variant="default" title="Protección contra Contraseñas Filtradas">
+                  Para completar la configuración de seguridad, habilita la protección contra 
+                  contraseñas filtradas en el panel de Supabase: Authentication → Settings → Password Security.
+                </SecurityAlert>
+
+                <div className="mt-4 space-y-4">
                   <div className="flex items-center justify-between p-4 border rounded-lg opacity-50">
                     <div>
                       <h4 className="font-medium">Autenticación de Dos Factores</h4>
                       <p className="text-sm text-muted-foreground">
                         Próximamente - Agrega una capa extra de seguridad
-                      </p>
-                    </div>
-                    <Button variant="outline" disabled>Próximamente</Button>
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 border rounded-lg opacity-50">
-                    <div>
-                      <h4 className="font-medium">Sesiones Activas</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Próximamente - Revisa dónde has iniciado sesión
                       </p>
                     </div>
                     <Button variant="outline" disabled>Próximamente</Button>
