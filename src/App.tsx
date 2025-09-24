@@ -2,8 +2,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { useEffect } from "react";
 import Index from "./pages/Index";
 import Search from "./pages/Search";
 import Auth from "./pages/Auth";
@@ -29,6 +30,31 @@ import ProviderProfile from "./pages/ProviderProfile";
 
 const queryClient = new QueryClient();
 
+// Component to handle GitHub Pages redirects
+const RedirectHandler = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    console.log('App mounted, current location:', location.pathname);
+    
+    // Check for stored redirect from 404.html
+    const redirectPath = sessionStorage.getItem('redirect');
+    if (redirectPath && redirectPath !== location.pathname) {
+      console.log('Found redirect path in sessionStorage:', redirectPath);
+      sessionStorage.removeItem('redirect');
+      
+      // Navigate to the stored path
+      if (redirectPath.startsWith('/')) {
+        console.log('Navigating to:', redirectPath);
+        navigate(redirectPath, { replace: true });
+      }
+    }
+  }, [navigate, location]);
+
+  return null;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
@@ -36,6 +62,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <RedirectHandler />
           <Routes>
             <Route path="/" element={<Navigate to="/user-landing" replace />} />
             <Route path="/user-landing" element={<Index />} />

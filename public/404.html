@@ -6,10 +6,14 @@
   <title>Chamby.mx</title>
   <script>
     // GitHub Pages SPA redirect
-    // This script takes the current url and redirects to the root with the full path as a query parameter
-    sessionStorage.redirect = location.href;
+    // Store the full path and search params for React Router
+    const path = window.location.pathname.slice(0, -1) + window.location.search + window.location.hash;
+    sessionStorage.setItem('redirect', path || '/user-landing');
+    console.log('404.html redirect storing path:', path);
+    
+    // Redirect to root immediately
+    window.location.replace(window.location.origin);
   </script>
-  <meta http-equiv="refresh" content="0;URL='/'">
 </head>
 <body>
   <p>Redirecting...</p>
