@@ -102,6 +102,20 @@ const Hero = () => {
             </ModernButton>
           </div>
 
+          {/* User-specific Auth Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center px-4">
+            <Link to="/auth?role=client">
+              <ModernButton variant="primary" size="lg" className="w-full sm:w-auto min-w-[180px]">
+                Registrarse como Cliente
+              </ModernButton>
+            </Link>
+            <Link to="/auth">
+              <ModernButton variant="outline" size="lg" className="w-full sm:w-auto min-w-[180px] bg-white/90 text-gray-900 border-gray-300 hover:bg-white">
+                ¿Ya tienes cuenta? Inicia Sesión
+              </ModernButton>
+            </Link>
+          </div>
+
           {/* Trust Indicators */}
           <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
             <div className="flex items-center space-x-2 bg-gradient-glass rounded-full px-6 py-3 shadow-soft backdrop-blur-glass">

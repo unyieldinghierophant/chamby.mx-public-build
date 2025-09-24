@@ -143,12 +143,12 @@ const Header = () => {
                     Ser Tasker
                   </ModernButton>
                 </Link>
-                <Link to="/auth">
+                <Link to={`/auth${isOnTaskerPage ? '?role=provider' : ''}`}>
                   <ModernButton variant="glass">
                     Iniciar Sesión
                   </ModernButton>
                 </Link>
-                <Link to="/auth">
+                <Link to={`/auth${isOnTaskerPage ? '?role=provider' : '?role=client'}`}>
                   <ModernButton variant="primary">
                     Registrarse
                   </ModernButton>
@@ -225,12 +225,12 @@ const Header = () => {
                         Ser Tasker
                       </ModernButton>
                     </Link>
-                    <Link to="/auth">
+                    <Link to={`/auth${isOnTaskerPage ? '?role=provider' : ''}`}>
                       <ModernButton variant="glass" className="w-full">
                         Iniciar Sesión
                       </ModernButton>
                     </Link>
-                    <Link to="/auth">
+                    <Link to={`/auth${isOnTaskerPage ? '?role=provider' : '?role=client'}`}>
                       <ModernButton variant="primary" className="w-full">
                         Registrarse
                       </ModernButton>
