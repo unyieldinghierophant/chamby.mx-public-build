@@ -17,13 +17,41 @@ import {
   Quote
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useUserRole } from "@/hooks/useUserRole";
+import { useVerificationStatus } from "@/hooks/useVerificationStatus";
 import Header from "@/components/Header";
 
 const ProviderLanding = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { role } = useUserRole();
+  const { isVerified } = useVerificationStatus();
 
   const handleGetStarted = () => {
-    navigate('/auth?role=provider');
+    if (user) {
+      // Usuario logueado - llevar a página de crear servicio
+      navigate('/tasker-dashboard');
+    } else {
+      // Usuario no logueado - llevar a registro
+      navigate('/auth?role=provider');
+    }
+  };
+
+  const handleListServices = () => {
+    if (!user) {
+      // No logueado - llevar a registro
+      navigate('/auth?role=provider');
+    } else if (role !== 'provider') {
+      // Logueado pero no es provider - llevar a onboarding
+      navigate('/tasker-onboarding');
+    } else if (!isVerified) {
+      // Es provider pero no verificado - llevar a verificación
+      navigate('/tasker-verification');
+    } else {
+      // Es provider y verificado - llevar a crear trabajo
+      navigate('/tasker-dashboard');
+    }
   };
 
   const valueProps = [
@@ -164,6 +192,7 @@ const ProviderLanding = () => {
                 variant="outline" 
                 size="xl" 
                 className="border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-4 text-lg"
+                onClick={handleListServices}
               >
                 Lista tus Servicios
               </ModernButton>
