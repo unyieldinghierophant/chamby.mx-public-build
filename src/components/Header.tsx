@@ -139,18 +139,16 @@ const Header = () => {
               /* Not logged in - show auth buttons */
               <>
                 <Link to="/tasker-landing">
-                  <ModernButton variant="outline">
+                  <ModernButton 
+                    variant="outline"
+                    className="bg-gradient-to-r from-cyan-500 to-teal-500 text-white border-cyan-400 hover:from-cyan-600 hover:to-teal-600 hover:border-cyan-500"
+                  >
                     Ser Tasker
                   </ModernButton>
                 </Link>
                 <Link to="/auth">
                   <ModernButton variant="glass">
                     Iniciar Sesión
-                  </ModernButton>
-                </Link>
-                <Link to="/auth">
-                  <ModernButton variant="primary">
-                    Registrarse
                   </ModernButton>
                 </Link>
               </>
@@ -221,18 +219,16 @@ const Header = () => {
                   /* Not logged in - mobile auth buttons */
                   <>
                     <Link to="/tasker-landing">
-                      <ModernButton variant="outline" className="w-full">
+                      <ModernButton 
+                        variant="outline" 
+                        className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 text-white border-cyan-400 hover:from-cyan-600 hover:to-teal-600 hover:border-cyan-500"
+                      >
                         Ser Tasker
                       </ModernButton>
                     </Link>
                     <Link to="/auth">
                       <ModernButton variant="glass" className="w-full">
                         Iniciar Sesión
-                      </ModernButton>
-                    </Link>
-                    <Link to="/auth">
-                      <ModernButton variant="primary" className="w-full">
-                        Registrarse
                       </ModernButton>
                     </Link>
                   </>
