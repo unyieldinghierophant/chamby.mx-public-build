@@ -244,9 +244,11 @@ const SearchPage = () => {
 
                         {/* Actions */}
                         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                          <ModernButton variant="primary" size="default" className="flex-1 text-sm sm:text-base">
-                            Ver Perfil & Contratar
-                          </ModernButton>
+                          <Link to={`/provider/${pro.id}`}>
+                            <ModernButton variant="primary" size="default" className="flex-1 text-sm sm:text-base w-full">
+                              Ver Perfil & Contratar
+                            </ModernButton>
+                          </Link>
                           <div className="flex gap-2 sm:gap-3">
                             <ModernButton variant="glass" size="default" className="sm:w-auto text-sm sm:text-base">
                               Mensaje
