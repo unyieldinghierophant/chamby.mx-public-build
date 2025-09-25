@@ -1,17 +1,27 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ModernButton } from "@/components/ui/modern-button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Search, MapPin, Star, Clock, Shield, Filter, Heart, Calendar } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import MobileBottomNav from "@/components/MobileBottomNav";
+import EnhancedSearchBar from "@/components/EnhancedSearchBar";
 
 const SearchPage = () => {
-  const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [favorites, setFavorites] = useState<number[]>([]);
+  const navigate = useNavigate();
+
+  const handleSearch = (query: string) => {
+    if (query.trim()) {
+      navigate(`/jobs?q=${encodeURIComponent(query)}`);
+    }
+  };
+
+  const handleResultClick = (result: any) => {
+    navigate(`/search?category=${encodeURIComponent(result.category)}&service=${encodeURIComponent(result.name)}`);
+  };
 
   const toggleFavorite = (id: number) => {
     setFavorites(prev => 
@@ -126,27 +136,16 @@ const SearchPage = () => {
 
           {/* Main Content */}
           <div className="lg:col-span-3 order-1 lg:order-2">
-            {/* Search Bar */}
+            {/* Enhanced Search Bar */}
             <Card className="bg-gradient-glass backdrop-blur-glass shadow-floating border-0 mb-4 sm:mb-8">
               <CardContent className="p-3 sm:p-6">
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 sm:relative">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
-                    <Input
-                      placeholder="¿Qué servicio necesitas?"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10 sm:pl-12 pr-3 sm:pr-4 h-10 sm:h-14 text-sm sm:text-lg bg-gradient-card border-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 shadow-inner"
-                    />
-                  </div>
-                  <ModernButton 
-                    variant="primary" 
-                    size="default"
-                    className="sm:absolute sm:right-2 sm:top-1/2 sm:transform sm:-translate-y-1/2 w-full sm:w-auto"
-                  >
-                    Buscar
-                  </ModernButton>
-                </div>
+                <EnhancedSearchBar
+                  placeholder="¿Qué servicio necesitas?"
+                  onSearch={handleSearch}
+                  onResultClick={handleResultClick}
+                  size="md"
+                  className="w-full"
+                />
               </CardContent>
             </Card>
 

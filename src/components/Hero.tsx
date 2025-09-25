@@ -1,21 +1,24 @@
 import { ModernButton } from "@/components/ui/modern-button";
-import { Input } from "@/components/ui/input";
 import { Search, Shield, Star, MapPin, Home, Wrench, Droplets, Truck, SprayCan } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import heroImage from "@/assets/hero-services.jpg";
+import EnhancedSearchBar from "@/components/EnhancedSearchBar";
 
 const Hero = () => {
-  const [searchQuery, setSearchQuery] = useState("");
   const [location, setLocation] = useState("");
   const navigate = useNavigate();
   
-  const handleSearch = () => {
-    if (searchQuery.trim()) {
-      navigate(`/jobs?q=${encodeURIComponent(searchQuery)}&location=${encodeURIComponent(location)}`);
+  const handleSearch = (query: string) => {
+    if (query.trim()) {
+      navigate(`/jobs?q=${encodeURIComponent(query)}&location=${encodeURIComponent(location)}`);
     } else {
       navigate('/jobs');
     }
+  };
+
+  const handleResultClick = (result: any) => {
+    navigate(`/search?category=${encodeURIComponent(result.category)}&service=${encodeURIComponent(result.name)}`);
   };
   
   return (
@@ -80,17 +83,27 @@ const Hero = () => {
             </p>
           </div>
 
-          {/* Search Bar */}
-          <div className="relative max-w-xl mx-auto">
-            <Input placeholder="Arregla cualquier cosa con Chamby!" className="pl-6 pr-12 py-4 text-lg bg-white/90 border-gray-300 rounded-2xl focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm placeholder:text-gray-500 text-gray-900 text-left w-full" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleSearch()} />
-            <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-gray-400 cursor-pointer" onClick={handleSearch} />
+          {/* Enhanced Search Bar */}
+          <div className="max-w-xl mx-auto">
+            <EnhancedSearchBar
+              placeholder="¿Qué servicio necesitas hoy?"
+              onSearch={handleSearch}
+              onResultClick={handleResultClick}
+              size="lg"
+              className="w-full"
+            />
           </div>
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center px-4">
-            <ModernButton variant="glass" size="xl" className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px] bg-white/20 backdrop-blur-md border-white/30 hover:bg-white/30 text-gray-900 font-semibold shadow-[0_8px_32px_rgba(31,38,135,0.37)]" onClick={handleSearch}>
+            <ModernButton 
+              variant="glass" 
+              size="xl" 
+              className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px] bg-white/20 backdrop-blur-md border-white/30 hover:bg-white/30 text-gray-900 font-semibold shadow-[0_8px_32px_rgba(31,38,135,0.37)]" 
+              onClick={() => handleSearch('')}
+            >
               <Search className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6 text-gray-900" />
-              <span className="text-sm sm:text-base">Contratar Servicios</span>
+              <span className="text-sm sm:text-base">Explorar Servicios</span>
             </ModernButton>
             <ModernButton 
               variant="glass" 

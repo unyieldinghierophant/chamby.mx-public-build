@@ -299,6 +299,7 @@ export type Database = {
           name: string
           price_from: number | null
           price_to: number | null
+          tags: string[] | null
         }
         Insert: {
           category: string
@@ -309,6 +310,7 @@ export type Database = {
           name: string
           price_from?: number | null
           price_to?: number | null
+          tags?: string[] | null
         }
         Update: {
           category?: string
@@ -319,6 +321,7 @@ export type Database = {
           name?: string
           price_from?: number | null
           price_to?: number | null
+          tags?: string[] | null
         }
         Relationships: []
       }
