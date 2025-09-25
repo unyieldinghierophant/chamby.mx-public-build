@@ -104,7 +104,7 @@ const ServiceDetail = () => {
   }
 
   const handleBookService = (professionalId: number) => {
-    navigate(`/booking?service=${serviceType}&professional=${professionalId}`);
+    navigate(`/provider/${professionalId}`);
   };
 
   return (

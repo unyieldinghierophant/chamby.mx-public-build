@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { ModernButton } from '@/components/ui/modern-button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { 
@@ -14,313 +14,296 @@ import {
   CreditCard,
   ArrowLeft,
   MessageSquare,
-  Phone
+  Phone,
+  Star,
+  Shield
 } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, parse } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import Header from '@/components/Header';
+import MobileBottomNav from '@/components/MobileBottomNav';
 
-interface Booking {
-  id: string;
-  scheduled_date: string;
-  duration_hours: number;
-  total_amount: number;
-  address: string;
-  status: string;
-  payment_status: string;
-  customer_id: string;
-  tasker_id: string;
-  description: string;
-  service_id: string;
-  title: string;
-  service?: {
-    title: string;
-    description: string;
-    category: string;
-  } | null;
+interface BookingSummaryData {
+  providerId: string;
+  service: string;
+  date: string;
+  time: string;
+  providerName: string;
+  providerRate: string;
 }
 
 const BookingSummary = () => {
-  const { bookingId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [booking, setBooking] = useState<Booking | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [searchParams] = useSearchParams();
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  
+  // Extract booking data from URL parameters
+  const bookingData: BookingSummaryData = {
+    providerId: searchParams.get('providerId') || '',
+    service: searchParams.get('service') || '',
+    date: searchParams.get('date') || '',
+    time: searchParams.get('time') || '',
+    providerName: searchParams.get('providerName') || 'Profesional',
+    providerRate: searchParams.get('providerRate') || '300',
+  };
 
-  useEffect(() => {
-    if (bookingId) {
-      fetchBooking();
+  if (!bookingData.service || !bookingData.date || !bookingData.time) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Información de reserva incompleta</h2>
+          <ModernButton onClick={() => navigate('/search')}>
+            Buscar Servicios
+          </ModernButton>
+        </div>
+      </div>
+    );
+  }
+
+  const handlePayment = async () => {
+    if (!user) {
+      toast.error('Debes iniciar sesión para proceder con el pago');
+      navigate('/auth');
+      return;
     }
-  }, [bookingId]);
 
-  const fetchBooking = async () => {
+    setIsProcessingPayment(true);
+    
     try {
-      const { data, error } = await supabase
-        .from('bookings')
-        .select(`
-          *,
-          service:jobs!bookings_service_id_fkey(title, description, category)
-        `)
-        .eq('id', bookingId)
-        .single();
+      const { data, error } = await supabase.functions.invoke('create-payment', {
+        body: {
+          serviceType: bookingData.service,
+          providerId: bookingData.providerId,
+          date: bookingData.date,
+          time: bookingData.time,
+          duration: 2 // Default duration
+        }
+      });
 
       if (error) throw error;
-      setBooking(data as any);
+
+      if (data.url) {
+        // Redirect to Stripe Checkout
+        window.open(data.url, '_blank');
+      }
     } catch (error) {
-      console.error('Error fetching booking:', error);
-      toast.error('Error al cargar la reserva');
-      navigate('/jobs');
+      console.error('Payment error:', error);
+      toast.error('Error al procesar el pago');
     } finally {
-      setLoading(false);
+      setIsProcessingPayment(false);
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'confirmed':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-      case 'completed':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
-      default:
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+  // Service details mapping
+  const serviceDetails = {
+    'limpieza-del-hogar': {
+      title: 'Limpieza del Hogar',
+      description: 'Servicio completo de limpieza con productos eco-friendly',
+      category: 'Limpieza',
+      duration: 2,
+      icon: '🧹'
+    },
+    'reparaciones': {
+      title: 'Reparaciones',
+      description: 'Plomería, electricidad y reparaciones generales',
+      category: 'Reparaciones', 
+      duration: 2,
+      icon: '🔧'
+    },
+    'jardineria': {
+      title: 'Jardinería',
+      description: 'Mantenimiento de jardín y diseño paisajístico',
+      category: 'Jardinería',
+      duration: 3,
+      icon: '🌱'
     }
   };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return 'Pendiente de confirmación';
-      case 'confirmed':
-        return 'Confirmado';
-      case 'in_progress':
-        return 'En progreso';
-      case 'completed':
-        return 'Completado';
-      case 'cancelled':
-        return 'Cancelado';
-      default:
-        return status;
-    }
-  };
-
-  const getPaymentStatusText = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return 'Pago pendiente';
-      case 'completed':
-        return 'Pago completado';
-      case 'failed':
-        return 'Pago fallido';
-      default:
-        return status;
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (!booking) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Reserva no encontrada</p>
-      </div>
-    );
-  }
-
-  const bookingDate = new Date(booking.scheduled_date);
+  const currentService = serviceDetails[bookingData.service as keyof typeof serviceDetails] || serviceDetails['limpieza-del-hogar'];
+  const hourlyRate = parseInt(bookingData.providerRate);
+  const totalAmount = hourlyRate * currentService.duration;
+  const bookingDate = parse(`${bookingData.date} ${bookingData.time}`, 'yyyy-MM-dd HH:mm', new Date());
 
   return (
-    <div className="min-h-screen bg-gradient-main bg-gradient-mesh">
-      <Header />
-      <div className="pt-20 px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          {/* Back Button */}
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate(-1)}
-            className="mb-6"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Volver
-          </Button>
-
-          {/* Success Message */}
-          <Card className="bg-card/95 backdrop-blur-sm shadow-raised mb-8">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-center space-x-3 text-green-600 mb-4">
-                <CheckCircle className="w-8 h-8" />
-                <h1 className="text-2xl font-bold">¡Reserva Exitosa!</h1>
-              </div>
-              <p className="text-center text-muted-foreground">
-                Tu solicitud ha sido enviada al proveedor de servicios. 
-                Te notificaremos cuando confirme tu reserva.
-              </p>
-            </CardContent>
-          </Card>
-
-          <div className="grid gap-8 lg:grid-cols-3">
-            {/* Booking Details */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Service Info */}
-              <Card className="bg-card/95 backdrop-blur-sm shadow-raised">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <CardTitle>{booking.title || booking.service?.title || 'Servicio'}</CardTitle>
-                    <Badge className={getStatusColor(booking.status)}>
-                      {getStatusText(booking.status)}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-muted-foreground">{booking.description}</p>
-                  
-                  <Separator />
-                  
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="flex items-center space-x-3">
-                      <Calendar className="w-5 h-5 text-primary" />
-                      <div>
-                        <p className="font-medium">Fecha</p>
-                        <p className="text-sm text-muted-foreground">
-                          {format(bookingDate, "PPP", { locale: es })}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-3">
-                      <Clock className="w-5 h-5 text-primary" />
-                      <div>
-                        <p className="font-medium">Hora</p>
-                        <p className="text-sm text-muted-foreground">
-                          {format(bookingDate, "HH:mm")} ({booking.duration_hours}h)
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start space-x-3 md:col-span-2">
-                      <MapPin className="w-5 h-5 text-primary mt-1" />
-                      <div>
-                        <p className="font-medium">Dirección</p>
-                        <p className="text-sm text-muted-foreground">
-                          {booking.address}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Contact & Communication */}
-              <Card className="bg-card/95 backdrop-blur-sm shadow-raised">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <MessageSquare className="w-5 h-5" />
-                    Comunicación
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    Una vez que el proveedor confirme tu reserva, podrás contactarlo directamente.
-                  </p>
-                  
-                  <div className="flex gap-3">
-                    <Button variant="outline" size="sm" onClick={() => navigate('/messages')}>
-                      <MessageSquare className="w-4 h-4 mr-2" />
-                      Enviar Mensaje
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => navigate('/messages')}>
-                      <Phone className="w-4 h-4 mr-2" />
-                      Llamar
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+    <div className="min-h-screen bg-background mobile-pb-nav">
+      {/* Header */}
+      <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span>Volver</span>
+            </button>
+            <div>
+              <h1 className="text-lg font-semibold text-foreground">Resumen de Reserva</h1>
+              <p className="text-sm text-muted-foreground">Confirma los detalles y procede al pago</p>
             </div>
-
-            {/* Payment Summary */}
-            <div className="lg:col-span-1">
-              <Card className="bg-card/95 backdrop-blur-sm shadow-raised sticky top-24">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <CreditCard className="w-5 h-5" />
-                    Resumen de Pago
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-sm">Servicio base</span>
-                      <span className="text-sm">${(booking.total_amount / booking.duration_hours).toFixed(2)}/h</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Duración</span>
-                      <span className="text-sm">{booking.duration_hours}h</span>
-                    </div>
-                    <Separator />
-                    <div className="flex justify-between font-bold">
-                      <span>Total</span>
-                      <span className="text-primary">${booking.total_amount}</span>
-                    </div>
-                  </div>
-
-                  <Badge 
-                    variant="outline" 
-                    className={booking.payment_status === 'completed' 
-                      ? 'bg-green-100 text-green-800 border-green-200' 
-                      : 'bg-yellow-100 text-yellow-800 border-yellow-200'
-                    }
-                  >
-                    {getPaymentStatusText(booking.payment_status)}
-                  </Badge>
-
-                  <div className="text-xs text-muted-foreground">
-                    <p>El pago se procesará una vez que el proveedor confirme tu reserva.</p>
-                  </div>
-
-                  <Button className="w-full" disabled={booking.payment_status === 'completed'}>
-                    {booking.payment_status === 'completed' ? 'Pago Completado' : 'Procesar Pago'}
-                  </Button>
-
-                  <Separator />
-
-                  <div className="space-y-2">
-                    <h4 className="font-medium text-sm">Próximos pasos:</h4>
-                    <ul className="text-xs text-muted-foreground space-y-1">
-                      <li>• El proveedor revisará tu solicitud</li>
-                      <li>• Te notificaremos cuando confirme</li>
-                      <li>• Podrás comunicarte directamente</li>
-                      <li>• El pago se procesará automáticamente</li>
-                    </ul>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="mt-8 flex justify-center space-x-4">
-            <Link to="/jobs">
-              <Button variant="outline">
-                Ver Más Servicios
-              </Button>
-            </Link>
-            <Link to="/profile">
-              <Button>
-                Mis Reservas
-              </Button>
-            </Link>
           </div>
         </div>
       </div>
+
+      <div className="container mx-auto px-4 py-6 space-y-6">
+        {/* Service Summary */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <span className="text-2xl">{currentService.icon}</span>
+                <div>
+                  <CardTitle className="text-xl">{currentService.title}</CardTitle>
+                  <p className="text-muted-foreground">{currentService.description}</p>
+                </div>
+              </div>
+              <Badge variant="secondary">{currentService.category}</Badge>
+            </div>
+          </CardHeader>
+        </Card>
+
+        {/* Provider Info */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <User className="w-5 h-5" />
+              <span>Profesional Asignado</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center space-x-4">
+              <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center">
+                <User className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold">{bookingData.providerName}</h3>
+                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                  <span>4.9</span>
+                  <Shield className="w-4 h-4 text-blue-500" />
+                  <span>Verificado</span>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-lg font-bold text-primary">
+                  ${hourlyRate}/hora
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {currentService.duration} horas
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Date & Time Details */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Calendar className="w-5 h-5" />
+              <span>Fecha y Hora</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="flex items-center space-x-3">
+                <Calendar className="w-8 h-8 text-primary bg-primary/10 rounded-lg p-2" />
+                <div>
+                  <div className="font-medium text-foreground">
+                    {format(bookingDate, 'EEEE d MMMM yyyy', { locale: es })}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Fecha del servicio
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-3">
+                <Clock className="w-8 h-8 text-primary bg-primary/10 rounded-lg p-2" />
+                <div>
+                  <div className="font-medium text-foreground">
+                    {bookingData.time} - {
+                      new Date(`2024-01-01T${bookingData.time}:00`).getHours() + currentService.duration < 24
+                        ? `${String(new Date(`2024-01-01T${bookingData.time}:00`).getHours() + currentService.duration).padStart(2, '0')}:00`
+                        : 'Siguiente día'
+                    }
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {currentService.duration} horas de servicio
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Payment Summary */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <CreditCard className="w-5 h-5" />
+              <span>Resumen de Pago</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span>Tarifa por hora</span>
+                <span>${hourlyRate}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Duración del servicio</span>
+                <span>{currentService.duration} horas</span>
+              </div>
+              <Separator />
+              <div className="flex justify-between items-center text-lg font-bold">
+                <span>Total a Pagar</span>
+                <span className="text-primary">${totalAmount.toLocaleString('es-MX')}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Terms */}
+        <Card className="bg-secondary">
+          <CardContent className="p-4">
+            <h3 className="font-medium mb-2">Términos y Condiciones</h3>
+            <ul className="text-sm text-muted-foreground space-y-1">
+              <li>• El pago se procesará al confirmar la reserva</li>
+              <li>• Puedes cancelar hasta 24 horas antes sin costo</li>
+              <li>• El profesional contactará para confirmar detalles</li>
+              <li>• Garantía de satisfacción del 100%</li>
+            </ul>
+          </CardContent>
+        </Card>
+
+        {/* Payment Button */}
+        <div className="sticky bottom-20 md:bottom-4 bg-white border-t md:border-0 p-4 md:p-0 shadow-lg md:shadow-none rounded-t-lg md:rounded-none">
+          <ModernButton
+            onClick={handlePayment}
+            disabled={isProcessingPayment}
+            className="w-full"
+            size="lg"
+          >
+            {isProcessingPayment ? (
+              <div className="flex items-center space-x-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <span>Procesando...</span>
+              </div>
+            ) : (
+              <>
+                <CreditCard className="w-4 h-4 mr-2" />
+                Pagar ${totalAmount.toLocaleString('es-MX')}
+              </>
+            )}
+          </ModernButton>
+        </div>
+      </div>
+
+      <MobileBottomNav />
     </div>
   );
 };

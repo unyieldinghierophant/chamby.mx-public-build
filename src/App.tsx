@@ -31,6 +31,10 @@ import MobileJobs from "./pages/MobileJobs";
 import MobileFavorites from "./pages/MobileFavorites";
 import MobileProfile from "./pages/MobileProfile";
 import ProviderProfile from "./pages/ProviderProfile";
+import ProviderProfileNew from "./pages/ProviderProfileNew";
+import BookingDateTime from "./pages/BookingDateTime";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCanceled from "./pages/PaymentCanceled";
 
 const queryClient = new QueryClient();
 
@@ -74,9 +78,13 @@ const App = () => (
             <Route path="/jobs" element={<Search />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/tasker-landing" element={<ProviderLanding />} />
+            <Route path="/provider/:providerId" element={<ProviderProfileNew />} />
+            <Route path="/booking/datetime/:providerId" element={<BookingDateTime />} />
             <Route path="/service/:serviceType" element={<ServiceDetail />} />
             <Route path="/booking/:jobId" element={<BookingForm />} />
-            <Route path="/booking-summary/:bookingId" element={<BookingSummary />} />
+            <Route path="/booking/summary" element={<BookingSummary />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
+            <Route path="/payment-canceled" element={<PaymentCanceled />} />
             <Route 
               path="/provider-dashboard" 
               element={
@@ -206,8 +214,6 @@ const App = () => (
                 </ProtectedRoute>
               } 
             />
-            <Route path="/provider/:id" element={<ProviderProfile />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
