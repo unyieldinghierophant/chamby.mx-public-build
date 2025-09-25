@@ -6,14 +6,14 @@ const Trust = () => {
     {
       icon: Shield,
       title: "Verificación completa",
-      description: "Verificamos identidad, antecedentes penales y referencias laborales",
+      description: "Verificamos identidad y referencias laborales de todos los profesionales",
       stats: "100% verificados"
     },
     {
       icon: FileCheck,
-      title: "Seguros incluidos",
-      description: "Todos los servicios están cubiertos por seguros de responsabilidad civil",
-      stats: "Cobertura total"
+      title: "Documentación visual",
+      description: "Grabamos el área de trabajo antes y después para darte paz mental de que no te falte nada",
+      stats: "Registro completo"
     },
     {
       icon: Star,

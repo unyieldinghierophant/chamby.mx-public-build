@@ -1,8 +1,10 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { ModernButton } from "@/components/ui/modern-button";
 import { Search, UserCheck, Calendar, CheckCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const HowItWorks = () => {
+  const navigate = useNavigate();
   const steps = [
     {
       icon: Search,
@@ -99,10 +101,18 @@ const HowItWorks = () => {
               Miles de profesionales están esperando para ayudarte con tus proyectos del hogar.
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <ModernButton variant="glow" size="xl">
+              <ModernButton 
+                variant="glow" 
+                size="xl"
+                onClick={() => navigate('/search')}
+              >
                 Comenzar ahora
               </ModernButton>
-              <ModernButton variant="glass" size="xl">
+              <ModernButton 
+                variant="glass" 
+                size="xl"
+                onClick={() => navigate('/tasker-landing')}
+              >
                 Ser profesional
               </ModernButton>
             </div>

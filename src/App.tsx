@@ -25,6 +25,7 @@ import ProviderDashboard from "./pages/ProviderDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import BookingForm from "./pages/BookingForm";
 import BookingSummary from "./pages/BookingSummary";
+import ServiceDetail from "./pages/ServiceDetail";
 import NotFound from "./pages/NotFound";
 import MobileJobs from "./pages/MobileJobs";
 import MobileFavorites from "./pages/MobileFavorites";
@@ -73,6 +74,7 @@ const App = () => (
             <Route path="/jobs" element={<Search />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/tasker-landing" element={<ProviderLanding />} />
+            <Route path="/service/:serviceType" element={<ServiceDetail />} />
             <Route path="/booking/:jobId" element={<BookingForm />} />
             <Route path="/booking-summary/:bookingId" element={<BookingSummary />} />
             <Route 

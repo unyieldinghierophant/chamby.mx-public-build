@@ -1,11 +1,14 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ModernButton } from "@/components/ui/modern-button";
 import { ArrowRight, Wrench, Sparkles, TreePine, Palette, Zap, Car } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import cleaningImage from "@/assets/service-cleaning.jpg";
 import repairImage from "@/assets/service-repair.jpg";
 import gardenImage from "@/assets/service-garden.jpg";
 
 const Services = () => {
+  const navigate = useNavigate();
+
   const popularServices = [
     {
       icon: Sparkles,
@@ -14,7 +17,8 @@ const Services = () => {
       image: cleaningImage,
       price: "Desde $300/hora",
       rating: 4.8,
-      providers: 120
+      providers: 120,
+      slug: "limpieza-del-hogar"
     },
     {
       icon: Wrench,
@@ -23,7 +27,8 @@ const Services = () => {
       image: repairImage,
       price: "Desde $400/hora", 
       rating: 4.9,
-      providers: 85
+      providers: 85,
+      slug: "reparaciones"
     },
     {
       icon: TreePine,
@@ -32,7 +37,8 @@ const Services = () => {
       image: gardenImage,
       price: "Desde $350/hora",
       rating: 4.7,
-      providers: 65
+      providers: 65,
+      slug: "jardineria"
     }
   ];
 
@@ -97,7 +103,11 @@ const Services = () => {
 
               <CardContent className="pt-0">
                 <p className="text-muted-foreground mb-4">{service.description}</p>
-                <ModernButton variant="primary" className="w-full group">
+                <ModernButton 
+                  variant="primary" 
+                  className="w-full group"
+                  onClick={() => navigate(`/service/${service.slug}`)}
+                >
                   Ver profesionales
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </ModernButton>
@@ -126,7 +136,11 @@ const Services = () => {
             ))}
           </div>
           
-          <ModernButton variant="outline" size="lg">
+          <ModernButton 
+            variant="outline" 
+            size="lg"
+            onClick={() => navigate('/search')}
+          >
             Ver todos los servicios
             <ArrowRight className="ml-2 h-4 w-4" />
           </ModernButton>
