@@ -233,11 +233,11 @@ const BookingSummary = () => {
                   </p>
                   
                   <div className="flex gap-3">
-                    <Button variant="outline" size="sm" disabled>
+                    <Button variant="outline" size="sm" onClick={() => navigate('/messages')}>
                       <MessageSquare className="w-4 h-4 mr-2" />
                       Enviar Mensaje
                     </Button>
-                    <Button variant="outline" size="sm" disabled>
+                    <Button variant="outline" size="sm" onClick={() => navigate('/messages')}>
                       <Phone className="w-4 h-4 mr-2" />
                       Llamar
                     </Button>

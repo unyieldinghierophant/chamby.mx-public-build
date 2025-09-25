@@ -18,6 +18,9 @@ import ProfileSettings from "./pages/ProfileSettings";
 import SecuritySettings from "./pages/SecuritySettings";
 import PaymentSettings from "./pages/PaymentSettings";
 import GeneralSettings from "./pages/GeneralSettings";
+import Messages from "./pages/Messages";
+import DataExport from "./pages/DataExport";
+import AccountDeletion from "./pages/AccountDeletion";
 import ProviderDashboard from "./pages/ProviderDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import BookingForm from "./pages/BookingForm";
@@ -149,6 +152,30 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <GeneralSettings />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/messages" 
+              element={
+                <ProtectedRoute>
+                  <Messages />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/profile/data-export" 
+              element={
+                <ProtectedRoute>
+                  <DataExport />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/profile/account-deletion" 
+              element={
+                <ProtectedRoute>
+                  <AccountDeletion />
                 </ProtectedRoute>
               } 
             />

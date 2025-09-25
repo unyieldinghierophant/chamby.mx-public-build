@@ -9,11 +9,12 @@ import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Header from "@/components/Header";
 import { Settings, ArrowLeft, Bell, Globe, Trash2, AlertTriangle } from "lucide-react";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { toast } from 'sonner';
 
 const GeneralSettings = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState({
     newBookings: true,
     reminders: true,
@@ -295,7 +296,7 @@ const GeneralSettings = () => {
                 <div className="space-y-4">
                   <h4 className="font-medium">Gestión de datos</h4>
                   <div className="flex flex-col space-y-2">
-                    <Button variant="outline" className="w-full md:w-auto">
+                    <Button variant="outline" className="w-full md:w-auto" onClick={() => navigate('/profile/data-export')}>
                       Descargar mis datos
                     </Button>
                     <p className="text-sm text-muted-foreground">
@@ -341,7 +342,7 @@ const GeneralSettings = () => {
                         </DialogDescription>
                       </DialogHeader>
                       <DialogFooter>
-                        <Button variant="destructive" onClick={handleDeleteAccount}>
+                        <Button variant="destructive" onClick={() => navigate('/profile/account-deletion')}>
                           Sí, eliminar mi cuenta
                         </Button>
                       </DialogFooter>
