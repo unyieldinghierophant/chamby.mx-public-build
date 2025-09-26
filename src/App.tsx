@@ -8,6 +8,8 @@ import { useEffect } from "react";
 import Index from "./pages/Index";
 import Search from "./pages/Search";
 import Auth from "./pages/Auth";
+import UserAuth from "./pages/UserAuth";
+import TaskerAuth from "./pages/TaskerAuth";
 import ProviderLanding from "./pages/ProviderLanding";
 import TaskerOnboarding from "./pages/TaskerOnboarding";
 import TaskerVerification from "./pages/TaskerVerification";
@@ -76,7 +78,9 @@ const App = () => (
             <Route path="/user-landing" element={<Index />} />
             <Route path="/search" element={<Search />} />
             <Route path="/jobs" element={<Search />} />
-            <Route path="/auth" element={<Auth />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/auth/user" element={<UserAuth />} />
+        <Route path="/auth/tasker" element={<TaskerAuth />} />
             <Route path="/tasker-landing" element={<ProviderLanding />} />
             <Route path="/provider/:providerId" element={<ProviderProfileNew />} />
             <Route path="/booking/datetime/:providerId" element={<BookingDateTime />} />
