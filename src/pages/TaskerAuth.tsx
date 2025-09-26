@@ -39,8 +39,6 @@ const TaskerAuth = () => {
   });
   const [resetEmail, setResetEmail] = useState('');
   const [showResetForm, setShowResetForm] = useState(false);
-  const [phoneVerificationStep, setPhoneVerificationStep] = useState(false);
-  const [verificationCode, setVerificationCode] = useState('');
   
   // Error states
   const [loginErrors, setLoginErrors] = useState<Record<string, string>>({});
@@ -124,17 +122,6 @@ const TaskerAuth = () => {
       }
     }
     
-    // Start phone verification flow
-    setPhoneVerificationStep(true);
-    toast.success('Código enviado a tu teléfono');
-  };
-
-  const handlePhoneVerification = async () => {
-    if (verificationCode.length !== 6) {
-      toast.error('El código debe tener 6 dígitos');
-      return;
-    }
-    
     setLoading(true);
     const { error } = await signUp(
       signupData.email,
@@ -147,7 +134,6 @@ const TaskerAuth = () => {
     
     if (error) {
       toast.error(error.message);
-      setPhoneVerificationStep(false);
     } else {
       toast.success('¡Cuenta de tasker creada! Revisa tu email y completa tu perfil con los documentos requeridos.');
     }
@@ -202,51 +188,6 @@ const TaskerAuth = () => {
             <p className="text-muted-foreground">Para ofrecer servicios profesionales</p>
           </CardHeader>
           <CardContent>
-            {phoneVerificationStep ? (
-              <div className="space-y-4">
-                <div className="text-center">
-                  <Phone className="w-12 h-12 text-primary mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold">Verificar Teléfono</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Enviamos un código de 6 dígitos a {signupData.phone}
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="verification-code">Código de Verificación</Label>
-                  <Input
-                    id="verification-code"
-                    value={verificationCode}
-                    onChange={(e) => setVerificationCode(e.target.value)}
-                    placeholder="000000"
-                    maxLength={6}
-                    className="text-center text-lg"
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Button onClick={handlePhoneVerification} className="flex-1" disabled={loading}>
-                    {loading ? 'Verificando...' : 'Verificar'}
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setPhoneVerificationStep(false)}
-                    className="flex-1"
-                  >
-                    Volver
-                  </Button>
-                </div>
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
-                  <div className="flex items-start gap-2">
-                    <FileCheck className="w-5 h-5 text-blue-600 mt-0.5" />
-                    <div className="text-sm">
-                      <p className="font-medium text-blue-900">Siguientes pasos:</p>
-                      <p className="text-blue-700 mt-1">
-                        Después de verificar tu teléfono, necesitarás subir documentos de verificación para completar tu perfil de tasker.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="login">Inicio de Sesión</TabsTrigger>
@@ -425,7 +366,6 @@ const TaskerAuth = () => {
                   </form>
                 </TabsContent>
               </Tabs>
-            )}
             
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
