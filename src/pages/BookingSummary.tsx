@@ -124,7 +124,9 @@ const BookingSummary = () => {
 
   const currentService = serviceDetails[bookingData.service as keyof typeof serviceDetails] || serviceDetails['limpieza-del-hogar'];
   const hourlyRate = parseInt(bookingData.providerRate);
-  const totalAmount = hourlyRate * currentService.duration;
+  // Only charge visit fee initially (300 pesos)
+  const visitFee = 300;
+  const totalAmount = visitFee;
   const bookingDate = parse(`${bookingData.date} ${bookingData.time}`, 'yyyy-MM-dd HH:mm', new Date());
 
   return (
@@ -251,18 +253,21 @@ const BookingSummary = () => {
           <CardContent>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span>Tarifa por hora</span>
-                <span>${hourlyRate}</span>
+                <span>Cuota de visita</span>
+                <span>${visitFee}</span>
               </div>
-              <div className="flex justify-between">
-                <span>Duración del servicio</span>
-                <span>{currentService.duration} horas</span>
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>Tarifa por trabajo (se cobrará después)</span>
+                <span>${hourlyRate}/hora</span>
               </div>
               <Separator />
               <div className="flex justify-between items-center text-lg font-bold">
-                <span>Total a Pagar</span>
+                <span>Total a Pagar Ahora</span>
                 <span className="text-primary">${totalAmount.toLocaleString('es-MX')}</span>
               </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                *El costo final del servicio se calculará según las horas trabajadas reales
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -272,7 +277,8 @@ const BookingSummary = () => {
           <CardContent className="p-4">
             <h3 className="font-medium mb-2">Términos y Condiciones</h3>
             <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• El pago se procesará al confirmar la reserva</li>
+              <li>• Solo pagas $300 de cuota de visita ahora</li>
+              <li>• El pago final se calcula por horas trabajadas reales</li>
               <li>• Puedes cancelar hasta 24 horas antes sin costo</li>
               <li>• El profesional contactará para confirmar detalles</li>
               <li>• Garantía de satisfacción del 100%</li>
@@ -296,7 +302,7 @@ const BookingSummary = () => {
             ) : (
               <>
                 <CreditCard className="w-4 h-4 mr-2" />
-                Pagar ${totalAmount.toLocaleString('es-MX')}
+                Pagar Cuota de Visita ${totalAmount.toLocaleString('es-MX')}
               </>
             )}
           </ModernButton>

@@ -7,35 +7,41 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import MobileBottomNav from '@/components/MobileBottomNav';
+import { useProviderProfile } from '@/hooks/useProviderProfile';
+import reviewAvatar1 from '@/assets/review-avatar-1.jpg';
+import reviewAvatar2 from '@/assets/review-avatar-2.jpg';
+import reviewAvatar3 from '@/assets/review-avatar-3.jpg';
 
 const ProviderProfileNew = () => {
   const { providerId } = useParams();
   const navigate = useNavigate();
   const [isFavorite, setIsFavorite] = useState(false);
+  
+  const { profile, stats, loading, error } = useProviderProfile(providerId || '1');
 
-  // Mock data - replace with real API call
+  // Mock fallback data
   const provider = {
     id: providerId || '1',
-    name: "María González",
-    avatar: "/placeholder.svg",
-    rating: 4.9,
-    totalReviews: 156,
+    name: profile?.full_name || "María González",
+    avatar: profile?.avatar_url || "/placeholder.svg",
+    rating: profile?.rating || 4.9,
+    totalReviews: profile?.total_reviews || stats?.total_bookings || 156,
     responseTime: "~15 min",
-    completedJobs: 342,
-    memberSince: "2022",
+    completedJobs: stats?.total_bookings || 342,
+    memberSince: stats?.member_since || "2022",
     location: "Ciudad de México",
     distance: "2.3 km",
-    verified: true,
-    backgroundCheck: true,
-    bio: "Soy una profesional de la limpieza con más de 8 años de experiencia. Me especializo en limpieza profunda, mantenimiento regular y uso productos eco-friendly. Mi objetivo es dejar tu hogar impecable y saludable.",
-    services: ["Limpieza del Hogar", "Limpieza Profunda", "Limpieza de Oficinas"],
-    specialties: [
+    verified: profile?.verification_status === 'verified',
+    backgroundCheck: profile?.verification_status === 'verified',
+    bio: profile?.bio || "Soy una profesional de la limpieza con más de 8 años de experiencia. Me especializo en limpieza profunda, mantenimiento regular y uso productos eco-friendly. Mi objetivo es dejar tu hogar impecable y saludable.",
+    services: profile?.skills || ["Limpieza del Hogar", "Limpieza Profunda", "Limpieza de Oficinas"],
+    specialties: profile?.skills || [
       "Limpieza profunda",
       "Productos eco-friendly", 
       "Limpieza post-construcción",
       "Organización de espacios"
     ],
-    hourlyRate: 300,
+    hourlyRate: profile?.hourly_rate || 300,
     availability: {
       today: true,
       thisWeek: true,
@@ -49,6 +55,17 @@ const ProviderProfileNew = () => {
     ]
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Cargando perfil...</p>
+        </div>
+      </div>
+    );
+  }
+
   const reviews = [
     {
       id: 1,
@@ -56,7 +73,7 @@ const ProviderProfileNew = () => {
       rating: 5,
       date: "Hace 2 días",
       comment: "Excelente trabajo! María dejó mi casa impecable. Muy profesional y puntual. Definitivamente la contrataré nuevamente.",
-      avatar: "/placeholder.svg"
+      avatar: reviewAvatar1
     },
     {
       id: 2,
@@ -64,7 +81,7 @@ const ProviderProfileNew = () => {
       rating: 5,
       date: "Hace 1 semana",
       comment: "Increíble atención al detalle. Llegó con todos sus productos y herramientas. Mi esposa y yo quedamos muy satisfechos.",
-      avatar: "/placeholder.svg"
+      avatar: reviewAvatar2
     },
     {
       id: 3,
@@ -72,7 +89,7 @@ const ProviderProfileNew = () => {
       rating: 4,
       date: "Hace 2 semanas", 
       comment: "Muy buen servicio, aunque llegó 10 minutos tarde. El trabajo fue excelente y muy minuciosa con la limpieza.",
-      avatar: "/placeholder.svg"
+      avatar: reviewAvatar3
     }
   ];
 
@@ -169,7 +186,10 @@ const ProviderProfileNew = () => {
               
               <div className="text-center md:text-right">
                 <div className="text-3xl font-bold text-primary mb-2">
-                  ${provider.hourlyRate}/hora
+                  $300 cuota de visita
+                </div>
+                <div className="text-sm text-muted-foreground mb-2">
+                  + ${provider.hourlyRate}/hora de trabajo
                 </div>
                 <div className="flex flex-col space-y-2">
                   <ModernButton 
@@ -299,7 +319,7 @@ const ProviderProfileNew = () => {
             className="w-full"
             size="lg"
           >
-            Contratar por ${provider.hourlyRate}/hora
+            Pagar cuota de visita $300
           </ModernButton>
         </div>
       </div>

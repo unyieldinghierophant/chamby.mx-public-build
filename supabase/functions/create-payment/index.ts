@@ -63,8 +63,22 @@ serve(async (req) => {
       throw new Error("Tipo de servicio no válido");
     }
 
-    // Calculate total amount (base rate * duration)
-    const totalAmount = serviceInfo.baseRate * duration;
+    // Visit fee pricing - fixed 300 pesos for initial visit
+    const visitFee = 300;
+
+    // Create line item for visit fee only
+    const lineItem = {
+      price_data: {
+        currency: 'mxn',
+        product_data: {
+          name: `Cuota de Visita - ${serviceInfo.name}`,
+          description: `Cuota de visita para servicio programado el ${date} a las ${time}. El costo final se calculará por horas trabajadas.`,
+          images: ['https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500'],
+        },
+        unit_amount: visitFee * 100, // Convert to cents
+      },
+      quantity: 1,
+    };
 
     // Check if user has existing Stripe customer
     let customerId;
@@ -78,24 +92,11 @@ serve(async (req) => {
       }
     }
 
-    // Create checkout session
+    // Create checkout session for visit fee only
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user?.email,
-      line_items: [
-        {
-          price_data: {
-            currency: 'mxn',
-            product_data: {
-              name: `${serviceInfo.name} - ${duration} horas`,
-              description: `Servicio programado para ${date} a las ${time}`,
-              images: ['https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500'],
-            },
-            unit_amount: totalAmount * 100, // Convert to cents
-          },
-          quantity: 1,
-        },
-      ],
+      line_items: [lineItem],
       mode: "payment",
       success_url: `${req.headers.get("origin")}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get("origin")}/payment-canceled`,
@@ -105,7 +106,9 @@ serve(async (req) => {
         date,
         time,
         duration: duration.toString(),
-        userId: user?.id || "guest"
+        userId: user?.id || "guest",
+        paymentType: "visit_fee",
+        hourlyRate: serviceInfo.baseRate.toString(),
       },
     });
 
