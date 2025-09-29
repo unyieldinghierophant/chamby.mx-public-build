@@ -4,10 +4,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import heroImage from "@/assets/hero-services.jpg";
 import EnhancedSearchBar from "@/components/EnhancedSearchBar";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Hero = () => {
   const [location, setLocation] = useState("");
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   const handleSearch = (query: string) => {
     if (query.trim()) {
@@ -94,26 +96,28 @@ const Hero = () => {
             />
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center px-4">
-            <ModernButton 
-              variant="glass" 
-              size="xl" 
-              className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px] bg-white/20 backdrop-blur-md border-white/30 hover:bg-white/30 text-gray-900 font-semibold shadow-[0_8px_32px_rgba(31,38,135,0.37)]" 
-              onClick={() => handleSearch('')}
-            >
-              <Search className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6 text-gray-900" />
-              <span className="text-sm sm:text-base">Explorar Servicios</span>
-            </ModernButton>
-            <ModernButton 
-              variant="glass" 
-              size="xl" 
-              className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px] bg-white/20 backdrop-blur-md border-white/30 hover:bg-white/30 text-gray-900 font-semibold shadow-[0_8px_32px_rgba(31,38,135,0.37)]"
-              onClick={() => navigate('/auth/tasker')}
-            >
-              <span className="text-sm sm:text-base">Ofrecer Servicios</span>
-            </ModernButton>
-          </div>
+          {/* Action Buttons - Only show for non-logged in users */}
+          {!user && (
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center px-4">
+              <ModernButton 
+                variant="glass" 
+                size="xl" 
+                className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px] bg-white/20 backdrop-blur-md border-white/30 hover:bg-white/30 text-gray-900 font-semibold shadow-[0_8px_32px_rgba(31,38,135,0.37)]" 
+                onClick={() => handleSearch('')}
+              >
+                <Search className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6 text-gray-900" />
+                <span className="text-sm sm:text-base">Explorar Servicios</span>
+              </ModernButton>
+              <ModernButton 
+                variant="glass" 
+                size="xl" 
+                className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px] bg-white/20 backdrop-blur-md border-white/30 hover:bg-white/30 text-gray-900 font-semibold shadow-[0_8px_32px_rgba(31,38,135,0.37)]"
+                onClick={() => navigate('/auth/tasker')}
+              >
+                <span className="text-sm sm:text-base">Ofrecer Servicios</span>
+              </ModernButton>
+            </div>
+          )}
 
           {/* Trust Indicators */}
           <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
