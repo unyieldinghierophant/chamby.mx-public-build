@@ -32,6 +32,14 @@ const POPULAR_CATEGORIES = [
   'Otros'
 ];
 
+const TYPING_EXAMPLES = [
+  'Arreglar mi lavadora',
+  'Pintar mi pared',
+  'Armar mi cama',
+  'Ayudarme a mover muebles',
+  'Lavar mi auto'
+];
+
 const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
   placeholder = "¿Qué servicio necesitas?",
   onSearch,
@@ -44,10 +52,69 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showPopular, setShowPopular] = useState(true);
+  const [dynamicPlaceholder, setDynamicPlaceholder] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
   
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<NodeJS.Timeout>();
+
+  // Typing animation effect
+  useEffect(() => {
+    if (isFocused || query) return;
+
+    let currentIndex = 0;
+    let currentText = '';
+    let isDeleting = false;
+    let charIndex = 0;
+    
+    const typeSpeed = 100;
+    const deleteSpeed = 50;
+    const pauseDuration = 2000;
+
+    const type = () => {
+      const currentExample = TYPING_EXAMPLES[currentIndex];
+      
+      if (!isDeleting) {
+        // Typing
+        currentText = currentExample.substring(0, charIndex + 1);
+        charIndex++;
+        
+        setDynamicPlaceholder(currentText);
+        
+        if (charIndex === currentExample.length) {
+          // Finished typing, pause then start deleting
+          setTimeout(() => {
+            isDeleting = true;
+            setTimeout(type, deleteSpeed);
+          }, pauseDuration);
+          return;
+        }
+        
+        setTimeout(type, typeSpeed);
+      } else {
+        // Deleting
+        currentText = currentExample.substring(0, charIndex - 1);
+        charIndex--;
+        
+        setDynamicPlaceholder(currentText);
+        
+        if (charIndex === 0) {
+          // Finished deleting, move to next example
+          isDeleting = false;
+          currentIndex = (currentIndex + 1) % TYPING_EXAMPLES.length;
+          setTimeout(type, 500);
+          return;
+        }
+        
+        setTimeout(type, deleteSpeed);
+      }
+    };
+
+    const timeout = setTimeout(type, 1000);
+    
+    return () => clearTimeout(timeout);
+  }, [isFocused, query]);
 
   // Search function with debouncing
   const searchServices = async (searchQuery: string) => {
@@ -120,8 +187,13 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
   };
 
   const handleInputFocus = () => {
+    setIsFocused(true);
     setIsOpen(true);
     setShowPopular(!query.trim());
+  };
+
+  const handleInputBlur = () => {
+    setIsFocused(false);
   };
 
   const handleCategoryClick = (category: string) => {
@@ -169,13 +241,14 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
         <Input
           ref={inputRef}
           type="text"
-          placeholder={placeholder}
+          placeholder={dynamicPlaceholder || placeholder}
           value={query}
           onChange={handleInputChange}
           onFocus={handleInputFocus}
+          onBlur={handleInputBlur}
           onKeyDown={handleKeyPress}
           className={cn(
-            "pl-12 pr-4 bg-white/90 border-gray-300 rounded-2xl focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm placeholder:text-gray-500 text-gray-900",
+            "pl-12 pr-4 bg-white/90 border-gray-300 rounded-2xl focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm placeholder:text-[#999] text-gray-900",
             sizeClasses[size]
           )}
         />
