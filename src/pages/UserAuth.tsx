@@ -12,6 +12,8 @@ import { ArrowLeft, Users, Phone, Mail } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { supabase } from '@/integrations/supabase/client';
+import { OTPInput } from '@/components/OTPInput';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -39,6 +41,14 @@ const UserAuth = () => {
   });
   const [resetEmail, setResetEmail] = useState('');
   const [showResetForm, setShowResetForm] = useState(false);
+  
+  // OTP verification states
+  const [showOTPVerification, setShowOTPVerification] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpVerifying, setOtpVerifying] = useState(false);
+  const [canResend, setCanResend] = useState(false);
+  const [resendTimer, setResendTimer] = useState(60);
   
   // Error states
   const [loginErrors, setLoginErrors] = useState<Record<string, string>>({});
@@ -103,6 +113,62 @@ const UserAuth = () => {
     setLoading(false);
   };
 
+  const sendOTP = async () => {
+    setOtpSending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-otp', {
+        body: { phone: signupData.phone }
+      });
+
+      if (error) throw error;
+
+      toast.success('Código enviado a tu teléfono');
+      setCanResend(false);
+      setResendTimer(60);
+      
+      // Start resend timer
+      const interval = setInterval(() => {
+        setResendTimer((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            setCanResend(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } catch (error: any) {
+      toast.error(error.message || 'Error al enviar código');
+    } finally {
+      setOtpSending(false);
+    }
+  };
+
+  const verifyOTP = async () => {
+    if (otp.length !== 6) {
+      toast.error('Por favor ingresa el código completo');
+      return;
+    }
+
+    setOtpVerifying(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-otp', {
+        body: { phone: signupData.phone, otp }
+      });
+
+      if (error) throw error;
+
+      toast.success('¡Teléfono verificado exitosamente!');
+      setShowOTPVerification(false);
+      setOtp('');
+      // Navigate will be handled by useEffect based on role
+    } catch (error: any) {
+      toast.error(error.message || 'Código incorrecto');
+    } finally {
+      setOtpVerifying(false);
+    }
+  };
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setSignupErrors({});
@@ -134,11 +200,13 @@ const UserAuth = () => {
     
     if (error) {
       toast.error(error.message);
+      setLoading(false);
     } else {
-      toast.success('¡Cuenta creada! Revisa tu email para confirmar tu cuenta.');
+      toast.success('¡Cuenta creada! Verificando tu teléfono...');
+      setLoading(false);
+      setShowOTPVerification(true);
+      await sendOTP();
     }
-    
-    setLoading(false);
   };
 
   const handleResetPassword = async (e: React.FormEvent) => {
@@ -167,6 +235,75 @@ const UserAuth = () => {
     const baseClass = "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70";
     return errors[fieldName] ? `${baseClass} text-red-500` : baseClass;
   };
+
+  // OTP Verification Screen
+  if (showOTPVerification) {
+    return (
+      <div className="min-h-screen bg-gradient-main bg-gradient-mesh flex items-center justify-center py-12 px-4">
+        <div className="w-full max-w-md">
+          <Card className="bg-card/95 backdrop-blur-sm shadow-raised border-border/20">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl font-bold text-foreground flex items-center justify-center gap-2">
+                <Phone className="w-6 h-6 text-primary" />
+                Verificar Teléfono
+              </CardTitle>
+              <p className="text-muted-foreground">
+                Ingresa el código de 6 dígitos enviado a {signupData.phone}
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex flex-col items-center space-y-4">
+                <OTPInput
+                  value={otp}
+                  onChange={setOtp}
+                  disabled={otpVerifying}
+                />
+                
+                <Button
+                  onClick={verifyOTP}
+                  className="w-full"
+                  disabled={otpVerifying || otp.length !== 6}
+                >
+                  {otpVerifying ? 'Verificando...' : 'Verificar Código'}
+                </Button>
+
+                <div className="text-center space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    ¿No recibiste el código?
+                  </p>
+                  {canResend ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={sendOTP}
+                      disabled={otpSending}
+                    >
+                      {otpSending ? 'Enviando...' : 'Reenviar Código'}
+                    </Button>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Puedes reenviar en {resendTimer}s
+                    </p>
+                  )}
+                </div>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setShowOTPVerification(false);
+                    setOtp('');
+                  }}
+                >
+                  Volver
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-main bg-gradient-mesh flex items-center justify-center py-12 px-4">

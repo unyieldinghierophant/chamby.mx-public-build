@@ -98,6 +98,7 @@ export type Database = {
           email: string | null
           id: string
           phone: string | null
+          phone_verified: boolean | null
           role: string
         }
         Insert: {
@@ -107,6 +108,7 @@ export type Database = {
           email?: string | null
           id?: string
           phone?: string | null
+          phone_verified?: boolean | null
           role?: string
         }
         Update: {
@@ -116,6 +118,7 @@ export type Database = {
           email?: string | null
           id?: string
           phone?: string | null
+          phone_verified?: boolean | null
           role?: string
         }
         Relationships: []
@@ -198,6 +201,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      phone_verification_otps: {
+        Row: {
+          attempts: number
+          created_at: string
+          expires_at: string
+          id: string
+          otp_hash: string
+          phone_number: string
+          verified: boolean
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          expires_at?: string
+          id?: string
+          otp_hash: string
+          phone_number: string
+          verified?: boolean
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          expires_at?: string
+          id?: string
+          otp_hash?: string
+          phone_number?: string
+          verified?: boolean
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -330,6 +363,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_otp_rate_limit: {
+        Args: { phone: string }
+        Returns: boolean
+      }
       check_rate_limit: {
         Args: {
           _action: string
@@ -338,6 +375,10 @@ export type Database = {
           _window_minutes?: number
         }
         Returns: boolean
+      }
+      cleanup_expired_otps: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       get_client_id_from_auth: {
         Args: Record<PropertyKey, never>
