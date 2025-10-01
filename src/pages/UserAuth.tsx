@@ -115,12 +115,19 @@ const UserAuth = () => {
 
   const sendOTP = async () => {
     setOtpSending(true);
+    console.log('Attempting to send OTP to:', signupData.phone);
+    
     try {
       const { data, error } = await supabase.functions.invoke('send-otp', {
         body: { phone: signupData.phone }
       });
 
-      if (error) throw error;
+      console.log('OTP response:', { data, error });
+
+      if (error) {
+        console.error('OTP send error:', error);
+        throw error;
+      }
 
       toast.success('Código enviado a tu teléfono');
       setCanResend(false);
@@ -138,6 +145,7 @@ const UserAuth = () => {
         });
       }, 1000);
     } catch (error: any) {
+      console.error('OTP catch error:', error);
       toast.error(error.message || 'Error al enviar código');
     } finally {
       setOtpSending(false);
