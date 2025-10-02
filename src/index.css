@@ -18,19 +18,19 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 0%;
 
-    /* Primary Blue - Trust, professionalism, stability */
-    --primary: 214 61% 49%;
+    /* Primary Orange - Energy, creativity, confidence */
+    --primary: 25 90% 55%;
     --primary-foreground: 0 0% 100%;
-    --primary-light: 214 61% 75%;
-    --primary-dark: 214 61% 35%;
+    --primary-light: 25 90% 75%;
+    --primary-dark: 25 90% 40%;
 
     /* Accent Yellow - Energy, optimism, warmth */
     --accent: 45 95% 55%;
     --accent-foreground: 0 0% 0%;
 
-    /* Secondary for subtle elements */
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 18%;
+    /* Secondary Black - Bold, modern, contrast */
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 100%;
 
     --muted: 0 0% 96%;
     --muted-foreground: 0 0% 45%;
@@ -40,29 +40,29 @@ All colors MUST be HSL.
 
     --border: 0 0% 88%;
     --input: 0 0% 96%;
-    --ring: 214 61% 49%;
+    --ring: 25 90% 55%;
 
     /* Custom Chamby Brand Colors */
-    --chamby-blue: 214 61% 49%;
+    --chamby-orange: 25 90% 55%;
     --chamby-yellow: 45 95% 55%;
     --dark-gray: 0 0% 18%;
     --light-gray: 0 0% 96%;
     
     /* Modern Gradients with new brand colors */
     --gradient-main: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(0 0% 96%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(214 61% 49%) 0%, hsl(214 61% 42%) 50%, hsl(214 61% 35%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(25 90% 55%) 0%, hsl(25 90% 48%) 50%, hsl(25 90% 40%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(0 0% 98%) 100%);
-    --gradient-button: linear-gradient(135deg, hsl(214 61% 52%) 0%, hsl(214 61% 49%) 50%, hsl(214 61% 45%) 100%);
+    --gradient-button: linear-gradient(135deg, hsl(25 90% 58%) 0%, hsl(25 90% 55%) 50%, hsl(25 90% 50%) 100%);
     --gradient-accent: linear-gradient(135deg, hsl(45 95% 60%) 0%, hsl(45 95% 55%) 50%, hsl(45 95% 50%) 100%);
     --gradient-glass: linear-gradient(145deg, hsl(0 0% 100% / 0.95) 0%, hsl(0 0% 100% / 0.85) 100%);
     --gradient-glass-button: linear-gradient(145deg, hsl(0 0% 100% / 0.15) 0%, hsl(0 0% 100% / 0.05) 100%);
-    --gradient-mesh: radial-gradient(circle at 20% 80%, hsl(214 61% 49% / 0.15) 0%, transparent 50%), radial-gradient(circle at 80% 20%, hsl(11 66% 55% / 0.1) 0%, transparent 50%);
+    --gradient-mesh: radial-gradient(circle at 20% 80%, hsl(25 90% 55% / 0.15) 0%, transparent 50%), radial-gradient(circle at 80% 20%, hsl(45 95% 55% / 0.1) 0%, transparent 50%);
     
     /* Modern Shadows & Glows with brand colors */
     --shadow-soft: 0 4px 16px -4px hsl(0 0% 0% / 0.1);
     --shadow-raised: 0 8px 24px -6px hsl(0 0% 0% / 0.15), 0 0 0 1px hsl(0 0% 88%);
     --shadow-floating: 0 16px 40px -8px hsl(0 0% 0% / 0.2), 0 0 0 1px hsl(0 0% 90%);
-    --shadow-glow: 0 0 32px hsl(214 61% 49% / 0.3);
+    --shadow-glow: 0 0 32px hsl(25 90% 55% / 0.3);
     --shadow-glow-yellow: 0 0 24px hsl(45 95% 55% / 0.4);
     --shadow-inner: inset 0 2px 4px hsl(0 0% 0% / 0.05);
     --shadow-button-3d: 0 4px 12px -2px hsl(0 0% 0% / 0.1), 0 2px 8px -2px hsl(0 0% 0% / 0.08), inset 0 1px 2px hsl(0 0% 100% / 0.3);
