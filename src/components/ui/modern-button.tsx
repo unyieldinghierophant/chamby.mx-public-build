@@ -9,7 +9,7 @@ const modernButtonVariants = cva(
     variants: {
       variant: {
         primary: "bg-gradient-button text-primary-foreground shadow-button-3d hover:shadow-button-hover active:shadow-button-active transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 border border-primary/20",
-        accent: "bg-gradient-accent text-accent-foreground shadow-button-3d hover:shadow-button-hover hover:shadow-glow-yellow active:shadow-button-active transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 border border-accent/30",
+        accent: "bg-gradient-accent text-accent-foreground shadow-button-3d hover:shadow-button-hover hover:shadow-glow-beige active:shadow-button-active transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 border border-accent/30",
         glass: "bg-gradient-glass-button backdrop-blur-glass border-[var(--glass-border-foggy)] text-foreground shadow-button-3d hover:shadow-button-hover active:shadow-button-active transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200",
         outline: "border-2 border-primary text-primary bg-transparent hover:bg-primary hover:text-primary-foreground transition-all duration-200",
       },
