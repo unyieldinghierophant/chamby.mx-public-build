@@ -78,6 +78,7 @@ export default {
         'gradient-glass-button': 'var(--gradient-glass-button)',
         'gradient-mesh': 'var(--gradient-mesh)',
         'gradient-animated': 'var(--gradient-animated)',
+        'gradient-button-blue': 'var(--gradient-button-blue)',
       },
       boxShadow: {
         'soft': 'var(--shadow-soft)',
