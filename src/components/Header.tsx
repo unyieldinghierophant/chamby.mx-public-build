@@ -5,6 +5,7 @@ import { ModernButton } from "@/components/ui/modern-button";
 import { Button } from "@/components/ui/button";
 import { Menu, X, LogOut, User, Settings, CreditCard, Shield, Users } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import chambyLogo from "@/assets/chamby-logo.png";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,9 +48,13 @@ const Header = () => {
           <div className="flex-shrink-0">
             <button 
               onClick={() => navigate(getLogoDestination())}
-              className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent hover:opacity-80 transition-opacity cursor-pointer"
+              className="hover:opacity-80 transition-opacity cursor-pointer"
             >
-              Chamby.mx
+              <img 
+                src={chambyLogo} 
+                alt="Chamby.mx" 
+                className="h-10 md:h-12 w-auto"
+              />
             </button>
           </div>
 
@@ -139,15 +144,12 @@ const Header = () => {
               /* Not logged in - show auth buttons */
               <>
                 <Link to="/auth/tasker">
-                  <ModernButton 
-                    variant="outline"
-                    className="bg-gradient-to-r from-cyan-500 to-teal-500 text-white border-cyan-400 hover:from-cyan-600 hover:to-teal-600 hover:border-cyan-500"
-                  >
+                  <ModernButton variant="accent">
                     Ser Tasker
                   </ModernButton>
                 </Link>
                 <Link to="/auth/user">
-                  <ModernButton variant="glass">
+                  <ModernButton variant="primary">
                     Iniciar Sesión
                   </ModernButton>
                 </Link>
@@ -219,15 +221,12 @@ const Header = () => {
                   /* Not logged in - mobile auth buttons */
                   <>
                     <Link to="/auth/tasker">
-                      <ModernButton 
-                        variant="outline" 
-                        className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 text-white border-cyan-400 hover:from-cyan-600 hover:to-teal-600 hover:border-cyan-500"
-                      >
+                      <ModernButton variant="accent" className="w-full">
                         Ser Tasker
                       </ModernButton>
                     </Link>
                     <Link to="/auth/user">
-                      <ModernButton variant="glass" className="w-full">
+                      <ModernButton variant="primary" className="w-full">
                         Iniciar Sesión
                       </ModernButton>
                     </Link>

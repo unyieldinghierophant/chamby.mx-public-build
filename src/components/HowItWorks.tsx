@@ -102,14 +102,14 @@ const HowItWorks = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <ModernButton 
-                variant="glow" 
+                variant="accent" 
                 size="xl"
                 onClick={() => navigate('/search')}
               >
                 Comenzar ahora
               </ModernButton>
               <ModernButton 
-                variant="glass" 
+                variant="outline" 
                 size="xl"
                 onClick={() => navigate('/tasker-landing')}
               >

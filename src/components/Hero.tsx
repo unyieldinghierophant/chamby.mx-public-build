@@ -24,48 +24,48 @@ const Hero = () => {
   };
   
   return (
-    <section className="relative min-h-screen bg-gray-100 flex items-center justify-center pt-20 overflow-hidden">
+    <section className="relative min-h-screen bg-background flex items-center justify-center pt-20 overflow-hidden">
       {/* 3D Glass Morphic Background Icons */}
       <div className="absolute inset-0 pointer-events-none">
         {/* House Icon - Top Left */}
         <div className="absolute top-32 left-16 transform">
-          <div className="w-20 h-20 bg-white/20 backdrop-blur-xl rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.3)] border border-white/30 flex items-center justify-center transform rotate-12 hover:rotate-6 transition-transform duration-300">
-            <Home size={32} className="text-gray-600/60" />
+          <div className="w-20 h-20 bg-white/20 backdrop-blur-xl rounded-2xl shadow-raised border border-white/30 flex items-center justify-center transform rotate-12 hover:rotate-6 transition-transform duration-300">
+            <Home size={32} className="text-muted-foreground/60" />
           </div>
         </div>
         
         {/* Wrench Icon - Top Right */}
         <div className="absolute top-40 right-20 transform">
-          <div className="w-16 h-16 bg-white/20 backdrop-blur-xl rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.3)] border border-white/30 flex items-center justify-center transform -rotate-12 hover:rotate-0 transition-transform duration-300">
-            <Wrench size={24} className="text-gray-600/60" />
+          <div className="w-16 h-16 bg-white/20 backdrop-blur-xl rounded-xl shadow-raised border border-white/30 flex items-center justify-center transform -rotate-12 hover:rotate-0 transition-transform duration-300">
+            <Wrench size={24} className="text-muted-foreground/60" />
           </div>
         </div>
         
         {/* Droplets Icon - Left Side */}
         <div className="absolute top-1/2 left-8 transform -translate-y-1/2">
-          <div className="w-20 h-20 bg-white/20 backdrop-blur-xl rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.3)] border border-white/30 flex items-center justify-center transform rotate-45 hover:rotate-12 transition-transform duration-300">
-            <Droplets size={28} className="text-gray-600/60" />
+          <div className="w-20 h-20 bg-white/20 backdrop-blur-xl rounded-2xl shadow-raised border border-white/30 flex items-center justify-center transform rotate-45 hover:rotate-12 transition-transform duration-300">
+            <Droplets size={28} className="text-muted-foreground/60" />
           </div>
         </div>
         
         {/* Truck Icon - Right Side */}
         <div className="absolute top-1/2 right-12 transform -translate-y-1/2">
-          <div className="w-24 h-24 bg-white/20 backdrop-blur-xl rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.3)] border border-white/30 flex items-center justify-center transform -rotate-6 hover:rotate-6 transition-transform duration-300">
-            <Truck size={32} className="text-gray-600/60" />
+          <div className="w-24 h-24 bg-white/20 backdrop-blur-xl rounded-2xl shadow-raised border border-white/30 flex items-center justify-center transform -rotate-6 hover:rotate-6 transition-transform duration-300">
+            <Truck size={32} className="text-muted-foreground/60" />
           </div>
         </div>
         
         {/* SprayCan Icon - Bottom Left */}
         <div className="absolute bottom-32 left-24 transform">
-          <div className="w-16 h-16 bg-white/20 backdrop-blur-xl rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.3)] border border-white/30 flex items-center justify-center transform rotate-20 hover:rotate-0 transition-transform duration-300">
-            <SprayCan size={24} className="text-gray-600/60" />
+          <div className="w-16 h-16 bg-white/20 backdrop-blur-xl rounded-xl shadow-raised border border-white/30 flex items-center justify-center transform rotate-20 hover:rotate-0 transition-transform duration-300">
+            <SprayCan size={24} className="text-muted-foreground/60" />
           </div>
         </div>
         
         {/* Additional Icon - Bottom Right */}
         <div className="absolute bottom-28 right-16 transform">
-          <div className="w-20 h-20 bg-white/20 backdrop-blur-xl rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.3)] border border-white/30 flex items-center justify-center transform -rotate-15 hover:rotate-3 transition-transform duration-300">
-            <Shield size={28} className="text-gray-600/60" />
+          <div className="w-20 h-20 bg-white/20 backdrop-blur-xl rounded-2xl shadow-raised border border-white/30 flex items-center justify-center transform -rotate-15 hover:rotate-3 transition-transform duration-300">
+            <Shield size={28} className="text-muted-foreground/60" />
           </div>
         </div>
       </div>
@@ -76,7 +76,7 @@ const Hero = () => {
           <div className="space-y-6">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-tight">
               Servicios del hogar
-              <span className="block bg-gradient-to-r from-[hsl(var(--primary-dark))] via-primary to-[hsl(var(--primary-light))] bg-clip-text text-transparent mx-0 px-px py-[3px] drop-shadow-[0_0_20px_hsl(var(--primary)_/_0.5)]" style={{filter: 'drop-shadow(0 0 20px hsl(var(--primary) / 0.3))'}}>
+              <span className="block bg-gradient-button bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(55,113,200,0.3)]">
                 confiables y seguros
               </span>
             </h1>
@@ -100,18 +100,18 @@ const Hero = () => {
           {!user && (
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center px-4">
               <ModernButton 
-                variant="glass" 
+                variant="primary" 
                 size="xl" 
-                className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px] bg-white/20 backdrop-blur-md border-white/30 hover:bg-white/30 text-gray-900 font-semibold shadow-[0_8px_32px_rgba(31,38,135,0.37)]" 
+                className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px]" 
                 onClick={() => handleSearch('')}
               >
-                <Search className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6 text-gray-900" />
+                <Search className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
                 <span className="text-sm sm:text-base">Explorar Servicios</span>
               </ModernButton>
               <ModernButton 
-                variant="glass" 
+                variant="accent" 
                 size="xl" 
-                className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px] bg-white/20 backdrop-blur-md border-white/30 hover:bg-white/30 text-gray-900 font-semibold shadow-[0_8px_32px_rgba(31,38,135,0.37)]"
+                className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px]"
                 onClick={() => navigate('/auth/tasker')}
               >
                 <span className="text-sm sm:text-base">Ofrecer Servicios</span>

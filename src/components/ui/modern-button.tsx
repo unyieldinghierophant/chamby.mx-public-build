@@ -8,10 +8,10 @@ const modernButtonVariants = cva(
   {
     variants: {
       variant: {
-        primary: "bg-gradient-glass-button backdrop-blur-glass border-[var(--glass-border-foggy)] text-chamby-black shadow-button-3d hover:shadow-button-hover active:shadow-button-active transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200",
-        glass: "bg-gradient-glass-button backdrop-blur-glass border-[var(--glass-border-foggy)] text-chamby-black shadow-button-3d hover:shadow-button-hover active:shadow-button-active transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200",
-        glow: "bg-gradient-glass-button backdrop-blur-glass border-[var(--glass-border-foggy)] text-chamby-black shadow-button-3d hover:shadow-button-hover active:shadow-button-active transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 hover:shadow-glow",
-        outline: "bg-gradient-glass-button backdrop-blur-glass border-[var(--glass-border-foggy)] text-chamby-black shadow-button-3d hover:shadow-button-hover active:shadow-button-active transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200",
+        primary: "bg-gradient-button text-primary-foreground shadow-button-3d hover:shadow-button-hover active:shadow-button-active transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 border border-primary/20",
+        accent: "bg-gradient-accent text-accent-foreground shadow-button-3d hover:shadow-button-hover hover:shadow-glow-orange active:shadow-button-active transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 border border-accent/20",
+        glass: "bg-gradient-glass-button backdrop-blur-glass border-[var(--glass-border-foggy)] text-foreground shadow-button-3d hover:shadow-button-hover active:shadow-button-active transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200",
+        outline: "border-2 border-primary text-primary bg-transparent hover:bg-primary hover:text-primary-foreground transition-all duration-200",
       },
       size: {
         default: "h-12 px-6 py-3",
