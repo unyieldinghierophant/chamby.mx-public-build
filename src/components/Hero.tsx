@@ -5,12 +5,12 @@ import { useState } from "react";
 import heroImage from "@/assets/hero-services.jpg";
 import EnhancedSearchBar from "@/components/EnhancedSearchBar";
 import { useAuth } from "@/contexts/AuthContext";
-
 const Hero = () => {
   const [location, setLocation] = useState("");
   const navigate = useNavigate();
-  const { user } = useAuth();
-  
+  const {
+    user
+  } = useAuth();
   const handleSearch = (query: string) => {
     if (query.trim()) {
       navigate(`/jobs?q=${encodeURIComponent(query)}&location=${encodeURIComponent(location)}`);
@@ -18,13 +18,10 @@ const Hero = () => {
       navigate('/jobs');
     }
   };
-
   const handleResultClick = (result: any) => {
     navigate(`/search?category=${encodeURIComponent(result.category)}&service=${encodeURIComponent(result.name)}`);
   };
-  
-  return (
-    <section className="relative min-h-screen bg-background flex items-center justify-center pt-20 overflow-hidden">
+  return <section className="relative min-h-screen bg-background flex items-center justify-center pt-20 overflow-hidden">
       {/* 3D Glass Morphic Background Icons */}
       <div className="absolute inset-0 pointer-events-none">
         {/* House Icon - Top Left */}
@@ -75,12 +72,12 @@ const Hero = () => {
           {/* Main Heading */}
           <div className="space-y-12">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-tight pb-6" style={{
-              textShadow: '0 1px 0 hsl(0 0% 100% / 0.8), 0 2px 3px hsl(0 0% 0% / 0.15), 0 4px 8px hsl(0 0% 0% / 0.1)',
-            }}>
+            textShadow: '0 1px 0 hsl(0 0% 100% / 0.8), 0 2px 3px hsl(0 0% 0% / 0.15), 0 4px 8px hsl(0 0% 0% / 0.1)'
+          }}>
               Servicios del hogar
-              <span className="block bg-gradient-button bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(55,113,200,0.3)]" style={{
-                textShadow: '0 1px 0 hsl(214 61% 49% / 0.3), 0 2px 3px hsl(0 0% 0% / 0.15), 0 4px 8px hsl(0 0% 0% / 0.1)',
-              }}>
+              <span style={{
+              textShadow: '0 1px 0 hsl(214 61% 49% / 0.3), 0 2px 3px hsl(0 0% 0% / 0.15), 0 4px 8px hsl(0 0% 0% / 0.1)'
+            }} className="block bg-gradient-button bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(55,113,200,0.3)] py-[4px]">
                 confiables y seguros
               </span>
             </h1>
@@ -91,37 +88,19 @@ const Hero = () => {
 
           {/* Enhanced Search Bar */}
           <div className="max-w-xl mx-auto">
-            <EnhancedSearchBar
-              placeholder="¿Qué servicio necesitas hoy?"
-              onSearch={handleSearch}
-              onResultClick={handleResultClick}
-              size="lg"
-              className="w-full"
-            />
+            <EnhancedSearchBar placeholder="¿Qué servicio necesitas hoy?" onSearch={handleSearch} onResultClick={handleResultClick} size="lg" className="w-full" />
           </div>
 
           {/* Action Buttons - Only show for non-logged in users */}
-          {!user && (
-            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center px-4">
-              <ModernButton 
-                variant="primary" 
-                size="xl" 
-                className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px] bg-primary text-white" 
-                onClick={() => handleSearch('')}
-              >
+          {!user && <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center px-4">
+              <ModernButton variant="primary" size="xl" className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px] bg-primary text-white" onClick={() => handleSearch('')}>
                 <Search className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
                 <span className="text-sm sm:text-base">Explorar Servicios</span>
               </ModernButton>
-              <ModernButton 
-                variant="accent" 
-                size="xl" 
-                className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px]"
-                onClick={() => navigate('/auth/tasker')}
-              >
+              <ModernButton variant="accent" size="xl" className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px]" onClick={() => navigate('/auth/tasker')}>
                 <span className="text-sm sm:text-base">Ofrecer Servicios</span>
               </ModernButton>
-            </div>
-          )}
+            </div>}
 
           {/* Trust Indicators */}
           <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
@@ -152,8 +131,6 @@ const Hero = () => {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default Hero;
