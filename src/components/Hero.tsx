@@ -106,7 +106,7 @@ const Hero = () => {
               <ModernButton 
                 variant="primary" 
                 size="xl" 
-                className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px] bg-gradient-animated bg-[length:200%_100%] animate-gradient-shift hover:animate-none" 
+                className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px] bg-gradient-animated bg-[length:300%_100%] animate-gradient-shift hover:animate-none text-foreground" 
                 onClick={() => handleSearch('')}
               >
                 <Search className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
