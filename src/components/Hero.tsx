@@ -25,16 +25,16 @@ const Hero = () => {
       {/* 3D Glass Morphic Background Icons */}
       <div className="absolute inset-0 pointer-events-none">
         {/* House Icon - Top Left */}
-        <div className="absolute top-32 left-16 transform">
-          <div className="w-20 h-20 bg-white/20 backdrop-blur-xl rounded-2xl shadow-raised border border-white/30 flex items-center justify-center transform rotate-12 hover:rotate-6 transition-transform duration-300">
-            <Home size={32} className="text-muted-foreground/60" />
+        <div className="absolute top-20 left-2 sm:top-32 sm:left-16 transform">
+          <div className="w-14 h-14 sm:w-20 sm:h-20 bg-white/20 backdrop-blur-xl rounded-2xl shadow-raised border border-white/30 flex items-center justify-center transform rotate-12 hover:rotate-6 transition-transform duration-300">
+            <Home size={24} className="sm:w-8 sm:h-8 text-muted-foreground/60" />
           </div>
         </div>
         
         {/* Wrench Icon - Top Right */}
-        <div className="absolute top-40 right-20 transform">
-          <div className="w-16 h-16 bg-white/20 backdrop-blur-xl rounded-xl shadow-raised border border-white/30 flex items-center justify-center transform -rotate-12 hover:rotate-0 transition-transform duration-300">
-            <Wrench size={24} className="text-muted-foreground/60" />
+        <div className="absolute top-20 right-2 sm:top-40 sm:right-20 transform">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white/20 backdrop-blur-xl rounded-xl shadow-raised border border-white/30 flex items-center justify-center transform -rotate-12 hover:rotate-0 transition-transform duration-300">
+            <Wrench size={20} className="sm:w-6 sm:h-6 text-muted-foreground/60" />
           </div>
         </div>
         
