@@ -83,7 +83,7 @@ export default {
         'raised': 'var(--shadow-raised)',
         'floating': 'var(--shadow-floating)',
         'glow': 'var(--shadow-glow)',
-        'glow-silver': 'var(--shadow-glow-silver)',
+        'glow-yellow': 'var(--shadow-glow-yellow)',
         'inner': 'var(--shadow-inner)',
         'button-3d': 'var(--shadow-button-3d)',
         'button-hover': 'var(--shadow-button-hover)',
