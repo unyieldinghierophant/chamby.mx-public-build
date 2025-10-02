@@ -158,7 +158,7 @@ export default {
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fade-in 0.6s ease-out",
         "blur-fade": "blur-fade 0.8s ease-out",
-        "gradient-shift": "gradient-shift 150s ease-in-out infinite",
+        "gradient-shift": "gradient-shift 450s ease-in-out infinite",
       },
     },
   },
