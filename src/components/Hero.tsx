@@ -73,14 +73,18 @@ const Hero = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-20 relative z-10">
         <div className="max-w-4xl mx-auto text-center space-y-12">
           {/* Main Heading */}
-          <div className="space-y-6">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-tight">
+          <div className="space-y-8">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-tight pb-2" style={{
+              textShadow: '0 1px 0 hsl(0 0% 100% / 0.8), 0 2px 3px hsl(0 0% 0% / 0.15), 0 4px 8px hsl(0 0% 0% / 0.1)',
+            }}>
               Servicios del hogar
-              <span className="block bg-gradient-button bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(55,113,200,0.3)]">
+              <span className="block bg-gradient-button bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(55,113,200,0.3)]" style={{
+                textShadow: '0 1px 0 hsl(214 61% 49% / 0.3), 0 2px 3px hsl(0 0% 0% / 0.15), 0 4px 8px hsl(0 0% 0% / 0.1)',
+              }}>
                 confiables y seguros
               </span>
             </h1>
-            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground leading-relaxed max-w-3xl mx-auto px-4">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground leading-relaxed max-w-3xl mx-auto px-4 pt-2">
               Conectamos a la gente que sabe solucionar con gente que necesita soluciones
             </p>
           </div>
@@ -102,7 +106,7 @@ const Hero = () => {
               <ModernButton 
                 variant="primary" 
                 size="xl" 
-                className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px]" 
+                className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px] bg-gradient-animated bg-[length:200%_100%] animate-gradient-shift hover:animate-none" 
                 onClick={() => handleSearch('')}
               >
                 <Search className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />

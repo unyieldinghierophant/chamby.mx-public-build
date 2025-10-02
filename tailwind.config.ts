@@ -77,6 +77,7 @@ export default {
         'gradient-glass': 'var(--gradient-glass)',
         'gradient-glass-button': 'var(--gradient-glass-button)',
         'gradient-mesh': 'var(--gradient-mesh)',
+        'gradient-animated': 'var(--gradient-animated)',
       },
       boxShadow: {
         'soft': 'var(--shadow-soft)',
@@ -133,6 +134,14 @@ export default {
             opacity: "1",
             filter: "blur(0px)"
           }
+        },
+        "gradient-shift": {
+          "0%, 100%": {
+            backgroundPosition: "0% 50%"
+          },
+          "50%": {
+            backgroundPosition: "100% 50%"
+          }
         }
       },
       animation: {
@@ -140,6 +149,7 @@ export default {
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fade-in 0.6s ease-out",
         "blur-fade": "blur-fade 0.8s ease-out",
+        "gradient-shift": "gradient-shift 3s ease-in-out infinite",
       },
     },
   },

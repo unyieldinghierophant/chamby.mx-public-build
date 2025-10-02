@@ -57,6 +57,7 @@ All colors MUST be HSL.
     --gradient-glass: linear-gradient(145deg, hsl(0 0% 100% / 0.95) 0%, hsl(0 0% 100% / 0.85) 100%);
     --gradient-glass-button: linear-gradient(145deg, hsl(0 0% 100% / 0.15) 0%, hsl(0 0% 100% / 0.05) 100%);
     --gradient-mesh: radial-gradient(circle at 20% 80%, hsl(214 61% 49% / 0.15) 0%, transparent 50%), radial-gradient(circle at 80% 20%, hsl(210 20% 85% / 0.12) 0%, transparent 50%);
+    --gradient-animated: linear-gradient(90deg, hsl(200 100% 85%), hsl(0 0% 100%), hsl(200 100% 85%), hsl(0 0% 100%));
     
     /* Modern Shadows & Glows with brand colors */
     --shadow-soft: 0 4px 16px -4px hsl(0 0% 0% / 0.1);
