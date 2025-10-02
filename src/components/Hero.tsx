@@ -106,7 +106,7 @@ const Hero = () => {
               <ModernButton 
                 variant="primary" 
                 size="xl" 
-                className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px] bg-muted-foreground text-white" 
+                className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px] bg-primary text-white" 
                 onClick={() => handleSearch('')}
               >
                 <Search className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
