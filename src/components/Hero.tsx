@@ -12,11 +12,7 @@ const Hero = () => {
     user
   } = useAuth();
   const handleSearch = (query: string) => {
-    if (query.trim()) {
-      navigate(`/jobs?q=${encodeURIComponent(query)}&location=${encodeURIComponent(location)}`);
-    } else {
-      navigate('/jobs');
-    }
+    // Search handled by EnhancedSearchBar redirect to /nueva-solicitud
   };
   return <section className="relative min-h-screen bg-background flex items-center justify-center pt-20 overflow-hidden">
       {/* 3D Glass Morphic Background Icons */}
@@ -90,10 +86,6 @@ const Hero = () => {
 
           {/* Action Buttons - Only show for non-logged in users */}
           {!user && <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center px-4">
-              <ModernButton variant="primary" size="xl" className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px] bg-primary text-white" onClick={() => handleSearch('')}>
-                <Search className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
-                <span className="text-sm sm:text-base">Explorar Servicios</span>
-              </ModernButton>
               <ModernButton variant="accent" size="xl" className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px]" onClick={() => navigate('/auth/tasker')}>
                 <span className="text-sm sm:text-base">Ofrecer Servicios</span>
               </ModernButton>

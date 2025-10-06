@@ -50,7 +50,7 @@ const TaskerAuth = () => {
       if (role === 'provider') {
         navigate('/provider-dashboard');
       } else if (role === 'client') {
-        navigate('/search');
+        navigate('/user-landing');
       }
     }
   }, [user, role, roleLoading, navigate]);

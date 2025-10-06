@@ -5,7 +5,6 @@ import { useProfile } from "@/hooks/useProfile";
 import { useUserRole } from "@/hooks/useUserRole";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
-import Services from "@/components/Services";
 import HowItWorks from "@/components/HowItWorks";
 import Trust from "@/components/Trust";
 import Footer from "@/components/Footer";
@@ -36,12 +35,9 @@ const Index = () => {
           <Hero />
         </div>
         <div className="animate-blur-fade" style={{ animationDelay: '0.3s' }}>
-          <Services />
-        </div>
-        <div className="animate-blur-fade" style={{ animationDelay: '0.6s' }}>
           <HowItWorks />
         </div>
-        <div className="animate-blur-fade" style={{ animationDelay: '0.9s' }}>
+        <div className="animate-blur-fade" style={{ animationDelay: '0.6s' }}>
           <Trust />
         </div>
       </main>

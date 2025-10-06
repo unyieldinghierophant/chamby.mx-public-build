@@ -95,17 +95,13 @@ const ServiceDetail = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-foreground mb-4">Servicio no encontrado</h2>
-          <ModernButton onClick={() => navigate('/search')}>
-            Volver a búsqueda
+          <ModernButton onClick={() => navigate('/user-landing')}>
+            Volver
           </ModernButton>
         </div>
       </div>
     );
   }
-
-  const handleBookService = (professionalId: number) => {
-    navigate(`/provider/${professionalId}`);
-  };
 
   return (
     <div className="min-h-screen bg-background mobile-pb-nav">
@@ -217,13 +213,12 @@ const ServiceDetail = () => {
                     
                     <div className="flex flex-col space-y-2 ml-4">
                       <ModernButton 
-                        onClick={() => handleBookService(professional.id)}
-                        disabled={!professional.available}
+                        disabled
                         className="min-w-[120px]"
                       >
-                        {professional.available ? 'Contratar' : 'No disponible'}
+                        Próximamente
                       </ModernButton>
-                      <ModernButton 
+                      <ModernButton
                         variant="outline" 
                         size="sm"
                         className="min-w-[120px]"
@@ -271,7 +266,7 @@ const ServiceDetail = () => {
           <ModernButton 
             variant="outline" 
             size="lg"
-            onClick={() => navigate('/search')}
+            onClick={() => navigate('/user-landing')}
           >
             ¿No encuentras lo que buscas? Explorar más servicios
           </ModernButton>

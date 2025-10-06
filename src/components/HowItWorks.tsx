@@ -104,7 +104,7 @@ const HowItWorks = () => {
               <ModernButton 
                 variant="accent" 
                 size="xl"
-                onClick={() => navigate('/search')}
+                onClick={() => navigate('/user-landing')}
               >
                 Comenzar ahora
               </ModernButton>

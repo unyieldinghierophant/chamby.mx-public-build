@@ -71,12 +71,9 @@ const JobCard = ({ job }: JobCardProps) => {
             </AvatarFallback>
           </Avatar>
           <div className="flex-1">
-            <Link 
-              to={`/provider/${job.provider_id}`}
-              className="text-sm font-medium hover:text-primary transition-colors"
-            >
+            <span className="text-sm font-medium">
               {getProviderName()}
-            </Link>
+            </span>
             <div className="flex items-center space-x-2 text-xs text-muted-foreground">
               <Clock className="w-3 h-3" />
               <span>Publicado {formatDate(job.created_at)}</span>
@@ -87,16 +84,9 @@ const JobCard = ({ job }: JobCardProps) => {
 
       {job.description && (
         <CardContent className="pt-0">
-          <CardDescription className="line-clamp-3 mb-4">
+          <CardDescription className="line-clamp-3">
             {job.description}
           </CardDescription>
-
-          <Link to={`/provider/${job.provider_id}`}>
-            <Button variant="outline" size="sm" className="w-full">
-              <User className="w-4 h-4 mr-2" />
-              Ver Perfil
-            </Button>
-          </Link>
         </CardContent>
       )}
     </Card>

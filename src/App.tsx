@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from
 import { AuthProvider } from "@/contexts/AuthContext";
 import { useEffect } from "react";
 import Index from "./pages/Index";
-import Search from "./pages/Search";
 import Auth from "./pages/Auth";
 import UserAuth from "./pages/UserAuth";
 import TaskerAuth from "./pages/TaskerAuth";
@@ -31,8 +30,6 @@ import NotFound from "./pages/NotFound";
 import MobileJobs from "./pages/MobileJobs";
 import MobileFavorites from "./pages/MobileFavorites";
 import MobileProfile from "./pages/MobileProfile";
-import ProviderProfile from "./pages/ProviderProfile";
-import ProviderProfileNew from "./pages/ProviderProfileNew";
 import BookingDateTime from "./pages/BookingDateTime";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCanceled from "./pages/PaymentCanceled";
@@ -77,13 +74,10 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Navigate to="/user-landing" replace />} />
             <Route path="/user-landing" element={<Index />} />
-            <Route path="/search" element={<Search />} />
-            <Route path="/jobs" element={<Search />} />
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/auth/user" element={<UserAuth />} />
-        <Route path="/auth/tasker" element={<TaskerAuth />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/auth/user" element={<UserAuth />} />
+            <Route path="/auth/tasker" element={<TaskerAuth />} />
             <Route path="/tasker-landing" element={<ProviderLanding />} />
-            <Route path="/provider/:providerId" element={<ProviderProfileNew />} />
             <Route path="/booking/datetime/:providerId" element={<BookingDateTime />} />
             <Route path="/service/:serviceType" element={<ServiceDetail />} />
             <Route path="/booking/:jobId" element={<BookingForm />} />

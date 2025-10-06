@@ -57,7 +57,7 @@ const PaymentCanceled = () => {
               
               <ModernButton 
                 variant="outline"
-                onClick={() => navigate('/search')}
+                onClick={() => navigate('/user-landing')}
                 className="w-full"
                 size="lg"
               >

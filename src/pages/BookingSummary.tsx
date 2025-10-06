@@ -55,7 +55,7 @@ const BookingSummary = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Información de reserva incompleta</h2>
-          <ModernButton onClick={() => navigate('/search')}>
+          <ModernButton onClick={() => navigate('/user-landing')}>
             Buscar Servicios
           </ModernButton>
         </div>
