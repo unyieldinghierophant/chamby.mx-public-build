@@ -91,25 +91,12 @@ const JobCard = ({ job }: JobCardProps) => {
             {job.description}
           </CardDescription>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-              <div className="flex items-center space-x-1">
-                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                <span>4.8 (24)</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <MapPin className="w-4 h-4" />
-                <span>Ciudad de México</span>
-              </div>
-            </div>
-
-            <Link to={`/provider/${job.provider_id}`}>
-              <Button variant="outline" size="sm">
-                <User className="w-4 h-4 mr-2" />
-                Ver Perfil
-              </Button>
-            </Link>
-          </div>
+          <Link to={`/provider/${job.provider_id}`}>
+            <Button variant="outline" size="sm" className="w-full">
+              <User className="w-4 h-4 mr-2" />
+              Ver Perfil
+            </Button>
+          </Link>
         </CardContent>
       )}
     </Card>

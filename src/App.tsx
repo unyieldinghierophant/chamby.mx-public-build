@@ -20,7 +20,6 @@ import ProfileSettings from "./pages/ProfileSettings";
 import SecuritySettings from "./pages/SecuritySettings";
 import PaymentSettings from "./pages/PaymentSettings";
 import GeneralSettings from "./pages/GeneralSettings";
-import Messages from "./pages/Messages";
 import DataExport from "./pages/DataExport";
 import AccountDeletion from "./pages/AccountDeletion";
 import ProviderDashboard from "./pages/ProviderDashboard";
@@ -170,15 +169,7 @@ const App = () => (
               } 
             />
             <Route 
-              path="/messages" 
-              element={
-                <ProtectedRoute>
-                  <Messages />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/profile/data-export" 
+              path="/profile/data-export"
               element={
                 <ProtectedRoute>
                   <DataExport />
