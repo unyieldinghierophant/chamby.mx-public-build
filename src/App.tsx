@@ -36,6 +36,8 @@ import ProviderProfileNew from "./pages/ProviderProfileNew";
 import BookingDateTime from "./pages/BookingDateTime";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCanceled from "./pages/PaymentCanceled";
+import NuevaSolicitud from "./pages/NuevaSolicitud";
+import PagoVisita from "./pages/PagoVisita";
 
 const queryClient = new QueryClient();
 
@@ -88,7 +90,9 @@ const App = () => (
             <Route path="/booking/summary" element={<BookingSummary />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-canceled" element={<PaymentCanceled />} />
-            <Route 
+            <Route path="/nueva-solicitud" element={<NuevaSolicitud />} />
+            <Route path="/pago-visita" element={<PagoVisita />} />
+            <Route
               path="/provider-dashboard" 
               element={
                 <ProtectedRoute requireAuth>

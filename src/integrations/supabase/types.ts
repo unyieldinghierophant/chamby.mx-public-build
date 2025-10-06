@@ -161,36 +161,60 @@ export type Database = {
       jobs: {
         Row: {
           category: string
+          client_id: string | null
           created_at: string
           description: string | null
           id: string
+          location: string | null
+          photos: string[] | null
+          problem: string | null
           provider_id: string
           rate: number
+          scheduled_at: string | null
+          service_type: string | null
           status: string
           title: string
           updated_at: string
+          urgent: boolean | null
+          visit_fee_paid: boolean | null
         }
         Insert: {
           category: string
+          client_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
+          location?: string | null
+          photos?: string[] | null
+          problem?: string | null
           provider_id: string
           rate: number
+          scheduled_at?: string | null
+          service_type?: string | null
           status?: string
           title: string
           updated_at?: string
+          urgent?: boolean | null
+          visit_fee_paid?: boolean | null
         }
         Update: {
           category?: string
+          client_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
+          location?: string | null
+          photos?: string[] | null
+          problem?: string | null
           provider_id?: string
           rate?: number
+          scheduled_at?: string | null
+          service_type?: string | null
           status?: string
           title?: string
           updated_at?: string
+          urgent?: boolean | null
+          visit_fee_paid?: boolean | null
         }
         Relationships: [
           {
