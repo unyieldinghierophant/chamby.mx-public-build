@@ -2,35 +2,62 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, Clock } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 
-interface SearchResult {
-  id: string;
-  name: string;
-  category: string;
-  tags: string[];
-  description?: string;
-  price_from?: number;
-  price_to?: number;
+interface TaxonomySuggestion {
+  serviceType: string;
+  problem: string;
 }
 
 interface EnhancedSearchBarProps {
   placeholder?: string;
   onSearch?: (query: string) => void;
-  onResultClick?: (result: SearchResult) => void;
   className?: string;
   size?: 'sm' | 'md' | 'lg';
 }
 
-const POPULAR_CATEGORIES = [
-  'Fontanería',
-  'Electricista', 
-  'Pintura',
-  'Impermeabilización',
-  'Albañilería',
-  'Carpintería',
-  'Otros'
-];
+const SERVICE_TAXONOMY: Record<string, string[]> = {
+  "fontanería": [
+    "fuga de agua",
+    "arreglar regadera",
+    "destapar baño",
+    "instalar boiler",
+    "cambiar llave",
+    "revisar presión de agua"
+  ],
+  "electricidad": [
+    "cambiar enchufe",
+    "instalar lámpara",
+    "revisar cortocircuito",
+    "colocar ventilador",
+    "fallas eléctricas"
+  ],
+  "pintura": [
+    "pintar casa",
+    "pintar recámara",
+    "retocar paredes",
+    "pintar exterior"
+  ],
+  "trabajos generales": [
+    "mover muebles",
+    "colgar cuadros",
+    "limpieza profunda",
+    "armar muebles",
+    "reparaciones menores"
+  ],
+  "carpintería": [
+    "reparar puerta",
+    "fabricar mueble",
+    "ajustar clóset",
+    "cambiar bisagras"
+  ],
+  "jardinería": [
+    "cortar pasto",
+    "podar árbol",
+    "limpiar jardín",
+    "instalar sistema de riego"
+  ]
+};
 
 const TYPING_EXAMPLES = [
   'Arreglar mi lavadora',
@@ -43,21 +70,19 @@ const TYPING_EXAMPLES = [
 const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
   placeholder = "¿Qué servicio necesitas?",
   onSearch,
-  onResultClick,
   className,
   size = 'md'
 }) => {
+  const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
-  const [results, setResults] = useState<SearchResult[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState<TaxonomySuggestion[]>([]);
   const [showPopular, setShowPopular] = useState(true);
   const [dynamicPlaceholder, setDynamicPlaceholder] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const debounceRef = useRef<NodeJS.Timeout>();
 
   // Typing animation effect
   useEffect(() => {
@@ -116,54 +141,34 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
     return () => clearTimeout(timeout);
   }, [isFocused, query]);
 
-  // Search function with debouncing
-  const searchServices = async (searchQuery: string) => {
+  // Search function with taxonomy matching
+  const searchTaxonomy = (searchQuery: string) => {
     if (!searchQuery.trim() || searchQuery.length < 2) {
-      setResults([]);
+      setSuggestions([]);
       setShowPopular(true);
       return;
     }
 
-    setIsLoading(true);
     setShowPopular(false);
+    const normalizedQuery = searchQuery.toLowerCase().trim();
+    const matches: TaxonomySuggestion[] = [];
 
-    try {
-      const response = await fetch(`https://uiyjmjibshnkhwewtkoz.supabase.co/functions/v1/search-services?query=${encodeURIComponent(searchQuery)}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVpeWptamlic2hua2h3ZXd0a296Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyOTg2NDQsImV4cCI6MjA3Mzg3NDY0NH0.V28ZMZ5SkjHNI6oJNyd3Nv7MlT0kKIvyqhsDWucWV7A`,
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVpeWptamlic2hua2h3ZXd0a296Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyOTg2NDQsImV4cCI6MjA3Mzg3NDY0NH0.V28ZMZ5SkjHNI6oJNyd3Nv7MlT0kKIvyqhsDWucWV7A',
-          'Content-Type': 'application/json',
+    // Search through taxonomy
+    Object.entries(SERVICE_TAXONOMY).forEach(([serviceType, problems]) => {
+      problems.forEach((problem) => {
+        // Check for partial match
+        if (problem.toLowerCase().includes(normalizedQuery)) {
+          matches.push({ serviceType, problem });
         }
       });
+    });
 
-      if (!response.ok) throw new Error('Search request failed');
-      
-      const data = await response.json();
-      setResults(data || []);
-    } catch (error) {
-      console.error('Search error:', error);
-      setResults([]);
-    } finally {
-      setIsLoading(false);
-    }
+    setSuggestions(matches);
   };
 
-  // Debounced search effect
+  // Search effect
   useEffect(() => {
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
-
-    debounceRef.current = setTimeout(() => {
-      searchServices(query);
-    }, 300);
-
-    return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
-    };
+    searchTaxonomy(query);
   }, [query]);
 
   // Close dropdown when clicking outside
@@ -196,21 +201,42 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
     setIsFocused(false);
   };
 
-  const handleCategoryClick = (category: string) => {
-    setQuery(category);
+  const handleCategoryClick = (serviceType: string) => {
+    setQuery(serviceType);
     setIsOpen(false);
-    onSearch?.(category);
+    navigate(`/nueva-solicitud?serviceType=${encodeURIComponent(serviceType)}`);
   };
 
-  const handleResultClick = (result: SearchResult) => {
-    setQuery(result.name);
+  const handleSuggestionClick = (suggestion: TaxonomySuggestion) => {
+    setQuery(suggestion.problem);
     setIsOpen(false);
-    onResultClick?.(result);
+    navigate(`/nueva-solicitud?serviceType=${encodeURIComponent(suggestion.serviceType)}&problem=${encodeURIComponent(suggestion.problem)}`);
   };
 
   const handleSearchSubmit = () => {
     if (query.trim()) {
       setIsOpen(false);
+      
+      // Try to find best match in taxonomy
+      const normalizedQuery = query.toLowerCase().trim();
+      let bestMatch: TaxonomySuggestion | null = null;
+      
+      for (const [serviceType, problems] of Object.entries(SERVICE_TAXONOMY)) {
+        for (const problem of problems) {
+          if (problem.toLowerCase() === normalizedQuery) {
+            bestMatch = { serviceType, problem };
+            break;
+          }
+        }
+        if (bestMatch) break;
+      }
+      
+      if (bestMatch) {
+        navigate(`/nueva-solicitud?serviceType=${encodeURIComponent(bestMatch.serviceType)}&problem=${encodeURIComponent(bestMatch.problem)}`);
+      } else {
+        navigate(`/nueva-solicitud?problem=${encodeURIComponent(query.trim())}`);
+      }
+      
       onSearch?.(query.trim());
     }
   };
@@ -267,12 +293,12 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
                 Categorías Populares
               </h3>
               <div className="space-y-1">
-                {POPULAR_CATEGORIES.map((category) => (
+                {Object.keys(SERVICE_TAXONOMY).map((category) => (
                   <button
                     key={category}
                     onClick={() => handleCategoryClick(category)}
                     className={cn(
-                      "w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 text-gray-700 transition-colors",
+                      "w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 text-gray-700 transition-colors capitalize",
                       dropdownSizeClasses[size]
                     )}
                   >
@@ -286,41 +312,32 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
 
           {!showPopular && (
             <div className="p-2">
-              {isLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-                </div>
-              ) : results.length > 0 ? (
+              {suggestions.length > 0 ? (
                 <div className="space-y-1">
-                  {results.map((result) => (
+                  {suggestions.map((suggestion, index) => (
                     <button
-                      key={result.id}
-                      onClick={() => handleResultClick(result)}
+                      key={`${suggestion.serviceType}-${suggestion.problem}-${index}`}
+                      onClick={() => handleSuggestionClick(suggestion)}
                       className={cn(
                         "w-full text-left p-3 rounded-md hover:bg-gray-100 transition-colors",
                         dropdownSizeClasses[size]
                       )}
                     >
-                      <div className="font-medium text-gray-900">{result.name}</div>
-                      <div className="text-sm text-gray-600 mt-1">{result.category}</div>
-                      {result.price_from && result.price_to && (
-                        <div className="text-sm text-primary mt-1">
-                          ${result.price_from} - ${result.price_to}
-                        </div>
-                      )}
+                      <div className="font-medium text-gray-900 capitalize">{suggestion.problem}</div>
+                      <div className="text-sm text-gray-600 mt-1 capitalize">{suggestion.serviceType}</div>
                     </button>
                   ))}
                 </div>
               ) : (
                 <div className="p-4 text-center text-gray-500">
                   <div className={cn("mb-2", dropdownSizeClasses[size])}>
-                    No se encontraron coincidencias exactas
+                    No se encontraron coincidencias
                   </div>
                   <button 
                     onClick={handleSearchSubmit}
                     className="text-primary hover:text-primary/80 font-medium"
                   >
-                    Publicar solicitud de trabajo →
+                    Buscar "{query}" →
                   </button>
                 </div>
               )}

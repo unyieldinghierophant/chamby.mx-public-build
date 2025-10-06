@@ -19,10 +19,6 @@ const SearchPage = () => {
     }
   };
 
-  const handleResultClick = (result: any) => {
-    navigate(`/search?category=${encodeURIComponent(result.category)}&service=${encodeURIComponent(result.name)}`);
-  };
-
   const toggleFavorite = (id: number) => {
     setFavorites(prev => 
       prev.includes(id) 
@@ -142,7 +138,6 @@ const SearchPage = () => {
                 <EnhancedSearchBar
                   placeholder="¿Qué servicio necesitas?"
                   onSearch={handleSearch}
-                  onResultClick={handleResultClick}
                   size="md"
                   className="w-full"
                 />

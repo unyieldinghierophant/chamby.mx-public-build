@@ -18,9 +18,6 @@ const Hero = () => {
       navigate('/jobs');
     }
   };
-  const handleResultClick = (result: any) => {
-    navigate(`/search?category=${encodeURIComponent(result.category)}&service=${encodeURIComponent(result.name)}`);
-  };
   return <section className="relative min-h-screen bg-background flex items-center justify-center pt-20 overflow-hidden">
       {/* 3D Glass Morphic Background Icons */}
       <div className="absolute inset-0 pointer-events-none">
@@ -88,7 +85,7 @@ const Hero = () => {
 
           {/* Enhanced Search Bar */}
           <div className="max-w-xl mx-auto">
-            <EnhancedSearchBar placeholder="¿Qué servicio necesitas hoy?" onSearch={handleSearch} onResultClick={handleResultClick} size="lg" className="w-full" />
+            <EnhancedSearchBar placeholder="¿Qué servicio necesitas hoy?" onSearch={handleSearch} size="lg" className="w-full" />
           </div>
 
           {/* Action Buttons - Only show for non-logged in users */}
