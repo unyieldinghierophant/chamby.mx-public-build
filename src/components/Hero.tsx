@@ -84,12 +84,6 @@ const Hero = () => {
             <EnhancedSearchBar placeholder="¿Qué servicio necesitas hoy?" onSearch={handleSearch} size="lg" className="w-full" />
           </div>
 
-          {/* Action Buttons - Only show for non-logged in users */}
-          {!user && <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center px-4">
-              <ModernButton variant="accent" size="xl" className="w-full sm:w-auto min-w-[200px] sm:min-w-[240px]" onClick={() => navigate('/auth/tasker')}>
-                <span className="text-sm sm:text-base">Ofrecer Servicios</span>
-              </ModernButton>
-            </div>}
 
           {/* Trust Indicators */}
           <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
