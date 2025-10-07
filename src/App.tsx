@@ -35,6 +35,7 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCanceled from "./pages/PaymentCanceled";
 import NuevaSolicitud from "./pages/NuevaSolicitud";
 import PagoVisita from "./pages/PagoVisita";
+import EsperandoProveedor from "./pages/EsperandoProveedor";
 
 const queryClient = new QueryClient();
 
@@ -86,6 +87,7 @@ const App = () => (
             <Route path="/payment-canceled" element={<PaymentCanceled />} />
             <Route path="/nueva-solicitud" element={<NuevaSolicitud />} />
             <Route path="/pago-visita" element={<PagoVisita />} />
+            <Route path="/esperando-proveedor" element={<EsperandoProveedor />} />
             <Route
               path="/provider-dashboard" 
               element={

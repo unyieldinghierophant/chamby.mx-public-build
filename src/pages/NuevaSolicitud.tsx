@@ -87,7 +87,7 @@ const NuevaSolicitud = () => {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase.from("jobs").insert({
+      const { data: jobData, error } = await supabase.from("jobs").insert({
         client_id: user.id,
         service_type: formData.serviceType,
         problem: formData.problem,
@@ -103,7 +103,7 @@ const NuevaSolicitud = () => {
         provider_id: user.id, // Temporary, will be assigned later
         rate: 0,
         category: formData.serviceType,
-      } as any);
+      } as any).select().single();
 
       if (error) throw error;
 
@@ -111,7 +111,7 @@ const NuevaSolicitud = () => {
       localStorage.removeItem("nueva-solicitud-draft");
 
       toast.success("Solicitud creada exitosamente");
-      navigate("/pago-visita");
+      navigate(`/pago-visita?job_id=${jobData.id}`);
     } catch (error) {
       console.error("Error creating job:", error);
       toast.error("Error al crear la solicitud");
