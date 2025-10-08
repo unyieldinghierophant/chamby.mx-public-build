@@ -12,14 +12,22 @@ const AuthCallback = () => {
   const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
+    console.log('AuthCallback mounted', { authLoading, roleLoading, user: !!user, role });
+  }, []);
+
+  useEffect(() => {
+    console.log('Auth state changed', { authLoading, roleLoading, user: !!user, role });
+    
     // Only show success if we have a user and roles are loaded
     if (!authLoading && !roleLoading && user && role) {
+      console.log('Showing success overlay');
       setSuccessMessage("¡Autenticación exitosa!");
       setShowSuccess(true);
     }
   }, [user, role, authLoading, roleLoading]);
 
   const handleSuccessComplete = () => {
+    console.log('Success complete, redirecting to:', role === "provider" ? "/provider-dashboard" : "/dashboard/user");
     if (role === "provider") {
       navigate("/provider-dashboard", { replace: true });
     } else {

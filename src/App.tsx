@@ -48,6 +48,12 @@ const RedirectHandler = () => {
   useEffect(() => {
     console.log('App mounted, current location:', location.pathname);
     
+    // Don't interfere with auth callback - let it process OAuth first
+    if (location.pathname === '/auth/callback') {
+      console.log('Auth callback detected, skipping redirect handler');
+      return;
+    }
+    
     // Check for stored redirect from 404.html
     const redirectPath = sessionStorage.getItem('redirect');
     if (redirectPath && redirectPath !== location.pathname) {
