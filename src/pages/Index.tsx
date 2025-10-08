@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { useUserRole } from "@/hooks/useUserRole";
+import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import HowItWorks from "@/components/HowItWorks";
@@ -17,14 +18,55 @@ const Index = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Redirect users based on their role and verification status
-    if (user && profile && role) {
-      if (role === 'provider') {
-        // Provider users go to provider dashboard
-        navigate('/provider-dashboard');
+    // Check for OAuth callback and pending role
+    const handleOAuthCallback = async () => {
+      if (user) {
+        const pendingRole = sessionStorage.getItem('pending_role');
+        
+        if (pendingRole) {
+          // Clear the pending role
+          sessionStorage.removeItem('pending_role');
+          
+          // If user just signed up with OAuth, ensure they have the right role
+          if (pendingRole === 'provider') {
+            // Check if client record exists and update role if needed
+            const { data: clientData } = await supabase
+              .from('clients')
+              .select('role')
+              .eq('email', user.email)
+              .single();
+            
+            if (clientData && clientData.role !== 'provider') {
+              await supabase
+                .from('clients')
+                .update({ role: 'provider' })
+                .eq('email', user.email);
+              
+              await supabase
+                .from('profiles')
+                .update({ is_tasker: true })
+                .eq('user_id', user.id);
+            }
+            
+            navigate('/provider-dashboard');
+            return;
+          } else {
+            navigate('/user-landing');
+            return;
+          }
+        }
+        
+        // Normal redirect logic for non-OAuth or already set up users
+        if (profile && role) {
+          if (role === 'provider') {
+            navigate('/provider-dashboard');
+          }
+          // Client users stay on the main page to browse jobs
+        }
       }
-      // Client users stay on the main page to browse jobs
-    }
+    };
+    
+    handleOAuthCallback();
   }, [user, profile, role, navigate]);
 
   return (
