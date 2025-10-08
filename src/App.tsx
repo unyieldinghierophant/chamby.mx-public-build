@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from
 import { AuthProvider } from "@/contexts/AuthContext";
 import { useEffect } from "react";
 import Index from "./pages/Index";
+import Home from "./pages/Home";
 import UserAuth from "./pages/UserAuth";
 import TaskerAuth from "./pages/TaskerAuth";
 import ProviderLanding from "./pages/ProviderLanding";
@@ -81,7 +82,7 @@ const App = () => (
           <RedirectHandler />
           <Routes>
             <Route path="/" element={<Navigate to="/user-landing" replace />} />
-            <Route path="/home" element={<Index />} />
+            <Route path="/home" element={<Home />} />
             <Route path="/user-landing" element={<Index />} />
             <Route path="/auth/user" element={<UserAuth />} />
             <Route path="/auth/tasker" element={<TaskerAuth />} />
