@@ -21,7 +21,7 @@ const Index = () => {
   const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
-    // Check for OAuth callback and pending role
+    // Check for OAuth callback and show success message
     const handleOAuthCallback = async () => {
       if (user) {
         const pendingRole = sessionStorage.getItem('pending_role');
@@ -30,27 +30,8 @@ const Index = () => {
           // Clear the pending role
           sessionStorage.removeItem('pending_role');
           
-          // If user just signed up with OAuth, ensure they have the right role
+          // Show success message based on role (trigger handles DB updates)
           if (pendingRole === 'provider') {
-            // Check if client record exists and update role if needed
-            const { data: clientData } = await supabase
-              .from('clients')
-              .select('role')
-              .eq('email', user.email)
-              .single();
-            
-            if (clientData && clientData.role !== 'provider') {
-              await supabase
-                .from('clients')
-                .update({ role: 'provider' })
-                .eq('email', user.email);
-              
-              await supabase
-                .from('profiles')
-                .update({ is_tasker: true })
-                .eq('user_id', user.id);
-            }
-            
             setSuccessMessage("¡Bienvenido al panel de proveedores!");
             setShowSuccess(true);
             return;
@@ -61,12 +42,11 @@ const Index = () => {
           }
         }
         
-        // Normal redirect logic for non-OAuth or already set up users
+        // Normal redirect logic for existing users
         if (profile && role) {
           if (role === 'provider') {
             navigate('/provider-dashboard');
           }
-          // Client users stay on the main page to browse jobs
         }
       }
     };

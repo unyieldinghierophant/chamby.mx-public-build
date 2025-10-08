@@ -32,7 +32,12 @@ export const useUserRole = (): UserRole => {
           throw error;
         }
 
-        setRole((data?.role === 'provider' ? 'provider' : 'client') as 'client' | 'provider');
+        // If no client record found, default to 'client' (trigger will create it)
+        if (!data) {
+          setRole('client');
+        } else {
+          setRole((data.role === 'provider' ? 'provider' : 'client') as 'client' | 'provider');
+        }
         setError(null);
       } catch (err: any) {
         setError(err.message);

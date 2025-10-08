@@ -61,28 +61,8 @@ const UserAuth = () => {
   const [loginErrors, setLoginErrors] = useState<Record<string, string>>({});
   const [signupErrors, setSignupErrors] = useState<Record<string, string>>({});
 
-  // Handle role-based redirects after authentication
-  useEffect(() => {
-    if (user && !roleLoading && role) {
-      if (role === 'provider') {
-        navigate('/provider-dashboard');
-      } else if (role === 'client') {
-        navigate('/user-landing');
-      }
-    }
-  }, [user, role, roleLoading, navigate]);
-
-  // Show loading while checking user role
-  if (user && roleLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Cargando...</p>
-        </div>
-      </div>
-    );
-  }
+  // Note: Navigation is handled by AuthSuccessOverlay, not by useEffect
+  // This prevents race conditions between success screen and redirect
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
