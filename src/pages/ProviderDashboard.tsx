@@ -1,9 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useProviderJobs } from "@/hooks/useJobs";
+import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import JobForm from "@/components/JobForm";
+import { ProfileTab } from "@/components/provider/ProfileTab";
+import { ReviewsTab } from "@/components/provider/ReviewsTab";
+import { InvoicesTab } from "@/components/provider/InvoicesTab";
+import { RatingDisplay } from "@/components/provider/RatingDisplay";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +26,11 @@ import {
   Loader2,
   TrendingUp,
   Users,
-  Clock
+  Clock,
+  User,
+  Star,
+  FileText,
+  Award
 } from "lucide-react";
 import { Navigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -32,6 +41,34 @@ const ProviderDashboard = () => {
   const { jobs, loading, updateJob, deleteJob } = useProviderJobs();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
+  const [providerRating, setProviderRating] = useState<number>(0);
+  const [totalReviews, setTotalReviews] = useState<number>(0);
+
+  useEffect(() => {
+    if (user) {
+      fetchProviderRating();
+    }
+  }, [user]);
+
+  const fetchProviderRating = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("rating, total_reviews")
+        .eq("user_id", user.id)
+        .single();
+
+      if (error) throw error;
+      if (data) {
+        setProviderRating(data.rating || 0);
+        setTotalReviews(data.total_reviews || 0);
+      }
+    } catch (error) {
+      console.error("Error fetching provider rating:", error);
+    }
+  };
 
   if (roleLoading) {
     return (
@@ -92,28 +129,47 @@ const ProviderDashboard = () => {
       
       <main className="pt-24 pb-16">
         <div className="container mx-auto px-4 max-w-7xl">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Dashboard del Proveedor</h1>
-            <p className="text-muted-foreground">Gestiona tus servicios y revisa tu rendimiento</p>
+          <div className="mb-8 flex items-start justify-between">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Dashboard del Proveedor</h1>
+              <p className="text-muted-foreground">Gestiona tus servicios y revisa tu rendimiento</p>
+            </div>
+            {providerRating > 0 && (
+              <div className="hidden md:block">
+                <RatingDisplay rating={providerRating} totalReviews={totalReviews} size="lg" />
+              </div>
+            )}
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid grid-cols-1 md:grid-cols-4 w-full md:w-fit bg-background/60 backdrop-blur-sm border border-border/50">
+            <TabsList className="grid grid-cols-2 md:grid-cols-7 w-full bg-background/60 backdrop-blur-sm border border-border/50">
               <TabsTrigger value="overview" className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4" />
-                Resumen
+                <span className="hidden sm:inline">Resumen</span>
+              </TabsTrigger>
+              <TabsTrigger value="profile" className="flex items-center gap-2">
+                <User className="w-4 h-4" />
+                <span className="hidden sm:inline">Mi Perfil</span>
               </TabsTrigger>
               <TabsTrigger value="jobs" className="flex items-center gap-2">
                 <Briefcase className="w-4 h-4" />
-                Mis Servicios
+                <span className="hidden sm:inline">Servicios</span>
+              </TabsTrigger>
+              <TabsTrigger value="reviews" className="flex items-center gap-2">
+                <Star className="w-4 h-4" />
+                <span className="hidden sm:inline">Reseñas</span>
+              </TabsTrigger>
+              <TabsTrigger value="invoices" className="flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                <span className="hidden sm:inline">Cotizaciones</span>
               </TabsTrigger>
               <TabsTrigger value="create" className="flex items-center gap-2">
                 <Plus className="w-4 h-4" />
-                Crear Servicio
+                <span className="hidden sm:inline">Crear</span>
               </TabsTrigger>
               <TabsTrigger value="analytics" className="flex items-center gap-2">
                 <Users className="w-4 h-4" />
-                Analíticas
+                <span className="hidden sm:inline">Analíticas</span>
               </TabsTrigger>
             </TabsList>
 
@@ -161,13 +217,22 @@ const ProviderDashboard = () => {
 
                 <Card className="bg-background/60 backdrop-blur-sm border-border/50">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Ingresos</CardTitle>
-                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                    <CardTitle className="text-sm font-medium">Tu Calificación</CardTitle>
+                    <Award className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">$0</div>
+                    <div className="text-2xl font-bold flex items-center gap-2">
+                      {providerRating > 0 ? (
+                        <>
+                          <Star className="w-6 h-6 fill-yellow-400 text-yellow-400" />
+                          {providerRating.toFixed(1)}
+                        </>
+                      ) : (
+                        <span className="text-muted-foreground text-base">Sin calificación</span>
+                      )}
+                    </div>
                     <p className="text-xs text-muted-foreground">
-                      Este mes
+                      {totalReviews} {totalReviews === 1 ? "reseña" : "reseñas"}
                     </p>
                   </CardContent>
                 </Card>
@@ -222,6 +287,10 @@ const ProviderDashboard = () => {
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="profile" className="space-y-6">
+              <ProfileTab />
             </TabsContent>
 
             <TabsContent value="jobs" className="space-y-6">
@@ -333,6 +402,14 @@ const ProviderDashboard = () => {
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="reviews" className="space-y-6">
+              <ReviewsTab />
+            </TabsContent>
+
+            <TabsContent value="invoices" className="space-y-6">
+              <InvoicesTab />
             </TabsContent>
 
             <TabsContent value="create" className="space-y-6">

@@ -261,6 +261,7 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           created_at: string
+          face_photo_url: string | null
           full_name: string | null
           hourly_rate: number | null
           id: string
@@ -268,15 +269,19 @@ export type Database = {
           phone: string | null
           rating: number | null
           skills: string[] | null
+          specialty: string | null
           total_reviews: number | null
           updated_at: string
           user_id: string
           verification_status: string | null
+          verified: boolean | null
+          zone_served: string | null
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          face_photo_url?: string | null
           full_name?: string | null
           hourly_rate?: number | null
           id?: string
@@ -284,15 +289,19 @@ export type Database = {
           phone?: string | null
           rating?: number | null
           skills?: string[] | null
+          specialty?: string | null
           total_reviews?: number | null
           updated_at?: string
           user_id: string
           verification_status?: string | null
+          verified?: boolean | null
+          zone_served?: string | null
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          face_photo_url?: string | null
           full_name?: string | null
           hourly_rate?: number | null
           id?: string
@@ -300,12 +309,103 @@ export type Database = {
           phone?: string | null
           rating?: number | null
           skills?: string[] | null
+          specialty?: string | null
           total_reviews?: number | null
           updated_at?: string
           user_id?: string
           verification_status?: string | null
+          verified?: boolean | null
+          zone_served?: string | null
         }
         Relationships: []
+      }
+      provider_invoices: {
+        Row: {
+          amount: number
+          client_id: string
+          created_at: string | null
+          description: string | null
+          id: string
+          invoice_photo_url: string | null
+          job_id: string | null
+          provider_id: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          client_id: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          invoice_photo_url?: string | null
+          job_id?: string | null
+          provider_id: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          client_id?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          invoice_photo_url?: string | null
+          job_id?: string | null
+          provider_id?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_invoices_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reviews: {
+        Row: {
+          booking_id: string | null
+          client_id: string
+          comment: string | null
+          created_at: string | null
+          id: string
+          provider_id: string
+          rating: number
+          updated_at: string | null
+        }
+        Insert: {
+          booking_id?: string | null
+          client_id: string
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          provider_id: string
+          rating: number
+          updated_at?: string | null
+        }
+        Update: {
+          booking_id?: string | null
+          client_id?: string
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          provider_id?: string
+          rating?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       security_audit_log: {
         Row: {
