@@ -187,15 +187,6 @@ const ProviderLanding = () => {
                 Comenzar Ahora
                 <ArrowRight className="ml-2 h-5 w-5" />
               </ModernButton>
-              
-              <ModernButton 
-                variant="outline" 
-                size="xl" 
-                className="border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-4 text-lg"
-                onClick={handleListServices}
-              >
-                Lista tus Servicios
-              </ModernButton>
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-600 mt-8">
