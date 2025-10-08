@@ -61,6 +61,13 @@ const UserAuth = () => {
   const [loginErrors, setLoginErrors] = useState<Record<string, string>>({});
   const [signupErrors, setSignupErrors] = useState<Record<string, string>>({});
 
+  // Redirect to /home if already authenticated
+  useEffect(() => {
+    if (user && !roleLoading) {
+      navigate('/home', { replace: true });
+    }
+  }, [user, roleLoading, navigate]);
+
   // Note: Navigation is handled by AuthSuccessOverlay, not by useEffect
   // This prevents race conditions between success screen and redirect
 
