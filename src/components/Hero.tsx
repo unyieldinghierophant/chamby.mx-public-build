@@ -64,13 +64,9 @@ const Hero = () => {
         <div className="max-w-4xl mx-auto text-center space-y-12">
           {/* Main Heading */}
           <div className="space-y-4">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-tight pb-2" style={{
-            textShadow: '0 1px 0 hsl(0 0% 100% / 0.8), 0 2px 3px hsl(0 0% 0% / 0.15), 0 4px 8px hsl(0 0% 0% / 0.1)'
-          }}>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-tight pb-2">
               Servicios del hogar
-              <span style={{
-              textShadow: '0 1px 0 hsl(214 61% 49% / 0.3), 0 2px 3px hsl(0 0% 0% / 0.15), 0 4px 8px hsl(0 0% 0% / 0.1)'
-            }} className="block bg-gradient-button bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(55,113,200,0.3)] py-[4px]">
+              <span className="block bg-gradient-button bg-clip-text text-transparent py-[4px]">
                 confiables y seguros
               </span>
             </h1>
