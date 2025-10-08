@@ -374,16 +374,6 @@ const ProviderLanding = () => {
         </div>
       </section>
 
-      {/* Sticky Mobile CTA */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 md:hidden z-50">
-        <ModernButton 
-          className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-3"
-          onClick={handleGetStarted}
-        >
-          Comenzar Ahora
-          <ArrowRight className="ml-2 h-4 w-4" />
-        </ModernButton>
-      </div>
     </div>
   );
 };
