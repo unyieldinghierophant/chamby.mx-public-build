@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
@@ -10,12 +10,15 @@ import HowItWorks from "@/components/HowItWorks";
 import Trust from "@/components/Trust";
 import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
+import { AuthSuccessOverlay } from "@/components/AuthSuccessOverlay";
 
 const Index = () => {
   const { user } = useAuth();
   const { profile } = useProfile();
   const { role } = useUserRole();
   const navigate = useNavigate();
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     // Check for OAuth callback and pending role
@@ -48,10 +51,12 @@ const Index = () => {
                 .eq('user_id', user.id);
             }
             
-            navigate('/provider-dashboard');
+            setSuccessMessage("¡Bienvenido al panel de proveedores!");
+            setShowSuccess(true);
             return;
           } else {
-            navigate('/user-landing');
+            setSuccessMessage("¡Bienvenido a Chamby!");
+            setShowSuccess(true);
             return;
           }
         }
@@ -69,8 +74,23 @@ const Index = () => {
     handleOAuthCallback();
   }, [user, profile, role, navigate]);
 
+  const handleSuccessComplete = () => {
+    if (successMessage.includes("proveedores")) {
+      navigate('/provider-dashboard');
+    } else {
+      navigate('/user-landing');
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-background mobile-pb-nav">
+    <>
+      {showSuccess && (
+        <AuthSuccessOverlay
+          message={successMessage}
+          onComplete={handleSuccessComplete}
+        />
+      )}
+      <div className="min-h-screen bg-background mobile-pb-nav">
       <Header />
       <main>
         <div className="animate-fade-in">
@@ -92,6 +112,7 @@ const Index = () => {
         <MobileBottomNav />
       </div>
     </div>
+    </>
   );
 };
 

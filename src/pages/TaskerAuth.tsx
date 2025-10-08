@@ -13,6 +13,7 @@ import { ArrowLeft, Briefcase, Phone, Mail, FileCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { AuthSuccessOverlay } from '@/components/AuthSuccessOverlay';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -43,6 +44,8 @@ const TaskerAuth = () => {
   
   // View state
   const [showEmailAuth, setShowEmailAuth] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   
   // Error states
   const [loginErrors, setLoginErrors] = useState<Record<string, string>>({});
@@ -101,7 +104,8 @@ const TaskerAuth = () => {
         setLoginErrors({ password: 'Email o contraseña incorrectos' });
       }
     } else {
-      toast.success('¡Bienvenido de vuelta!');
+      setSuccessMessage('¡Inicio de sesión exitoso!');
+      setShowSuccess(true);
     }
     
     setLoading(false);
@@ -139,7 +143,8 @@ const TaskerAuth = () => {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success('¡Cuenta de tasker creada! Revisa tu email y completa tu perfil con los documentos requeridos.');
+      setSuccessMessage('¡Registro exitoso! Verifica tu correo electrónico');
+      setShowSuccess(true);
     }
     
     setLoading(false);
@@ -180,7 +185,14 @@ const TaskerAuth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-main bg-gradient-mesh flex items-center justify-center py-12 px-4">
+    <>
+      {showSuccess && (
+        <AuthSuccessOverlay
+          message={successMessage}
+          onComplete={() => navigate('/provider-dashboard')}
+        />
+      )}
+      <div className="min-h-screen bg-gradient-main bg-gradient-mesh flex items-center justify-center py-12 px-4">
       <div className="w-full max-w-md">
         <Link 
           to="/" 
@@ -445,6 +457,7 @@ const TaskerAuth = () => {
         </Card>
       </div>
     </div>
+    </>
   );
 };
 

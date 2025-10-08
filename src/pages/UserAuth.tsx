@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { OTPInput } from '@/components/OTPInput';
+import { AuthSuccessOverlay } from '@/components/AuthSuccessOverlay';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -53,6 +54,8 @@ const UserAuth = () => {
   
   // View state
   const [showEmailAuth, setShowEmailAuth] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   
   // Error states
   const [loginErrors, setLoginErrors] = useState<Record<string, string>>({});
@@ -111,7 +114,8 @@ const UserAuth = () => {
         setLoginErrors({ password: 'Email o contraseña incorrectos' });
       }
     } else {
-      toast.success('¡Bienvenido de vuelta!');
+      setSuccessMessage('¡Inicio de sesión exitoso!');
+      setShowSuccess(true);
     }
     
     setLoading(false);
@@ -170,10 +174,10 @@ const UserAuth = () => {
 
       if (error) throw error;
 
-      toast.success('¡Teléfono verificado exitosamente!');
       setShowOTPVerification(false);
       setOtp('');
-      // Navigate will be handled by useEffect based on role
+      setSuccessMessage('¡Registro exitoso!');
+      setShowSuccess(true);
     } catch (error: any) {
       toast.error(error.message || 'Código incorrecto');
     } finally {
@@ -325,7 +329,14 @@ const UserAuth = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-main bg-gradient-mesh flex items-center justify-center py-12 px-4">
+    <>
+      {showSuccess && (
+        <AuthSuccessOverlay
+          message={successMessage}
+          onComplete={() => navigate('/user-landing')}
+        />
+      )}
+      <div className="min-h-screen bg-gradient-main bg-gradient-mesh flex items-center justify-center py-12 px-4">
       <div className="w-full max-w-md">
         <Link 
           to="/" 
@@ -582,6 +593,7 @@ const UserAuth = () => {
         </Card>
       </div>
     </div>
+    </>
   );
 };
 
