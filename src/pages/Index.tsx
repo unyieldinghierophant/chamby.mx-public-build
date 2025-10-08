@@ -1,76 +1,13 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { useProfile } from "@/hooks/useProfile";
-import { useUserRole } from "@/hooks/useUserRole";
-import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import HowItWorks from "@/components/HowItWorks";
 import Trust from "@/components/Trust";
 import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
-import { AuthSuccessOverlay } from "@/components/AuthSuccessOverlay";
 
 const Index = () => {
-  const { user } = useAuth();
-  const { profile } = useProfile();
-  const { role } = useUserRole();
-  const navigate = useNavigate();
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
-
-  useEffect(() => {
-    // Check for OAuth callback and show success message
-    const handleOAuthCallback = async () => {
-      if (user) {
-        const pendingRole = sessionStorage.getItem('pending_role');
-        
-        if (pendingRole) {
-          // Clear the pending role
-          sessionStorage.removeItem('pending_role');
-          
-          // Show success message based on role (trigger handles DB updates)
-          if (pendingRole === 'provider') {
-            setSuccessMessage("¡Bienvenido al panel de proveedores!");
-            setShowSuccess(true);
-            return;
-          } else {
-            setSuccessMessage("¡Bienvenido a Chamby!");
-            setShowSuccess(true);
-            return;
-          }
-        }
-        
-        // Normal redirect logic for existing users
-        if (profile && role) {
-          if (role === 'provider') {
-            navigate('/provider-dashboard');
-          }
-        }
-      }
-    };
-    
-    handleOAuthCallback();
-  }, [user, profile, role, navigate]);
-
-  const handleSuccessComplete = () => {
-    if (successMessage.includes("proveedores")) {
-      navigate('/provider-dashboard');
-    } else {
-      navigate('/user-landing');
-    }
-  };
-
   return (
-    <>
-      {showSuccess && (
-        <AuthSuccessOverlay
-          message={successMessage}
-          onComplete={handleSuccessComplete}
-        />
-      )}
-      <div className="min-h-screen bg-background mobile-pb-nav">
+    <div className="min-h-screen bg-background mobile-pb-nav">
       <Header />
       <main>
         <div className="animate-fade-in">
@@ -92,7 +29,6 @@ const Index = () => {
         <MobileBottomNav />
       </div>
     </div>
-    </>
   );
 };
 

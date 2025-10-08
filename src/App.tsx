@@ -9,6 +9,8 @@ import Index from "./pages/Index";
 import UserAuth from "./pages/UserAuth";
 import TaskerAuth from "./pages/TaskerAuth";
 import ProviderLanding from "./pages/ProviderLanding";
+import UserLanding from "./pages/UserLanding";
+import AuthCallback from "./pages/AuthCallback";
 import TaskerOnboarding from "./pages/TaskerOnboarding";
 import TaskerVerification from "./pages/TaskerVerification";
 import TaskerDashboard from "./pages/TaskerDashboard";
@@ -76,6 +78,12 @@ const App = () => (
             <Route path="/user-landing" element={<Index />} />
             <Route path="/auth/user" element={<UserAuth />} />
             <Route path="/auth/tasker" element={<TaskerAuth />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/dashboard/user" element={
+              <ProtectedRoute requireAuth>
+                <UserLanding />
+              </ProtectedRoute>
+            } />
             <Route path="/tasker-landing" element={<ProviderLanding />} />
             <Route path="/booking/datetime/:providerId" element={<BookingDateTime />} />
             <Route path="/service/:serviceType" element={<ServiceDetail />} />

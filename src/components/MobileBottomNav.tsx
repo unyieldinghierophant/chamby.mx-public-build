@@ -29,7 +29,7 @@ const MobileBottomNav = () => {
       id: "home",
       label: "Inicio",
       icon: Home,
-      path: "/user-landing",
+      path: user ? "/dashboard/user" : "/user-landing",
     },
     {
       id: "jobs",
