@@ -82,6 +82,15 @@ const Hero = () => {
           {/* Enhanced Search Bar */}
           <div className="max-w-xl mx-auto">
             <EnhancedSearchBar placeholder="¿Qué servicio necesitas hoy?" onSearch={handleSearch} size="lg" className="w-full" />
+            
+            {/* Mobile-only Tasker CTA */}
+            <div className="md:hidden mt-4">
+              <Link to="/tasker-landing">
+                <ModernButton variant="outline" className="w-full">
+                  Ofrecer servicios
+                </ModernButton>
+              </Link>
+            </div>
           </div>
 
 
