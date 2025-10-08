@@ -59,7 +59,7 @@ const ProviderLanding = () => {
       icon: DollarSign,
       title: "Comisiones Bajas",
       description: "Mantén más de lo que ganas",
-      highlight: "Solo 8% de comisión"
+      highlight: "Solo 10% de comisión"
     },
     {
       icon: Shield,
@@ -106,7 +106,7 @@ const ProviderLanding = () => {
     },
     {
       question: "¿Cuánta comisión cobra Chamby?",
-      answer: "Cobramos solo 8% de comisión, una de las más bajas del mercado. Esto significa que te quedas con 92% de tus ganancias."
+      answer: "Cobramos solo 10% de comisión, una de las más bajas del mercado. Esto significa que te quedas con 90% de tus ganancias."
     },
     {
       question: "¿Puedo elegir mi propio horario?",
