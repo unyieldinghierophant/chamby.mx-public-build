@@ -522,6 +522,10 @@ export type Database = {
           verification_status: string
         }[]
       }
+      get_user_email: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
