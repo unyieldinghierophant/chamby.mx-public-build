@@ -29,7 +29,7 @@ const AccountDeletion = () => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   if (!user) {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to="/auth/user" replace />;
   }
 
   const handleCheckChange = (key: string, checked: boolean) => {

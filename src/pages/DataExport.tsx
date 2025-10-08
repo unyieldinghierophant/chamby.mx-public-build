@@ -27,7 +27,7 @@ const DataExport = () => {
   const [exportComplete, setExportComplete] = useState(false);
 
   if (!user) {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to="/auth/user" replace />;
   }
 
   const dataTypes = [

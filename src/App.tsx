@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from
 import { AuthProvider } from "@/contexts/AuthContext";
 import { useEffect } from "react";
 import Index from "./pages/Index";
-import Auth from "./pages/Auth";
 import UserAuth from "./pages/UserAuth";
 import TaskerAuth from "./pages/TaskerAuth";
 import ProviderLanding from "./pages/ProviderLanding";
@@ -75,7 +74,6 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Navigate to="/user-landing" replace />} />
             <Route path="/user-landing" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
             <Route path="/auth/user" element={<UserAuth />} />
             <Route path="/auth/tasker" element={<TaskerAuth />} />
             <Route path="/tasker-landing" element={<ProviderLanding />} />

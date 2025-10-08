@@ -79,7 +79,7 @@ const ProviderDashboard = () => {
   }
 
   if (!user || role !== 'provider') {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to="/auth/tasker" replace />;
   }
 
   const handleToggleJobStatus = async (jobId: string, currentStatus: string) => {

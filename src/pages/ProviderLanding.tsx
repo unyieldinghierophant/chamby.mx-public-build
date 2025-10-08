@@ -34,14 +34,14 @@ const ProviderLanding = () => {
       navigate('/tasker-dashboard');
     } else {
       // Usuario no logueado - llevar a registro
-      navigate('/auth?role=provider');
+      navigate('/auth/tasker');
     }
   };
 
   const handleListServices = () => {
     if (!user) {
       // No logueado - llevar a registro
-      navigate('/auth?role=provider');
+      navigate('/auth/tasker');
     } else if (role !== 'provider') {
       // Logueado pero no es provider - llevar a onboarding
       navigate('/tasker-onboarding');

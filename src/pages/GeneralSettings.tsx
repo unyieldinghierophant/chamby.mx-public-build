@@ -29,7 +29,7 @@ const GeneralSettings = () => {
   });
 
   if (!user) {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to="/auth/user" replace />;
   }
 
   const handleNotificationChange = (key: string, value: boolean) => {

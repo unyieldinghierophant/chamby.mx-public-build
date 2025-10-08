@@ -35,19 +35,19 @@ const MobileBottomNav = () => {
       id: "jobs",
       label: "Trabajos",
       icon: Briefcase,
-      path: user ? "/mobile-jobs" : "/auth",
+      path: user ? "/mobile-jobs" : "/auth/user",
     },
     {
       id: "favorites",
       label: "Favoritos",
       icon: Heart,
-      path: user ? "/mobile-favorites" : "/auth",
+      path: user ? "/mobile-favorites" : "/auth/user",
     },
     {
       id: "profile",
       label: "Perfil",
       icon: User,
-      path: user ? "/mobile-profile" : "/auth",
+      path: user ? "/mobile-profile" : "/auth/user",
     },
   ];
 

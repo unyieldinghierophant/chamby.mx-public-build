@@ -121,7 +121,7 @@ const TaskerOnboarding = () => {
 
   // Redirect if not authenticated
   if (loading) return <div>Cargando...</div>;
-  if (!user) return <Navigate to="/auth" replace />;
+  if (!user) return <Navigate to="/auth/tasker" replace />;
   
   // Check if user is a tasker from user_metadata first, then from profile
   const isTasker = user.user_metadata?.is_tasker || profile?.is_tasker;

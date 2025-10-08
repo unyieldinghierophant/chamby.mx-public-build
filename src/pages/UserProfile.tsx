@@ -26,7 +26,7 @@ const UserProfile = () => {
   }
 
   if (!user) {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to="/auth/user" replace />;
   }
 
   const getInitials = (name: string) => {

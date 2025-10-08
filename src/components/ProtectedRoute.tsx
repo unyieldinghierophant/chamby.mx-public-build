@@ -26,13 +26,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   if (requireAuth && !user) {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to="/auth/user" replace />;
   }
 
   // For tasker routes, we'll let the component handle the verification
   // to avoid inconsistencies with profile loading
   if (requireTasker && !user) {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to="/auth/tasker" replace />;
   }
 
   return <>{children}</>;
