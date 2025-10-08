@@ -21,31 +21,52 @@ export const useUserRole = (): UserRole => {
         return;
       }
 
-      try {
-        const { data, error } = await supabase
-          .from('clients')
-          .select('role')
-          .eq('email', user.email)
-          .maybeSingle();
+      // Retry logic for Google OAuth race condition
+      const maxRetries = 3;
+      const retryDelay = 1000; // 1 second
+      
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          const { data, error } = await supabase
+            .from('clients')
+            .select('role')
+            .eq('email', user.email)
+            .maybeSingle();
 
-        if (error) {
-          throw error;
-        }
+          if (error) {
+            throw error;
+          }
 
-        // If no client record found, default to 'client' (trigger will create it)
-        if (!data) {
+          // If data found, use it
+          if (data) {
+            setRole((data.role === 'provider' ? 'provider' : 'client') as 'client' | 'provider');
+            setError(null);
+            setLoading(false);
+            return;
+          }
+
+          // If no data and not last attempt, wait and retry
+          if (attempt < maxRetries) {
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
+            continue;
+          }
+
+          // Last attempt, no data found - default to client
           setRole('client');
-        } else {
-          setRole((data.role === 'provider' ? 'provider' : 'client') as 'client' | 'provider');
+          setError(null);
+        } catch (err: any) {
+          if (attempt === maxRetries) {
+            setError(err.message);
+            console.error('Error fetching user role:', err);
+            setRole('client'); // Default to client on error
+          } else {
+            // Retry on error
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
+          }
         }
-        setError(null);
-      } catch (err: any) {
-        setError(err.message);
-        console.error('Error fetching user role:', err);
-        setRole('client'); // Default to client on error
-      } finally {
-        setLoading(false);
       }
+      
+      setLoading(false);
     };
 
     fetchUserRole();
