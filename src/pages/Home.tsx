@@ -198,34 +198,10 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-2xl mx-auto">
-              <div className="bg-gradient-card rounded-2xl p-6 shadow-raised backdrop-blur-glass border border-white/20">
-                <div className="text-3xl md:text-4xl font-bold text-primary">500+</div>
-                <div className="text-sm text-muted-foreground">Profesionales</div>
-              </div>
-              <div className="bg-gradient-card rounded-2xl p-6 shadow-raised backdrop-blur-glass border border-white/20">
-                <div className="text-3xl md:text-4xl font-bold text-primary">10k+</div>
-                <div className="text-sm text-muted-foreground">Servicios completados</div>
-              </div>
-              <div className="bg-gradient-card rounded-2xl p-6 shadow-raised backdrop-blur-glass border border-white/20">
-                <div className="text-3xl md:text-4xl font-bold text-primary">4.9★</div>
-                <div className="text-sm text-muted-foreground">Calificación promedio</div>
-              </div>
-            </div>
           </div>
         </div>
       </section>
 
-      {/* How It Works Section */}
-      <div className="animate-blur-fade" style={{ animationDelay: '0.3s' }}>
-        <HowItWorks />
-      </div>
-
-      {/* Trust Section */}
-      <div className="animate-blur-fade" style={{ animationDelay: '0.6s' }}>
-        <Trust />
-      </div>
 
       <Footer />
       <MobileBottomNav />
