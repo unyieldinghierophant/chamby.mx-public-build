@@ -35,7 +35,7 @@ import MobileProfile from "./pages/MobileProfile";
 import BookingDateTime from "./pages/BookingDateTime";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCanceled from "./pages/PaymentCanceled";
-import NuevaSolicitud from "./pages/NuevaSolicitud";
+
 import PagoVisita from "./pages/PagoVisita";
 import EsperandoProveedor from "./pages/EsperandoProveedor";
 
@@ -99,7 +99,7 @@ const App = () => (
             <Route path="/booking/summary" element={<BookingSummary />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-canceled" element={<PaymentCanceled />} />
-            <Route path="/nueva-solicitud" element={<NuevaSolicitud />} />
+            
             <Route path="/pago-visita" element={<PagoVisita />} />
             <Route path="/esperando-proveedor" element={<EsperandoProveedor />} />
             <Route
