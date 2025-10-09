@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Upload, X, Image as ImageIcon } from "lucide-react";
+import { Upload, X, Image as ImageIcon, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -43,10 +43,10 @@ const Step1Photos = ({ photos, onPhotosChange }: Step1PhotosProps) => {
 
       const uploadedUrls = await Promise.all(uploadPromises);
       onPhotosChange([...photos, ...uploadedUrls]);
-      toast.success("Fotos subidas exitosamente");
-    } catch (error) {
+      toast.success(`${uploadedUrls.length} foto${uploadedUrls.length > 1 ? 's' : ''} subida${uploadedUrls.length > 1 ? 's' : ''} exitosamente`);
+    } catch (error: any) {
       console.error("Error uploading photos:", error);
-      toast.error("Error al subir las fotos");
+      toast.error(error?.message || "Error al subir las fotos. Por favor intenta de nuevo.");
     } finally {
       setUploading(false);
     }
@@ -74,8 +74,13 @@ const Step1Photos = ({ photos, onPhotosChange }: Step1PhotosProps) => {
               <img
                 src={photo}
                 alt={`Foto ${index + 1}`}
-                className="w-full h-32 object-cover rounded-lg"
+                className="w-full h-32 object-cover rounded-lg border-2 border-green-500"
               />
+              {/* Success Checkmark */}
+              <div className="absolute top-2 left-2 bg-green-500 rounded-full p-1">
+                <CheckCircle2 className="h-4 w-4 text-white" />
+              </div>
+              {/* Remove Button */}
               <Button
                 variant="destructive"
                 size="icon"
@@ -121,7 +126,22 @@ const Step1Photos = ({ photos, onPhotosChange }: Step1PhotosProps) => {
         )}
       </label>
 
-      {photos.length === 0 && (
+      {/* Success and Tips Messages */}
+      {photos.length > 0 ? (
+        <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-green-900 dark:text-green-100">
+                ¡Listo!
+              </p>
+              <p className="text-sm text-green-700 dark:text-green-300">
+                {photos.length} foto{photos.length > 1 ? 's' : ''} subida{photos.length > 1 ? 's' : ''}. Puedes continuar al siguiente paso.
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : (
         <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
           <div className="flex items-start gap-3">
             <ImageIcon className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
