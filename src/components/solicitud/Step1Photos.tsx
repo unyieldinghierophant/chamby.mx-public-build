@@ -99,6 +99,8 @@ const Step1Photos = ({ photos, onPhotosChange }: Step1PhotosProps) => {
         className={`flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-8 cursor-pointer transition-colors ${
           uploading
             ? "border-muted bg-muted/20"
+            : photos.length > 0
+            ? "border-green-500 bg-green-50 dark:bg-green-950/20 hover:border-green-600"
             : "border-muted-foreground/30 hover:border-primary hover:bg-primary/5"
         }`}
       >
@@ -115,6 +117,14 @@ const Step1Photos = ({ photos, onPhotosChange }: Step1PhotosProps) => {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
             <p className="text-sm text-muted-foreground">Subiendo...</p>
           </div>
+        ) : photos.length > 0 ? (
+          <>
+            <CheckCircle2 className="h-12 w-12 text-green-600 dark:text-green-400 mb-4" />
+            <p className="text-sm font-medium text-green-700 dark:text-green-300 mb-1">Fotos subidas exitosamente</p>
+            <p className="text-xs text-green-600 dark:text-green-400">
+              Haz clic para agregar más
+            </p>
+          </>
         ) : (
           <>
             <Upload className="h-12 w-12 text-muted-foreground mb-4" />
