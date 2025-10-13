@@ -50,7 +50,7 @@ const RedirectHandler = () => {
     console.log('App mounted, current location:', location.pathname);
     
     // Don't interfere with auth callback - let it process OAuth first
-    if (location.pathname === '/auth/callback') {
+    if (location.pathname === '/auth/callback' || location.pathname === '/callback') {
       console.log('Auth callback detected, skipping redirect handler');
       return;
     }
@@ -86,6 +86,7 @@ const App = () => (
             <Route path="/auth/user" element={<UserAuth />} />
             <Route path="/auth/tasker" element={<TaskerAuth />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/callback" element={<AuthCallback />} />
             <Route path="/tasker-landing" element={<ProviderLanding />} />
             <Route path="/booking/datetime/:providerId" element={<BookingDateTime />} />
             <Route path="/service/:serviceType" element={<ServiceDetail />} />
