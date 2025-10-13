@@ -27,11 +27,11 @@ const AuthCallback = () => {
   }, [user, role, authLoading, roleLoading]);
 
   const handleSuccessComplete = () => {
-    console.log('Success complete, redirecting to:', role === "provider" ? "/provider-dashboard" : "/dashboard/user");
+    console.log('Success complete, redirecting to:', role === "provider" ? "/provider-dashboard" : "/user-landing");
     if (role === "provider") {
       navigate("/provider-dashboard", { replace: true });
     } else {
-      navigate("/dashboard/user", { replace: true });
+      navigate("/user-landing", { replace: true });
     }
   };
 
