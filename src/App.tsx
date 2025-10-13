@@ -81,17 +81,12 @@ const App = () => (
         <BrowserRouter>
           <RedirectHandler />
           <Routes>
-            <Route path="/" element={<Navigate to="/user-landing" replace />} />
-            <Route path="/home" element={<Home />} />
-            <Route path="/user-landing" element={<Index />} />
+            <Route path="/" element={<Navigate to="/home" replace />} />
+            <Route path="/home" element={<Index />} />
+            <Route path="/user-landing" element={<UserLanding />} />
             <Route path="/auth/user" element={<UserAuth />} />
             <Route path="/auth/tasker" element={<TaskerAuth />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
-            <Route path="/dashboard/user" element={
-              <ProtectedRoute requireAuth>
-                <UserLanding />
-              </ProtectedRoute>
-            } />
             <Route path="/tasker-landing" element={<ProviderLanding />} />
             <Route path="/booking/datetime/:providerId" element={<BookingDateTime />} />
             <Route path="/service/:serviceType" element={<ServiceDetail />} />

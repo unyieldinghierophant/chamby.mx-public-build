@@ -45,10 +45,10 @@ const UserLanding = () => {
 
   const quickActions = [
     {
-      title: "Nueva Solicitud",
-      description: "Crea una nueva solicitud de servicio",
+      title: "Buscar Servicios",
+      description: "Encuentra el servicio que necesitas",
       icon: Search,
-      action: () => navigate("/nueva-solicitud"),
+      action: () => navigate("/home"),
       gradient: "from-blue-500 to-purple-500"
     },
     {
@@ -123,10 +123,10 @@ const UserLanding = () => {
                 No tienes actividad reciente todavía
               </p>
               <Button
-                onClick={() => navigate("/nueva-solicitud")}
+                onClick={() => navigate("/home")}
                 className="mt-4 bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant"
               >
-                Crear Primera Solicitud
+                Buscar Servicios
               </Button>
             </CardContent>
           </Card>
