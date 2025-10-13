@@ -1,4 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import HowItWorks from "@/components/HowItWorks";
@@ -8,6 +10,13 @@ import MobileBottomNav from "@/components/MobileBottomNav";
 
 const Index = () => {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && user) {
+      navigate("/user-landing");
+    }
+  }, [user, loading, navigate]);
 
   if (loading) {
     return (
@@ -46,42 +55,8 @@ const Index = () => {
     );
   }
 
-  // Logged in - show logged-in home page
-  return (
-    <div className="min-h-screen bg-background mobile-pb-nav">
-      <Header />
-      <main className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl font-bold mb-4">
-            Bienvenido, {user.user_metadata?.full_name || user.email}
-          </h1>
-          <p className="text-lg text-muted-foreground mb-8">
-            Esta es tu página de inicio personalizada.
-          </p>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <div className="p-6 rounded-lg border bg-card">
-              <h3 className="font-semibold mb-2">Mis Solicitudes</h3>
-              <p className="text-sm text-muted-foreground">Ver y gestionar tus servicios</p>
-            </div>
-            <div className="p-6 rounded-lg border bg-card">
-              <h3 className="font-semibold mb-2">Perfil</h3>
-              <p className="text-sm text-muted-foreground">Actualiza tu información</p>
-            </div>
-            <div className="p-6 rounded-lg border bg-card">
-              <h3 className="font-semibold mb-2">Configuración</h3>
-              <p className="text-sm text-muted-foreground">Ajusta tus preferencias</p>
-            </div>
-          </div>
-        </div>
-      </main>
-      <div className="desktop-only">
-        <Footer />
-      </div>
-      <div className="mobile-only">
-        <MobileBottomNav />
-      </div>
-    </div>
-  );
+  // This shouldn't render since logged-in users are redirected
+  return null;
 };
 
 export default Index;

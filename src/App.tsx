@@ -81,8 +81,7 @@ const App = () => (
         <BrowserRouter>
           <RedirectHandler />
           <Routes>
-            <Route path="/" element={<Navigate to="/home" replace />} />
-            <Route path="/home" element={<Index />} />
+            <Route path="/" element={<Index />} />
             <Route path="/user-landing" element={<UserLanding />} />
             <Route path="/auth/user" element={<UserAuth />} />
             <Route path="/auth/tasker" element={<TaskerAuth />} />
