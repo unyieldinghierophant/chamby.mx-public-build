@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useProfile } from "@/hooks/useProfile";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
@@ -12,6 +13,7 @@ import { Briefcase, Calendar, Clock, Heart, Search, TrendingUp } from "lucide-re
 const UserLanding = () => {
   const { user, loading: authLoading } = useAuth();
   const { role, loading: roleLoading } = useUserRole();
+  const { profile } = useProfile();
   const navigate = useNavigate();
 
   // Redirect non-authenticated users to public landing
@@ -82,7 +84,7 @@ const UserLanding = () => {
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
-            ¡Bienvenido de vuelta!
+            ¡Bienvenido de vuelta{profile?.full_name ? `, ${profile.full_name}` : ''}!
           </h1>
           <p className="text-muted-foreground text-lg">
             ¿Qué necesitas hoy?
