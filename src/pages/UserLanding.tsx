@@ -51,14 +51,14 @@ const UserLanding = () => {
       description: "Encuentra el servicio que necesitas",
       icon: Search,
       action: () => navigate("/"),
-      gradient: "from-blue-500 to-purple-500"
+      gradient: "from-pink-500 to-rose-500"
     },
     {
       title: "Mis Trabajos",
       description: "Ver tus trabajos activos",
       icon: Briefcase,
       action: () => navigate("/mobile-jobs"),
-      gradient: "from-green-500 to-teal-500"
+      gradient: "from-pink-500 to-rose-500"
     },
     {
       title: "Favoritos",
@@ -72,7 +72,7 @@ const UserLanding = () => {
       description: "Ver trabajos completados",
       icon: Clock,
       action: () => navigate("/mobile-jobs"),
-      gradient: "from-orange-500 to-red-500"
+      gradient: "from-pink-500 to-rose-500"
     }
   ];
 
@@ -84,7 +84,7 @@ const UserLanding = () => {
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
-            ¡Bienvenido de vuelta{profile?.full_name ? `, ${profile.full_name}` : ''}!
+            ¡Bienvenido de vuelta{profile?.full_name ? `, ${profile.full_name.split(' ')[0]}` : ''}!
           </h1>
           <p className="text-muted-foreground text-lg">
             ¿Qué necesitas hoy?
