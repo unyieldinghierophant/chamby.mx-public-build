@@ -17,13 +17,8 @@ export const BackButton = ({
   const navigate = useNavigate();
 
   const handleBack = () => {
-    // Check if there's history to go back to
-    if (window.history.length > 1) {
-      navigate(-1);
-    } else {
-      // Fallback to a default path if no history
-      navigate(fallbackPath);
-    }
+    // Always navigate to the fallback path for predictable behavior
+    navigate(fallbackPath);
   };
 
   const Icon = variant === "close" ? X : ArrowLeft;
