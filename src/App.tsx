@@ -35,6 +35,7 @@ import MobileProfile from "./pages/MobileProfile";
 import BookingDateTime from "./pages/BookingDateTime";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCanceled from "./pages/PaymentCanceled";
+import SolicitarServicio from "./pages/SolicitarServicio";
 
 import PagoVisita from "./pages/PagoVisita";
 import EsperandoProveedor from "./pages/EsperandoProveedor";
@@ -83,6 +84,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/user-landing" element={<UserLanding />} />
+            <Route path="/solicitar-servicio" element={<ProtectedRoute><SolicitarServicio /></ProtectedRoute>} />
             <Route path="/auth/user" element={<UserAuth />} />
             <Route path="/auth/tasker" element={<TaskerAuth />} />
             <Route path="/auth/callback" element={<AuthCallback />} />

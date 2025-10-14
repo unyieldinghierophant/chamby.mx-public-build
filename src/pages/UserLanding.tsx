@@ -86,9 +86,17 @@ const UserLanding = () => {
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
             ¡Bienvenido de vuelta{profile?.full_name ? `, ${profile.full_name.split(' ')[0]}` : ''}!
           </h1>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-muted-foreground text-lg mb-4">
             ¿Qué necesitas hoy?
           </p>
+          <Button
+            onClick={() => navigate("/solicitar-servicio")}
+            size="lg"
+            className="bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant"
+          >
+            <Calendar className="mr-2 h-5 w-5" />
+            Solicitar Servicio por WhatsApp
+          </Button>
         </div>
 
         {/* Quick Actions Grid */}
