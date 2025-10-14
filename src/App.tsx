@@ -35,7 +35,6 @@ import MobileProfile from "./pages/MobileProfile";
 import BookingDateTime from "./pages/BookingDateTime";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCanceled from "./pages/PaymentCanceled";
-import SolicitarServicio from "./pages/SolicitarServicio";
 import BookJob from "./pages/BookJob";
 
 import PagoVisita from "./pages/PagoVisita";
@@ -85,7 +84,8 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/user-landing" element={<UserLanding />} />
-            <Route path="/solicitar-servicio" element={<ProtectedRoute><SolicitarServicio /></ProtectedRoute>} />
+            <Route path="/solicitar-servicio" element={<Navigate to="/book-job" replace />} />
+            <Route path="/book-job" element={<BookJob />} />
             <Route path="/auth/user" element={<UserAuth />} />
             <Route path="/auth/tasker" element={<TaskerAuth />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
@@ -96,7 +96,6 @@ const App = () => (
             <Route path="/service/:serviceType" element={<ServiceDetail />} />
             <Route path="/booking/:jobId" element={<BookingForm />} />
             <Route path="/booking/summary" element={<BookingSummary />} />
-            <Route path="/book-job" element={<BookJob />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-canceled" element={<PaymentCanceled />} />
             

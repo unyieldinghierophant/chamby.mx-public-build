@@ -204,39 +204,19 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
   const handleCategoryClick = (serviceType: string) => {
     setQuery(serviceType);
     setIsOpen(false);
-    navigate(`/nueva-solicitud?serviceType=${encodeURIComponent(serviceType)}`);
+    navigate('/book-job');
   };
 
   const handleSuggestionClick = (suggestion: TaxonomySuggestion) => {
     setQuery(suggestion.problem);
     setIsOpen(false);
-    navigate(`/nueva-solicitud?serviceType=${encodeURIComponent(suggestion.serviceType)}&problem=${encodeURIComponent(suggestion.problem)}`);
+    navigate('/book-job');
   };
 
   const handleSearchSubmit = () => {
     if (query.trim()) {
       setIsOpen(false);
-      
-      // Try to find best match in taxonomy
-      const normalizedQuery = query.toLowerCase().trim();
-      let bestMatch: TaxonomySuggestion | null = null;
-      
-      for (const [serviceType, problems] of Object.entries(SERVICE_TAXONOMY)) {
-        for (const problem of problems) {
-          if (problem.toLowerCase() === normalizedQuery) {
-            bestMatch = { serviceType, problem };
-            break;
-          }
-        }
-        if (bestMatch) break;
-      }
-      
-      if (bestMatch) {
-        navigate(`/nueva-solicitud?serviceType=${encodeURIComponent(bestMatch.serviceType)}&problem=${encodeURIComponent(bestMatch.problem)}`);
-      } else {
-        navigate(`/nueva-solicitud?problem=${encodeURIComponent(query.trim())}`);
-      }
-      
+      navigate('/book-job');
       onSearch?.(query.trim());
     }
   };

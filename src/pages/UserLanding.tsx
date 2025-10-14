@@ -50,7 +50,7 @@ const UserLanding = () => {
       title: "Buscar Servicios",
       description: "Encuentra el servicio que necesitas",
       icon: Search,
-      action: () => navigate("/"),
+      action: () => navigate("/book-job"),
       gradient: "from-pink-500 to-rose-500"
     },
     {
@@ -90,12 +90,12 @@ const UserLanding = () => {
             ¿Qué necesitas hoy?
           </p>
           <Button
-            onClick={() => navigate("/solicitar-servicio")}
+            onClick={() => navigate("/book-job")}
             size="lg"
             className="bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant"
           >
             <Calendar className="mr-2 h-5 w-5" />
-            Solicitar Servicio por WhatsApp
+            Buscar Servicios
           </Button>
         </div>
 
@@ -133,7 +133,7 @@ const UserLanding = () => {
                 No tienes actividad reciente todavía
               </p>
               <Button
-                onClick={() => navigate("/")}
+                onClick={() => navigate("/book-job")}
                 className="mt-4 bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant"
               >
                 Buscar Servicios
