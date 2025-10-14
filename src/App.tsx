@@ -36,6 +36,7 @@ import BookingDateTime from "./pages/BookingDateTime";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCanceled from "./pages/PaymentCanceled";
 import SolicitarServicio from "./pages/SolicitarServicio";
+import BookJob from "./pages/BookJob";
 
 import PagoVisita from "./pages/PagoVisita";
 import EsperandoProveedor from "./pages/EsperandoProveedor";
@@ -95,6 +96,7 @@ const App = () => (
             <Route path="/service/:serviceType" element={<ServiceDetail />} />
             <Route path="/booking/:jobId" element={<BookingForm />} />
             <Route path="/booking/summary" element={<BookingSummary />} />
+            <Route path="/book-job" element={<BookJob />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-canceled" element={<PaymentCanceled />} />
             
