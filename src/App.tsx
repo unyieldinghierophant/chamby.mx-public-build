@@ -87,6 +87,7 @@ const App = () => (
             <Route path="/auth/tasker" element={<TaskerAuth />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/callback" element={<AuthCallback />} />
+            <Route path="/dashboard/user" element={<Navigate to="/user-landing" replace />} />
             <Route path="/tasker-landing" element={<ProviderLanding />} />
             <Route path="/booking/datetime/:providerId" element={<BookingDateTime />} />
             <Route path="/service/:serviceType" element={<ServiceDetail />} />
