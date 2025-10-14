@@ -124,8 +124,8 @@ export const JobBookingForm = () => {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-6">
-      <form onSubmit={handleSubmit} className="space-y-6 bg-card border border-border rounded-2xl p-8 shadow-lg">
+    <div className="w-full">
+      <form onSubmit={handleSubmit} className="space-y-6 bg-card border border-border rounded-2xl p-6 md:p-8 shadow-lg">
         <h2 className="text-3xl font-bold text-center mb-8">Agendar Trabajo</h2>
 
         {/* Service Type */}

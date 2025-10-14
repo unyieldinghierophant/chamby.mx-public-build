@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Menu, X, LogOut, User, Settings, CreditCard, Shield, Users } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import chambyLogo from "@/assets/chamby-logo.png";
+import { BackButton } from "@/components/BackButton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,8 +45,11 @@ const Header = () => {
     <header className="absolute top-0 left-0 right-0 z-50 bg-transparent backdrop-blur-sm">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20 md:h-16 px-8 md:px-16 pt-[5%]">
-          {/* Logo */}
-          <div className="flex-shrink-0">
+          {/* Back Button and Logo */}
+          <div className="flex items-center gap-4">
+            {location.pathname !== '/' && location.pathname !== '/user-landing' && location.pathname !== '/tasker-landing' && (
+              <BackButton fallbackPath={user ? '/user-landing' : '/'} />
+            )}
             <button 
               onClick={() => navigate(getLogoDestination())}
               className="hover:opacity-80 transition-opacity cursor-pointer flex items-center gap-3"
