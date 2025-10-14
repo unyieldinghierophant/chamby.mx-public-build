@@ -59,7 +59,7 @@ const Header = () => {
                 alt="Chamby.mx" 
                 className="h-16 md:h-20 w-auto"
               />
-              <span className="font-dillan text-2xl md:text-3xl font-bold text-foreground">
+              <span className="font-dillan text-2xl md:text-3xl font-bold text-primary">
                 chamby
               </span>
             </button>
