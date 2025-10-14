@@ -1,12 +1,16 @@
 import { JobBookingForm } from "@/components/JobBookingForm";
+import Header from "@/components/Header";
 
 const BookJob = () => {
   return (
-    <div className="min-h-screen bg-background py-12 px-4">
-      <div className="container mx-auto max-w-2xl">
-        <JobBookingForm />
+    <>
+      <Header />
+      <div className="min-h-screen bg-background pt-32 pb-12 px-4">
+        <div className="container mx-auto max-w-2xl">
+          <JobBookingForm />
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
