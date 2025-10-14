@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Made Dillan Font */
+@font-face {
+  font-family: 'Made Dillan';
+  src: url('/fonts/MADE_Dillan_PERSONAL_USE.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */
