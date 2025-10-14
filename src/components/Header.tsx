@@ -48,13 +48,16 @@ const Header = () => {
           <div className="flex-shrink-0">
             <button 
               onClick={() => navigate(getLogoDestination())}
-              className="hover:opacity-80 transition-opacity cursor-pointer"
+              className="hover:opacity-80 transition-opacity cursor-pointer flex items-center gap-3"
             >
               <img 
                 src={chambyLogo} 
                 alt="Chamby.mx" 
                 className="h-16 md:h-20 w-auto"
               />
+              <span className="font-dillan text-2xl md:text-3xl font-bold text-foreground">
+                chamby
+              </span>
             </button>
           </div>
 
