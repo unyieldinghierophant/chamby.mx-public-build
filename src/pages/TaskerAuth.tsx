@@ -51,10 +51,10 @@ const TaskerAuth = () => {
   const [loginErrors, setLoginErrors] = useState<Record<string, string>>({});
   const [signupErrors, setSignupErrors] = useState<Record<string, string>>({});
 
-  // Redirect to /home if already authenticated
+  // Redirect to provider dashboard if already authenticated  
   useEffect(() => {
     if (user && !roleLoading) {
-      navigate('/home', { replace: true });
+      navigate('/provider-dashboard', { replace: true });
     }
   }, [user, roleLoading, navigate]);
 
