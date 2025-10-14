@@ -6,7 +6,7 @@ const BookJob = () => {
     <>
       <Header />
       <div className="min-h-screen bg-background pt-32 pb-12 px-4">
-        <div className="container mx-auto max-w-2xl">
+        <div className="container mx-auto max-w-7xl">
           <JobBookingForm />
         </div>
       </div>
