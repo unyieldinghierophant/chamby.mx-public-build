@@ -17,7 +17,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-const Header = () => {
+interface HeaderProps {
+  hideLogo?: boolean;
+}
+
+const Header = ({ hideLogo = false }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, signOut } = useAuth();
   const { role } = useUserRole();
@@ -53,21 +57,23 @@ const Header = () => {
           </div>
 
           {/* Logo - Centered */}
-          <div className="absolute left-1/2 transform -translate-x-1/2">
-            <button 
-              onClick={() => navigate(getLogoDestination())}
-              className="hover:opacity-80 transition-opacity cursor-pointer flex items-center gap-3"
-            >
-              <img 
-                src={chambyLogo} 
-                alt="Chamby.mx" 
-                className="h-16 md:h-20 w-auto"
-              />
-              <span className="font-dillan text-2xl md:text-3xl font-bold text-primary leading-none self-center">
-                chamby
-              </span>
-            </button>
-          </div>
+          {!hideLogo && (
+            <div className="absolute left-1/2 transform -translate-x-1/2">
+              <button 
+                onClick={() => navigate(getLogoDestination())}
+                className="hover:opacity-80 transition-opacity cursor-pointer flex items-center gap-3"
+              >
+                <img 
+                  src={chambyLogo} 
+                  alt="Chamby.mx" 
+                  className="h-16 md:h-20 w-auto"
+                />
+                <span className="font-dillan text-2xl md:text-3xl font-bold text-primary leading-none self-center">
+                  chamby
+                </span>
+              </button>
+            </div>
+          )}
 
           {/* Spacer for desktop */}
           <div className="hidden md:block flex-1"></div>
