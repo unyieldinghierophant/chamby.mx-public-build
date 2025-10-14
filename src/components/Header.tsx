@@ -19,9 +19,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface HeaderProps {
   hideLogo?: boolean;
+  hideProfileMenu?: boolean;
 }
 
-const Header = ({ hideLogo = false }: HeaderProps) => {
+const Header = ({ hideLogo = false, hideProfileMenu = false }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, signOut } = useAuth();
   const { role } = useUserRole();
@@ -79,111 +80,54 @@ const Header = ({ hideLogo = false }: HeaderProps) => {
           <div className="hidden md:block flex-1"></div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-4">
-            {user ? (
-              <div className="flex items-center space-x-4">
-                {/* Dashboard Link for Taskers only */}
-                {isTasker && isOnTaskerPage && (
-                  <Link to="/tasker-dashboard">
-                    <ModernButton variant="outline" size="sm">
-                      Mi Dashboard
+          {!hideProfileMenu && (
+            <div className="hidden md:flex items-center space-x-4">
+              {user ? (
+                <div className="flex items-center space-x-4">
+                  {/* Dashboard Link for Taskers only */}
+                  {isTasker && isOnTaskerPage && (
+                    <Link to="/tasker-dashboard">
+                      <ModernButton variant="outline" size="sm">
+                        Mi Dashboard
+                      </ModernButton>
+                    </Link>
+                  )}
+                  
+                  {/* Profile Dropdown */}
+                  <DropdownMenu>
+...
+                  </DropdownMenu>
+                </div>
+              ) : (
+                /* Not logged in - show auth buttons */
+                <>
+                  <Link to="/auth/tasker">
+                    <ModernButton variant="accent">
+                      Ser Tasker
                     </ModernButton>
                   </Link>
-                )}
-                
-                {/* Profile Dropdown */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="glass" size="sm" className="flex items-center space-x-2">
-                      <Avatar className="h-6 w-6">
-                        <AvatarImage src={user.user_metadata?.avatar_url} />
-                        <AvatarFallback className="text-xs">
-                          {(user.user_metadata?.full_name || user.email || "U").charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-sm font-medium">
-                        {user.user_metadata?.full_name || user.email}
-                      </span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 bg-background/95 backdrop-blur-md border-border/50">
-                    <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link to="/profile" className="flex items-center">
-                        <User className="w-4 h-4 mr-2" />
-                        Ver Perfil
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/profile/security" className="flex items-center">
-                        <Shield className="w-4 h-4 mr-2" />
-                        Seguridad
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/profile/payments" className="flex items-center">
-                        <CreditCard className="w-4 h-4 mr-2" />
-                        Facturación
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/profile/general" className="flex items-center">
-                        <Settings className="w-4 h-4 mr-2" />
-                        Configuración
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    {/* Vista de Usuario para Providers */}
-                    {isTasker && isOnTaskerPage && (
-                      <>
-                        <DropdownMenuItem asChild>
-                          <Link to="/user-landing" className="flex items-center">
-                            <Users className="w-4 h-4 mr-2" />
-                            Vista de Cliente
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                      </>
-                    )}
-                    <DropdownMenuItem 
-                      onClick={handleSignOut}
-                      disabled={isLoggingOut}
-                      className="text-destructive focus:text-destructive"
-                    >
-                      <LogOut className="w-4 h-4 mr-2" />
-                      {isLoggingOut ? 'Saliendo...' : 'Cerrar Sesión'}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            ) : (
-              /* Not logged in - show auth buttons */
-              <>
-                <Link to="/auth/tasker">
-                  <ModernButton variant="accent">
-                    Ser Tasker
-                  </ModernButton>
-                </Link>
-                <Link to="/auth/user">
-                  <ModernButton variant="primary">
-                    Iniciar Sesión
-                  </ModernButton>
-                </Link>
-              </>
-            )}
-          </div>
+                  <Link to="/auth/user">
+                    <ModernButton variant="primary">
+                      Iniciar Sesión
+                    </ModernButton>
+                  </Link>
+                </>
+              )}
+            </div>
+          )}
 
           {/* Mobile menu button */}
-          <div className="md:hidden">
-            <ModernButton
-              variant="glass"
-              size="icon"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </ModernButton>
-          </div>
+          {!hideProfileMenu && (
+            <div className="md:hidden">
+              <ModernButton
+                variant="glass"
+                size="icon"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+              >
+                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </ModernButton>
+            </div>
+          )}
         </div>
 
         {/* Mobile Navigation */}
