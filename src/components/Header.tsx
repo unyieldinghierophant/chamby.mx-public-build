@@ -44,12 +44,16 @@ const Header = () => {
   return (
     <header className="absolute top-0 left-0 right-0 z-50 bg-transparent backdrop-blur-sm">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20 md:h-16 px-8 md:px-16 pt-[5%]">
-          {/* Back Button and Logo */}
-          <div className="flex items-center gap-4">
+        <div className="relative flex items-center justify-between h-20 md:h-16 px-8 md:px-16 pt-[5%]">
+          {/* Back Button - Left */}
+          <div className="flex items-center">
             {location.pathname !== '/' && location.pathname !== '/user-landing' && location.pathname !== '/tasker-landing' && (
               <BackButton fallbackPath={user ? '/user-landing' : '/'} />
             )}
+          </div>
+
+          {/* Logo - Centered */}
+          <div className="absolute left-1/2 transform -translate-x-1/2">
             <button 
               onClick={() => navigate(getLogoDestination())}
               className="hover:opacity-80 transition-opacity cursor-pointer flex items-center gap-3"
