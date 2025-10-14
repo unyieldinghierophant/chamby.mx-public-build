@@ -20,9 +20,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 interface HeaderProps {
   hideLogo?: boolean;
   hideProfileMenu?: boolean;
+  backButtonVariant?: "back" | "close";
+  backButtonPosition?: "left" | "right";
 }
 
-const Header = ({ hideLogo = false, hideProfileMenu = false }: HeaderProps) => {
+const Header = ({ 
+  hideLogo = false, 
+  hideProfileMenu = false,
+  backButtonVariant = "back",
+  backButtonPosition = "left"
+}: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, signOut } = useAuth();
   const { role } = useUserRole();
@@ -50,12 +57,16 @@ const Header = ({ hideLogo = false, hideProfileMenu = false }: HeaderProps) => {
     <header className="absolute top-0 left-0 right-0 z-50 bg-transparent backdrop-blur-sm">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative flex items-center justify-between h-20 md:h-16 px-8 md:px-16 pt-[5%]">
-          {/* Back Button - Left */}
-          <div className="flex items-center">
-            {location.pathname !== '/' && location.pathname !== '/user-landing' && location.pathname !== '/tasker-landing' && (
-              <BackButton fallbackPath={user ? '/user-landing' : '/'} />
-            )}
-          </div>
+          {/* Back Button - Conditional Position */}
+          {backButtonPosition === "left" && (
+            <div className="flex items-center">
+              {location.pathname !== '/' && location.pathname !== '/user-landing' && location.pathname !== '/tasker-landing' && (
+                <BackButton variant={backButtonVariant} fallbackPath={user ? '/user-landing' : '/'} />
+              )}
+            </div>
+          )}
+          
+          {backButtonPosition === "right" && <div className="flex-1" />}
 
           {/* Logo - Centered */}
           {!hideLogo && (
@@ -116,8 +127,14 @@ const Header = ({ hideLogo = false, hideProfileMenu = false }: HeaderProps) => {
             </div>
           )}
 
-          {/* Mobile menu button */}
-          {!hideProfileMenu && (
+          {/* Back Button - Right Position or Mobile menu button */}
+          {backButtonPosition === "right" ? (
+            <div className="flex items-center">
+              {location.pathname !== '/' && location.pathname !== '/user-landing' && location.pathname !== '/tasker-landing' && (
+                <BackButton variant={backButtonVariant} fallbackPath={user ? '/user-landing' : '/'} />
+              )}
+            </div>
+          ) : !hideProfileMenu && (
             <div className="md:hidden">
               <ModernButton
                 variant="glass"
