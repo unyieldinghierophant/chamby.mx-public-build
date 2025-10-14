@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useJobs } from "@/hooks/useJobs";
 import MobileBottomNav from "@/components/MobileBottomNav";
+import Header from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -205,13 +206,15 @@ const MobileJobs = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-main pb-20">
-      {/* Header */}
-      <div className="bg-gradient-glass backdrop-blur-glass border-b border-white/20 sticky top-0 z-40">
-        <div className="p-4">
-          <h1 className="text-xl font-bold text-foreground">Mis Trabajos</h1>
+    <>
+      <Header />
+      <div className="min-h-screen bg-gradient-main pb-20 pt-32">
+        {/* Header */}
+        <div className="bg-gradient-glass backdrop-blur-glass border-b border-white/20 sticky top-32 z-40">
+          <div className="p-4">
+            <h1 className="text-xl font-bold text-foreground">Mis Trabajos</h1>
+          </div>
         </div>
-      </div>
 
       {/* Content */}
       <div className="p-4">
@@ -335,6 +338,7 @@ const MobileJobs = () => {
 
       <MobileBottomNav />
     </div>
+    </>
   );
 };
 

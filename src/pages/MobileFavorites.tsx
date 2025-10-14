@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import MobileBottomNav from "@/components/MobileBottomNav";
+import Header from "@/components/Header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ModernButton } from "@/components/ui/modern-button";
@@ -158,16 +159,18 @@ const MobileFavorites = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-main pb-20">
-      {/* Header */}
-      <div className="bg-gradient-glass backdrop-blur-glass border-b border-white/20 sticky top-0 z-40">
-        <div className="p-4">
-          <h1 className="text-xl font-bold text-foreground">Mis Favoritos</h1>
-          <p className="text-sm text-muted-foreground">
-            {favorites.length} proveedor{favorites.length !== 1 ? "es" : ""} guardado{favorites.length !== 1 ? "s" : ""}
-          </p>
+    <>
+      <Header />
+      <div className="min-h-screen bg-gradient-main pb-20 pt-32">
+        {/* Header */}
+        <div className="bg-gradient-glass backdrop-blur-glass border-b border-white/20 sticky top-32 z-40">
+          <div className="p-4">
+            <h1 className="text-xl font-bold text-foreground">Mis Favoritos</h1>
+            <p className="text-sm text-muted-foreground">
+              {favorites.length} proveedor{favorites.length !== 1 ? "es" : ""} guardado{favorites.length !== 1 ? "s" : ""}
+            </p>
+          </div>
         </div>
-      </div>
 
       {/* Content */}
       <div className="p-4">
@@ -198,6 +201,7 @@ const MobileFavorites = () => {
 
       <MobileBottomNav />
     </div>
+    </>
   );
 };
 

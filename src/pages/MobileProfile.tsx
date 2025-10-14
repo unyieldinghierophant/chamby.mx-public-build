@@ -1,6 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import MobileBottomNav from "@/components/MobileBottomNav";
+import Header from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ModernButton } from "@/components/ui/modern-button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -105,13 +106,15 @@ const MobileProfile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-main pb-20">
-      {/* Header */}
-      <div className="bg-gradient-glass backdrop-blur-glass border-b border-white/20 sticky top-0 z-40">
-        <div className="p-4">
-          <h1 className="text-xl font-bold text-foreground">Mi Perfil</h1>
+    <>
+      <Header />
+      <div className="min-h-screen bg-gradient-main pb-20 pt-32">
+        {/* Header */}
+        <div className="bg-gradient-glass backdrop-blur-glass border-b border-white/20 sticky top-32 z-40">
+          <div className="p-4">
+            <h1 className="text-xl font-bold text-foreground">Mi Perfil</h1>
+          </div>
         </div>
-      </div>
 
       {/* Profile Info */}
       <div className="p-4">
@@ -218,6 +221,7 @@ const MobileProfile = () => {
 
       <MobileBottomNav />
     </div>
+    </>
   );
 };
 
