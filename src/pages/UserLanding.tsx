@@ -89,14 +89,6 @@ const UserLanding = () => {
           <p className="text-muted-foreground text-lg mb-4">
             ¿Qué necesitas hoy?
           </p>
-          <Button
-            onClick={() => navigate("/book-job")}
-            size="lg"
-            className="bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant"
-          >
-            <Calendar className="mr-2 h-5 w-5" />
-            Buscar Servicios
-          </Button>
         </div>
 
         {/* Quick Actions Grid */}
