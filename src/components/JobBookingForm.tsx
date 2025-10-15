@@ -12,6 +12,8 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
+// @ts-ignore - Mapbox type compatibility
+import { AddressAutofill } from '@mapbox/search-js-react';
 
 interface UploadedFile {
   file: File;
@@ -35,6 +37,7 @@ export const JobBookingForm = () => {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mapboxToken, setMapboxToken] = useState("");
   const { toast } = useToast();
 
   const steps = [
@@ -395,19 +398,44 @@ export const JobBookingForm = () => {
             <div className="space-y-8">
               <h1 className="text-4xl font-bold text-foreground mb-8 font-['Made_Dillan']">¿Dónde necesitas que se haga?</h1>
               
+              {!mapboxToken && (
+                <div className="space-y-3 p-4 bg-accent/50 rounded-lg border border-border">
+                  <Label className="text-sm font-semibold text-foreground">
+                    Ingresa tu Mapbox Token
+                  </Label>
+                  <Input
+                    value={mapboxToken}
+                    onChange={(e) => setMapboxToken(e.target.value)}
+                    placeholder="pk.eyJ1..."
+                    className="font-mono text-sm"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Obtén tu token en <a href="https://mapbox.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">mapbox.com</a>
+                  </p>
+                </div>
+              )}
+              
               <div className="space-y-3">
                 <Label className="text-lg font-semibold text-foreground">
                   Ubicación del trabajo
                 </Label>
-                <div className="relative">
-                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="Ingresa dirección o colonia"
-                    className="h-14 text-base pl-12"
-                  />
-                </div>
+                {/* @ts-ignore - Mapbox type compatibility */}
+                <AddressAutofill accessToken={mapboxToken || ''} onRetrieve={(result: any) => {
+                  if (result.features && result.features[0]) {
+                    setLocation(result.features[0].properties.full_address || result.features[0].properties.place_name || '');
+                  }
+                }}>
+                  <div className="relative">
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
+                    <input
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      placeholder="Ingresa dirección o colonia"
+                      className="flex h-14 w-full rounded-md border border-input bg-background px-3 py-2 text-base pl-12 ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                      autoComplete="address-line1"
+                    />
+                  </div>
+                </AddressAutofill>
                 <p className="text-sm text-muted-foreground">
                   Comienza a escribir y selecciona del menú
                 </p>
