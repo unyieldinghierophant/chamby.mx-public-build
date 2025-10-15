@@ -58,7 +58,26 @@ const Header = ({
   return (
     <header className="absolute top-0 left-0 right-0 z-50 bg-transparent backdrop-blur-sm">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="relative flex items-center justify-between h-20 md:h-16 px-8 md:px-16 pt-[5%]">
+        <div className={`relative flex items-center h-20 md:h-16 px-8 md:px-16 pt-[5%] ${logoAlignment === "center" ? "justify-between" : ""}`}>
+          {/* Logo */}
+          {!hideLogo && logoAlignment === "left" && (
+            <div className="flex items-center">
+              <button 
+                onClick={() => navigate(getLogoDestination())}
+                className="hover:opacity-80 transition-opacity cursor-pointer flex items-center gap-3"
+              >
+                <img 
+                  src={chambyLogo} 
+                  alt="Chamby.mx" 
+                  className="h-16 md:h-20 w-auto"
+                />
+                <span className="font-dillan text-2xl md:text-3xl font-bold text-primary leading-none self-center">
+                  chamby
+                </span>
+              </button>
+            </div>
+          )}
+
           {/* Back Button - Conditional Position */}
           {backButtonPosition === "left" && logoAlignment === "center" && (
             <div className="flex items-center">
@@ -70,9 +89,9 @@ const Header = ({
           
           {backButtonPosition === "right" && logoAlignment === "center" && <div className="flex-1" />}
 
-          {/* Logo */}
-          {!hideLogo && (
-            <div className={logoAlignment === "center" ? "absolute left-1/2 transform -translate-x-1/2" : "flex items-center"}>
+          {/* Logo - Centered */}
+          {!hideLogo && logoAlignment === "center" && (
+            <div className="absolute left-1/2 transform -translate-x-1/2">
               <button 
                 onClick={() => navigate(getLogoDestination())}
                 className="hover:opacity-80 transition-opacity cursor-pointer flex items-center gap-3"
