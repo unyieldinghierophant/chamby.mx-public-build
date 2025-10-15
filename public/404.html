@@ -8,7 +8,7 @@
     // GitHub Pages SPA redirect
     // Store the full path and search params for React Router
     const path = window.location.pathname.slice(0, -1) + window.location.search + window.location.hash;
-    sessionStorage.setItem('redirect', path || '/user-landing');
+    sessionStorage.setItem('redirect', path || '/');
     console.log('404.html redirect storing path:', path);
     
     // Redirect to root immediately
