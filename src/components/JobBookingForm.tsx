@@ -501,12 +501,12 @@ export const JobBookingForm = () => {
                     style={{ height: '100%', width: '100%' }}
                     key={coordinates.join(',')}
                   >
+                    <MapClickHandler />
                     <TileLayer
                       attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                       url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     />
-                    <Marker position={coordinates} />
-                    <MapClickHandler />
+                    {coordinates && <Marker position={coordinates} />}
                   </MapContainer>
                 </div>
                 <p className="text-sm text-muted-foreground">
