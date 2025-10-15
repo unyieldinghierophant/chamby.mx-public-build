@@ -43,12 +43,14 @@ export const LocationMap = ({ coordinates, onLocationSelect }: LocationMapProps)
       style={{ height: '100%', width: '100%' }}
       key={`${coordinates[0]}-${coordinates[1]}`}
     >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <Marker position={coordinates} />
-      <MapClickHandler onLocationSelect={onLocationSelect} />
+      <>
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <Marker position={coordinates} />
+        <MapClickHandler onLocationSelect={onLocationSelect} />
+      </>
     </MapContainer>
   );
 };
