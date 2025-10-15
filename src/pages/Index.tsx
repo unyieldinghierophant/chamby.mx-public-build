@@ -1,5 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useEffect } from "react";
 import Hero from "@/components/Hero";
 import HowItWorks from "@/components/HowItWorks";
@@ -7,6 +7,7 @@ import Trust from "@/components/Trust";
 import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import logo from "@/assets/chamby-logo-icon.png";
+import { ModernButton } from "@/components/ui/modern-button";
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -38,6 +39,18 @@ const Index = () => {
             <div className="flex items-center gap-3">
               <img src={logo} alt="Chamby" className="w-8 h-8" />
               <span className="text-xl font-['Made_Dillan'] text-foreground">Chamby</span>
+            </div>
+            <div className="hidden md:flex items-center space-x-4">
+              <Link to="/auth/tasker">
+                <ModernButton variant="accent">
+                  Ser Tasker
+                </ModernButton>
+              </Link>
+              <Link to="/auth/user">
+                <ModernButton variant="primary">
+                  Iniciar Sesión
+                </ModernButton>
+              </Link>
             </div>
           </div>
         </header>
