@@ -257,23 +257,6 @@ export const JobBookingForm = () => {
               </svg>
               Contactar por WhatsApp
             </ModernButton>
-            <button
-              onClick={() => {
-                setIsSuccess(false);
-                setCurrentStep(1);
-                setTaskDescription("");
-                setDatePreference('specific');
-                setSpecificDate(undefined);
-                setNeedsSpecificTime(false);
-                setSelectedTimeSlots([]);
-                setLocation("");
-                setDetails("");
-                setUploadedFiles([]);
-              }}
-              className="mt-4 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Crear otra solicitud
-            </button>
           </div>
         </div>
       ) : (
