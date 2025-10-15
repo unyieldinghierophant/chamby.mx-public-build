@@ -59,9 +59,10 @@ const Header = ({
     <header className="absolute top-0 left-0 right-0 z-50 bg-transparent backdrop-blur-sm">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative flex items-center justify-between h-20 md:h-16 px-8 md:px-16 pt-[5%]">
-          {/* Logo - Left Aligned */}
-          {!hideLogo && logoAlignment === "left" && (
-            <div className="flex items-center">
+          {/* Left Side */}
+          <div className="flex items-center">
+            {/* Logo - Left Aligned */}
+            {!hideLogo && logoAlignment === "left" && (
               <button 
                 onClick={() => navigate(getLogoDestination())}
                 className="hover:opacity-80 transition-opacity cursor-pointer flex items-center gap-3"
@@ -75,21 +76,15 @@ const Header = ({
                   chamby
                 </span>
               </button>
-            </div>
-          )}
+            )}
 
-          {/* Back Button - Left Position (for centered logo layout) */}
-          {backButtonPosition === "left" && logoAlignment === "center" && (
-            <div className="flex items-center">
-              {location.pathname !== '/' && location.pathname !== '/user-landing' && location.pathname !== '/tasker-landing' && (
-                <BackButton variant={backButtonVariant} fallbackPath={user ? '/user-landing' : '/'} />
-              )}
-            </div>
-          )}
-          
-          {backButtonPosition === "right" && logoAlignment === "center" && <div className="flex-1" />}
+            {/* Back Button - Left Position (for centered logo layout) */}
+            {backButtonPosition === "left" && logoAlignment === "center" && location.pathname !== '/' && location.pathname !== '/user-landing' && location.pathname !== '/tasker-landing' && (
+              <BackButton variant={backButtonVariant} fallbackPath={user ? '/user-landing' : '/'} />
+            )}
+          </div>
 
-          {/* Logo - Centered */}
+          {/* Logo - Centered (absolute positioning) */}
           {!hideLogo && logoAlignment === "center" && (
             <div className="absolute left-1/2 transform -translate-x-1/2">
               <button 
@@ -108,64 +103,61 @@ const Header = ({
             </div>
           )}
 
-          {/* Spacer for desktop - only when logo is centered */}
-          {logoAlignment === "center" && <div className="hidden md:block flex-1"></div>}
+          {/* Right Side */}
+          <div className="flex items-center gap-4">
 
-          {/* Desktop Navigation */}
-          {!hideProfileMenu && (
-            <div className="hidden md:flex items-center space-x-4">
-              {user ? (
-                <div className="flex items-center space-x-4">
-                  {/* Dashboard Link for Taskers only */}
-                  {isTasker && isOnTaskerPage && (
-                    <Link to="/tasker-dashboard">
-                      <ModernButton variant="outline" size="sm">
-                        Mi Dashboard
+            {/* Desktop Navigation */}
+            {!hideProfileMenu && (
+              <div className="hidden md:flex items-center space-x-4">
+                {user ? (
+                  <div className="flex items-center space-x-4">
+                    {/* Dashboard Link for Taskers only */}
+                    {isTasker && isOnTaskerPage && (
+                      <Link to="/tasker-dashboard">
+                        <ModernButton variant="outline" size="sm">
+                          Mi Dashboard
+                        </ModernButton>
+                      </Link>
+                    )}
+                    
+                    {/* Profile Dropdown */}
+                    <DropdownMenu>
+...
+                    </DropdownMenu>
+                  </div>
+                ) : (
+                  /* Not logged in - show auth buttons */
+                  <>
+                    <Link to="/auth/tasker">
+                      <ModernButton variant="accent">
+                        Ser Tasker
                       </ModernButton>
                     </Link>
-                  )}
-                  
-                  {/* Profile Dropdown */}
-                  <DropdownMenu>
-...
-                  </DropdownMenu>
-                </div>
-              ) : (
-                /* Not logged in - show auth buttons */
-                <>
-                  <Link to="/auth/tasker">
-                    <ModernButton variant="accent">
-                      Ser Tasker
-                    </ModernButton>
-                  </Link>
-                  <Link to="/auth/user">
-                    <ModernButton variant="primary">
-                      Iniciar Sesión
-                    </ModernButton>
-                  </Link>
-                </>
-              )}
-            </div>
-          )}
+                    <Link to="/auth/user">
+                      <ModernButton variant="primary">
+                        Iniciar Sesión
+                      </ModernButton>
+                    </Link>
+                  </>
+                )}
+              </div>
+            )}
 
-          {/* Back Button - Right Position or Mobile menu button */}
-          {backButtonPosition === "right" ? (
-            <div className="flex items-center">
-              {location.pathname !== '/' && location.pathname !== '/user-landing' && location.pathname !== '/tasker-landing' && (
-                <BackButton variant={backButtonVariant} fallbackPath={user ? '/user-landing' : '/'} />
-              )}
-            </div>
-          ) : !hideProfileMenu && (
-            <div className="md:hidden">
-              <ModernButton
-                variant="glass"
-                size="icon"
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-              >
-                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-              </ModernButton>
-            </div>
-          )}
+            {/* Back Button - Right Position or Mobile menu button */}
+            {backButtonPosition === "right" && location.pathname !== '/' && location.pathname !== '/user-landing' && location.pathname !== '/tasker-landing' ? (
+              <BackButton variant={backButtonVariant} fallbackPath={user ? '/user-landing' : '/'} />
+            ) : !hideProfileMenu && (
+              <div className="md:hidden">
+                <ModernButton
+                  variant="glass"
+                  size="icon"
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                >
+                  {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                </ModernButton>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Mobile Navigation */}
