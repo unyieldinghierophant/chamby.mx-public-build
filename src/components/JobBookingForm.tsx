@@ -256,7 +256,7 @@ export const JobBookingForm = () => {
                     onClick={() => setDatePreference('before')}
                     className="h-12 px-6 rounded-full"
                   >
-                    Antes de fecha
+                    Inmediatamente
                   </Button>
                   
                   <Button
