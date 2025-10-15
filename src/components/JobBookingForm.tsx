@@ -146,6 +146,15 @@ export const JobBookingForm = () => {
     setIsSubmitting(true);
 
     try {
+      // Show success message
+      toast({
+        title: "✔️ Formulario completo",
+        description: "Redirigiendo a WhatsApp...",
+      });
+
+      // Wait a moment for the user to see the message
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       // Format date
       let dateText = "Flexible";
       if (datePreference === 'specific' && specificDate) {
@@ -179,11 +188,6 @@ export const JobBookingForm = () => {
       
       // Open WhatsApp
       window.open(whatsappURL, "_blank");
-
-      toast({
-        title: "¡Redirigiendo a WhatsApp!",
-        description: "Se abrirá una ventana con tu solicitud.",
-      });
 
       // Reset form
       setCurrentStep(1);
@@ -462,7 +466,10 @@ export const JobBookingForm = () => {
                     {uploadedFiles.map((file, idx) => (
                       <div
                         key={idx}
-                        className="relative rounded-lg overflow-hidden border border-border aspect-square"
+                        className={cn(
+                          "relative rounded-lg overflow-hidden border border-border aspect-square transition-all",
+                          file.uploaded && "animate-scale-in"
+                        )}
                       >
                         <img
                           src={file.url}
@@ -470,7 +477,7 @@ export const JobBookingForm = () => {
                           className="w-full h-full object-cover"
                         />
                         {file.uploaded && (
-                          <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-success flex items-center justify-center">
+                          <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-success flex items-center justify-center animate-scale-in">
                             <Check className="w-4 h-4 text-white" />
                           </div>
                         )}
@@ -515,7 +522,7 @@ export const JobBookingForm = () => {
                 variant="primary"
                 onClick={handleSubmit}
                 disabled={!canProceedToNextStep() || isSubmitting}
-                className="h-12 px-8 rounded-full"
+                className="h-12 px-8 rounded-full transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg"
               >
                 {isSubmitting ? "Publicando..." : "Publicar trabajo"}
               </ModernButton>
