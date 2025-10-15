@@ -205,8 +205,7 @@ export const JobBookingForm = () => {
 
       {/* Main Content */}
       <div className="flex-1 max-w-3xl">
-        <div className="bg-card border border-border rounded-2xl p-8 shadow-lg">
-          {/* Step 1: Title & Date */}
+        {/* Step 1: Title & Date */}
           {currentStep === 1 && (
             <div className="space-y-8">
               <h1 className="text-4xl font-bold text-foreground mb-8 font-['Made_Dillan']">Empecemos con lo básico</h1>
@@ -489,7 +488,6 @@ export const JobBookingForm = () => {
               </ModernButton>
             )}
           </div>
-        </div>
 
         {/* Mobile Step Indicator */}
         <div className="lg:hidden mt-6 flex justify-center gap-2">
