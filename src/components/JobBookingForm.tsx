@@ -209,7 +209,7 @@ export const JobBookingForm = () => {
           {/* Step 1: Title & Date */}
           {currentStep === 1 && (
             <div className="space-y-8">
-              <h1 className="text-4xl font-bold text-foreground mb-8">Empecemos con lo básico</h1>
+              <h1 className="text-4xl font-bold text-foreground mb-8 font-['Made_Dillan']">Empecemos con lo básico</h1>
               
               <div className="space-y-3">
                 <Label className="text-lg font-semibold text-foreground">
@@ -326,7 +326,7 @@ export const JobBookingForm = () => {
           {/* Step 2: Location */}
           {currentStep === 2 && (
             <div className="space-y-8">
-              <h1 className="text-4xl font-bold text-foreground mb-8">¿Dónde necesitas que se haga?</h1>
+              <h1 className="text-4xl font-bold text-foreground mb-8 font-['Made_Dillan']">¿Dónde necesitas que se haga?</h1>
               
               <div className="space-y-3">
                 <Label className="text-lg font-semibold text-foreground">
@@ -351,7 +351,7 @@ export const JobBookingForm = () => {
           {/* Step 3: Details */}
           {currentStep === 3 && (
             <div className="space-y-8">
-              <h1 className="text-4xl font-bold text-foreground mb-8">Cuéntanos más sobre tu trabajo</h1>
+              <h1 className="text-4xl font-bold text-foreground mb-8 font-['Made_Dillan']">Cuéntanos más sobre tu trabajo</h1>
               
               <div className="space-y-3">
                 <Label className="text-lg font-semibold text-foreground">
@@ -373,7 +373,7 @@ export const JobBookingForm = () => {
           {/* Step 4: Budget */}
           {currentStep === 4 && (
             <div className="space-y-8">
-              <h1 className="text-4xl font-bold text-foreground mb-8">Sugiere tu presupuesto</h1>
+              <h1 className="text-4xl font-bold text-foreground mb-8 font-['Made_Dillan']">Sugiere tu presupuesto</h1>
               
               <div className="space-y-3">
                 <Label className="text-lg font-semibold text-foreground">
