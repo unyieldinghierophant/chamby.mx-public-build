@@ -12,17 +12,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
-
-// Fix leaflet default marker icon
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
+import { LocationMap } from './LocationMap';
 
 interface UploadedFile {
   file: File;
@@ -98,24 +88,11 @@ export const JobBookingForm = () => {
     setAddressSuggestions([]);
   };
 
-  const MapClickHandler = () => {
-    useMapEvents({
-      click: async (e) => {
-        const { lat, lng } = e.latlng;
-        setCoordinates([lat, lng]);
-        
-        try {
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
-          );
-          const data = await response.json();
-          setLocation(data.display_name);
-        } catch (error) {
-          console.error('Error reverse geocoding:', error);
-        }
-      },
-    });
-    return null;
+  const handleMapLocationSelect = (lat: number, lng: number, address: string) => {
+    setCoordinates([lat, lng]);
+    if (address) {
+      setLocation(address);
+    }
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -495,19 +472,10 @@ export const JobBookingForm = () => {
                   Marca tu ubicación exacta
                 </Label>
                 <div className="h-[400px] rounded-lg overflow-hidden border border-border">
-                  <MapContainer
-                    center={coordinates}
-                    zoom={13}
-                    style={{ height: '100%', width: '100%' }}
-                    key={coordinates.join(',')}
-                  >
-                    <MapClickHandler />
-                    <TileLayer
-                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    />
-                    {coordinates && <Marker position={coordinates} />}
-                  </MapContainer>
+                  <LocationMap 
+                    coordinates={coordinates} 
+                    onLocationSelect={handleMapLocationSelect}
+                  />
                 </div>
                 <p className="text-sm text-muted-foreground">
                   Haz clic en el mapa para ajustar la ubicación exacta
