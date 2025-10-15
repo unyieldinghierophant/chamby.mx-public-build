@@ -58,8 +58,8 @@ const Header = ({
   return (
     <header className="absolute top-0 left-0 right-0 z-50 bg-transparent backdrop-blur-sm">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className={`relative flex items-center h-20 md:h-16 px-8 md:px-16 pt-[5%] ${logoAlignment === "center" ? "justify-between" : ""}`}>
-          {/* Logo */}
+        <div className="relative flex items-center justify-between h-20 md:h-16 px-8 md:px-16 pt-[5%]">
+          {/* Logo - Left Aligned */}
           {!hideLogo && logoAlignment === "left" && (
             <div className="flex items-center">
               <button 
@@ -78,7 +78,7 @@ const Header = ({
             </div>
           )}
 
-          {/* Back Button - Conditional Position */}
+          {/* Back Button - Left Position (for centered logo layout) */}
           {backButtonPosition === "left" && logoAlignment === "center" && (
             <div className="flex items-center">
               {location.pathname !== '/' && location.pathname !== '/user-landing' && location.pathname !== '/tasker-landing' && (
@@ -108,8 +108,8 @@ const Header = ({
             </div>
           )}
 
-          {/* Spacer for desktop */}
-          <div className="hidden md:block flex-1"></div>
+          {/* Spacer for desktop - only when logo is centered */}
+          {logoAlignment === "center" && <div className="hidden md:block flex-1"></div>}
 
           {/* Desktop Navigation */}
           {!hideProfileMenu && (

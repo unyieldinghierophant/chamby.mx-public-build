@@ -78,7 +78,7 @@ const UserLanding = () => {
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
-      <Header />
+      <Header logoAlignment="left" />
       
       <main className="container mx-auto px-4 pt-24 pb-24">
         {/* Welcome Section */}
