@@ -200,7 +200,7 @@ export const JobBookingForm = () => {
 💬 Detalles: ${details}`;
       
       const encodedMessage = encodeURIComponent(message);
-      const phoneNumber = "5213325438136";
+      const phoneNumber = "523325438136";
       window.open(`https://wa.me/${phoneNumber}?text=${encodedMessage}`, '_blank');
 
       // Show success toast
