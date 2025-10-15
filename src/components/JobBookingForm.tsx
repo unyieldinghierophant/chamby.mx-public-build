@@ -38,17 +38,17 @@ export const JobBookingForm = () => {
   const { toast } = useToast();
 
   const steps = [
-    { number: 1, label: "Title & Date" },
-    { number: 2, label: "Location" },
-    { number: 3, label: "Details" },
-    { number: 4, label: "Budget" }
+    { number: 1, label: "Título y Fecha" },
+    { number: 2, label: "Ubicación" },
+    { number: 3, label: "Detalles" },
+    { number: 4, label: "Presupuesto" }
   ];
 
   const timeSlots = [
-    { id: 'morning' as TimeOfDayOption, icon: Sunrise, label: 'Morning', time: 'Before 10am' },
-    { id: 'midday' as TimeOfDayOption, icon: Sun, label: 'Midday', time: '10am - 2pm' },
-    { id: 'afternoon' as TimeOfDayOption, icon: Sunset, label: 'Afternoon', time: '2pm - 6pm' },
-    { id: 'evening' as TimeOfDayOption, icon: Moon, label: 'Evening', time: 'After 6pm' },
+    { id: 'morning' as TimeOfDayOption, icon: Sunrise, label: 'Mañana', time: 'Antes de 10am' },
+    { id: 'midday' as TimeOfDayOption, icon: Sun, label: 'Mediodía', time: '10am - 2pm' },
+    { id: 'afternoon' as TimeOfDayOption, icon: Sunset, label: 'Tarde', time: '2pm - 6pm' },
+    { id: 'evening' as TimeOfDayOption, icon: Moon, label: 'Noche', time: 'Después de 6pm' },
   ];
 
   const toggleTimeSlot = (slotId: TimeOfDayOption) => {
@@ -180,7 +180,7 @@ export const JobBookingForm = () => {
       {/* Sidebar Navigation */}
       <div className="hidden lg:block w-56 flex-shrink-0">
         <div className="sticky top-32">
-          <h2 className="text-xl font-bold mb-6">Post a task</h2>
+          <h2 className="text-xl font-bold mb-6">Publicar un trabajo</h2>
           <div className="space-y-1">
             {steps.map((step) => (
               <button
@@ -209,23 +209,23 @@ export const JobBookingForm = () => {
           {/* Step 1: Title & Date */}
           {currentStep === 1 && (
             <div className="space-y-8">
-              <h1 className="text-4xl font-bold text-foreground mb-8">Let's start with the basics</h1>
+              <h1 className="text-4xl font-bold text-foreground mb-8">Empecemos con lo básico</h1>
               
               <div className="space-y-3">
                 <Label className="text-lg font-semibold text-foreground">
-                  In a few words, what do you need done?
+                  En pocas palabras, ¿qué necesitas que se haga?
                 </Label>
                 <Input
                   value={taskDescription}
                   onChange={(e) => setTaskDescription(e.target.value)}
-                  placeholder="help move my sofa"
+                  placeholder="ayuda para mover mi sofá"
                   className="h-14 text-base"
                 />
               </div>
 
               <div className="space-y-4">
                 <Label className="text-lg font-semibold text-foreground">
-                  When do you need this done?
+                  ¿Cuándo necesitas que se haga?
                 </Label>
                 <div className="flex gap-3 flex-wrap">
                   <Popover>
@@ -235,7 +235,7 @@ export const JobBookingForm = () => {
                         className="h-12 px-6 rounded-full"
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {specificDate ? format(specificDate, "MMM dd") : "On a date"}
+                        {specificDate ? format(specificDate, "MMM dd") : "En una fecha"}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0 bg-background" align="start">
@@ -257,7 +257,7 @@ export const JobBookingForm = () => {
                     onClick={() => setDatePreference('before')}
                     className="h-12 px-6 rounded-full"
                   >
-                    Before date
+                    Antes de fecha
                   </Button>
                   
                   <Button
@@ -265,7 +265,7 @@ export const JobBookingForm = () => {
                     onClick={() => setDatePreference('flexible')}
                     className="h-12 px-6 rounded-full"
                   >
-                    I'm flexible
+                    Soy flexible
                   </Button>
                 </div>
               </div>
@@ -278,7 +278,7 @@ export const JobBookingForm = () => {
                     onCheckedChange={(checked) => setNeedsSpecificTime(checked as boolean)}
                   />
                   <Label htmlFor="specific-time" className="text-base font-medium cursor-pointer">
-                    I need a certain time of day
+                    Necesito una hora específica del día
                   </Label>
                 </div>
 
@@ -326,23 +326,23 @@ export const JobBookingForm = () => {
           {/* Step 2: Location */}
           {currentStep === 2 && (
             <div className="space-y-8">
-              <h1 className="text-4xl font-bold text-foreground mb-8">Where do you need this done?</h1>
+              <h1 className="text-4xl font-bold text-foreground mb-8">¿Dónde necesitas que se haga?</h1>
               
               <div className="space-y-3">
                 <Label className="text-lg font-semibold text-foreground">
-                  Task location
+                  Ubicación del trabajo
                 </Label>
                 <div className="relative">
                   <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    placeholder="Enter address or suburb"
+                    placeholder="Ingresa dirección o colonia"
                     className="h-14 text-base pl-12"
                   />
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Start typing and select from the dropdown
+                  Comienza a escribir y selecciona del menú
                 </p>
               </div>
             </div>
@@ -351,20 +351,20 @@ export const JobBookingForm = () => {
           {/* Step 3: Details */}
           {currentStep === 3 && (
             <div className="space-y-8">
-              <h1 className="text-4xl font-bold text-foreground mb-8">Tell us more about your task</h1>
+              <h1 className="text-4xl font-bold text-foreground mb-8">Cuéntanos más sobre tu trabajo</h1>
               
               <div className="space-y-3">
                 <Label className="text-lg font-semibold text-foreground">
-                  What are the details?
+                  ¿Cuáles son los detalles?
                 </Label>
                 <Textarea
                   value={details}
                   onChange={(e) => setDetails(e.target.value)}
-                  placeholder="Be as specific as you can about what needs doing. Taskers love detail!"
+                  placeholder="Sé lo más específico posible sobre lo que necesitas. ¡Los taskers aman los detalles!"
                   className="min-h-[200px] text-base resize-none"
                 />
                 <p className="text-sm text-muted-foreground">
-                  {details.length} characters
+                  {details.length} caracteres
                 </p>
               </div>
             </div>
@@ -373,11 +373,11 @@ export const JobBookingForm = () => {
           {/* Step 4: Budget */}
           {currentStep === 4 && (
             <div className="space-y-8">
-              <h1 className="text-4xl font-bold text-foreground mb-8">Suggest your budget</h1>
+              <h1 className="text-4xl font-bold text-foreground mb-8">Sugiere tu presupuesto</h1>
               
               <div className="space-y-3">
                 <Label className="text-lg font-semibold text-foreground">
-                  What's your budget?
+                  ¿Cuál es tu presupuesto?
                 </Label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-semibold text-foreground">
@@ -395,7 +395,7 @@ export const JobBookingForm = () => {
 
               <div className="space-y-3">
                 <Label className="text-lg font-semibold text-foreground">
-                  Add photos (optional)
+                  Agregar fotos (opcional)
                 </Label>
                 <div className="border-2 border-dashed border-border rounded-xl p-6 text-center hover:border-primary transition-colors">
                   <Input
@@ -416,10 +416,10 @@ export const JobBookingForm = () => {
                     </div>
                     <div>
                       <p className="text-base font-semibold text-foreground">
-                        {isUploading ? "Uploading..." : "Upload photos"}
+                        {isUploading ? "Subiendo..." : "Subir fotos"}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        Select one or more images
+                        Selecciona una o más imágenes
                       </p>
                     </div>
                   </label>
@@ -463,7 +463,7 @@ export const JobBookingForm = () => {
                 onClick={handleBack}
                 className="h-12 px-6"
               >
-                Back
+                Atrás
               </Button>
             )}
             
@@ -476,7 +476,7 @@ export const JobBookingForm = () => {
                 disabled={!canProceedToNextStep()}
                 className="h-12 px-8 rounded-full"
               >
-                Next
+                Siguiente
               </ModernButton>
             ) : (
               <ModernButton
@@ -485,7 +485,7 @@ export const JobBookingForm = () => {
                 disabled={!canProceedToNextStep() || isSubmitting}
                 className="h-12 px-8 rounded-full"
               >
-                {isSubmitting ? "Publishing..." : "Post task"}
+                {isSubmitting ? "Publicando..." : "Publicar trabajo"}
               </ModernButton>
             )}
           </div>
