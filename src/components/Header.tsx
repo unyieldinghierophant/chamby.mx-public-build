@@ -58,11 +58,12 @@ const Header = ({
   return (
     <header className="absolute top-0 left-0 right-0 z-50 bg-transparent backdrop-blur-sm">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="relative flex items-center justify-between h-20 md:h-16 px-8 md:px-16 pt-[5%]">
-          {/* Left Side */}
-          <div className="flex items-center">
-            {/* Logo - Left Aligned */}
-            {!hideLogo && logoAlignment === "left" && (
+        <div className="flex items-center justify-between h-20 md:h-16 px-4 md:px-8 pt-[5%]">
+          {/* Left Side - Logo or Back Button */}
+          <div className="flex items-center min-w-0">
+            {logoAlignment === "center" && backButtonPosition === "left" && location.pathname !== '/' && location.pathname !== '/user-landing' && location.pathname !== '/tasker-landing' ? (
+              <BackButton variant={backButtonVariant} fallbackPath={user ? '/user-landing' : '/'} />
+            ) : !hideLogo && logoAlignment === "left" ? (
               <button 
                 onClick={() => navigate(getLogoDestination())}
                 className="hover:opacity-80 transition-opacity cursor-pointer flex items-center gap-3"
@@ -76,15 +77,10 @@ const Header = ({
                   chamby
                 </span>
               </button>
-            )}
-
-            {/* Back Button - Left Position (for centered logo layout) */}
-            {backButtonPosition === "left" && logoAlignment === "center" && location.pathname !== '/' && location.pathname !== '/user-landing' && location.pathname !== '/tasker-landing' && (
-              <BackButton variant={backButtonVariant} fallbackPath={user ? '/user-landing' : '/'} />
-            )}
+            ) : null}
           </div>
 
-          {/* Logo - Centered (absolute positioning) */}
+          {/* Center - Logo (only when centered) */}
           {!hideLogo && logoAlignment === "center" && (
             <div className="absolute left-1/2 transform -translate-x-1/2">
               <button 
@@ -103,47 +99,91 @@ const Header = ({
             </div>
           )}
 
-          {/* Right Side */}
+          {/* Right Side - Profile Menu or Back Button */}
           <div className="flex items-center gap-4">
-
-            {/* Desktop Navigation */}
-            {!hideProfileMenu && (
+            {/* Desktop Profile Menu */}
+            {!hideProfileMenu && user && (
               <div className="hidden md:flex items-center space-x-4">
-                {user ? (
-                  <div className="flex items-center space-x-4">
-                    {/* Dashboard Link for Taskers only */}
-                    {isTasker && isOnTaskerPage && (
-                      <Link to="/tasker-dashboard">
-                        <ModernButton variant="outline" size="sm">
-                          Mi Dashboard
-                        </ModernButton>
-                      </Link>
-                    )}
-                    
-                    {/* Profile Dropdown */}
-                    <DropdownMenu>
-...
-                    </DropdownMenu>
-                  </div>
-                ) : (
-                  /* Not logged in - show auth buttons */
-                  <>
-                    <Link to="/auth/tasker">
-                      <ModernButton variant="accent">
-                        Ser Tasker
-                      </ModernButton>
-                    </Link>
-                    <Link to="/auth/user">
-                      <ModernButton variant="primary">
-                        Iniciar Sesión
-                      </ModernButton>
-                    </Link>
-                  </>
+                {isTasker && isOnTaskerPage && (
+                  <Link to="/tasker-dashboard">
+                    <ModernButton variant="outline" size="sm">
+                      Mi Dashboard
+                    </ModernButton>
+                  </Link>
                 )}
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={user.user_metadata?.avatar_url} />
+                        <AvatarFallback>
+                          {(user.user_metadata?.full_name || user.email || "U").charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">
+                          {user.user_metadata?.full_name || "Usuario"}
+                        </p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                          {user.email}
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => navigate("/profile")}>
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Perfil</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/profile/settings")}>
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Configuración</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/profile/payment-settings")}>
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      <span>Pagos</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/profile/security")}>
+                      <Shield className="mr-2 h-4 w-4" />
+                      <span>Seguridad</span>
+                    </DropdownMenuItem>
+                    {isTasker && (
+                      <DropdownMenuItem onClick={() => navigate("/tasker-dashboard")}>
+                        <Users className="mr-2 h-4 w-4" />
+                        <span>Dashboard Tasker</span>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleSignOut} disabled={isLoggingOut}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>{isLoggingOut ? 'Saliendo...' : 'Cerrar Sesión'}</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             )}
 
-            {/* Back Button - Right Position or Mobile menu button */}
+            {/* Auth Buttons for Non-Logged In Users */}
+            {!hideProfileMenu && !user && (
+              <div className="hidden md:flex items-center space-x-4">
+                <Link to="/auth/tasker">
+                  <ModernButton variant="accent">
+                    Ser Tasker
+                  </ModernButton>
+                </Link>
+                <Link to="/auth/user">
+                  <ModernButton variant="primary">
+                    Iniciar Sesión
+                  </ModernButton>
+                </Link>
+              </div>
+            )}
+
+            {/* Mobile Menu Button or Back Button */}
             {backButtonPosition === "right" && location.pathname !== '/' && location.pathname !== '/user-landing' && location.pathname !== '/tasker-landing' ? (
               <BackButton variant={backButtonVariant} fallbackPath={user ? '/user-landing' : '/'} />
             ) : !hideProfileMenu && (
