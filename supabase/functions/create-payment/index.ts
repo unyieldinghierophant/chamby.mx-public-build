@@ -128,7 +128,7 @@ serve(async (req) => {
     console.error("Payment creation error:", error);
     return new Response(
       JSON.stringify({ 
-        error: error instanceof Error ? error.message : "Error desconocido"
+        error: "No se pudo procesar el pago. Por favor intenta nuevamente."
       }), 
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

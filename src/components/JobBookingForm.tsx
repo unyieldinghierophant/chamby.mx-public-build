@@ -13,6 +13,16 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { GoogleMapPicker } from './GoogleMapPicker';
+import { z } from 'zod';
+
+// Input validation schema
+const jobRequestSchema = z.object({
+  service: z.string().trim().min(1, "Servicio requerido").max(200, "Máximo 200 caracteres"),
+  date: z.string().trim().max(50, "Máximo 50 caracteres"),
+  location: z.string().trim().min(5, "Ubicación debe tener al menos 5 caracteres").max(500, "Máximo 500 caracteres"),
+  details: z.string().trim().max(2000, "Máximo 2000 caracteres"),
+  photo_count: z.number().int().min(0).max(10, "Máximo 10 fotos")
+});
 
 interface UploadedFile {
   file: File;
@@ -182,6 +192,25 @@ export const JobBookingForm = () => {
         details: details,
         photo_count: uploadedFiles.length,
       };
+
+      // Validate input before submission
+      const validationResult = jobRequestSchema.safeParse({
+        service: taskDescription,
+        date: dateText,
+        location: location,
+        details: details,
+        photo_count: uploadedFiles.length
+      });
+
+      if (!validationResult.success) {
+        const firstError = validationResult.error.issues[0];
+        toast({
+          title: "Error de validación",
+          description: firstError.message,
+          variant: "destructive",
+        });
+        return;
+      }
 
       // Save to Supabase
       const { error: saveError } = await supabase

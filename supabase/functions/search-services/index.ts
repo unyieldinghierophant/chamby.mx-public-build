@@ -18,8 +18,16 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
 
-    const url = new URL(req.url);
-    const query = url.searchParams.get('query')?.trim();
+  const url = new URL(req.url);
+  const query = url.searchParams.get('query')?.trim();
+  
+  // Validate query length to prevent DoS
+  if (query && query.length > 100) {
+    return new Response(
+      JSON.stringify({ error: 'Búsqueda demasiado larga' }),
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
 
     console.log('Search query:', query);
 
