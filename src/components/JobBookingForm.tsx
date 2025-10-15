@@ -212,8 +212,8 @@ export const JobBookingForm = () => {
       const encodedMessage = encodeURIComponent(message);
       const whatsappURL = `https://wa.me/5213325438136?text=${encodedMessage}`;
       
-      // Open WhatsApp
-      window.open(whatsappURL, "_blank");
+      // Open WhatsApp (use location.href for better mobile compatibility)
+      window.location.href = whatsappURL;
 
       // Reset form
       setCurrentStep(1);
