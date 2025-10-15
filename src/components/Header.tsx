@@ -22,13 +22,15 @@ interface HeaderProps {
   hideProfileMenu?: boolean;
   backButtonVariant?: "back" | "close";
   backButtonPosition?: "left" | "right";
+  logoAlignment?: "left" | "center";
 }
 
 const Header = ({ 
   hideLogo = false, 
   hideProfileMenu = false,
   backButtonVariant = "back",
-  backButtonPosition = "left"
+  backButtonPosition = "left",
+  logoAlignment = "center"
 }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, signOut } = useAuth();
@@ -58,7 +60,7 @@ const Header = ({
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative flex items-center justify-between h-20 md:h-16 px-8 md:px-16 pt-[5%]">
           {/* Back Button - Conditional Position */}
-          {backButtonPosition === "left" && (
+          {backButtonPosition === "left" && logoAlignment === "center" && (
             <div className="flex items-center">
               {location.pathname !== '/' && location.pathname !== '/user-landing' && location.pathname !== '/tasker-landing' && (
                 <BackButton variant={backButtonVariant} fallbackPath={user ? '/user-landing' : '/'} />
@@ -66,11 +68,11 @@ const Header = ({
             </div>
           )}
           
-          {backButtonPosition === "right" && <div className="flex-1" />}
+          {backButtonPosition === "right" && logoAlignment === "center" && <div className="flex-1" />}
 
-          {/* Logo - Centered */}
+          {/* Logo */}
           {!hideLogo && (
-            <div className="absolute left-1/2 transform -translate-x-1/2">
+            <div className={logoAlignment === "center" ? "absolute left-1/2 transform -translate-x-1/2" : "flex items-center"}>
               <button 
                 onClick={() => navigate(getLogoDestination())}
                 className="hover:opacity-80 transition-opacity cursor-pointer flex items-center gap-3"

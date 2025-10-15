@@ -33,7 +33,7 @@ const Index = () => {
   if (!user) {
     return (
       <div className="min-h-screen bg-background mobile-pb-nav">
-        <Header />
+        <Header logoAlignment="left" />
         <main>
           <div className="animate-fade-in">
             <Hero />
