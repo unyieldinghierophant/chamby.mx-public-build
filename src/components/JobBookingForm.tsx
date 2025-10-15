@@ -32,7 +32,6 @@ export const JobBookingForm = () => {
   const [selectedTimeSlots, setSelectedTimeSlots] = useState<TimeOfDayOption[]>([]);
   const [location, setLocation] = useState("");
   const [details, setDetails] = useState("");
-  const [budget, setBudget] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,7 +42,7 @@ export const JobBookingForm = () => {
     { number: 1, label: "Título y Fecha" },
     { number: 2, label: "Ubicación" },
     { number: 3, label: "Detalles" },
-    { number: 4, label: "Presupuesto" }
+    { number: 4, label: "Fotos" }
   ];
 
   const timeSlots = [
@@ -129,7 +128,7 @@ export const JobBookingForm = () => {
       case 3:
         return details.trim() !== "";
       case 4:
-        return budget.trim() !== "" && uploadedFiles.length > 0 && uploadedFiles.every(f => f.uploaded);
+        return uploadedFiles.length > 0 && uploadedFiles.every(f => f.uploaded);
       default:
         return false;
     }
@@ -180,7 +179,6 @@ export const JobBookingForm = () => {
         exact_time: needsSpecificTime ? timeSlotText : null,
         location: location,
         details: details,
-        budget: budget,
         photo_count: uploadedFiles.length,
       };
 
@@ -209,8 +207,7 @@ export const JobBookingForm = () => {
 🕒 Preferencia: ${timeSlotText}
 ⏰ Hora exacta: ${needsSpecificTime ? timeSlotText : 'No especificada'}
 📍 Ubicación: ${location}
-💬 Detalles: ${details}
-💰 Presupuesto: $${budget}`;
+💬 Detalles: ${details}`;
 
       const encodedMessage = encodeURIComponent(message);
       const whatsappURL = `https://wa.me/5213325438136?text=${encodedMessage}`;
@@ -227,7 +224,6 @@ export const JobBookingForm = () => {
       setSelectedTimeSlots([]);
       setLocation("");
       setDetails("");
-      setBudget("");
       setUploadedFiles([]);
     } catch (error) {
       console.error('Error submitting task:', error);
@@ -431,32 +427,14 @@ export const JobBookingForm = () => {
             </div>
           )}
 
-          {/* Step 4: Budget */}
+          {/* Step 4: Photos */}
           {currentStep === 4 && (
             <div className="space-y-8">
-              <h1 className="text-4xl font-bold text-foreground mb-8 font-['Made_Dillan']">Sugiere tu presupuesto</h1>
+              <h1 className="text-4xl font-bold text-foreground mb-8 font-['Made_Dillan']">Casi terminamos</h1>
               
               <div className="space-y-3">
                 <Label className="text-lg font-semibold text-foreground">
-                  ¿Cuál es tu presupuesto?
-                </Label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-semibold text-foreground">
-                    $
-                  </span>
-                  <Input
-                    type="number"
-                    value={budget}
-                    onChange={(e) => setBudget(e.target.value)}
-                    placeholder="0"
-                    className="h-14 text-base pl-10"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <Label className="text-lg font-semibold text-foreground">
-                  Agregar fotos (opcional)
+                  Agregar fotos
                 </Label>
                 <div className="border-2 border-dashed border-border rounded-xl p-6 text-center hover:border-primary transition-colors">
                   <Input
@@ -545,11 +523,12 @@ export const JobBookingForm = () => {
             ) : (
               <ModernButton
                 variant="primary"
+                size="xl"
                 onClick={handleSubmit}
                 disabled={!canProceedToNextStep() || isSubmitting}
-                className="h-12 px-8 rounded-full transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg"
+                className="h-16 px-12 text-lg rounded-full transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-xl shadow-lg"
               >
-                {isSubmitting ? "Publicando..." : "Publicar trabajo"}
+                {isSubmitting ? "Enviando..." : "Solicitar servicio"}
               </ModernButton>
             )}
           </div>
