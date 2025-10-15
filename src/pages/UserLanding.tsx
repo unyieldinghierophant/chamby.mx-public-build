@@ -3,12 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useProfile } from "@/hooks/useProfile";
-import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Briefcase, Calendar, Clock, Heart, Search, TrendingUp } from "lucide-react";
+import { Briefcase, Calendar, Clock, Heart, Search, TrendingUp, Menu, X } from "lucide-react";
+import logo from "@/assets/chamby-logo-icon.png";
 
 const UserLanding = () => {
   const { user, loading: authLoading } = useAuth();
@@ -78,7 +78,14 @@ const UserLanding = () => {
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
-      <Header logoAlignment="left" />
+      <header className="fixed top-0 left-0 right-0 bg-background border-b border-border z-50">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img src={logo} alt="Chamby" className="w-8 h-8" />
+            <span className="text-xl font-['Made_Dillan'] text-foreground">Chamby</span>
+          </div>
+        </div>
+      </header>
       
       <main className="container mx-auto px-4 pt-24 pb-24">
         {/* Welcome Section */}
