@@ -194,11 +194,8 @@ export const JobBookingForm = () => {
       // Show success message
       toast({
         title: "✅ Solicitud guardada correctamente",
-        description: "Redirigiendo a WhatsApp...",
+        description: "Abriendo WhatsApp...",
       });
-
-      // Wait a moment for the user to see the message
-      await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Build WhatsApp message
       const message = `📋 Nueva solicitud de trabajo
@@ -210,10 +207,17 @@ export const JobBookingForm = () => {
 💬 Detalles: ${details}`;
 
       const encodedMessage = encodeURIComponent(message);
-      const whatsappURL = `https://wa.me/5213325438136?text=${encodedMessage}`;
+      const phoneNumber = "5213325438136"; // Mexico format: 52 + 1 + 10 digits
+      const whatsappURL = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`;
       
-      // Open WhatsApp (use location.href for better mobile compatibility)
-      window.location.href = whatsappURL;
+      // Wait a bit then open WhatsApp in new tab
+      setTimeout(() => {
+        const newWindow = window.open(whatsappURL, '_blank', 'noopener,noreferrer');
+        if (!newWindow) {
+          // Fallback if popup blocked
+          window.location.href = whatsappURL;
+        }
+      }, 500);
 
       // Reset form
       setCurrentStep(1);
