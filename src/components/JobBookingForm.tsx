@@ -201,7 +201,10 @@ export const JobBookingForm = () => {
       
       const encodedMessage = encodeURIComponent(message);
       const phoneNumber = "523325438136";
-      window.open(`https://wa.me/${phoneNumber}?text=${encodedMessage}`, '_blank');
+      const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+      
+      // Use direct navigation instead of window.open to avoid browser blocking
+      window.location.href = whatsappUrl;
 
       // Show success toast
       toast({
