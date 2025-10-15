@@ -42,14 +42,10 @@ const Index = () => {
             </div>
             <div className="hidden md:flex items-center space-x-4">
               <Link to="/auth/tasker">
-                <ModernButton variant="accent">
-                  Ser Tasker
-                </ModernButton>
+                <ModernButton variant="accent">Ser Tasker</ModernButton>
               </Link>
               <Link to="/auth/user">
-                <ModernButton variant="primary">
-                  Iniciar Sesión
-                </ModernButton>
+                <ModernButton variant="primary">Iniciar Sesión</ModernButton>
               </Link>
             </div>
           </div>
@@ -58,10 +54,10 @@ const Index = () => {
           <div className="animate-fade-in">
             <Hero />
           </div>
-          <div className="animate-blur-fade" style={{ animationDelay: '0.3s' }}>
+          <div className="animate-blur-fade" style={{ animationDelay: "0.3s" }}>
             <HowItWorks />
           </div>
-          <div className="animate-blur-fade" style={{ animationDelay: '0.6s' }}>
+          <div className="animate-blur-fade" style={{ animationDelay: "0.6s" }}>
             <Trust />
           </div>
         </main>
@@ -77,6 +73,64 @@ const Index = () => {
 
   // This shouldn't render since logged-in users are redirected
   return null;
+};
+const AddressMap = () => {
+  useEffect(() => {
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    const script = document.createElement("script");
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+    script.async = true;
+    script.defer = true;
+    script.onload = initMap;
+    document.head.appendChild(script);
+
+    function initMap() {
+      const defaultLocation = { lat: 20.6736, lng: -103.344 }; // Guadalajara
+      const map = new google.maps.Map(document.getElementById("map"), {
+        center: defaultLocation,
+        zoom: 13,
+      });
+      const marker = new google.maps.Marker({
+        position: defaultLocation,
+        map,
+        draggable: true,
+      });
+      const input = document.getElementById("address");
+      const autocomplete = new google.maps.places.Autocomplete(input, {
+        componentRestrictions: { country: "mx" },
+      });
+      autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
+        if (!place.geometry) return;
+        map.setCenter(place.geometry.location);
+        marker.setPosition(place.geometry.location);
+      });
+      google.maps.event.addListener(marker, "dragend", () => {
+        const pos = marker.getPosition();
+        document.getElementById("coords").value = `${pos.lat().toFixed(6)}, ${pos.lng().toFixed(6)}`;
+      });
+    }
+  }, []);
+
+  return (
+    <div style={{ padding: "20px" }}>
+      <h2 className="text-lg font-semibold mb-2">Selecciona tu dirección</h2>
+      <input
+        id="address"
+        type="text"
+        placeholder="Escribe tu dirección"
+        style={{ width: "100%", marginBottom: "10px" }}
+      />
+      <input
+        id="coords"
+        type="text"
+        placeholder="Coordenadas"
+        readOnly
+        style={{ width: "100%", marginBottom: "10px" }}
+      />
+      <div id="map" style={{ width: "100%", height: "300px", borderRadius: "10px" }}></div>
+    </div>
+  );
 };
 
 export default Index;
