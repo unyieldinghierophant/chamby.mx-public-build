@@ -12,7 +12,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
-import { LocationMap } from './LocationMap';
+
 
 interface UploadedFile {
   file: File;
@@ -36,7 +36,6 @@ export const JobBookingForm = () => {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [coordinates, setCoordinates] = useState<[number, number]>([19.4326, -99.1332]); // Default to Mexico City
   const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const { toast } = useToast();
@@ -83,16 +82,8 @@ export const JobBookingForm = () => {
 
   const handleAddressSelect = (suggestion: any) => {
     setLocation(suggestion.display_name);
-    setCoordinates([parseFloat(suggestion.lat), parseFloat(suggestion.lon)]);
     setShowSuggestions(false);
     setAddressSuggestions([]);
-  };
-
-  const handleMapLocationSelect = (lat: number, lng: number, address: string) => {
-    setCoordinates([lat, lng]);
-    if (address) {
-      setLocation(address);
-    }
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -467,20 +458,6 @@ export const JobBookingForm = () => {
                 </p>
               </div>
 
-              <div className="space-y-3">
-                <Label className="text-lg font-semibold text-foreground">
-                  Marca tu ubicación exacta
-                </Label>
-                <div className="h-[400px] rounded-lg overflow-hidden border border-border">
-                  <LocationMap 
-                    coordinates={coordinates} 
-                    onLocationSelect={handleMapLocationSelect}
-                  />
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Haz clic en el mapa para ajustar la ubicación exacta
-                </p>
-              </div>
             </div>
           )}
 
