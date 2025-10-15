@@ -95,7 +95,7 @@ const AddressMap = () => {
         map,
         draggable: true,
       });
-      const input = document.getElementById("address");
+      const input = document.getElementById("address") as HTMLInputElement;
       const autocomplete = new google.maps.places.Autocomplete(input, {
         componentRestrictions: { country: "mx" },
       });
@@ -107,7 +107,10 @@ const AddressMap = () => {
       });
       google.maps.event.addListener(marker, "dragend", () => {
         const pos = marker.getPosition();
-        document.getElementById("coords").value = `${pos.lat().toFixed(6)}, ${pos.lng().toFixed(6)}`;
+        const coordsInput = document.getElementById("coords") as HTMLInputElement;
+        if (coordsInput) {
+          coordsInput.value = `${pos.lat().toFixed(6)}, ${pos.lng().toFixed(6)}`;
+        }
       });
     }
   }, []);
