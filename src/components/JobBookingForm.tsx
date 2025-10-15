@@ -12,7 +12,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
-
+import { GoogleMapPicker } from './GoogleMapPicker';
 
 interface UploadedFile {
   file: File;
@@ -36,8 +36,7 @@ export const JobBookingForm = () => {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [coordinates, setCoordinates] = useState<{ lat: number; lng: number }>({ lat: 19.4326, lng: -99.1332 });
   const { toast } = useToast();
 
   const steps = [
@@ -62,28 +61,9 @@ export const JobBookingForm = () => {
     );
   };
 
-  const searchAddress = async (query: string) => {
-    if (query.length < 3) {
-      setAddressSuggestions([]);
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=mx&limit=5`
-      );
-      const data = await response.json();
-      setAddressSuggestions(data);
-      setShowSuggestions(true);
-    } catch (error) {
-      console.error('Error searching address:', error);
-    }
-  };
-
-  const handleAddressSelect = (suggestion: any) => {
-    setLocation(suggestion.display_name);
-    setShowSuggestions(false);
-    setAddressSuggestions([]);
+  const handleMapLocationSelect = (lat: number, lng: number, address: string) => {
+    setCoordinates({ lat, lng });
+    setLocation(address);
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -422,42 +402,10 @@ export const JobBookingForm = () => {
             <div className="space-y-8">
               <h1 className="text-4xl font-bold text-foreground mb-8 font-['Made_Dillan']">¿Dónde necesitas que se haga?</h1>
               
-              <div className="space-y-3">
-                <Label className="text-lg font-semibold text-foreground">
-                  Ubicación del trabajo
-                </Label>
-                <div className="relative">
-                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
-                  <Input
-                    value={location}
-                    onChange={(e) => {
-                      setLocation(e.target.value);
-                      searchAddress(e.target.value);
-                    }}
-                    onFocus={() => addressSuggestions.length > 0 && setShowSuggestions(true)}
-                    placeholder="Ingresa dirección o colonia"
-                    className="h-14 text-base pl-12"
-                  />
-                  {showSuggestions && addressSuggestions.length > 0 && (
-                    <div className="absolute z-50 w-full mt-2 bg-background border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                      {addressSuggestions.map((suggestion, index) => (
-                        <button
-                          key={index}
-                          type="button"
-                          onClick={() => handleAddressSelect(suggestion)}
-                          className="w-full text-left px-4 py-3 hover:bg-accent transition-colors border-b border-border last:border-b-0"
-                        >
-                          <p className="text-sm text-foreground">{suggestion.display_name}</p>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Comienza a escribir o marca en el mapa
-                </p>
-              </div>
-
+              <GoogleMapPicker 
+                onLocationSelect={handleMapLocationSelect}
+                initialLocation={location}
+              />
             </div>
           )}
 
