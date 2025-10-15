@@ -146,10 +146,43 @@ export const JobBookingForm = () => {
     setIsSubmitting(true);
 
     try {
-      // Here you would submit the booking data to your backend
+      // Format date
+      let dateText = "Flexible";
+      if (datePreference === 'specific' && specificDate) {
+        dateText = format(specificDate, "dd/MM/yyyy");
+      } else if (datePreference === 'before') {
+        dateText = "Inmediatamente";
+      }
+
+      // Format time slots
+      let timeSlotText = "Sin preferencia";
+      if (needsSpecificTime && selectedTimeSlots.length > 0) {
+        const slotLabels = selectedTimeSlots.map(slotId => {
+          const slot = timeSlots.find(s => s.id === slotId);
+          return slot ? `${slot.label} (${slot.time})` : '';
+        }).filter(Boolean);
+        timeSlotText = slotLabels.join(', ');
+      }
+
+      // Build WhatsApp message
+      const message = `📋 *Nueva solicitud de trabajo*
+🔧 Servicio: ${taskDescription}
+📅 Fecha: ${dateText}
+🕒 Turno: ${timeSlotText}
+📍 Ubicación: ${location}
+💵 Presupuesto: $${budget}
+📝 Detalles: ${details}
+📸 Fotos: ${uploadedFiles.length} cargadas`;
+
+      const encodedMessage = encodeURIComponent(message);
+      const whatsappURL = `https://wa.me/5213325438136?text=${encodedMessage}`;
+      
+      // Open WhatsApp
+      window.open(whatsappURL, "_blank");
+
       toast({
-        title: "¡Trabajo publicado!",
-        description: "Los taskers comenzarán a enviar ofertas pronto.",
+        title: "¡Redirigiendo a WhatsApp!",
+        description: "Se abrirá una ventana con tu solicitud.",
       });
 
       // Reset form
