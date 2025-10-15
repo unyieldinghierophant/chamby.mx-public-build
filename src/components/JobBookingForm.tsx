@@ -290,7 +290,10 @@ export const JobBookingForm = () => {
                     <PopoverTrigger asChild>
                   <Button
                     variant={datePreference === 'specific' ? "default" : "outline"}
-                    className="h-12 px-6 rounded-full transition-all active:scale-95"
+                    className={cn(
+                      "h-12 px-6 rounded-full transition-all active:scale-95",
+                      datePreference === 'specific' && "ring-2 ring-primary/50 shadow-lg"
+                    )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {specificDate ? format(specificDate, "MMM dd") : "En una fecha"}
@@ -313,7 +316,10 @@ export const JobBookingForm = () => {
                   <Button
                     variant={datePreference === 'before' ? "default" : "outline"}
                     onClick={() => setDatePreference('before')}
-                    className="h-12 px-6 rounded-full transition-all active:scale-95"
+                    className={cn(
+                      "h-12 px-6 rounded-full transition-all active:scale-95",
+                      datePreference === 'before' && "ring-2 ring-primary/50 shadow-lg"
+                    )}
                   >
                     Inmediatamente
                   </Button>
@@ -321,7 +327,10 @@ export const JobBookingForm = () => {
                   <Button
                     variant={datePreference === 'flexible' ? "default" : "outline"}
                     onClick={() => setDatePreference('flexible')}
-                    className="h-12 px-6 rounded-full transition-all active:scale-95"
+                    className={cn(
+                      "h-12 px-6 rounded-full transition-all active:scale-95",
+                      datePreference === 'flexible' && "ring-2 ring-primary/50 shadow-lg"
+                    )}
                   >
                     Soy flexible
                   </Button>
@@ -352,11 +361,11 @@ export const JobBookingForm = () => {
                           type="button"
                           onClick={() => toggleTimeSlot(slot.id)}
                           className={cn(
-                            "p-4 rounded-xl border-2 transition-all hover:border-primary",
+                            "p-4 rounded-xl border-2 transition-all hover:border-primary active:scale-95",
                             "flex flex-col items-center gap-2 text-center",
                             isSelected 
-                              ? "border-primary bg-primary/5" 
-                              : "border-border bg-background"
+                              ? "border-primary bg-primary/10 ring-2 ring-primary/30 shadow-lg" 
+                              : "border-border bg-background hover:bg-accent/50"
                           )}
                         >
                           <Icon className={cn(
