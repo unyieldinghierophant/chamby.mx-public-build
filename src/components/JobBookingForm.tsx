@@ -146,15 +146,6 @@ export const JobBookingForm = () => {
     setIsSubmitting(true);
 
     try {
-      // Show success message
-      toast({
-        title: "✔️ Formulario completo",
-        description: "Redirigiendo a WhatsApp...",
-      });
-
-      // Wait a moment for the user to see the message
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
       // Format date
       let dateText = "Flexible";
       if (datePreference === 'specific' && specificDate) {
@@ -173,15 +164,46 @@ export const JobBookingForm = () => {
         timeSlotText = slotLabels.join(', ');
       }
 
+      // Prepare job data
+      const jobData = {
+        user_id: (await supabase.auth.getUser()).data.user?.id || null,
+        service: taskDescription,
+        date: dateText,
+        time_preference: timeSlotText,
+        exact_time: needsSpecificTime ? timeSlotText : null,
+        location: location,
+        details: details,
+        budget: budget,
+        photo_count: uploadedFiles.length,
+      };
+
+      // Save to Supabase
+      const { error: saveError } = await supabase
+        .from('job_requests')
+        .insert([jobData]);
+
+      if (saveError) {
+        throw saveError;
+      }
+
+      // Show success message
+      toast({
+        title: "✅ Solicitud guardada correctamente",
+        description: "Redirigiendo a WhatsApp...",
+      });
+
+      // Wait a moment for the user to see the message
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       // Build WhatsApp message
-      const message = `📋 *Nueva solicitud de trabajo*
+      const message = `📋 Nueva solicitud de trabajo
 🔧 Servicio: ${taskDescription}
 📅 Fecha: ${dateText}
-🕒 Turno: ${timeSlotText}
+🕒 Preferencia: ${timeSlotText}
+⏰ Hora exacta: ${needsSpecificTime ? timeSlotText : 'No especificada'}
 📍 Ubicación: ${location}
-💵 Presupuesto: $${budget}
-📝 Detalles: ${details}
-📸 Fotos: ${uploadedFiles.length} cargadas`;
+💬 Detalles: ${details}
+💰 Presupuesto: $${budget}`;
 
       const encodedMessage = encodeURIComponent(message);
       const whatsappURL = `https://wa.me/5213325438136?text=${encodedMessage}`;
@@ -203,8 +225,8 @@ export const JobBookingForm = () => {
     } catch (error) {
       console.error('Error submitting task:', error);
       toast({
-        title: "Error",
-        description: "No se pudo publicar el trabajo",
+        title: "❌ Error al guardar la solicitud",
+        description: "Inténtalo nuevamente.",
         variant: "destructive",
       });
     } finally {
@@ -266,13 +288,13 @@ export const JobBookingForm = () => {
                 <div className="flex gap-3 flex-wrap">
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button
-                        variant={datePreference === 'specific' ? "default" : "outline"}
-                        className="h-12 px-6 rounded-full"
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {specificDate ? format(specificDate, "MMM dd") : "En una fecha"}
-                      </Button>
+                  <Button
+                    variant={datePreference === 'specific' ? "default" : "outline"}
+                    className="h-12 px-6 rounded-full transition-all active:scale-95"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {specificDate ? format(specificDate, "MMM dd") : "En una fecha"}
+                  </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0 bg-background" align="start">
                       <Calendar
@@ -291,7 +313,7 @@ export const JobBookingForm = () => {
                   <Button
                     variant={datePreference === 'before' ? "default" : "outline"}
                     onClick={() => setDatePreference('before')}
-                    className="h-12 px-6 rounded-full"
+                    className="h-12 px-6 rounded-full transition-all active:scale-95"
                   >
                     Inmediatamente
                   </Button>
@@ -299,7 +321,7 @@ export const JobBookingForm = () => {
                   <Button
                     variant={datePreference === 'flexible' ? "default" : "outline"}
                     onClick={() => setDatePreference('flexible')}
-                    className="h-12 px-6 rounded-full"
+                    className="h-12 px-6 rounded-full transition-all active:scale-95"
                   >
                     Soy flexible
                   </Button>

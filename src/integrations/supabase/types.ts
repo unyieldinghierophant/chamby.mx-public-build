@@ -158,6 +158,48 @@ export type Database = {
           },
         ]
       }
+      job_requests: {
+        Row: {
+          budget: string | null
+          created_at: string
+          date: string | null
+          details: string | null
+          exact_time: string | null
+          id: string
+          location: string | null
+          photo_count: number | null
+          service: string
+          time_preference: string | null
+          user_id: string | null
+        }
+        Insert: {
+          budget?: string | null
+          created_at?: string
+          date?: string | null
+          details?: string | null
+          exact_time?: string | null
+          id?: string
+          location?: string | null
+          photo_count?: number | null
+          service: string
+          time_preference?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          budget?: string | null
+          created_at?: string
+          date?: string | null
+          details?: string | null
+          exact_time?: string | null
+          id?: string
+          location?: string | null
+          photo_count?: number | null
+          service?: string
+          time_preference?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       jobs: {
         Row: {
           category: string
