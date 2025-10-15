@@ -12,8 +12,17 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
-// @ts-ignore - Mapbox type compatibility
-import { AddressAutofill } from '@mapbox/search-js-react';
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// Fix leaflet default marker icon
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 interface UploadedFile {
   file: File;
@@ -37,7 +46,9 @@ export const JobBookingForm = () => {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [mapboxToken, setMapboxToken] = useState("");
+  const [coordinates, setCoordinates] = useState<[number, number]>([19.4326, -99.1332]); // Default to Mexico City
+  const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const { toast } = useToast();
 
   const steps = [
@@ -60,6 +71,51 @@ export const JobBookingForm = () => {
         ? prev.filter(id => id !== slotId)
         : [...prev, slotId]
     );
+  };
+
+  const searchAddress = async (query: string) => {
+    if (query.length < 3) {
+      setAddressSuggestions([]);
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=mx&limit=5`
+      );
+      const data = await response.json();
+      setAddressSuggestions(data);
+      setShowSuggestions(true);
+    } catch (error) {
+      console.error('Error searching address:', error);
+    }
+  };
+
+  const handleAddressSelect = (suggestion: any) => {
+    setLocation(suggestion.display_name);
+    setCoordinates([parseFloat(suggestion.lat), parseFloat(suggestion.lon)]);
+    setShowSuggestions(false);
+    setAddressSuggestions([]);
+  };
+
+  const MapClickHandler = () => {
+    useMapEvents({
+      click: async (e) => {
+        const { lat, lng } = e.latlng;
+        setCoordinates([lat, lng]);
+        
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+          );
+          const data = await response.json();
+          setLocation(data.display_name);
+        } catch (error) {
+          console.error('Error reverse geocoding:', error);
+        }
+      },
+    });
+    return null;
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -398,46 +454,63 @@ export const JobBookingForm = () => {
             <div className="space-y-8">
               <h1 className="text-4xl font-bold text-foreground mb-8 font-['Made_Dillan']">¿Dónde necesitas que se haga?</h1>
               
-              {!mapboxToken && (
-                <div className="space-y-3 p-4 bg-accent/50 rounded-lg border border-border">
-                  <Label className="text-sm font-semibold text-foreground">
-                    Ingresa tu Mapbox Token
-                  </Label>
-                  <Input
-                    value={mapboxToken}
-                    onChange={(e) => setMapboxToken(e.target.value)}
-                    placeholder="pk.eyJ1..."
-                    className="font-mono text-sm"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Obtén tu token en <a href="https://mapbox.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">mapbox.com</a>
-                  </p>
-                </div>
-              )}
-              
               <div className="space-y-3">
                 <Label className="text-lg font-semibold text-foreground">
                   Ubicación del trabajo
                 </Label>
-                {/* @ts-ignore - Mapbox type compatibility */}
-                <AddressAutofill accessToken={mapboxToken || ''} onRetrieve={(result: any) => {
-                  if (result.features && result.features[0]) {
-                    setLocation(result.features[0].properties.full_address || result.features[0].properties.place_name || '');
-                  }
-                }}>
-                  <div className="relative">
-                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
-                    <input
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
-                      placeholder="Ingresa dirección o colonia"
-                      className="flex h-14 w-full rounded-md border border-input bg-background px-3 py-2 text-base pl-12 ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                      autoComplete="address-line1"
-                    />
-                  </div>
-                </AddressAutofill>
+                <div className="relative">
+                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
+                  <Input
+                    value={location}
+                    onChange={(e) => {
+                      setLocation(e.target.value);
+                      searchAddress(e.target.value);
+                    }}
+                    onFocus={() => addressSuggestions.length > 0 && setShowSuggestions(true)}
+                    placeholder="Ingresa dirección o colonia"
+                    className="h-14 text-base pl-12"
+                  />
+                  {showSuggestions && addressSuggestions.length > 0 && (
+                    <div className="absolute z-50 w-full mt-2 bg-background border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      {addressSuggestions.map((suggestion, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={() => handleAddressSelect(suggestion)}
+                          className="w-full text-left px-4 py-3 hover:bg-accent transition-colors border-b border-border last:border-b-0"
+                        >
+                          <p className="text-sm text-foreground">{suggestion.display_name}</p>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <p className="text-sm text-muted-foreground">
-                  Comienza a escribir y selecciona del menú
+                  Comienza a escribir o marca en el mapa
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <Label className="text-lg font-semibold text-foreground">
+                  Marca tu ubicación exacta
+                </Label>
+                <div className="h-[400px] rounded-lg overflow-hidden border border-border">
+                  <MapContainer
+                    center={coordinates}
+                    zoom={13}
+                    style={{ height: '100%', width: '100%' }}
+                    key={coordinates.join(',')}
+                  >
+                    <TileLayer
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+                    <Marker position={coordinates} />
+                    <MapClickHandler />
+                  </MapContainer>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Haz clic en el mapa para ajustar la ubicación exacta
                 </p>
               </div>
             </div>
