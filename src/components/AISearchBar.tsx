@@ -59,13 +59,13 @@ export const AISearchBar = () => {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           disabled={isLoading}
-          className="pl-12 md:pl-20 pr-14 md:pr-32 h-12 md:h-14 text-sm md:text-base bg-card/95 backdrop-blur-sm border-white/20 shadow-soft hover:shadow-raised transition-all focus:shadow-glow"
+          className="pl-10 md:pl-16 pr-12 md:pr-28 h-12 md:h-14 text-sm md:text-base bg-card/95 backdrop-blur-sm border-white/20 shadow-soft hover:shadow-raised transition-all focus:shadow-glow rounded-full"
         />
         <Button
           type="submit"
           disabled={isLoading}
           size={isMobile ? "sm" : "default"}
-          className="absolute right-1 md:right-2 top-1/2 -translate-y-1/2 bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant"
+          className="absolute right-1 md:right-2 top-1/2 -translate-y-1/2 bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant rounded-full"
         >
           {isLoading ? (
             <>
