@@ -18,6 +18,7 @@ const UserLanding = () => {
 
   // Redirect non-authenticated users to public landing
   useEffect(() => {
+    console.log('UserLanding: Auth check', { authLoading, user: !!user });
     if (!authLoading && !user) {
       navigate("/", { replace: true });
     }
@@ -25,10 +26,13 @@ const UserLanding = () => {
 
   // Redirect providers to their dashboard
   useEffect(() => {
+    console.log('UserLanding: Role check', { roleLoading, role });
     if (!roleLoading && role === "provider") {
       navigate("/provider-dashboard", { replace: true });
     }
   }, [role, roleLoading, navigate]);
+
+  console.log('UserLanding: Render state', { authLoading, roleLoading, user: !!user, role });
 
   if (authLoading || roleLoading) {
     return (

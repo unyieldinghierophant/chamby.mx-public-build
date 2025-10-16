@@ -16,7 +16,6 @@ interface Job {
     id: string;
     email: string;
     phone: string | null;
-    role: string;
   };
 }
 
@@ -38,7 +37,7 @@ export const useJobs = (filters?: JobFilters) => {
         .from('jobs')
         .select(`
           *,
-          provider:clients!jobs_provider_id_fkey(id, email, phone, role)
+          provider:clients!jobs_provider_id_fkey(id, email, phone)
         `)
         .eq('status', 'active');
 
@@ -135,7 +134,6 @@ export const useProviderJobs = () => {
         .from('clients')
         .select('id')
         .eq('email', user.email)
-        .eq('role', 'provider')
         .single();
 
       if (clientError) throw clientError;
