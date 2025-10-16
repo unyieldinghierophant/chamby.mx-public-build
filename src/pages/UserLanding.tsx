@@ -128,7 +128,7 @@ const UserLanding = () => {
             onClick={() => navigate('/user-landing')}
             className="flex items-center gap-3 hover:opacity-80 transition-opacity"
           >
-            <img src={logo} alt="Chamby" className="w-8 h-8" />
+            <img src={logo} alt="Chamby" className="w-12 h-12" />
             <span className="text-xl font-['Made_Dillan'] text-foreground">Chamby</span>
           </button>
           
