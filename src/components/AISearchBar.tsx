@@ -47,7 +47,7 @@ export const AISearchBar = () => {
   };
 
   return (
-    <form onSubmit={handleSearch} className="w-full">
+    <form onSubmit={handleSearch} className="w-[70%] mx-auto">
       <div className="relative">
         <div className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 flex items-center gap-1 md:gap-2">
           <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-primary" />
