@@ -3,7 +3,7 @@ import { Search, Shield, Star, MapPin, Home, Wrench, Droplets, Truck, SprayCan }
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import heroImage from "@/assets/hero-services.jpg";
-import EnhancedSearchBar from "@/components/EnhancedSearchBar";
+import { AISearchBar } from "@/components/AISearchBar";
 import { useAuth } from "@/contexts/AuthContext";
 const Hero = () => {
   const [location, setLocation] = useState("");
@@ -11,9 +11,6 @@ const Hero = () => {
   const {
     user
   } = useAuth();
-  const handleSearch = (query: string) => {
-    // Search handled by EnhancedSearchBar redirect to /nueva-solicitud
-  };
   return <section className="relative min-h-screen bg-background flex items-center justify-center pt-20 overflow-hidden">
       {/* 3D Glass Morphic Background Icons */}
       <div className="absolute inset-0 pointer-events-none">
@@ -75,9 +72,9 @@ const Hero = () => {
             </p>
           </div>
 
-          {/* Enhanced Search Bar */}
+          {/* AI Search Bar */}
           <div className="max-w-xl mx-auto">
-            <EnhancedSearchBar placeholder="¿Qué servicio necesitas hoy?" onSearch={handleSearch} size="lg" className="w-full" />
+            <AISearchBar className="w-full" />
             
             {/* Mobile-only Tasker CTA */}
             <div className="md:hidden mt-4">
