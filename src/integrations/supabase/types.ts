@@ -99,7 +99,6 @@ export type Database = {
           id: string
           phone: string | null
           phone_verified: boolean | null
-          role: string
         }
         Insert: {
           address?: string | null
@@ -109,7 +108,6 @@ export type Database = {
           id?: string
           phone?: string | null
           phone_verified?: boolean | null
-          role?: string
         }
         Update: {
           address?: string | null
@@ -119,7 +117,6 @@ export type Database = {
           id?: string
           phone?: string | null
           phone_verified?: boolean | null
-          role?: string
         }
         Relationships: []
       }
