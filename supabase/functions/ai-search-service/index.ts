@@ -63,7 +63,10 @@ Ejemplos:
     }
 
     const data = await response.json();
-    const content = data.choices[0].message.content;
+    let content = data.choices[0].message.content;
+
+    // Remove markdown code blocks if present
+    content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
 
     // Parse the JSON response
     const result = JSON.parse(content);
