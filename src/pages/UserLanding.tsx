@@ -248,7 +248,7 @@ const UserLanding = () => {
       
       <main className="container mx-auto px-4 pt-24 pb-24">
         {/* Welcome Section */}
-        <div className="mb-8">
+        <div className="mb-8 text-center pt-[30%] md:pt-[15%]">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
             ¡Bienvenido de vuelta{profile?.full_name ? `, ${profile.full_name.split(' ')[0]}` : ''}!
           </h1>
