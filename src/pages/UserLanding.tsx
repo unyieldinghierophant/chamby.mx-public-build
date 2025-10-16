@@ -7,8 +7,10 @@ import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Briefcase, Calendar, Clock, Heart, Search, TrendingUp } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { TrendingUp } from "lucide-react";
+import { AISearchBar } from "@/components/AISearchBar";
+import { CategoryCard } from "@/components/CategoryCard";
 
 const UserLanding = () => {
   const { user, loading: authLoading } = useAuth();
@@ -45,33 +47,58 @@ const UserLanding = () => {
     return null;
   }
 
-  const quickActions = [
+  const categories = [
     {
-      title: "Buscar Servicios",
-      description: "Encuentra el servicio que necesitas",
-      icon: Search,
-      action: () => navigate("/book-job"),
-      gradient: "from-pink-500 to-rose-500"
+      icon: "🚗",
+      category: "Auto y Lavado",
+      description: "Lavado, aspirado, encerado, batería",
+      services: [
+        "Lavado exterior completo",
+        "Aspirado interior",
+        "Encerado y pulido",
+        "Cambio de batería",
+        "Mantenimiento básico"
+      ],
+      gradient: "from-blue-500 to-cyan-500"
     },
     {
-      title: "Mis Trabajos",
-      description: "Ver tus trabajos activos",
-      icon: Briefcase,
-      action: () => navigate("/mobile-jobs"),
-      gradient: "from-pink-500 to-rose-500"
+      icon: "🔧",
+      category: "Fontanería",
+      description: "Fugas, WC, bombas",
+      services: [
+        "Reparación de fugas",
+        "Reparación de WC",
+        "Instalación de bombas",
+        "Destapado de cañerías",
+        "Cambio de llaves"
+      ],
+      gradient: "from-blue-600 to-indigo-600"
     },
     {
-      title: "Favoritos",
-      description: "Tus proveedores favoritos",
-      icon: Heart,
-      action: () => navigate("/mobile-favorites"),
-      gradient: "from-pink-500 to-rose-500"
+      icon: "⚡",
+      category: "Electricidad",
+      description: "Apagadores, cortos, lámparas",
+      services: [
+        "Instalación de apagadores",
+        "Reparación de cortos circuitos",
+        "Instalación de lámparas",
+        "Revisión de tablero eléctrico",
+        "Cableado eléctrico"
+      ],
+      gradient: "from-yellow-500 to-orange-500"
     },
     {
-      title: "Historial",
-      description: "Ver trabajos completados",
-      icon: Clock,
-      action: () => navigate("/mobile-jobs"),
+      icon: "🧰",
+      category: "Handyman",
+      description: "Arreglos, pintura, colgar TV, mover muebles",
+      services: [
+        "Arreglos generales",
+        "Pintura de interiores",
+        "Colgar TV en pared",
+        "Mover muebles",
+        "Montaje de muebles",
+        "Reparaciones menores"
+      ],
       gradient: "from-pink-500 to-rose-500"
     }
   ];
@@ -86,31 +113,33 @@ const UserLanding = () => {
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
             ¡Bienvenido de vuelta{profile?.full_name ? `, ${profile.full_name.split(' ')[0]}` : ''}!
           </h1>
-          <p className="text-muted-foreground text-lg mb-4">
+          <p className="text-muted-foreground text-lg mb-6">
             ¿Qué necesitas hoy?
           </p>
+          
+          {/* AI Search Bar */}
+          <div className="mb-10">
+            <AISearchBar />
+          </div>
         </div>
 
-        {/* Quick Actions Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
-          {quickActions.map((action, index) => {
-            const IconComponent = action.icon;
-            return (
-              <Card
+        {/* Category Cards Grid */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-semibold text-foreground mb-6">
+            Categorías de Servicios
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {categories.map((category, index) => (
+              <CategoryCard
                 key={index}
-                className="cursor-pointer hover:shadow-elegant transition-all duration-300 hover:scale-105 bg-gradient-card border-white/20"
-                onClick={action.action}
-              >
-                <CardHeader className="pb-3">
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${action.gradient} flex items-center justify-center mb-3 shadow-glow`}>
-                    <IconComponent className="w-6 h-6 text-white" />
-                  </div>
-                  <CardTitle className="text-lg">{action.title}</CardTitle>
-                  <CardDescription>{action.description}</CardDescription>
-                </CardHeader>
-              </Card>
-            );
-          })}
+                icon={category.icon}
+                category={category.category}
+                description={category.description}
+                services={category.services}
+                gradient={category.gradient}
+              />
+            ))}
+          </div>
         </div>
 
         {/* Recent Activity Section */}

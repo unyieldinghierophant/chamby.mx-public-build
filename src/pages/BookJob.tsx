@@ -1,10 +1,12 @@
 import { JobBookingForm } from "@/components/JobBookingForm";
 import { X } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import logo from "@/assets/chamby-logo-icon.png";
 
 const BookJob = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const prefillData = location.state as { category?: string; service?: string; description?: string } | null;
 
   return (
     <>
@@ -15,7 +17,7 @@ const BookJob = () => {
             <span className="text-xl font-['Made_Dillan'] text-foreground">Chamby</span>
           </div>
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate(-1)}
             className="p-2 hover:bg-accent rounded-lg transition-colors"
             aria-label="Close"
           >
@@ -24,7 +26,10 @@ const BookJob = () => {
         </div>
       </header>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-background to-blue-50/30 dark:from-blue-950/20 dark:via-background dark:to-blue-950/10 pt-24 pb-12 px-4 md:px-8">
-        <JobBookingForm />
+        <JobBookingForm 
+          initialService={prefillData?.service}
+          initialDescription={prefillData?.description}
+        />
       </div>
     </>
   );

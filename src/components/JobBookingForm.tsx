@@ -33,15 +33,20 @@ interface UploadedFile {
 type TimeOfDayOption = 'morning' | 'midday' | 'afternoon' | 'evening';
 type DatePreference = 'specific' | 'before' | 'flexible';
 
-export const JobBookingForm = () => {
+interface JobBookingFormProps {
+  initialService?: string;
+  initialDescription?: string;
+}
+
+export const JobBookingForm = ({ initialService, initialDescription }: JobBookingFormProps = {}) => {
   const [currentStep, setCurrentStep] = useState(1);
-  const [taskDescription, setTaskDescription] = useState("");
+  const [taskDescription, setTaskDescription] = useState(initialService || "");
   const [datePreference, setDatePreference] = useState<DatePreference>('specific');
   const [specificDate, setSpecificDate] = useState<Date>();
   const [needsSpecificTime, setNeedsSpecificTime] = useState(false);
   const [selectedTimeSlots, setSelectedTimeSlots] = useState<TimeOfDayOption[]>([]);
   const [location, setLocation] = useState("");
-  const [details, setDetails] = useState("");
+  const [details, setDetails] = useState(initialDescription || "");
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
