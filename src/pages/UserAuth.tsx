@@ -264,7 +264,7 @@ const UserAuth = () => {
   // OTP Verification Screen
   if (showOTPVerification) {
     return (
-      <div className="min-h-screen bg-gradient-main bg-gradient-mesh flex items-center justify-center py-12 px-4">
+      <div className="show-recaptcha min-h-screen bg-gradient-main bg-gradient-mesh flex items-center justify-center py-12 px-4">
         <div className="w-full max-w-md">
           <Card className="bg-card/95 backdrop-blur-sm shadow-raised border-border/20">
             <CardHeader className="text-center">
@@ -338,7 +338,7 @@ const UserAuth = () => {
           onComplete={() => navigate('/user-landing')}
         />
       )}
-      <div className="min-h-screen bg-gradient-main bg-gradient-mesh flex items-center justify-center py-12 px-4">
+      <div className="show-recaptcha min-h-screen bg-gradient-main bg-gradient-mesh flex items-center justify-center py-12 px-4">
       <div className="w-full max-w-md">
         <Link 
           to="/" 

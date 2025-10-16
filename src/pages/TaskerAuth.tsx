@@ -179,7 +179,7 @@ const TaskerAuth = () => {
           onComplete={() => navigate('/provider-dashboard')}
         />
       )}
-      <div className="min-h-screen bg-gradient-main bg-gradient-mesh flex items-center justify-center py-12 px-4">
+      <div className="show-recaptcha min-h-screen bg-gradient-main bg-gradient-mesh flex items-center justify-center py-12 px-4">
       <div className="w-full max-w-md">
         <Link 
           to="/" 

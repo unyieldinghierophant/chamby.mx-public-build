@@ -177,3 +177,13 @@ All colors MUST be HSL.
     @apply hidden md:block;
   }
 }
+
+/* Hide reCAPTCHA badge globally - only show on auth pages */
+.grecaptcha-badge {
+  visibility: hidden !important;
+}
+
+/* Show reCAPTCHA badge on auth pages */
+.show-recaptcha .grecaptcha-badge {
+  visibility: visible !important;
+}
