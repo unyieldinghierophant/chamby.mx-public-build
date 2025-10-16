@@ -16,6 +16,7 @@ import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { OTPInput } from '@/components/OTPInput';
 import { AuthSuccessOverlay } from '@/components/AuthSuccessOverlay';
+import Header from '@/components/Header';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -338,7 +339,9 @@ const UserAuth = () => {
           onComplete={() => navigate('/user-landing')}
         />
       )}
-      <div className="min-h-screen bg-gradient-main bg-gradient-mesh flex items-center justify-center py-12 px-4">
+      <div className="min-h-screen bg-gradient-main bg-gradient-mesh">
+        <Header hideLogo={false} hideProfileMenu={false} />
+        <div className="flex items-center justify-center py-12 px-4">
       <div className="w-full max-w-md">
         <Link 
           to="/" 
@@ -594,7 +597,8 @@ const UserAuth = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
+      </div>
+      </div>
     </>
   );
 };
