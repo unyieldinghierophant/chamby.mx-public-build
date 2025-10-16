@@ -1,11 +1,17 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Input validation schema
+const visitPaymentRequestSchema = z.object({
+  job_id: z.string().uuid("ID de trabajo inválido")
+});
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -20,12 +26,30 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
     );
 
-    // Get request body
-    const { job_id } = await req.json();
-
-    if (!job_id) {
-      throw new Error("job_id es requerido");
+    // Get and validate request body
+    const requestBody = await req.json();
+    
+    let validatedData;
+    try {
+      validatedData = visitPaymentRequestSchema.parse(requestBody);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        console.error("Validation error:", error.errors);
+        return new Response(
+          JSON.stringify({ 
+            error: "Datos inválidos",
+            details: error.errors.map(e => e.message).join(", ")
+          }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 400,
+          }
+        );
+      }
+      throw error;
     }
+
+    const { job_id } = validatedData;
 
     // Authenticate user
     const authHeader = req.headers.get("Authorization");

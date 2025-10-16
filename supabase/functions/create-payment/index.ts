@@ -1,11 +1,23 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Input validation schema
+const paymentRequestSchema = z.object({
+  serviceType: z.enum(['limpieza-del-hogar', 'reparaciones', 'jardineria'], {
+    errorMap: () => ({ message: "Tipo de servicio no válido" })
+  }),
+  providerId: z.string().uuid().optional(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Formato de fecha inválido (YYYY-MM-DD)"),
+  time: z.string().regex(/^\d{2}:\d{2}$/, "Formato de hora inválido (HH:MM)"),
+  duration: z.number().int().min(1).max(8).default(2)
+});
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -20,8 +32,30 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
     );
 
-    // Get request body
-    const { serviceType, providerId, date, time, duration = 2 } = await req.json();
+    // Get and validate request body
+    const requestBody = await req.json();
+    
+    let validatedData;
+    try {
+      validatedData = paymentRequestSchema.parse(requestBody);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        console.error("Validation error:", error.errors);
+        return new Response(
+          JSON.stringify({ 
+            error: "Datos inválidos",
+            details: error.errors.map(e => e.message).join(", ")
+          }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 400,
+          }
+        );
+      }
+      throw error;
+    }
+
+    const { serviceType, providerId, date, time, duration } = validatedData;
 
     // Authenticate user (optional for guest checkout)
     let user = null;
