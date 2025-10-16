@@ -8,6 +8,7 @@ const corsHeaders = {
 
 interface SendOTPRequest {
   phone: string;
+  recaptchaToken: string;
 }
 
 // Hash function using Web Crypto API
@@ -51,14 +52,52 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const recaptchaSecret = Deno.env.get('RECAPTCHA_SECRET_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { phone }: SendOTPRequest = await req.json();
+    const { phone, recaptchaToken }: SendOTPRequest = await req.json();
 
-    if (!phone) {
+    if (!phone || !recaptchaToken) {
       return new Response(
-        JSON.stringify({ error: 'Phone number is required' }),
+        JSON.stringify({ error: 'Phone number and reCAPTCHA token are required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Verify reCAPTCHA token
+    console.log('Verifying reCAPTCHA token...');
+    const recaptchaResponse = await fetch(
+      `https://recaptchaenterprise.googleapis.com/v1/projects/chamby-1749086959890/assessments?key=${recaptchaSecret}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event: {
+            token: recaptchaToken,
+            expectedAction: 'SEND_OTP',
+            siteKey: '6LcpcesrAAAAAPn49ViC1bMP73VUMIN7uqmVwRgZ',
+          },
+        }),
+      }
+    );
+
+    const recaptchaResult = await recaptchaResponse.json();
+    console.log('reCAPTCHA result:', recaptchaResult);
+
+    // Check reCAPTCHA score (0.0 - 1.0, higher is more likely human)
+    if (!recaptchaResult.tokenProperties?.valid) {
+      console.error('Invalid reCAPTCHA token');
+      return new Response(
+        JSON.stringify({ error: 'Verificación de seguridad fallida. Por favor intenta nuevamente.' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (recaptchaResult.riskAnalysis?.score < 0.5) {
+      console.error('Low reCAPTCHA score:', recaptchaResult.riskAnalysis?.score);
+      return new Response(
+        JSON.stringify({ error: 'Verificación de seguridad fallida. Por favor intenta nuevamente.' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 

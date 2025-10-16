@@ -113,8 +113,23 @@ const UserAuth = () => {
     console.log('Attempting to send OTP to:', signupData.phone);
     
     try {
+      // Generate reCAPTCHA token
+      const recaptchaToken = await new Promise<string>((resolve, reject) => {
+        (window as any).grecaptcha.enterprise.ready(async () => {
+          try {
+            const token = await (window as any).grecaptcha.enterprise.execute(
+              '6LcpcesrAAAAAPn49ViC1bMP73VUMIN7uqmVwRgZ',
+              { action: 'SEND_OTP' }
+            );
+            resolve(token);
+          } catch (error) {
+            reject(error);
+          }
+        });
+      });
+
       const { data, error } = await supabase.functions.invoke('send-otp', {
-        body: { phone: signupData.phone }
+        body: { phone: signupData.phone, recaptchaToken }
       });
 
       console.log('OTP response:', { data, error });
