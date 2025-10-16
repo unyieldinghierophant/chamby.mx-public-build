@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { CalendarIcon, Upload, Check, Sunrise, Sun, Sunset, Moon, MapPin } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { GoogleMapPicker } from './GoogleMapPicker';
 import { z } from 'zod';
