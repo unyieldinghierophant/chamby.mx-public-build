@@ -42,6 +42,11 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Get client IP for rate limiting
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0] || 
+                     req.headers.get('x-real-ip') || 
+                     'unknown';
+
     const { phone, otp }: VerifyOTPRequest = await req.json();
 
     if (!phone || !otp) {
@@ -53,6 +58,35 @@ const handler = async (req: Request): Promise<Response> => {
 
     const formattedPhone = formatPhoneNumber(phone);
     const otpHash = await hashOTP(otp);
+
+    // Check IP-based rate limiting (max 10 verification attempts per hour per IP)
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { count: ipAttempts } = await supabase
+      .from('otp_rate_limit_log')
+      .select('*', { count: 'exact', head: true })
+      .eq('ip_address', clientIp)
+      .eq('action', 'verify_otp')
+      .gte('created_at', oneHourAgo);
+
+    if (ipAttempts && ipAttempts >= 10) {
+      console.warn('IP rate limit exceeded:', clientIp);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Demasiados intentos desde esta dirección. Intenta más tarde.',
+          code: 'RATE_LIMIT_EXCEEDED'
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Log verification attempt
+    await supabase
+      .from('otp_rate_limit_log')
+      .insert({
+        ip_address: clientIp,
+        phone_number: formattedPhone,
+        action: 'verify_otp'
+      });
 
     console.log('Verifying OTP for phone:', formattedPhone);
 
@@ -79,6 +113,26 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // Check if maximum attempts exceeded (prevent brute-force)
+    const MAX_ATTEMPTS = 5;
+    if (otpRecord.attempts >= MAX_ATTEMPTS) {
+      console.warn('Max OTP attempts exceeded for phone:', formattedPhone);
+      
+      // Invalidate the OTP by marking it as expired
+      await supabase
+        .from('phone_verification_otps')
+        .update({ verified: true }) // Mark as used to prevent further attempts
+        .eq('id', otpRecord.id);
+      
+      return new Response(
+        JSON.stringify({ 
+          error: 'Demasiados intentos fallidos. Solicita un nuevo código.',
+          code: 'MAX_ATTEMPTS_EXCEEDED'
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Check if OTP matches
     if (otpRecord.otp_hash !== otpHash) {
       // Increment attempts
@@ -87,8 +141,13 @@ const handler = async (req: Request): Promise<Response> => {
         .update({ attempts: otpRecord.attempts + 1 })
         .eq('id', otpRecord.id);
 
+      const remainingAttempts = MAX_ATTEMPTS - (otpRecord.attempts + 1);
+      
       return new Response(
-        JSON.stringify({ error: 'Código incorrecto' }),
+        JSON.stringify({ 
+          error: 'Código incorrecto',
+          remainingAttempts: Math.max(0, remainingAttempts)
+        }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
