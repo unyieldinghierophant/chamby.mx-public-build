@@ -17,7 +17,7 @@ const BookJob = () => {
             <span className="text-xl font-['Made_Dillan'] text-foreground">Chamby</span>
           </div>
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/user-landing')}
             className="p-2 hover:bg-accent rounded-lg transition-colors"
             aria-label="Close"
           >
