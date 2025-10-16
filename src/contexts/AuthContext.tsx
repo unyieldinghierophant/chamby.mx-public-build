@@ -100,7 +100,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      // Attempt to sign out from Supabase
+      await supabase.auth.signOut();
+    } catch (error) {
+      // Even if the API call fails, we should clear local state
+      console.error('Error during sign out:', error);
+    } finally {
+      // Always clear local state regardless of API response
+      setSession(null);
+      setUser(null);
+    }
   };
 
   const resetPassword = async (email: string) => {
