@@ -172,10 +172,12 @@ const TaskerOnboarding = () => {
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
+      // Get signed URL (valid for 1 year)
+      const { data: signedUrlData, error: urlError } = await supabase.storage
         .from('user-documents')
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 31536000);
+
+      if (urlError) throw urlError;
 
       // Save document record
       const { error: docError } = await supabase
@@ -183,7 +185,7 @@ const TaskerOnboarding = () => {
         .insert({
           client_id: clientData.id,
           doc_type: document.type,
-          file_url: publicUrl
+          file_url: signedUrlData.signedUrl
         });
 
       if (docError) throw docError;

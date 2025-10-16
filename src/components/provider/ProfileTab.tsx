@@ -110,16 +110,18 @@ export const ProfileTab = () => {
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
+      // Get signed URL (valid for 1 year)
+      const { data: signedUrlData, error: urlError } = await supabase.storage
         .from("provider-photos")
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 31536000);
+
+      if (urlError) throw urlError;
 
       // Update profile with photo URL and set verified to true
       const { error: updateError } = await supabase
         .from("profiles")
         .update({
-          face_photo_url: urlData.publicUrl,
+          face_photo_url: signedUrlData.signedUrl,
           verified: true,
         })
         .eq("user_id", user.id);
@@ -128,7 +130,7 @@ export const ProfileTab = () => {
 
       setProfile((prev) => ({
         ...prev,
-        face_photo_url: urlData.publicUrl,
+        face_photo_url: signedUrlData.signedUrl,
         verified: true,
       }));
 

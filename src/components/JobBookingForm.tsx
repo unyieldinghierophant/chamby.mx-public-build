@@ -103,14 +103,17 @@ export const JobBookingForm = () => {
 
         if (error) throw error;
 
-        const { data: { publicUrl } } = supabase.storage
+        // Get signed URL (valid for 1 year)
+        const { data: signedUrlData, error: urlError } = await supabase.storage
           .from('job-photos')
-          .getPublicUrl(filePath);
+          .createSignedUrl(filePath, 31536000); // 1 year in seconds
+
+        if (urlError) throw urlError;
 
         setUploadedFiles(prev => 
           prev.map((f, idx) => 
             idx === prev.length - files.length + i 
-              ? { ...f, url: publicUrl, uploaded: true }
+              ? { ...f, url: signedUrlData.signedUrl, uploaded: true }
               : f
           )
         );

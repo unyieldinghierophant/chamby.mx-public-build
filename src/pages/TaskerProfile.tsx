@@ -133,18 +133,21 @@ const TaskerProfile = () => {
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
+      // Get signed URL (valid for 1 year)
+      const { data: signedUrlData, error: urlError } = await supabase.storage
         .from('user-documents')
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 31536000);
+
+      if (urlError) throw urlError;
 
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ avatar_url: publicUrl })
+        .update({ avatar_url: signedUrlData.signedUrl })
         .eq('user_id', user.id);
 
       if (updateError) throw updateError;
 
-      setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } : null);
+      setProfile(prev => prev ? { ...prev, avatar_url: signedUrlData.signedUrl } : null);
       toast.success('Foto de perfil actualizada correctamente');
     } catch (error: any) {
       toast.error(`Error al subir la foto: ${error.message}`);

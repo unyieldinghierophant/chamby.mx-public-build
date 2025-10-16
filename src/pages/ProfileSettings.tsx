@@ -99,13 +99,15 @@ const ProfileSettings = () => {
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
+      // Get signed URL (valid for 1 year)
+      const { data: signedUrlData, error: urlError } = await supabase.storage
         .from('avatars')
-        .getPublicUrl(filePath);
+        .createSignedUrl(filePath, 31536000);
+
+      if (urlError) throw urlError;
 
       // Update profile with new avatar URL
-      const result = await updateProfile({ avatar_url: publicUrl });
+      const result = await updateProfile({ avatar_url: signedUrlData.signedUrl });
       
       if (result?.error) {
         throw new Error('Failed to update profile');
