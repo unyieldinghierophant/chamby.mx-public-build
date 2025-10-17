@@ -5,6 +5,7 @@ import { useState } from "react";
 import heroImage from "@/assets/hero-services.jpg";
 import { AISearchBar } from "@/components/AISearchBar";
 import { useAuth } from "@/contexts/AuthContext";
+import { CategoryCard } from "@/components/CategoryCard";
 const Hero = () => {
   const [location, setLocation] = useState("");
   const navigate = useNavigate();
@@ -84,6 +85,53 @@ const Hero = () => {
             </div>
           </div>
 
+          {/* Categories Section */}
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+              <CategoryCard
+                icon="🏠"
+                category="Limpieza"
+                description="Servicios de limpieza"
+                services={["Limpieza profunda", "Limpieza regular", "Limpieza de oficinas"]}
+                gradient="from-blue-400 to-blue-600"
+              />
+              <CategoryCard
+                icon="🔧"
+                category="Reparaciones"
+                description="Arreglos del hogar"
+                services={["Plomería", "Electricidad", "Carpintería"]}
+                gradient="from-orange-400 to-orange-600"
+              />
+              <CategoryCard
+                icon="🌿"
+                category="Jardinería"
+                description="Cuidado de jardín"
+                services={["Poda", "Riego", "Diseño de jardines"]}
+                gradient="from-green-400 to-green-600"
+              />
+              <CategoryCard
+                icon="🚚"
+                category="Mudanzas"
+                description="Transporte y mudanza"
+                services={["Mudanza local", "Embalaje", "Transporte"]}
+                gradient="from-purple-400 to-purple-600"
+              />
+              <CategoryCard
+                icon="🎨"
+                category="Pintura"
+                description="Servicios de pintura"
+                services={["Pintura interior", "Pintura exterior", "Decoración"]}
+                gradient="from-pink-400 to-pink-600"
+              />
+              <CategoryCard
+                icon="💧"
+                category="Lavado"
+                description="Limpieza a presión"
+                services={["Lavado de autos", "Fachadas", "Patios"]}
+                gradient="from-cyan-400 to-cyan-600"
+              />
+            </div>
+          </div>
 
           {/* Trust Indicators */}
           <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
