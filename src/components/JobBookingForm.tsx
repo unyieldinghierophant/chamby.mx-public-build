@@ -12,6 +12,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { GoogleMapPicker } from './GoogleMapPicker';
 import { z } from 'zod';
 
@@ -39,6 +40,7 @@ interface JobBookingFormProps {
 }
 
 export const JobBookingForm = ({ initialService, initialDescription }: JobBookingFormProps = {}) => {
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [taskDescription, setTaskDescription] = useState(initialService || "");
   const [datePreference, setDatePreference] = useState<DatePreference>('specific');
@@ -84,6 +86,15 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "Debes iniciar sesión para subir fotos",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsUploading(true);
 
     const newFiles: UploadedFile[] = files.map(file => ({
@@ -99,7 +110,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
       const file = files[i];
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `${fileName}`;
+      const filePath = `${user.id}/${fileName}`;
 
       try {
         const { error } = await supabase.storage
