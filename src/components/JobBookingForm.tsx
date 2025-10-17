@@ -177,19 +177,24 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
 
   // Update suggestions based on category and user input
   useEffect(() => {
-    if (!category || !taskDescription) {
-      setSuggestions([]);
-      setShowSuggestions(false);
-      return;
+    // Get all jobs from the category, or all jobs if no category
+    let availableJobs: string[] = [];
+    
+    if (category) {
+      availableJobs = commonJobsByCategory[category] || [];
+    } else {
+      // Show all jobs from all categories if no category selected
+      availableJobs = Object.values(commonJobsByCategory).flat();
     }
 
-    const categoryJobs = commonJobsByCategory[category] || [];
-    const filtered = categoryJobs.filter(job => 
-      job.toLowerCase().includes(taskDescription.toLowerCase())
-    );
+    // Filter based on user input, or show all if input is empty
+    const filtered = taskDescription.trim() === '' 
+      ? availableJobs.slice(0, 10) // Show first 10 when empty
+      : availableJobs.filter(job => 
+          job.toLowerCase().includes(taskDescription.toLowerCase())
+        );
 
     setSuggestions(filtered);
-    setShowSuggestions(filtered.length > 0 && taskDescription.length > 0);
   }, [taskDescription, category]);
 
   const steps = [
@@ -462,7 +467,8 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
                 <Input
                   value={taskDescription}
                   onChange={(e) => setTaskDescription(e.target.value)}
-                  onFocus={() => category && setShowSuggestions(suggestions.length > 0)}
+                  onFocus={() => setShowSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                   placeholder="Escribe lo que necesitas o selecciona una sugerencia"
                   className="h-14 text-base"
                 />
