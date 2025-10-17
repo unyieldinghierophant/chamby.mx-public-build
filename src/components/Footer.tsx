@@ -1,8 +1,6 @@
 import { Facebook, Twitter, Instagram, Mail, Phone, MapPin } from "lucide-react";
-
 const Footer = () => {
-  return (
-    <footer className="bg-muted/30 text-foreground border-t">
+  return <footer className="bg-muted/30 text-foreground border-t">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
@@ -59,11 +57,11 @@ const Footer = () => {
               </li>
               <li className="flex items-center space-x-2">
                 <Phone className="h-4 w-4 text-primary" />
-                <span>+52 55 1234 5678</span>
+                <span>+52 3325520551</span>
               </li>
               <li className="flex items-center space-x-2">
                 <MapPin className="h-4 w-4 text-primary" />
-                <span>Ciudad de México, México</span>
+                <span>Guadalajara, México</span>
               </li>
             </ul>
           </div>
@@ -83,8 +81,6 @@ const Footer = () => {
           </div>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
-
 export default Footer;
