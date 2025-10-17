@@ -1,37 +1,37 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { ModernButton } from "@/components/ui/modern-button";
-import { Search, UserCheck, Calendar, CheckCircle } from "lucide-react";
+import { Sparkles, Brain, Camera, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const HowItWorks = () => {
   const navigate = useNavigate();
   const steps = [
     {
-      icon: Search,
+      icon: Sparkles,
       step: "1",
-      title: "Busca el servicio",
-      description: "Describe lo que necesitas y encuentra profesionales cercanos a ti",
+      title: "Escribe tu problema",
+      description: "Describe lo que necesitas en el buscador con IA. Ejemplo: \"Mi lavabo está goteando\" o \"Necesito cambiar una lámpara\"",
       color: "bg-blue-50 text-blue-600"
     },
     {
-      icon: UserCheck,
+      icon: Brain,
       step: "2", 
-      title: "Elige tu profesional",
-      description: "Revisa perfiles, calificaciones y precios. Todos están verificados",
+      title: "Chamby detecta el servicio",
+      description: "Nuestra IA identifica el tipo de trabajo y selecciona al profesional adecuado",
       color: "bg-primary-light text-primary"
     },
     {
-      icon: Calendar,
+      icon: Camera,
       step: "3",
-      title: "Agenda la cita",
-      description: "Coordina fecha y hora que te convengan con el profesional",
+      title: "Completa tu solicitud",
+      description: "Sube fotos, elige el horario y confirma los detalles del trabajo",
       color: "bg-orange-50 text-orange-600"
     },
     {
-      icon: CheckCircle,
+      icon: MessageCircle,
       step: "4",
-      title: "Recibe tu servicio",
-      description: "El profesional llega puntual y realiza el trabajo con calidad",
+      title: "Conéctate por WhatsApp",
+      description: "Te redirigimos automáticamente a WhatsApp para coordinar el servicio con nuestro equipo",
       color: "bg-green-50 text-green-600"
     }
   ];
@@ -45,8 +45,8 @@ const HowItWorks = () => {
             ¿Cómo funciona Chamby.mx?
           </h2>
           <p className="text-lg text-muted-foreground">
-            Contratar servicios nunca fue tan fácil y seguro. Sigue estos simples pasos 
-            y resuelve tus necesidades del hogar.
+            Con Chamby.mx, la inteligencia artificial encuentra al profesional ideal por ti. 
+            Describe tu problema, completa los detalles y agenda por WhatsApp.
           </p>
         </div>
 
