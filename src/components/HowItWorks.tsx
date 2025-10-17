@@ -11,7 +11,7 @@ const HowItWorks = () => {
       step: "1",
       title: "Escribe tu problema",
       description: "Describe lo que necesitas en el buscador con IA. Ejemplo: \"Mi lavabo está goteando\" o \"Necesito cambiar una lámpara\"",
-      color: "bg-blue-50 text-blue-600"
+      color: "bg-blue-50/30 text-blue-600"
     },
     {
       icon: Brain,
