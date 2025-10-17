@@ -181,7 +181,11 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
     let availableJobs: string[] = [];
     
     if (category) {
-      availableJobs = commonJobsByCategory[category] || [];
+      // Try to find category case-insensitive
+      const categoryKey = Object.keys(commonJobsByCategory).find(
+        key => key.toLowerCase() === category.toLowerCase()
+      );
+      availableJobs = categoryKey ? commonJobsByCategory[categoryKey] : [];
     } else {
       // Show all jobs from all categories if no category selected
       availableJobs = Object.values(commonJobsByCategory).flat();
@@ -189,10 +193,10 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
 
     // Filter based on user input, or show all if input is empty
     const filtered = taskDescription.trim() === '' 
-      ? availableJobs.slice(0, 10) // Show first 10 when empty
+      ? availableJobs.slice(0, 15) // Show first 15 when empty
       : availableJobs.filter(job => 
           job.toLowerCase().includes(taskDescription.toLowerCase())
-        );
+        ).slice(0, 15); // Limit to 15 results
 
     setSuggestions(filtered);
   }, [taskDescription, category]);
@@ -467,22 +471,31 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
                 <Input
                   value={taskDescription}
                   onChange={(e) => setTaskDescription(e.target.value)}
-                  onFocus={() => setShowSuggestions(true)}
+                  onFocus={() => {
+                    console.log('Input focused, suggestions:', suggestions.length);
+                    setShowSuggestions(suggestions.length > 0);
+                  }}
                   onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                  placeholder="Escribe lo que necesitas o selecciona una sugerencia"
+                  placeholder="Ej: Lavado completo de auto, Pulido de faros..."
                   className="h-14 text-base"
                 />
                 {showSuggestions && suggestions.length > 0 && (
-                  <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                  <div className="absolute z-[100] w-full mt-1 bg-popover border-2 border-primary/20 rounded-lg shadow-xl max-h-80 overflow-y-auto">
+                    <div className="p-2 bg-primary/5 border-b border-border">
+                      <p className="text-xs text-muted-foreground font-medium">
+                        {category ? `Sugerencias para ${category}` : 'Sugerencias populares'}
+                      </p>
+                    </div>
                     {suggestions.map((suggestion, index) => (
                       <button
                         key={index}
                         type="button"
                         onClick={() => {
+                          console.log('Suggestion clicked:', suggestion);
                           setTaskDescription(suggestion);
                           setShowSuggestions(false);
                         }}
-                        className="w-full text-left px-4 py-3 hover:bg-accent transition-colors border-b last:border-b-0 border-border/50"
+                        className="w-full text-left px-4 py-3 hover:bg-accent/80 active:bg-accent transition-colors border-b last:border-b-0 border-border/30 text-sm"
                       >
                         {suggestion}
                       </button>
