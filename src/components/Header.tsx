@@ -183,11 +183,22 @@ const Header = ({
               </div>
             )}
 
-            {/* Mobile Menu Button or Back Button */}
-            {backButtonPosition === "right" && location.pathname !== '/' && location.pathname !== '/user-landing' && location.pathname !== '/tasker-landing' ? (
-              <BackButton variant={backButtonVariant} fallbackPath={user ? '/user-landing' : '/'} />
-            ) : !hideProfileMenu && (
-              <div className="md:hidden">
+            {/* Mobile Menu Button - Always visible on mobile */}
+            <div className="md:hidden">
+              {backButtonPosition === "right" && location.pathname !== '/' && location.pathname !== '/user-landing' && location.pathname !== '/tasker-landing' ? (
+                <div className="flex items-center gap-2">
+                  <BackButton variant={backButtonVariant} fallbackPath={user ? '/user-landing' : '/'} />
+                  {!hideProfileMenu && (
+                    <ModernButton
+                      variant="glass"
+                      size="icon"
+                      onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    >
+                      {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                    </ModernButton>
+                  )}
+                </div>
+              ) : !hideProfileMenu ? (
                 <ModernButton
                   variant="glass"
                   size="icon"
@@ -195,8 +206,8 @@ const Header = ({
                 >
                   {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
                 </ModernButton>
-              </div>
-            )}
+              ) : null}
+            </div>
           </div>
         </div>
 
