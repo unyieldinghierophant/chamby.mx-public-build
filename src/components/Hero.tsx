@@ -11,7 +11,7 @@ const Hero = () => {
   const {
     user
   } = useAuth();
-  return <section className="relative min-h-screen bg-background flex items-center justify-center pt-20 overflow-hidden">
+  return <section className="relative min-h-screen bg-background flex items-center justify-center pt-16 overflow-hidden">
       {/* 3D Glass Morphic Background Icons */}
       <div className="absolute inset-0 pointer-events-none">
         {/* House Icon - Top Left */}
