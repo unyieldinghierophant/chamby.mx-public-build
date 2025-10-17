@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { GoogleMapPicker } from './GoogleMapPicker';
 import { z } from 'zod';
+import { useLocation } from 'react-router-dom';
 
 // Input validation schema
 const jobRequestSchema = z.object({
@@ -39,8 +40,46 @@ interface JobBookingFormProps {
   initialDescription?: string;
 }
 
+// Common jobs by category
+const commonJobsByCategory: Record<string, string[]> = {
+  "Handyman": [
+    "Colgar cuadros y repisas",
+    "Arreglar muebles",
+    "Instalación de cortinas",
+    "Reparación de puertas",
+    "Reparación de cerraduras",
+    "Instalación de lámparas"
+  ],
+  "Electricidad": [
+    "Instalación de contactos",
+    "Cambio de interruptores",
+    "Instalación de lámparas",
+    "Reparación de cableado",
+    "Instalación de ventilador de techo",
+    "Revisión de instalación eléctrica"
+  ],
+  "Plomería": [
+    "Reparación de fugas",
+    "Destape de drenaje",
+    "Instalación de lavabo",
+    "Reparación de WC",
+    "Cambio de llaves",
+    "Instalación de regadera"
+  ],
+  "Auto y lavado": [
+    "Lavado completo de auto",
+    "Lavado y encerado",
+    "Detallado interior",
+    "Limpieza de motor",
+    "Pulido de faros",
+    "Lavado de tapicería"
+  ]
+};
+
 export const JobBookingForm = ({ initialService, initialDescription }: JobBookingFormProps = {}) => {
   const { user } = useAuth();
+  const routeLocation = useLocation();
+  const locationState = routeLocation.state as { category?: string; service?: string; description?: string } | null;
   const [currentStep, setCurrentStep] = useState(1);
   const [taskDescription, setTaskDescription] = useState(initialService || "");
   const [datePreference, setDatePreference] = useState<DatePreference>('specific');
@@ -53,7 +92,29 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number }>({ lat: 19.4326, lng: -99.1332 });
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const { toast } = useToast();
+
+  // Get category from route state
+  const category = locationState?.category;
+
+  // Update suggestions based on category and user input
+  useEffect(() => {
+    if (!category || !taskDescription) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    const categoryJobs = commonJobsByCategory[category] || [];
+    const filtered = categoryJobs.filter(job => 
+      job.toLowerCase().includes(taskDescription.toLowerCase())
+    );
+
+    setSuggestions(filtered);
+    setShowSuggestions(filtered.length > 0 && taskDescription.length > 0);
+  }, [taskDescription, category]);
 
   const steps = [
     { number: 1, label: "Título y Fecha" },
@@ -317,16 +378,35 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
             <div className="space-y-8">
               <h1 className="text-4xl font-bold text-foreground mb-8 font-['Made_Dillan']">Empecemos con lo básico</h1>
               
-              <div className="space-y-3">
+              <div className="space-y-3 relative">
                 <Label className="text-lg font-semibold text-foreground">
                   En pocas palabras, ¿qué necesitas que se haga?
+                  {category && <span className="text-sm font-normal text-muted-foreground ml-2">({category})</span>}
                 </Label>
                 <Input
                   value={taskDescription}
                   onChange={(e) => setTaskDescription(e.target.value)}
-                  placeholder="ayuda para mover mi sofá"
+                  onFocus={() => category && setShowSuggestions(suggestions.length > 0)}
+                  placeholder="Escribe lo que necesitas o selecciona una sugerencia"
                   className="h-14 text-base"
                 />
+                {showSuggestions && suggestions.length > 0 && (
+                  <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    {suggestions.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => {
+                          setTaskDescription(suggestion);
+                          setShowSuggestions(false);
+                        }}
+                        className="w-full text-left px-4 py-3 hover:bg-accent transition-colors border-b last:border-b-0 border-border/50"
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-4">

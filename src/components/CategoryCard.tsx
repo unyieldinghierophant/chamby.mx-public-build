@@ -32,8 +32,19 @@ export const CategoryCard = ({ icon, category, description, services, gradient }
     });
   };
 
+  const handleCardClick = () => {
+    navigate('/book-job', {
+      state: {
+        category
+      }
+    });
+  };
+
   return (
-    <Card className="group cursor-pointer hover:shadow-elegant transition-all duration-300 hover:scale-105 bg-gradient-card border-white/20 h-full">
+    <Card 
+      onClick={handleCardClick}
+      className="group cursor-pointer hover:shadow-elegant transition-all duration-300 hover:scale-105 bg-gradient-card border-white/20 h-full"
+    >
       <CardHeader className="pb-4">
         <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center mb-4 shadow-glow text-3xl group-hover:scale-110 transition-transform`}>
           {icon}
@@ -47,6 +58,7 @@ export const CategoryCard = ({ icon, category, description, services, gradient }
             <Button 
               variant="outline" 
               className="w-full justify-between bg-background/50 hover:bg-background/80 border-border/50"
+              onClick={(e) => e.stopPropagation()}
             >
               Ver servicios
               <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
@@ -59,7 +71,10 @@ export const CategoryCard = ({ icon, category, description, services, gradient }
             {services.map((service, index) => (
               <DropdownMenuItem
                 key={index}
-                onClick={() => handleServiceClick(service)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleServiceClick(service);
+                }}
                 className="cursor-pointer hover:bg-accent/50 py-3 px-4"
               >
                 {service}
