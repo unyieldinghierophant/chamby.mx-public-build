@@ -47,7 +47,7 @@ export const AISearchBar = ({ className }: { className?: string }) => {
   };
 
   return (
-    <form onSubmit={handleSearch} className={className || "w-[70%] mx-auto"}>
+    <form onSubmit={handleSearch} className={className || "w-[91%] mx-auto"}>
       <div className="relative">
         {/* Icons container */}
         <div className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 flex items-center gap-1">
