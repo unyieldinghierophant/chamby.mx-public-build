@@ -49,7 +49,7 @@ export const AISearchBar = ({ className }: { className?: string }) => {
   return (
     <form onSubmit={handleSearch} className={className || "w-[70%] mx-auto"}>
       <div className="relative">
-        <div className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 flex items-center gap-1 md:gap-2">
+        <div className="absolute left-4 md:left-5 top-1/2 -translate-y-1/2 flex items-center gap-1 md:gap-2">
           <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-primary" />
           {!isMobile && <Search className="w-5 h-5 text-muted-foreground" />}
         </div>
@@ -59,7 +59,7 @@ export const AISearchBar = ({ className }: { className?: string }) => {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           disabled={isLoading}
-          className="pl-10 md:pl-16 pr-28 md:pr-48 h-12 md:h-14 text-sm md:text-base bg-card/95 backdrop-blur-sm border-white/20 shadow-soft hover:shadow-raised transition-all focus:shadow-glow rounded-full"
+          className="pl-14 md:pl-20 pr-28 md:pr-48 h-12 md:h-14 text-sm md:text-base bg-card/95 backdrop-blur-sm border-white/20 shadow-soft hover:shadow-raised transition-all focus:shadow-glow rounded-full"
         />
         <Button
           type="submit"
