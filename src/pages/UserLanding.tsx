@@ -323,10 +323,10 @@ const UserLanding = () => {
         )}
       </main>
 
+      <Footer />
       <div className="desktop-only">
-        <Footer />
+        <MobileBottomNav />
       </div>
-      <MobileBottomNav />
     </div>
   );
 };

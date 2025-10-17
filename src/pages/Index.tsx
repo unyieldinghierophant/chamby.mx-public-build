@@ -61,10 +61,10 @@ const Index = () => {
             <Trust />
           </div>
         </main>
+        <Footer />
         <div className="desktop-only">
-          <Footer />
+          <MobileBottomNav />
         </div>
-        <MobileBottomNav />
       </div>
     );
   }

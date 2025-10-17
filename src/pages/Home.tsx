@@ -203,10 +203,10 @@ export default function Home() {
       </section>
 
 
+      <Footer />
       <div className="desktop-only">
-        <Footer />
+        <MobileBottomNav />
       </div>
-      <MobileBottomNav />
     </div>
   );
 }
