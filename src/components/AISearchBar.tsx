@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Loader2, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -7,11 +7,34 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 
+const EXAMPLE_QUERIES = [
+  "mi lavabo está goteando, necesito cambiar una batería...",
+  "necesito pintar mi sala y cocina...",
+  "tengo un enchufe que no funciona...",
+  "quiero instalar un aire acondicionado...",
+  "necesito reparar una gotera en el techo...",
+  "mi jardín necesita mantenimiento...",
+];
+
 export const AISearchBar = ({ className }: { className?: string }) => {
   const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const [fade, setFade] = useState(true);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFade(false);
+      setTimeout(() => {
+        setPlaceholderIndex((prev) => (prev + 1) % EXAMPLE_QUERIES.length);
+        setFade(true);
+      }, 300);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,12 +82,16 @@ export const AISearchBar = ({ className }: { className?: string }) => {
         <Input
           type="text"
           placeholder={
-            isMobile ? "Ej: mi lavabo gotea..." : "Ej: mi lavabo está goteando, necesito cambiar una batería..."
+            isMobile 
+              ? EXAMPLE_QUERIES[placeholderIndex].substring(0, 30) + "..." 
+              : EXAMPLE_QUERIES[placeholderIndex]
           }
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           disabled={isLoading}
-          className="pl-9 sm:pl-10 md:pl-12 pr-24 sm:pr-32 md:pr-44 h-11 sm:h-12 md:h-14 text-xs sm:text-sm md:text-base bg-card/95 backdrop-blur-sm border-white/20 shadow-soft hover:shadow-raised transition-all focus:shadow-glow rounded-full"
+          className={`pl-9 sm:pl-10 md:pl-12 pr-24 sm:pr-32 md:pr-44 h-11 sm:h-12 md:h-14 text-xs sm:text-sm md:text-base bg-card/95 backdrop-blur-sm border-white/20 shadow-soft hover:shadow-raised transition-all focus:shadow-glow rounded-full ${
+            fade ? "placeholder:opacity-100" : "placeholder:opacity-0"
+          } placeholder:transition-opacity placeholder:duration-300`}
         />
 
         {/* Submit button */}
