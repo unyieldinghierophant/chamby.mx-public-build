@@ -323,7 +323,9 @@ const UserLanding = () => {
         )}
       </main>
 
-      <Footer />
+      <div className="desktop-only">
+        <Footer />
+      </div>
       <MobileBottomNav />
     </div>
   );

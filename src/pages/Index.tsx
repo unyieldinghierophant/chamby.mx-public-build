@@ -64,9 +64,7 @@ const Index = () => {
         <div className="desktop-only">
           <Footer />
         </div>
-        <div className="mobile-only">
-          <MobileBottomNav />
-        </div>
+        <MobileBottomNav />
       </div>
     );
   }

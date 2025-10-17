@@ -203,7 +203,9 @@ export default function Home() {
       </section>
 
 
-      <Footer />
+      <div className="desktop-only">
+        <Footer />
+      </div>
       <MobileBottomNav />
     </div>
   );
