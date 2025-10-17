@@ -67,9 +67,7 @@ const Hero = () => {
                 confiables y seguros
               </span>
             </h1>
-            <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-muted-foreground leading-relaxed max-w-3xl mx-auto px-4 pt-0">
-              Conectamos a la gente que sabe solucionar con gente que necesita soluciones
-            </p>
+            <p className="text-lg sm:text-xl lg:text-3xl leading-relaxed max-w-3xl mx-auto px-4 pt-0 md:text-xl font-normal text-zinc-600">Soluciona en minutos no en dias</p>
           </div>
 
           {/* AI Search Bar */}
