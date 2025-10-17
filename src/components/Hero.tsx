@@ -60,7 +60,7 @@ const Hero = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 md:py-16 relative z-10 py-[50px]">
         <div className="max-w-4xl mx-auto text-center space-y-12">
           {/* Main Heading */}
-          <div className="space-y-4">
+          <div className="space-y-4 -mt-12">
             <h1 className="font-dillan text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-tight pb-2">
               Servicios del hogar
               <span className="block bg-gradient-button bg-clip-text text-transparent py-[4px]">
