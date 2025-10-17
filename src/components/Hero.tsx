@@ -73,7 +73,7 @@ const Hero = () => {
           </div>
 
           {/* AI Search Bar */}
-          <div className="max-w-3xl mx-auto">
+          <div className="max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto px-4 sm:px-0">
             <AISearchBar className="w-full" />
             
             {/* Mobile-only Tasker CTA */}
