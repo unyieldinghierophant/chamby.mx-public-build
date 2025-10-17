@@ -387,11 +387,19 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
       }
 
       // Open WhatsApp with form data
-      const message = `📋 Nueva solicitud de trabajo
+      let message = `📋 Nueva solicitud de trabajo
 🔧 Servicio: ${taskDescription}
 📅 Fecha: ${dateText}
 📍 Ubicación: ${location}
 💬 Detalles: ${details}`;
+
+      // Add photo links if available
+      if (uploadedFiles.length > 0) {
+        message += `\n\n📸 Fotos (${uploadedFiles.length}):\n`;
+        uploadedFiles.forEach((file, index) => {
+          message += `${index + 1}. ${file.url}\n`;
+        });
+      }
       
       const encodedMessage = encodeURIComponent(message);
       const phoneNumber = "523325438136";
