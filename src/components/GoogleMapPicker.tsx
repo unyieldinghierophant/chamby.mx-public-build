@@ -2,15 +2,86 @@ import { useState, useCallback, useRef } from 'react';
 import { GoogleMap, LoadScript, Marker, Autocomplete } from '@react-google-maps/api';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { MapPin } from 'lucide-react';
+import { MapPin, Building2 } from 'lucide-react';
 
 const libraries: ("places")[] = ["places"];
 
 const mapContainerStyle = {
   width: '100%',
-  height: '400px',
+  height: '450px',
   borderRadius: '0.5rem'
 };
+
+// Modern map styling
+const mapStyles = [
+  {
+    featureType: "water",
+    elementType: "geometry",
+    stylers: [{ color: "#a0d6ff" }, { lightness: 17 }]
+  },
+  {
+    featureType: "landscape",
+    elementType: "geometry",
+    stylers: [{ color: "#f5f5f5" }, { lightness: 20 }]
+  },
+  {
+    featureType: "road.highway",
+    elementType: "geometry.fill",
+    stylers: [{ color: "#ffffff" }, { lightness: 17 }]
+  },
+  {
+    featureType: "road.highway",
+    elementType: "geometry.stroke",
+    stylers: [{ color: "#ffffff" }, { lightness: 29 }, { weight: 0.2 }]
+  },
+  {
+    featureType: "road.arterial",
+    elementType: "geometry",
+    stylers: [{ color: "#ffffff" }, { lightness: 18 }]
+  },
+  {
+    featureType: "road.local",
+    elementType: "geometry",
+    stylers: [{ color: "#ffffff" }, { lightness: 16 }]
+  },
+  {
+    featureType: "poi",
+    elementType: "geometry",
+    stylers: [{ color: "#f5f5f5" }, { lightness: 21 }]
+  },
+  {
+    featureType: "poi.park",
+    elementType: "geometry",
+    stylers: [{ color: "#c8e6c9" }, { lightness: 21 }]
+  },
+  {
+    elementType: "labels.text.stroke",
+    stylers: [{ visibility: "on" }, { color: "#ffffff" }, { lightness: 16 }]
+  },
+  {
+    elementType: "labels.text.fill",
+    stylers: [{ saturation: 36 }, { color: "#333333" }, { lightness: 40 }]
+  },
+  {
+    elementType: "labels.icon",
+    stylers: [{ visibility: "off" }]
+  },
+  {
+    featureType: "transit",
+    elementType: "geometry",
+    stylers: [{ color: "#f2f2f2" }, { lightness: 19 }]
+  },
+  {
+    featureType: "administrative",
+    elementType: "geometry.fill",
+    stylers: [{ color: "#fefefe" }, { lightness: 20 }]
+  },
+  {
+    featureType: "administrative",
+    elementType: "geometry.stroke",
+    stylers: [{ color: "#fefefe" }, { lightness: 17 }, { weight: 1.2 }]
+  }
+];
 
 const defaultCenter = {
   lat: 19.4326,
@@ -26,6 +97,7 @@ export const GoogleMapPicker = ({ onLocationSelect, initialLocation }: GoogleMap
   const [center, setCenter] = useState(defaultCenter);
   const [markerPosition, setMarkerPosition] = useState(defaultCenter);
   const [address, setAddress] = useState(initialLocation || '');
+  const [interiorNumber, setInteriorNumber] = useState('');
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
 
   // Your Google Maps API key should be stored in environment variables
@@ -43,7 +115,10 @@ export const GoogleMapPicker = ({ onLocationSelect, initialLocation }: GoogleMap
         if (status === 'OK' && results && results[0]) {
           const formattedAddress = results[0].formatted_address;
           setAddress(formattedAddress);
-          onLocationSelect(lat, lng, formattedAddress);
+          const fullAddress = interiorNumber 
+            ? `${formattedAddress}, ${interiorNumber}`
+            : formattedAddress;
+          onLocationSelect(lat, lng, fullAddress);
         }
       });
     }
@@ -64,7 +139,10 @@ export const GoogleMapPicker = ({ onLocationSelect, initialLocation }: GoogleMap
         setCenter(newCenter);
         setMarkerPosition(newCenter);
         setAddress(place.formatted_address || '');
-        onLocationSelect(lat, lng, place.formatted_address || '');
+        const fullAddress = interiorNumber 
+          ? `${place.formatted_address || ''}, ${interiorNumber}`
+          : place.formatted_address || '';
+        onLocationSelect(lat, lng, fullAddress);
       }
     }
   };
@@ -115,19 +193,63 @@ export const GoogleMapPicker = ({ onLocationSelect, initialLocation }: GoogleMap
           </p>
         </div>
 
-        <div className="rounded-lg overflow-hidden border border-border">
+        <div className="space-y-2">
+          <Label className="text-base font-medium text-foreground">
+            Número interior, apartamento, o suite (opcional)
+          </Label>
+          <div className="relative">
+            <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
+            <Input
+              value={interiorNumber}
+              onChange={(e) => {
+                const value = e.target.value.slice(0, 50);
+                setInteriorNumber(value);
+                if (address) {
+                  const fullAddress = value ? `${address}, ${value}` : address;
+                  onLocationSelect(markerPosition.lat, markerPosition.lng, fullAddress);
+                }
+              }}
+              placeholder="Ej: Depto 5, Torre B, Piso 3"
+              className="h-12 text-base pl-12"
+              maxLength={50}
+            />
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Agrega detalles como número de departamento, torre, o suite
+          </p>
+        </div>
+
+        <div className="rounded-lg overflow-hidden border border-border shadow-lg">
           <GoogleMap
             mapContainerStyle={mapContainerStyle}
             center={center}
             zoom={13}
             onClick={onMapClick}
             options={{
+              styles: mapStyles,
               streetViewControl: false,
               mapTypeControl: false,
               fullscreenControl: false,
+              zoomControl: true,
+              zoomControlOptions: {
+                position: 7 // RIGHT_TOP
+              },
+              gestureHandling: 'greedy',
             }}
           >
-            <Marker position={markerPosition} />
+            <Marker 
+              position={markerPosition}
+              animation={google.maps.Animation.DROP}
+              icon={{
+                path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z",
+                fillColor: "#2563eb",
+                fillOpacity: 1,
+                strokeColor: "#ffffff",
+                strokeWeight: 2,
+                scale: 2,
+                anchor: new google.maps.Point(12, 22)
+              }}
+            />
           </GoogleMap>
         </div>
       </LoadScript>
