@@ -275,14 +275,20 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
     setLocation(address);
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
-
+  const handleUploadClick = () => {
+    // Check authentication before opening file picker
     if (!user && !isGuestMode) {
       setShowAuthModal(true);
       return;
     }
+    
+    // Trigger file input click
+    document.getElementById('photo-upload')?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
     setIsUploading(true);
 
@@ -765,8 +771,8 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
                     id="photo-upload"
                     disabled={isUploading}
                   />
-                  <label
-                    htmlFor="photo-upload"
+                  <div
+                    onClick={handleUploadClick}
                     className="cursor-pointer flex flex-col items-center gap-3"
                   >
                     <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
@@ -780,7 +786,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
                         Selecciona una o más imágenes
                       </p>
                     </div>
-                  </label>
+                  </div>
                 </div>
 
                 {uploadedFiles.length > 0 && (
