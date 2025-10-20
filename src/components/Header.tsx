@@ -5,7 +5,7 @@ import { ModernButton } from "@/components/ui/modern-button";
 import { Button } from "@/components/ui/button";
 import { Menu, X, LogOut, User, Settings, CreditCard, Shield, Users } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import chambyLogo from "@/assets/chamby-logo.png";
+import chambyLogo from "@/assets/chamby-logo-new.png";
 import { BackButton } from "@/components/BackButton";
 import {
   DropdownMenu,
@@ -66,16 +66,13 @@ const Header = ({
             ) : !hideLogo && logoAlignment === "left" ? (
               <button 
                 onClick={() => navigate(getLogoDestination())}
-                className="hover:opacity-80 transition-opacity cursor-pointer flex items-center gap-3"
+                className="hover:opacity-80 transition-opacity cursor-pointer"
               >
                 <img 
                   src={chambyLogo} 
                   alt="Chamby.mx" 
-                  className="h-16 md:h-20 w-auto"
+                  className="h-12 md:h-14 w-auto"
                 />
-                <span className="font-dillan text-2xl md:text-3xl font-bold text-primary leading-none self-center">
-                  chamby
-                </span>
               </button>
             ) : null}
           </div>
@@ -85,16 +82,13 @@ const Header = ({
             <div className="absolute left-1/2 transform -translate-x-1/2">
               <button 
                 onClick={() => navigate(getLogoDestination())}
-                className="hover:opacity-80 transition-opacity cursor-pointer flex items-center gap-3"
+                className="hover:opacity-80 transition-opacity cursor-pointer"
               >
                 <img 
                   src={chambyLogo} 
                   alt="Chamby.mx" 
-                  className="h-16 md:h-20 w-auto"
+                  className="h-12 md:h-14 w-auto"
                 />
-                <span className="font-dillan text-2xl md:text-3xl font-bold text-primary leading-none self-center">
-                  chamby
-                </span>
               </button>
             </div>
           )}
