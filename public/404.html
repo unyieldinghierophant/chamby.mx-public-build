@@ -5,14 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chamby.mx</title>
   <script>
-    // GitHub Pages SPA redirect
-    // Store the full path and search params for React Router
-    const path = window.location.pathname + window.location.search + window.location.hash;
-    sessionStorage.setItem('redirect', path);
-    console.log('404.html redirect storing path:', path);
+    // GitHub Pages SPA redirect with static file exception
+    const path = window.location.pathname;
     
-    // Redirect to root immediately
-    window.location.replace(window.location.origin);
+    // Whitelist static file extensions that should NOT be redirected
+    const staticFileExtensions = ['.xml', '.txt', '.json', '.ico', '.png', '.jpg', '.jpeg', '.svg', '.webp', '.gif', '.pdf', '.css', '.js', '.woff', '.woff2', '.ttf', '.eot'];
+    const isStaticFile = staticFileExtensions.some(ext => path.toLowerCase().endsWith(ext));
+    
+    if (!isStaticFile) {
+      // Only redirect SPA routes, not static files
+      const fullPath = window.location.pathname + window.location.search + window.location.hash;
+      sessionStorage.setItem('redirect', fullPath);
+      console.log('404.html redirect storing path:', fullPath);
+      window.location.replace(window.location.origin);
+    } else {
+      console.log('404.html: Static file detected, not redirecting:', path);
+    }
   </script>
 </head>
 <body>
