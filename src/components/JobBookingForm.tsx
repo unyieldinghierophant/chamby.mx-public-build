@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { GoogleMapPicker } from './GoogleMapPicker';
 import { z } from 'zod';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 // Input validation schema
 const jobRequestSchema = z.object({
@@ -155,6 +155,7 @@ const commonJobsByCategory: Record<string, string[]> = {
 export const JobBookingForm = ({ initialService, initialDescription }: JobBookingFormProps = {}) => {
   const { user } = useAuth();
   const routeLocation = useLocation();
+  const navigate = useNavigate();
   const locationState = routeLocation.state as { category?: string; service?: string; description?: string } | null;
   const [currentStep, setCurrentStep] = useState(1);
   const [taskDescription, setTaskDescription] = useState(initialService || "");
@@ -233,11 +234,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
     if (files.length === 0) return;
 
     if (!user) {
-      toast({
-        title: "Error",
-        description: "Debes iniciar sesión para subir fotos",
-        variant: "destructive",
-      });
+      navigate('/auth/user');
       return;
     }
 

@@ -48,7 +48,6 @@ const PagoVisita = () => {
 
   const handlePayment = async () => {
     if (!user) {
-      toast.error("Debes iniciar sesión");
       navigate("/auth/user");
       return;
     }

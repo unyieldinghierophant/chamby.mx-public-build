@@ -65,8 +65,7 @@ const BookingSummary = () => {
 
   const handlePayment = async () => {
     if (!user) {
-      toast.error('Debes iniciar sesión para proceder con el pago');
-      navigate('/auth');
+      navigate('/auth/user');
       return;
     }
 
