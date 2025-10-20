@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { Button } from '@/components/ui/button';
@@ -33,6 +33,7 @@ const UserAuth = () => {
   const { user, signUp, signIn, signInWithGoogle, resetPassword } = useAuth();
   const { role, loading: roleLoading } = useUserRole();
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
   
@@ -64,9 +65,10 @@ const UserAuth = () => {
   // Redirect to user landing if already authenticated
   useEffect(() => {
     if (user && !roleLoading) {
-      navigate('/user-landing', { replace: true });
+      const returnTo = (location.state as { returnTo?: string })?.returnTo || '/user-landing';
+      navigate(returnTo, { replace: true });
     }
-  }, [user, roleLoading, navigate]);
+  }, [user, roleLoading, navigate, location]);
 
   // Note: Navigation is handled by AuthSuccessOverlay, not by useEffect
   // This prevents race conditions between success screen and redirect
@@ -335,7 +337,10 @@ const UserAuth = () => {
       {showSuccess && (
         <AuthSuccessOverlay
           message={successMessage}
-          onComplete={() => navigate('/user-landing')}
+          onComplete={() => {
+            const returnTo = (location.state as { returnTo?: string })?.returnTo || '/user-landing';
+            navigate(returnTo);
+          }}
         />
       )}
       <div className="show-recaptcha min-h-screen bg-gradient-main bg-gradient-mesh flex items-center justify-center py-12 px-4">

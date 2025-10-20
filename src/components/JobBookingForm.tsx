@@ -234,7 +234,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
     if (files.length === 0) return;
 
     if (!user) {
-      navigate('/auth/user');
+      navigate('/auth/user', { state: { returnTo: window.location.pathname + window.location.search } });
       return;
     }
 

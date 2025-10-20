@@ -65,7 +65,7 @@ const BookingSummary = () => {
 
   const handlePayment = async () => {
     if (!user) {
-      navigate('/auth/user');
+      navigate('/auth/user', { state: { returnTo: window.location.pathname + window.location.search } });
       return;
     }
 
