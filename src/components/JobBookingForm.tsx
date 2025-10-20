@@ -16,6 +16,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { GoogleMapPicker } from './GoogleMapPicker';
 import { z } from 'zod';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { AuthModal } from './AuthModal';
+import { useFormPersistence } from '@/hooks/useFormPersistence';
 
 // Input validation schema
 const jobRequestSchema = z.object({
@@ -171,10 +173,54 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number }>({ lat: 19.4326, lng: -99.1332 });
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isGuestMode, setIsGuestMode] = useState(false);
   const { toast } = useToast();
+  const { saveFormData, loadFormData, clearFormData } = useFormPersistence('job-booking');
 
   // Get category from route state
   const category = locationState?.category;
+
+  // Load saved form data on mount
+  useEffect(() => {
+    const savedData = loadFormData();
+    if (savedData) {
+      setTaskDescription(savedData.taskDescription || "");
+      setDatePreference(savedData.datePreference || 'specific');
+      setSpecificDate(savedData.specificDate ? new Date(savedData.specificDate) : undefined);
+      setNeedsSpecificTime(savedData.needsSpecificTime || false);
+      setSelectedTimeSlots(savedData.selectedTimeSlots || []);
+      setLocation(savedData.location || "");
+      setDetails(savedData.details || "");
+      setCurrentStep(savedData.currentStep || 1);
+      setCoordinates(savedData.coordinates || { lat: 19.4326, lng: -99.1332 });
+      
+      toast({
+        title: "Progreso restaurado",
+        description: "Hemos recuperado tu trabajo anterior",
+      });
+    }
+  }, []);
+
+  // Auto-save form data when it changes
+  useEffect(() => {
+    const formData = {
+      taskDescription,
+      datePreference,
+      specificDate: specificDate?.toISOString(),
+      needsSpecificTime,
+      selectedTimeSlots,
+      location,
+      details,
+      currentStep,
+      coordinates
+    };
+    
+    // Only save if there's meaningful data
+    if (taskDescription || location || details) {
+      saveFormData(formData);
+    }
+  }, [taskDescription, datePreference, specificDate, needsSpecificTime, selectedTimeSlots, location, details, currentStep, coordinates]);
 
   // Update suggestions based on category and user input
   useEffect(() => {
@@ -233,8 +279,8 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
-    if (!user) {
-      navigate('/auth/user', { state: { returnTo: window.location.pathname + window.location.search } });
+    if (!user && !isGuestMode) {
+      setShowAuthModal(true);
       return;
     }
 
@@ -321,6 +367,12 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
 
   const handleSubmit = async () => {
     if (!canProceedToNextStep()) return;
+
+    // Final submission requires authentication
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -411,6 +463,9 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
         description: "Abriendo WhatsApp...",
       });
 
+      // Clear saved form data after successful submission
+      clearFormData();
+
       // Reset form
       setCurrentStep(1);
       setTaskDescription("");
@@ -433,8 +488,47 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
     }
   };
 
+  const handleAuthModalLogin = () => {
+    // Save form data before redirect
+    const formData = {
+      taskDescription,
+      datePreference,
+      specificDate: specificDate?.toISOString(),
+      needsSpecificTime,
+      selectedTimeSlots,
+      location,
+      details,
+      currentStep,
+      coordinates
+    };
+    saveFormData(formData);
+    
+    // Navigate to auth with return URL
+    navigate('/auth/user', { 
+      state: { returnTo: window.location.pathname + window.location.search } 
+    });
+  };
+
+  const handleGuestContinue = () => {
+    setIsGuestMode(true);
+    setShowAuthModal(false);
+    toast({
+      title: "Modo invitado activado",
+      description: "Recuerda iniciar sesión antes de enviar tu solicitud",
+    });
+  };
+
   return (
     <div className="w-full flex gap-8">
+      {/* Auth Modal */}
+      <AuthModal
+        open={showAuthModal}
+        onOpenChange={setShowAuthModal}
+        onLogin={handleAuthModalLogin}
+        onGuest={handleGuestContinue}
+        showGuestOption={currentStep < 4}
+      />
+
       {/* Sidebar Navigation */}
       <div className="hidden lg:block w-56 flex-shrink-0">
         <div className="sticky top-32">
@@ -718,9 +812,17 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
                     ))}
                   </div>
                 )}
-              </div>
-            </div>
-          )}
+               </div>
+               
+               {isGuestMode && !user && (
+                 <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mt-4">
+                   <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                     <strong>Modo invitado:</strong> Inicia sesión antes de enviar tu solicitud final.
+                   </p>
+                 </div>
+               )}
+             </div>
+           )}
 
           {/* Navigation Buttons */}
           <div className="flex items-center justify-between mt-12 pt-8 border-t">
@@ -746,15 +848,26 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
                 Siguiente
               </ModernButton>
             ) : (
-              <ModernButton
-                variant="primary"
-                size="xl"
-                onClick={handleSubmit}
-                disabled={!canProceedToNextStep() || isSubmitting}
-                className="h-16 px-12 text-lg rounded-full transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-xl shadow-lg"
-              >
-                {isSubmitting ? "Enviando..." : "Solicitar servicio"}
-              </ModernButton>
+              !user && !isGuestMode ? (
+                <ModernButton
+                  variant="primary"
+                  size="xl"
+                  onClick={() => setShowAuthModal(true)}
+                  className="h-16 px-12 text-lg rounded-full transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-xl shadow-lg"
+                >
+                  Continuar para enviar
+                </ModernButton>
+              ) : (
+                <ModernButton
+                  variant="primary"
+                  size="xl"
+                  onClick={handleSubmit}
+                  disabled={!canProceedToNextStep() || isSubmitting}
+                  className="h-16 px-12 text-lg rounded-full transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-xl shadow-lg"
+                >
+                  {isSubmitting ? "Enviando..." : "Solicitar servicio"}
+                </ModernButton>
+              )
             )}
           </div>
 
