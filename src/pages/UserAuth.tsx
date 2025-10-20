@@ -257,6 +257,12 @@ const UserAuth = () => {
   };
 
   const handleGoogleLogin = async () => {
+    // Store return path before OAuth redirect
+    const returnTo = (location.state as { returnTo?: string })?.returnTo;
+    if (returnTo) {
+      sessionStorage.setItem('auth_return_to', returnTo);
+    }
+    
     const { error } = await signInWithGoogle(false);
     if (error) {
       toast.error(error.message);

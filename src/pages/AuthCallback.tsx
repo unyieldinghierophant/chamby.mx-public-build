@@ -48,12 +48,15 @@ const AuthCallback = () => {
   }, [user, role, authLoading, roleLoading, retryCount]);
 
   const handleSuccessComplete = () => {
-    console.log('Success complete, redirecting to:', role === "provider" ? "/provider-dashboard" : "/user-landing");
-    if (role === "provider") {
-      navigate("/provider-dashboard", { replace: true });
-    } else {
-      navigate("/user-landing", { replace: true });
-    }
+    // Check for stored return path
+    const returnTo = sessionStorage.getItem('auth_return_to');
+    sessionStorage.removeItem('auth_return_to'); // Clear after reading
+    
+    const defaultPath = role === "provider" ? "/provider-dashboard" : "/user-landing";
+    const targetPath = returnTo || defaultPath;
+    
+    console.log('Success complete, redirecting to:', targetPath);
+    navigate(targetPath, { replace: true });
   };
 
   // Safari ITP handling: Wait for session restoration if OAuth callback detected
