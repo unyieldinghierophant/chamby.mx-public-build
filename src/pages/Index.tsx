@@ -43,7 +43,7 @@ const Index = () => {
               onClick={() => navigate('/')}
               className="hover:opacity-80 transition-opacity"
             >
-              <img src={logo} alt="Chamby" className="h-10 md:h-12 w-auto" />
+              <img src={logo} alt="Chamby" className="h-30 md:h-36 w-auto" />
             </button>
             
             {/* Desktop Navigation */}
