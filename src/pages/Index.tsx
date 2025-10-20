@@ -38,12 +38,12 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-background mobile-pb-nav">
         <header className="fixed top-0 left-0 right-0 bg-background border-b border-border z-50">
-          <div className="max-w-7xl mx-auto px-4 md:px-8 flex items-center justify-between">
+          <div className="max-w-7xl mx-auto px-4 md:px-8 py-1 flex items-center justify-between min-h-0">
             <button 
               onClick={() => navigate('/')}
-              className="hover:opacity-80 transition-opacity"
+              className="hover:opacity-80 transition-opacity py-1"
             >
-              <img src={logo} alt="Chamby" className="h-30 md:h-36 w-auto" />
+              <img src={logo} alt="Chamby" className="h-15 md:h-18 w-auto" />
             </button>
             
             {/* Desktop Navigation */}
