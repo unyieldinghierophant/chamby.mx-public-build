@@ -38,7 +38,7 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-background mobile-pb-nav">
         <header className="fixed top-0 left-0 right-0 bg-background border-b border-border z-50">
-          <div className="max-w-7xl mx-auto px-4 md:px-8 flex items-center justify-between">
+          <div className="max-w-7xl mx-auto px-4 md:px-8 py-1 md:py-2 flex items-center justify-between">
             <button 
               onClick={() => navigate('/')}
               className="hover:opacity-80 transition-opacity"
@@ -80,7 +80,7 @@ const Index = () => {
             </Sheet>
           </div>
         </header>
-        <main className="pt-20">
+        <main className="pt-16 md:pt-20">
           <div className="animate-fade-in">
             <Hero />
           </div>
