@@ -6,7 +6,7 @@ import HowItWorks from "@/components/HowItWorks";
 import Trust from "@/components/Trust";
 import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
-import logo from "@/assets/chamby-logo-new.png";
+import logo from "@/assets/chamby-logo-icon.png";
 import { ModernButton } from "@/components/ui/modern-button";
 import { Menu, X } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -38,13 +38,11 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-background mobile-pb-nav">
         <header className="fixed top-0 left-0 right-0 bg-background border-b border-border z-50">
-          <div className="max-w-7xl mx-auto px-4 md:px-8 py-1 md:py-2 flex items-center justify-between">
-            <button 
-              onClick={() => navigate('/')}
-              className="hover:opacity-80 transition-opacity"
-            >
-              <img src={logo} alt="Chamby" className="h-30 md:h-36 w-auto" />
-            </button>
+          <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <img src={logo} alt="Chamby" className="w-8 h-8" />
+              <span className="text-xl font-['Made_Dillan'] text-foreground">Chamby</span>
+            </div>
             
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-4">
@@ -80,7 +78,7 @@ const Index = () => {
             </Sheet>
           </div>
         </header>
-        <main className="pt-16 md:pt-20">
+        <main className="pt-20">
           <div className="animate-fade-in">
             <Hero />
           </div>

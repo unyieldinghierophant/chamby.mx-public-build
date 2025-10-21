@@ -1,7 +1,7 @@
 import { JobBookingForm } from "@/components/JobBookingForm";
 import { X } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
-import logo from "@/assets/chamby-logo-new.png";
+import logo from "@/assets/chamby-logo-icon.png";
 
 const BookJob = () => {
   const navigate = useNavigate();
@@ -12,12 +12,10 @@ const BookJob = () => {
     <>
       <header className="fixed top-0 left-0 right-0 bg-background border-b border-border z-50">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
-          <button 
-            onClick={() => navigate('/user-landing')}
-            className="hover:opacity-80 transition-opacity"
-          >
-            <img src={logo} alt="Chamby" className="h-10 md:h-12 w-auto" />
-          </button>
+          <div className="flex items-center gap-3">
+            <img src={logo} alt="Chamby" className="w-8 h-8" />
+            <span className="text-xl font-['Made_Dillan'] text-foreground">Chamby</span>
+          </div>
           <button
             onClick={() => navigate('/user-landing')}
             className="p-2 hover:bg-accent rounded-lg transition-colors"

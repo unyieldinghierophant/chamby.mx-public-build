@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, LogOut, User, Settings, CreditCard, Shield, Users } from "lucide-react";
 import { AISearchBar } from "@/components/AISearchBar";
 import { CategoryCard } from "@/components/CategoryCard";
-import logo from "@/assets/chamby-logo-new.png";
+import logo from "@/assets/chamby-logo-icon.png";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -126,9 +126,10 @@ const UserLanding = () => {
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
           <button 
             onClick={() => navigate('/user-landing')}
-            className="hover:opacity-80 transition-opacity"
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
           >
-            <img src={logo} alt="Chamby" className="h-10 md:h-12 w-auto" />
+            <img src={logo} alt="Chamby" className="w-12 h-12" />
+            <span className="text-xl font-['Made_Dillan'] text-foreground">Chamby</span>
           </button>
           
           {/* Desktop Profile Menu */}
