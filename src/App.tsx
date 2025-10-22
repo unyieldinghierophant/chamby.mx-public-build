@@ -38,6 +38,7 @@ import PaymentCanceled from "./pages/PaymentCanceled";
 import BookJob from "./pages/BookJob";
 import PagoVisita from "./pages/PagoVisita";
 import EsperandoProveedor from "./pages/EsperandoProveedor";
+import PhotoRedirect from "./pages/PhotoRedirect";
 
 
 const queryClient = new QueryClient();
@@ -224,6 +225,9 @@ const App = () => (
             />
 
 
+            {/* Photo short link redirect */}
+            <Route path="/p/:shortCode" element={<PhotoRedirect />} />
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

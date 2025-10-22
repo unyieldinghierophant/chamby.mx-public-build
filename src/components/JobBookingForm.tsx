@@ -433,9 +433,11 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
       }
 
       // Save to Supabase
-      const { error: saveError } = await supabase
+      const { data: savedJob, error: saveError } = await supabase
         .from('job_requests')
-        .insert([jobData]);
+        .insert([jobData])
+        .select('id')
+        .single();
 
       if (saveError) {
         throw saveError;
@@ -448,12 +450,37 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
 📍 Ubicación: ${location}
 💬 Detalles: ${details}`;
 
-      // Add photo links if available
-      if (uploadedFiles.length > 0) {
-        message += `\n\n📸 Fotos (${uploadedFiles.length}):\n`;
-        uploadedFiles.forEach((file, index) => {
-          message += `${index + 1}. ${file.url}\n`;
-        });
+      // Add photo links if available - shorten URLs first
+      if (uploadedFiles.length > 0 && savedJob) {
+        try {
+          const { data: shortLinksData, error: shortenError } = await supabase.functions.invoke('shorten-url', {
+            body: {
+              urls: uploadedFiles.map(f => f.url),
+              jobRequestId: savedJob.id
+            }
+          });
+
+          if (shortenError) {
+            console.error('Failed to shorten URLs:', shortenError);
+            // Fallback to full URLs
+            message += `\n\n📸 Fotos (${uploadedFiles.length}):\n`;
+            uploadedFiles.forEach((file, index) => {
+              message += `${index + 1}. ${file.url}\n`;
+            });
+          } else if (shortLinksData?.shortLinks) {
+            message += `\n\n📸 Fotos (${uploadedFiles.length}):\n`;
+            shortLinksData.shortLinks.forEach((link: any, index: number) => {
+              message += `${index + 1}. ${link.short}\n`;
+            });
+          }
+        } catch (err) {
+          console.error('Error shortening URLs:', err);
+          // Fallback to full URLs
+          message += `\n\n📸 Fotos (${uploadedFiles.length}):\n`;
+          uploadedFiles.forEach((file, index) => {
+            message += `${index + 1}. ${file.url}\n`;
+          });
+        }
       }
       
       const encodedMessage = encodeURIComponent(message);
