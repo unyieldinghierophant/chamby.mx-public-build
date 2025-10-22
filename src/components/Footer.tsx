@@ -57,7 +57,7 @@ const Footer = () => {
               </li>
               <li className="flex items-center space-x-2">
                 <Phone className="h-4 w-4 text-primary" />
-                <span>+52 33 2552 0551</span>
+                <span>+52 33 2543 8136</span>
               </li>
               <li className="flex items-center space-x-2">
                 <MapPin className="h-4 w-4 text-primary" />
@@ -70,9 +70,7 @@ const Footer = () => {
         {/* Bottom Section */}
         <div className="border-t border-border mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="text-muted-foreground text-sm mb-4 md:mb-0">
-              © 2024 Chamby.mx. Todos los derechos reservados.
-            </div>
+            <div className="text-muted-foreground text-sm mb-4 md:mb-0">© 2025 Chamby.mx. Todos los derechos reservados.</div>
             <div className="flex space-x-6 text-sm text-muted-foreground">
               <a href="#" className="hover:text-primary transition-colors">Términos de servicio</a>
               <a href="#" className="hover:text-primary transition-colors">Política de privacidad</a>
