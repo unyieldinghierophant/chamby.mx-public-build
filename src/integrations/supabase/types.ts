@@ -385,6 +385,41 @@ export type Database = {
         }
         Relationships: []
       }
+      photo_short_links: {
+        Row: {
+          clicks: number | null
+          created_at: string | null
+          full_url: string
+          id: string
+          job_request_id: string | null
+          short_code: string
+        }
+        Insert: {
+          clicks?: number | null
+          created_at?: string | null
+          full_url: string
+          id?: string
+          job_request_id?: string | null
+          short_code: string
+        }
+        Update: {
+          clicks?: number | null
+          created_at?: string | null
+          full_url?: string
+          id?: string
+          job_request_id?: string | null
+          short_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photo_short_links_job_request_id_fkey"
+            columns: ["job_request_id"]
+            isOneToOne: false
+            referencedRelation: "job_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -690,6 +725,7 @@ export type Database = {
         Returns: boolean
       }
       cleanup_expired_otps: { Args: never; Returns: undefined }
+      generate_short_code: { Args: never; Returns: string }
       get_client_id_from_auth: { Args: never; Returns: string }
       get_public_provider_profiles: {
         Args: never
