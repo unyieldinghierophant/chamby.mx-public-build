@@ -14,6 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_activity_log: {
+        Row: {
+          action: string
+          admin_id: string
+          created_at: string | null
+          details: Json | null
+          entity_id: string | null
+          entity_type: string
+          id: string
+          ip_address: unknown
+        }
+        Insert: {
+          action: string
+          admin_id: string
+          created_at?: string | null
+          details?: Json | null
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          ip_address?: unknown
+        }
+        Update: {
+          action?: string
+          admin_id?: string
+          created_at?: string | null
+          details?: Json | null
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          ip_address?: unknown
+        }
+        Relationships: []
+      }
+      admin_users: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          department: string | null
+          id: string
+          is_active: boolean | null
+          last_login_at: string | null
+          permissions: Json | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          department?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_login_at?: string | null
+          permissions?: Json | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          department?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_login_at?: string | null
+          permissions?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           address: string | null
@@ -475,7 +541,7 @@ export type Database = {
           action: string
           created_at: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           new_data: Json | null
           old_data: Json | null
           record_id: string | null
@@ -487,7 +553,7 @@ export type Database = {
           action: string
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_data?: Json | null
           old_data?: Json | null
           record_id?: string | null
@@ -499,7 +565,7 @@ export type Database = {
           action?: string
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_data?: Json | null
           old_data?: Json | null
           record_id?: string | null
@@ -598,13 +664,22 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      admin_dashboard_stats: {
+        Row: {
+          active_providers: number | null
+          active_users: number | null
+          bookings_today: number | null
+          cancelled_jobs: number | null
+          completed_jobs: number | null
+          jobs_today: number | null
+          total_jobs: number | null
+          total_payments: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      check_otp_rate_limit: {
-        Args: { phone: string }
-        Returns: boolean
-      }
+      check_otp_rate_limit: { Args: { phone: string }; Returns: boolean }
       check_rate_limit: {
         Args: {
           _action: string
@@ -614,16 +689,10 @@ export type Database = {
         }
         Returns: boolean
       }
-      cleanup_expired_otps: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      get_client_id_from_auth: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      cleanup_expired_otps: { Args: never; Returns: undefined }
+      get_client_id_from_auth: { Args: never; Returns: string }
       get_public_provider_profiles: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           avatar_url: string
           bio: string
@@ -636,10 +705,18 @@ export type Database = {
           verification_status: string
         }[]
       }
-      get_user_email: {
-        Args: Record<PropertyKey, never>
-        Returns: string
+      get_top_providers: {
+        Args: { limit_count?: number }
+        Returns: {
+          completed_jobs: number
+          full_name: string
+          rating: number
+          total_earnings: number
+          total_reviews: number
+          user_id: string
+        }[]
       }
+      get_user_email: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -647,6 +724,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "client" | "provider"

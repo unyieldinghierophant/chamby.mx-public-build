@@ -36,9 +36,18 @@ import BookingDateTime from "./pages/BookingDateTime";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCanceled from "./pages/PaymentCanceled";
 import BookJob from "./pages/BookJob";
-
 import PagoVisita from "./pages/PagoVisita";
 import EsperandoProveedor from "./pages/EsperandoProveedor";
+
+// Admin pages
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminJobs from "./pages/admin/AdminJobs";
+import AdminPayments from "./pages/admin/AdminPayments";
+import AdminSupport from "./pages/admin/AdminSupport";
+import AdminContent from "./pages/admin/AdminContent";
+import AdminRoles from "./pages/admin/AdminRoles";
+import { ProtectedAdminRoute } from "./components/admin/ProtectedAdminRoute";
 
 const queryClient = new QueryClient();
 
@@ -222,6 +231,65 @@ const App = () => (
                 </ProtectedRoute>
               } 
             />
+
+            {/* Admin Routes */}
+            <Route 
+              path="/admin/dashboard" 
+              element={
+                <ProtectedAdminRoute>
+                  <AdminDashboard />
+                </ProtectedAdminRoute>
+              } 
+            />
+            <Route 
+              path="/admin/users" 
+              element={
+                <ProtectedAdminRoute>
+                  <AdminUsers />
+                </ProtectedAdminRoute>
+              } 
+            />
+            <Route 
+              path="/admin/jobs" 
+              element={
+                <ProtectedAdminRoute>
+                  <AdminJobs />
+                </ProtectedAdminRoute>
+              } 
+            />
+            <Route 
+              path="/admin/payments" 
+              element={
+                <ProtectedAdminRoute>
+                  <AdminPayments />
+                </ProtectedAdminRoute>
+              } 
+            />
+            <Route 
+              path="/admin/support" 
+              element={
+                <ProtectedAdminRoute>
+                  <AdminSupport />
+                </ProtectedAdminRoute>
+              } 
+            />
+            <Route 
+              path="/admin/content" 
+              element={
+                <ProtectedAdminRoute>
+                  <AdminContent />
+                </ProtectedAdminRoute>
+              } 
+            />
+            <Route 
+              path="/admin/roles" 
+              element={
+                <ProtectedAdminRoute>
+                  <AdminRoles />
+                </ProtectedAdminRoute>
+              } 
+            />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
