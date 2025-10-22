@@ -9,7 +9,8 @@ import {
   Lock, 
   CreditCard, 
   Settings,
-  ArrowRight
+  ArrowRight,
+  MapPin
 } from "lucide-react";
 import { Link, Navigate } from "react-router-dom";
 
@@ -142,6 +143,23 @@ const UserProfile = () => {
                   </CardTitle>
                   <CardDescription>
                     Notificaciones, idioma, zona horaria y preferencias de privacidad
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </Link>
+
+            <Link to="/profile/locations">
+              <Card className="bg-card/95 backdrop-blur-sm shadow-raised hover:shadow-elevated transition-all duration-200 cursor-pointer group">
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <MapPin className="w-6 h-6 text-primary" />
+                      <span>Ubicaciones Guardadas</span>
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+                  </CardTitle>
+                  <CardDescription>
+                    Gestiona tus direcciones guardadas para reservar servicios más rápido
                   </CardDescription>
                 </CardHeader>
               </Card>

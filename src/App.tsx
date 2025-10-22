@@ -21,6 +21,7 @@ import ProfileSettings from "./pages/ProfileSettings";
 import SecuritySettings from "./pages/SecuritySettings";
 import PaymentSettings from "./pages/PaymentSettings";
 import GeneralSettings from "./pages/GeneralSettings";
+import SavedLocations from "./pages/SavedLocations";
 import DataExport from "./pages/DataExport";
 import AccountDeletion from "./pages/AccountDeletion";
 import ProviderDashboard from "./pages/ProviderDashboard";
@@ -179,6 +180,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <GeneralSettings />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/profile/locations" 
+              element={
+                <ProtectedRoute>
+                  <SavedLocations />
                 </ProtectedRoute>
               } 
             />
