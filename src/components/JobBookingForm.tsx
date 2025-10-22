@@ -453,10 +453,16 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
       // Add photo links if available - shorten URLs first
       if (uploadedFiles.length > 0 && savedJob) {
         try {
+          // Get auth session for the request
+          const { data: { session } } = await supabase.auth.getSession();
+          
           const { data: shortLinksData, error: shortenError } = await supabase.functions.invoke('shorten-url', {
             body: {
               urls: uploadedFiles.map(f => f.url),
               jobRequestId: savedJob.id
+            },
+            headers: {
+              Authorization: `Bearer ${session?.access_token}`
             }
           });
 

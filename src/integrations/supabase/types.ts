@@ -699,19 +699,7 @@ export type Database = {
       }
     }
     Views: {
-      admin_dashboard_stats: {
-        Row: {
-          active_providers: number | null
-          active_users: number | null
-          bookings_today: number | null
-          cancelled_jobs: number | null
-          completed_jobs: number | null
-          jobs_today: number | null
-          total_jobs: number | null
-          total_payments: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       check_otp_rate_limit: { Args: { phone: string }; Returns: boolean }
@@ -726,6 +714,19 @@ export type Database = {
       }
       cleanup_expired_otps: { Args: never; Returns: undefined }
       generate_short_code: { Args: never; Returns: string }
+      get_admin_dashboard_stats: {
+        Args: never
+        Returns: {
+          active_providers: number
+          active_users: number
+          bookings_today: number
+          cancelled_jobs: number
+          completed_jobs: number
+          jobs_today: number
+          total_jobs: number
+          total_payments: number
+        }[]
+      }
       get_client_id_from_auth: { Args: never; Returns: string }
       get_public_provider_profiles: {
         Args: never
