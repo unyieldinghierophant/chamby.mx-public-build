@@ -2,7 +2,11 @@ import { useState, useCallback, useRef } from 'react';
 import { GoogleMap, LoadScript, Marker, Autocomplete } from '@react-google-maps/api';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { MapPin, Building2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { MapPin, Building2, Star, Plus } from 'lucide-react';
+import { useSavedLocations } from '@/hooks/useSavedLocations';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const libraries: ("places")[] = ["places"];
 
@@ -94,10 +98,14 @@ interface GoogleMapPickerProps {
 }
 
 export const GoogleMapPicker = ({ onLocationSelect, initialLocation }: GoogleMapPickerProps) => {
+  const { user } = useAuth();
+  const { locations, loading: locationsLoading } = useSavedLocations();
+  const navigate = useNavigate();
   const [center, setCenter] = useState(defaultCenter);
   const [markerPosition, setMarkerPosition] = useState(defaultCenter);
   const [address, setAddress] = useState(initialLocation || '');
   const [interiorNumber, setInteriorNumber] = useState('');
+  const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
 
   // Your Google Maps API key should be stored in environment variables
@@ -139,11 +147,39 @@ export const GoogleMapPicker = ({ onLocationSelect, initialLocation }: GoogleMap
         setCenter(newCenter);
         setMarkerPosition(newCenter);
         setAddress(place.formatted_address || '');
+        setSelectedLocationId(null); // Clear saved location selection
         const fullAddress = interiorNumber 
           ? `${place.formatted_address || ''}, ${interiorNumber}`
           : place.formatted_address || '';
         onLocationSelect(lat, lng, fullAddress);
       }
+    }
+  };
+
+  const handleSavedLocationSelect = (location: any) => {
+    setSelectedLocationId(location.id);
+    setAddress(location.address);
+    setInteriorNumber('');
+    
+    // If location has coordinates, update map
+    if (location.latitude && location.longitude) {
+      const newCenter = { lat: location.latitude, lng: location.longitude };
+      setCenter(newCenter);
+      setMarkerPosition(newCenter);
+      onLocationSelect(location.latitude, location.longitude, location.address);
+    } else {
+      // Geocode the address to get coordinates
+      const geocoder = new google.maps.Geocoder();
+      geocoder.geocode({ address: location.address }, (results, status) => {
+        if (status === 'OK' && results && results[0] && results[0].geometry) {
+          const lat = results[0].geometry.location.lat();
+          const lng = results[0].geometry.location.lng();
+          const newCenter = { lat, lng };
+          setCenter(newCenter);
+          setMarkerPosition(newCenter);
+          onLocationSelect(lat, lng, location.address);
+        }
+      });
     }
   };
 
@@ -162,6 +198,55 @@ export const GoogleMapPicker = ({ onLocationSelect, initialLocation }: GoogleMap
 
   return (
     <div className="space-y-4">
+      {/* Saved Locations - Only show for authenticated users */}
+      {user && !locationsLoading && (
+        <div className="space-y-3">
+          {locations.length > 0 ? (
+            <>
+              <Label className="text-base font-medium text-foreground">
+                Ubicaciones guardadas
+              </Label>
+              <div className="flex flex-wrap gap-2">
+                {locations.map((location) => (
+                  <Button
+                    key={location.id}
+                    type="button"
+                    variant={selectedLocationId === location.id ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleSavedLocationSelect(location)}
+                    className="gap-2"
+                  >
+                    {location.is_default && <Star className="w-3 h-3 fill-current" />}
+                    <span className="font-medium">{location.label}</span>
+                  </Button>
+                ))}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate("/profile/locations")}
+                  className="gap-1"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span className="text-xs">Agregar</span>
+                </Button>
+              </div>
+            </>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/profile/locations")}
+              className="gap-2 mb-2"
+            >
+              <MapPin className="w-4 h-4" />
+              <span>Guardar ubicaciones frecuentes</span>
+            </Button>
+          )}
+        </div>
+      )}
+
       <LoadScript
         googleMapsApiKey={GOOGLE_MAPS_API_KEY}
         libraries={libraries}

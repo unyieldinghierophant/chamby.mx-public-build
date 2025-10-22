@@ -10,7 +10,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, LogOut, User, Settings, CreditCard, Shield, Users } from "lucide-react";
 import { AISearchBar } from "@/components/AISearchBar";
 import { CategoryCard } from "@/components/CategoryCard";
-import { SavedLocationsQuickAccess } from "@/components/SavedLocationsQuickAccess";
 import logo from "@/assets/chamby-logo-new-icon.png";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -217,9 +216,6 @@ const UserLanding = () => {
           <p className="text-muted-foreground text-lg mb-6">
             ¿Qué necesitas hoy?
           </p>
-          
-          {/* Saved Locations Quick Access */}
-          <SavedLocationsQuickAccess />
           
           {/* AI Search Bar */}
           <div className="mb-10">
