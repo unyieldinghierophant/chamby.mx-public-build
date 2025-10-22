@@ -1,7 +1,7 @@
 import { JobBookingForm } from "@/components/JobBookingForm";
 import { X } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
-import logo from "@/assets/chamby-logo-icon.png";
+import logo from "@/assets/chamby-logo-new-icon.png";
 
 const BookJob = () => {
   const navigate = useNavigate();
