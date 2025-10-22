@@ -444,17 +444,16 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
       }
 
       // Open WhatsApp with form data
-      let message = `📋 Nueva solicitud de trabajo
-🔧 Servicio: ${taskDescription}
-📅 Fecha: ${dateText}
-📍 Ubicación: ${location}
-💬 Detalles: ${details}`;
+      // Using text alternatives for emojis to ensure proper rendering in WhatsApp
+      let message = `Nueva solicitud de trabajo\n\nServicio: ${taskDescription}\nFecha: ${dateText}\nUbicacion: ${location}\nDetalles: ${details}`;
 
       // Add photo links if available - shorten URLs first
       if (uploadedFiles.length > 0 && savedJob) {
         try {
           // Get auth session for the request
           const { data: { session } } = await supabase.auth.getSession();
+          
+          console.log('Attempting to shorten URLs for job:', savedJob.id);
           
           const { data: shortLinksData, error: shortenError } = await supabase.functions.invoke('shorten-url', {
             body: {
@@ -468,27 +467,33 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
 
           if (shortenError) {
             console.error('Failed to shorten URLs:', shortenError);
-            // Fallback to full URLs
-            message += `\n\n📸 Fotos (${uploadedFiles.length}):\n`;
-            uploadedFiles.forEach((file, index) => {
-              message += `${index + 1}. ${file.url}\n`;
-            });
-          } else if (shortLinksData?.shortLinks) {
-            message += `\n\n📸 Fotos (${uploadedFiles.length}):\n`;
+            throw shortenError; // Throw to trigger retry or proper error handling
+          }
+          
+          if (shortLinksData?.shortLinks && shortLinksData.shortLinks.length > 0) {
+            console.log('Successfully shortened URLs:', shortLinksData.shortLinks.length);
+            message += `\n\nFotos (${uploadedFiles.length}):\n`;
             shortLinksData.shortLinks.forEach((link: any, index: number) => {
               message += `${index + 1}. ${link.short}\n`;
+            });
+          } else {
+            console.warn('No short links returned, using full URLs');
+            message += `\n\nFotos (${uploadedFiles.length}):\n`;
+            uploadedFiles.forEach((file, index) => {
+              message += `${index + 1}. ${file.url}\n`;
             });
           }
         } catch (err) {
           console.error('Error shortening URLs:', err);
-          // Fallback to full URLs
-          message += `\n\n📸 Fotos (${uploadedFiles.length}):\n`;
+          // Always provide links as fallback
+          message += `\n\nFotos (${uploadedFiles.length}):\n`;
           uploadedFiles.forEach((file, index) => {
             message += `${index + 1}. ${file.url}\n`;
           });
         }
       }
       
+      // Encode the message for WhatsApp URL
       const encodedMessage = encodeURIComponent(message);
       const phoneNumber = "523325438136";
       const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
@@ -498,7 +503,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
 
       // Show success toast
       toast({
-        title: "✅ Solicitud enviada",
+        title: "Solicitud enviada",
         description: "Abriendo WhatsApp...",
       });
 
@@ -518,8 +523,8 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
     } catch (error) {
       console.error('Error submitting task:', error);
       toast({
-        title: "❌ Error al enviar la solicitud",
-        description: "Inténtalo nuevamente.",
+        title: "Error al enviar la solicitud",
+        description: "Intentalo nuevamente.",
         variant: "destructive",
       });
     } finally {
