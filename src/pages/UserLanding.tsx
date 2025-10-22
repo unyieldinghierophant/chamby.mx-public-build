@@ -123,12 +123,12 @@ const UserLanding = () => {
     <div className="min-h-screen bg-gradient-subtle">
       {/* Simple Header matching home page */}
       <header className="fixed top-0 left-0 right-0 bg-background border-b border-border z-50">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-2 flex items-center justify-between">
           <button 
             onClick={() => navigate('/user-landing')}
             className="flex items-center gap-3 hover:opacity-80 transition-opacity"
           >
-            <img src={logo} alt="Chamby" className="w-12 h-12" />
+            <img src={logo} alt="Chamby" className="w-24 h-24 -my-4" />
             <span className="text-xl font-['Made_Dillan'] text-foreground">Chamby</span>
           </button>
           
