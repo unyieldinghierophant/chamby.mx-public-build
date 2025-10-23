@@ -443,12 +443,18 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
         throw saveError;
       }
 
-      // Open WhatsApp with form data - using proper emoji encoding
-      let message = `\u{1F4CB} Nueva solicitud de trabajo\n\n`;
-      message += `\u{1F527} Servicio: ${taskDescription}\n`;
-      message += `\u{1F4C5} Fecha: ${dateText}\n`;
-      message += `\u{1F4CD} Ubicaci\u{F3}n: ${location}\n`;
-      message += `\u{1F4AC} Detalles: ${details}`;
+      // Open WhatsApp with form data - using direct emoji characters for reliability
+      let message = `📋 Nueva solicitud de trabajo\n\n`;
+      message += `🔧 Servicio: ${taskDescription}\n`;
+      message += `📅 Fecha: ${dateText}\n`;
+      
+      // Add time slot if user selected specific time
+      if (needsSpecificTime && selectedTimeSlots.length > 0) {
+        message += `🕒 Hora: ${timeSlotText}\n`;
+      }
+      
+      message += `📍 Ubicación: ${location}\n`;
+      message += `💬 Detalles: ${details}`;
 
       // Add photo links if available - shorten URLs first
       if (uploadedFiles.length > 0 && savedJob) {
@@ -475,13 +481,13 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
           
           if (shortLinksData?.shortLinks && shortLinksData.shortLinks.length > 0) {
             console.log('Successfully shortened URLs:', shortLinksData.shortLinks.length);
-            message += `\n\n\u{1F4F8} Fotos (${uploadedFiles.length}):\n`;
+            message += `\n\n📸 Fotos (${uploadedFiles.length}):\n`;
             shortLinksData.shortLinks.forEach((link: any, index: number) => {
               message += `${index + 1}. ${link.short}\n`;
             });
           } else {
             console.warn('No short links returned, using full URLs');
-            message += `\n\n\u{1F4F8} Fotos (${uploadedFiles.length}):\n`;
+            message += `\n\n📸 Fotos (${uploadedFiles.length}):\n`;
             uploadedFiles.forEach((file, index) => {
               message += `${index + 1}. ${file.url}\n`;
             });
@@ -489,7 +495,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
         } catch (err) {
           console.error('Error shortening URLs:', err);
           // Always provide links as fallback
-          message += `\n\n\u{1F4F8} Fotos (${uploadedFiles.length}):\n`;
+          message += `\n\n📸 Fotos (${uploadedFiles.length}):\n`;
           uploadedFiles.forEach((file, index) => {
             message += `${index + 1}. ${file.url}\n`;
           });
@@ -503,7 +509,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
       
       // Show success toast immediately
       toast({
-        title: "\u{2705} Solicitud enviada",
+        title: "✅ Solicitud enviada",
         description: "Abriendo WhatsApp...",
       });
 
