@@ -352,7 +352,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
       case 3:
         return details.trim() !== "";
       case 4:
-        return uploadedFiles.length > 0 && uploadedFiles.every(f => f.uploaded);
+        return uploadedFiles.length === 0 || uploadedFiles.every(f => f.uploaded);
       default:
         return false;
     }
@@ -812,7 +812,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
               
               <div className="space-y-3">
                 <Label className="text-lg font-semibold text-foreground">
-                  Agregar fotos
+                  Agregar fotos (opcional)
                 </Label>
                 <div className="border-2 border-dashed border-border rounded-xl p-6 text-center hover:border-primary transition-colors">
                   <Input
@@ -869,6 +869,14 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
                         )}
                       </div>
                     ))}
+                  </div>
+                )}
+
+                {uploadedFiles.length === 0 && (
+                  <div className="mt-4">
+                    <p className="text-sm text-muted-foreground text-center">
+                      Las fotos ayudan a los profesionales a entender mejor tu solicitud, pero no son obligatorias.
+                    </p>
                   </div>
                 )}
                </div>
