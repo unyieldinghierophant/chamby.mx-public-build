@@ -13,7 +13,9 @@ const libraries: ("places")[] = ["places"];
 const mapContainerStyle = {
   width: '100%',
   height: '450px',
-  borderRadius: '0.5rem'
+  borderRadius: '0.5rem',
+  // Mobile-friendly touch handling
+  touchAction: 'pan-x pan-y'
 };
 
 // Modern map styling
@@ -87,9 +89,18 @@ const mapStyles = [
   }
 ];
 
+// Guadalajara coordinates
 const defaultCenter = {
-  lat: 19.4326,
-  lng: -99.1332
+  lat: 20.6597,
+  lng: -103.3496
+};
+
+// Bounds for Guadalajara metropolitan area
+const guadalajaraBounds = {
+  north: 20.8,
+  south: 20.5,
+  east: -103.2,
+  west: -103.5,
 };
 
 interface GoogleMapPickerProps {
@@ -262,7 +273,9 @@ export const GoogleMapPicker = ({ onLocationSelect, initialLocation }: GoogleMap
               onPlaceChanged={onPlaceChanged}
               options={{
                 componentRestrictions: { country: 'mx' },
-                fields: ['formatted_address', 'geometry', 'name']
+                fields: ['formatted_address', 'geometry', 'name'],
+                bounds: guadalajaraBounds,
+                strictBounds: true,
               }}
             >
               <Input
@@ -320,6 +333,12 @@ export const GoogleMapPicker = ({ onLocationSelect, initialLocation }: GoogleMap
                 position: 7 // RIGHT_TOP
               },
               gestureHandling: 'greedy',
+              restriction: {
+                latLngBounds: guadalajaraBounds,
+                strictBounds: false,
+              },
+              minZoom: 11,
+              maxZoom: 18,
             }}
           >
             <Marker 
