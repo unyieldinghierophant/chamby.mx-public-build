@@ -22,19 +22,30 @@ export const useUserRole = (): UserRole => {
       }
 
       try {
-        // Fetch role from user_roles table (secure implementation)
+        // Fetch all roles from user_roles table (users may have multiple roles)
         const { data, error } = await supabase
           .from('user_roles')
           .select('role')
-          .eq('user_id', user.id)
-          .maybeSingle();
+          .eq('user_id', user.id);
 
         if (error) {
           throw error;
         }
 
-        if (data) {
-          setRole(data.role as 'client' | 'provider');
+        if (data && data.length > 0) {
+          // Priority: provider > client > admin
+          // Find provider role first, then client, then admin
+          const providerRole = data.find(r => r.role === 'provider');
+          const clientRole = data.find(r => r.role === 'client');
+          
+          if (providerRole) {
+            setRole('provider');
+          } else if (clientRole) {
+            setRole('client');
+          } else {
+            // If only admin or other roles, default to client
+            setRole('client');
+          }
         } else {
           // Default to client if no role found
           setRole('client');
