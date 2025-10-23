@@ -159,6 +159,14 @@ export default {
           "100%": {
             backgroundPosition: "0% 0%"
           }
+        },
+        "bounce-subtle": {
+          "0%, 100%": {
+            transform: "translateY(0)"
+          },
+          "50%": {
+            transform: "translateY(-8px)"
+          }
         }
       },
       animation: {
@@ -167,6 +175,7 @@ export default {
         "fade-in": "fade-in 0.6s ease-out",
         "blur-fade": "blur-fade 0.8s ease-out",
         "gradient-shift": "gradient-shift 3000s ease-in-out infinite",
+        "bounce-subtle": "bounce-subtle 0.6s ease-in-out",
       },
     },
   },
