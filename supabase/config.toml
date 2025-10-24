@@ -9,6 +9,9 @@ verify_jwt = false
 [functions.create-visit-payment]
 verify_jwt = true
 
+[functions.create-visit-invoice]
+verify_jwt = true
+
 [functions.ai-search-service]
 verify_jwt = true
 

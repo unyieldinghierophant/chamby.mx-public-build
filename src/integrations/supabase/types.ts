@@ -270,6 +270,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          invoice_due_date: string | null
           location: string | null
           photos: string[] | null
           problem: string | null
@@ -278,6 +279,9 @@ export type Database = {
           scheduled_at: string | null
           service_type: string | null
           status: string
+          stripe_invoice_id: string | null
+          stripe_invoice_pdf: string | null
+          stripe_invoice_url: string | null
           title: string
           updated_at: string
           urgent: boolean | null
@@ -289,6 +293,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          invoice_due_date?: string | null
           location?: string | null
           photos?: string[] | null
           problem?: string | null
@@ -297,6 +302,9 @@ export type Database = {
           scheduled_at?: string | null
           service_type?: string | null
           status?: string
+          stripe_invoice_id?: string | null
+          stripe_invoice_pdf?: string | null
+          stripe_invoice_url?: string | null
           title: string
           updated_at?: string
           urgent?: boolean | null
@@ -308,6 +316,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          invoice_due_date?: string | null
           location?: string | null
           photos?: string[] | null
           problem?: string | null
@@ -316,6 +325,9 @@ export type Database = {
           scheduled_at?: string | null
           service_type?: string | null
           status?: string
+          stripe_invoice_id?: string | null
+          stripe_invoice_pdf?: string | null
+          stripe_invoice_url?: string | null
           title?: string
           updated_at?: string
           urgent?: boolean | null
@@ -735,9 +747,22 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      admin_dashboard_stats: {
+        Row: {
+          active_providers: number | null
+          active_users: number | null
+          bookings_today: number | null
+          cancelled_jobs: number | null
+          completed_jobs: number | null
+          jobs_today: number | null
+          total_jobs: number | null
+          total_payments: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      can_view_admin_stats: { Args: never; Returns: boolean }
       check_otp_rate_limit: { Args: { phone: string }; Returns: boolean }
       check_rate_limit: {
         Args: {

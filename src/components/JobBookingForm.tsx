@@ -514,6 +514,53 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
         description: "Abriendo WhatsApp...",
       });
 
+      // NEW: Create Stripe Invoice for visit fee
+      let invoiceUrl = null;
+      if (user && savedJob) {
+        try {
+          toast({
+            title: "💳 Generando factura...",
+            description: "Creando invoice de visita técnica ($250 MXN)",
+          });
+
+          const { data: { session } } = await supabase.auth.getSession();
+          
+          const { data: invoiceData, error: invoiceError } = await supabase.functions.invoke(
+            'create-visit-invoice',
+            {
+              body: { job_request_id: savedJob.id },
+              headers: {
+                Authorization: `Bearer ${session?.access_token}`
+              }
+            }
+          );
+
+          if (invoiceError) {
+            console.error('Failed to create invoice:', invoiceError);
+            toast({
+              title: "⚠️ Advertencia",
+              description: "No se pudo generar la factura automáticamente. Puedes continuar con tu solicitud.",
+              variant: "destructive"
+            });
+          } else if (invoiceData?.invoice_url) {
+            invoiceUrl = invoiceData.invoice_url;
+            console.log('Invoice created successfully:', invoiceData.invoice_id);
+            toast({
+              title: "✅ Factura generada",
+              description: "Se ha creado tu factura de visita técnica",
+            });
+          }
+        } catch (err) {
+          console.error('Error creating invoice:', err);
+          // Continue with WhatsApp flow anyway - invoice is optional
+        }
+      }
+
+      // Add invoice link to WhatsApp message if available
+      if (invoiceUrl) {
+        message += `\n\n💳 Factura de visita técnica ($250 MXN):\n${invoiceUrl}\n\n✅ Esta factura es reembolsable si el servicio se completa satisfactoriamente.`;
+      }
+
       // Clear saved form data before navigation
       clearFormData();
 
