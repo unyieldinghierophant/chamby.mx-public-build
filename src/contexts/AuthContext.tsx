@@ -48,6 +48,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
+  // Auto-refresh session every 9 minutes to prevent token expiration
+  useEffect(() => {
+    const refreshInterval = setInterval(async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        await supabase.auth.refreshSession();
+      }
+    }, 9 * 60 * 1000); // Refresh every 9 minutes (Supabase session lasts 60 minutes)
+
+    return () => clearInterval(refreshInterval);
+  }, []);
+
   const signUp = async (email: string, password: string, fullName: string, phone?: string, isTasker?: boolean, role?: string) => {
     const redirectUrl = `${window.location.origin}/`;
     

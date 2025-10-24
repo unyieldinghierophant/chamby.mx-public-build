@@ -514,14 +514,11 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
         description: "Abriendo WhatsApp...",
       });
 
-      // NEW: Create Stripe Invoice for visit fee
+      // Silent invoice generation in background - no user notifications
       let invoiceUrl = null;
       if (user && savedJob) {
         try {
-          toast({
-            title: "💳 Generando factura...",
-            description: "Creando invoice de visita técnica ($250 MXN)",
-          });
+          console.log('[Invoice] Creating invoice for job:', savedJob.id);
 
           const { data: { session } } = await supabase.auth.getSession();
           
@@ -536,22 +533,16 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
           );
 
           if (invoiceError) {
-            console.error('Failed to create invoice:', invoiceError);
-            toast({
-              title: "⚠️ Advertencia",
-              description: "No se pudo generar la factura automáticamente. Puedes continuar con tu solicitud.",
-              variant: "destructive"
-            });
+            // Log error silently - don't notify user
+            console.error('[Invoice] Failed to create invoice:', invoiceError);
+            // Continue with WhatsApp flow - invoice is optional
           } else if (invoiceData?.invoice_url) {
             invoiceUrl = invoiceData.invoice_url;
-            console.log('Invoice created successfully:', invoiceData.invoice_id);
-            toast({
-              title: "✅ Factura generada",
-              description: "Se ha creado tu factura de visita técnica",
-            });
+            console.log('[Invoice] Created successfully:', invoiceData.invoice_id);
+            // No toast - silent success
           }
         } catch (err) {
-          console.error('Error creating invoice:', err);
+          console.error('[Invoice] Error creating invoice:', err);
           // Continue with WhatsApp flow anyway - invoice is optional
         }
       }

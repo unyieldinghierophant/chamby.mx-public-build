@@ -347,37 +347,44 @@ export const GoogleMapPicker = ({ onLocationSelect, initialLocation }: GoogleMap
 
   return (
     <div className="space-y-4">
-      {/* Saved Locations - Only show for authenticated users */}
-      {user && !locationsLoading && (
+      {/* Saved Locations - Show for authenticated users */}
+      {user && (
         <div className="space-y-3">
           <Label className="text-base font-medium text-foreground">
             Ubicaciones guardadas
           </Label>
           
-          <div className="flex gap-2">
-            <Select 
-              value={selectedLocationId || ''} 
-              onValueChange={handleSavedLocationSelect}
-            >
-              <SelectTrigger className="flex-1 h-12">
-                <SelectValue placeholder={
-                  locations.length > 0 
-                    ? "Selecciona una ubicación guardada" 
-                    : "No hay ubicaciones guardadas"
-                } />
-              </SelectTrigger>
-              <SelectContent className="bg-popover z-50">
-                {locations.map((location) => (
-                  <SelectItem key={location.id} value={location.id}>
-                    <div className="flex items-center gap-2">
-                      {location.is_default && <Star className="w-3 h-3 fill-current text-primary" />}
-                      <span className="font-medium">{location.label}</span>
-                      <span className="text-xs text-muted-foreground">- {location.address.substring(0, 40)}...</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {locationsLoading ? (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Cargando ubicaciones...</span>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <Select 
+                value={selectedLocationId || ''} 
+                onValueChange={handleSavedLocationSelect}
+                disabled={locations.length === 0}
+              >
+                <SelectTrigger className="flex-1 h-12">
+                  <SelectValue placeholder={
+                    locations.length > 0 
+                      ? "Selecciona una ubicación guardada" 
+                      : "No hay ubicaciones guardadas"
+                  } />
+                </SelectTrigger>
+                <SelectContent className="bg-popover z-50">
+                  {locations.map((location) => (
+                    <SelectItem key={location.id} value={location.id}>
+                      <div className="flex items-center gap-2">
+                        {location.is_default && <Star className="w-3 h-3 fill-current text-primary" />}
+                        <span className="font-medium">{location.label}</span>
+                        <span className="text-xs text-muted-foreground">- {location.address.substring(0, 40)}...</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             
             <Dialog open={isManageDialogOpen} onOpenChange={setIsManageDialogOpen}>
               <DialogTrigger asChild>
@@ -460,6 +467,7 @@ export const GoogleMapPicker = ({ onLocationSelect, initialLocation }: GoogleMap
               </DialogContent>
             </Dialog>
           </div>
+          )}
           
           {/* Add/Edit Location Dialog */}
           <Dialog open={isAddEditDialogOpen} onOpenChange={(open) => {
