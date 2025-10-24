@@ -505,7 +505,8 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
       // Encode the message for WhatsApp URL - use encodeURI for better emoji support
       const encodedMessage = encodeURIComponent(message);
       const phoneNumber = "523325438136";
-      const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+      // Use whatsapp:// deep link to directly open app and skip browser confirmation
+      const whatsappUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodedMessage}`;
       
       // Show success toast immediately
       toast({

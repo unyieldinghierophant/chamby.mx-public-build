@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { GoogleMapPicker } from "@/components/GoogleMapPicker";
 import Header from "@/components/Header";
 import { MapPin, ArrowLeft, Trash2, Plus, Edit2, Star } from "lucide-react";
 import { Link, Navigate } from "react-router-dom";
@@ -20,6 +22,8 @@ const SavedLocations = () => {
   const [formData, setFormData] = useState({
     label: '',
     address: '',
+    latitude: undefined as number | undefined,
+    longitude: undefined as number | undefined,
     isDefault: false
   });
 
@@ -47,6 +51,8 @@ const SavedLocations = () => {
       const { error } = await updateLocation(editingId, {
         label: formData.label,
         address: formData.address,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
         is_default: formData.isDefault
       });
 
@@ -56,14 +62,14 @@ const SavedLocations = () => {
         toast.success('Ubicación actualizada');
         setEditingId(null);
         setIsAddDialogOpen(false);
-        setFormData({ label: '', address: '', isDefault: false });
+        setFormData({ label: '', address: '', latitude: undefined, longitude: undefined, isDefault: false });
       }
     } else {
       const { error } = await addLocation(
         formData.label,
         formData.address,
-        undefined,
-        undefined,
+        formData.latitude,
+        formData.longitude,
         formData.isDefault
       );
 
@@ -72,7 +78,7 @@ const SavedLocations = () => {
       } else {
         toast.success('Ubicación guardada');
         setIsAddDialogOpen(false);
-        setFormData({ label: '', address: '', isDefault: false });
+        setFormData({ label: '', address: '', latitude: undefined, longitude: undefined, isDefault: false });
       }
     }
   };
@@ -82,6 +88,8 @@ const SavedLocations = () => {
     setFormData({
       label: location.label,
       address: location.address,
+      latitude: location.latitude,
+      longitude: location.longitude,
       isDefault: location.is_default
     });
     setIsAddDialogOpen(true);
@@ -127,7 +135,7 @@ const SavedLocations = () => {
                 setIsAddDialogOpen(open);
                 if (!open) {
                   setEditingId(null);
-                  setFormData({ label: '', address: '', isDefault: false });
+                  setFormData({ label: '', address: '', latitude: undefined, longitude: undefined, isDefault: false });
                 }
               }}>
                 <DialogTrigger asChild>
@@ -136,7 +144,7 @@ const SavedLocations = () => {
                     Nueva Ubicación
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                   <form onSubmit={handleSubmit}>
                     <DialogHeader>
                       <DialogTitle>
@@ -146,41 +154,93 @@ const SavedLocations = () => {
                         Guarda una dirección para usarla rápidamente al reservar servicios
                       </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-4 py-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="label">Etiqueta</Label>
-                        <Input
-                          id="label"
-                          placeholder="Casa, Oficina, etc."
-                          value={formData.label}
-                          onChange={(e) => setFormData(prev => ({ ...prev, label: e.target.value }))}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="address">Dirección</Label>
-                        <Input
-                          id="address"
-                          placeholder="Dirección completa"
-                          value={formData.address}
-                          onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                        />
-                      </div>
-                      <div className="flex items-center justify-between p-3 border rounded-lg">
-                        <div>
-                          <Label htmlFor="is-default" className="font-medium cursor-pointer">
-                            Ubicación predeterminada
-                          </Label>
-                          <p className="text-sm text-muted-foreground">
-                            Usar esta ubicación por defecto
-                          </p>
+                    <Tabs defaultValue="map" className="py-4">
+                      <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="map">Seleccionar en mapa</TabsTrigger>
+                        <TabsTrigger value="manual">Ingresar manualmente</TabsTrigger>
+                      </TabsList>
+                      <TabsContent value="map" className="space-y-4 mt-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="label">Etiqueta</Label>
+                          <Input
+                            id="label"
+                            placeholder="Casa, Oficina, etc."
+                            value={formData.label}
+                            onChange={(e) => setFormData(prev => ({ ...prev, label: e.target.value }))}
+                          />
                         </div>
-                        <Switch
-                          id="is-default"
-                          checked={formData.isDefault}
-                          onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isDefault: checked }))}
-                        />
-                      </div>
-                    </div>
+                        <div className="space-y-2">
+                          <Label>Ubicación</Label>
+                          <GoogleMapPicker
+                            onLocationSelect={(lat, lng, address) => {
+                              setFormData(prev => ({
+                                ...prev,
+                                address,
+                                latitude: lat,
+                                longitude: lng
+                              }));
+                            }}
+                            initialLocation={formData.address}
+                          />
+                        </div>
+                        {formData.address && (
+                          <div className="p-3 bg-muted rounded-lg">
+                            <p className="text-sm text-muted-foreground mb-1">Dirección seleccionada:</p>
+                            <p className="text-sm font-medium">{formData.address}</p>
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between p-3 border rounded-lg">
+                          <div>
+                            <Label htmlFor="is-default-map" className="font-medium cursor-pointer">
+                              Ubicación predeterminada
+                            </Label>
+                            <p className="text-sm text-muted-foreground">
+                              Usar esta ubicación por defecto
+                            </p>
+                          </div>
+                          <Switch
+                            id="is-default-map"
+                            checked={formData.isDefault}
+                            onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isDefault: checked }))}
+                          />
+                        </div>
+                      </TabsContent>
+                      <TabsContent value="manual" className="space-y-4 mt-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="label-manual">Etiqueta</Label>
+                          <Input
+                            id="label-manual"
+                            placeholder="Casa, Oficina, etc."
+                            value={formData.label}
+                            onChange={(e) => setFormData(prev => ({ ...prev, label: e.target.value }))}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="address-manual">Dirección</Label>
+                          <Input
+                            id="address-manual"
+                            placeholder="Dirección completa"
+                            value={formData.address}
+                            onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between p-3 border rounded-lg">
+                          <div>
+                            <Label htmlFor="is-default-manual" className="font-medium cursor-pointer">
+                              Ubicación predeterminada
+                            </Label>
+                            <p className="text-sm text-muted-foreground">
+                              Usar esta ubicación por defecto
+                            </p>
+                          </div>
+                          <Switch
+                            id="is-default-manual"
+                            checked={formData.isDefault}
+                            onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isDefault: checked }))}
+                          />
+                        </div>
+                      </TabsContent>
+                    </Tabs>
                     <DialogFooter>
                       <Button type="submit">
                         {editingId ? 'Actualizar' : 'Guardar'}
