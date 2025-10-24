@@ -443,78 +443,10 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
         throw saveError;
       }
 
-      // Open WhatsApp with form data - using direct emoji characters for reliability
-      let message = `📋 Nueva solicitud de trabajo\n\n`;
-      message += `🔧 Servicio: ${taskDescription}\n`;
-      message += `📅 Fecha: ${dateText}\n`;
-      
-      // Add time slot if user selected specific time
-      if (needsSpecificTime && selectedTimeSlots.length > 0) {
-        message += `🕒 Hora: ${timeSlotText}\n`;
-      }
-      
-      message += `📍 Ubicación: ${location}\n`;
-      message += `💬 Detalles: ${details}`;
+      // Small delay to ensure DB processes the insert and RLS allows reading
+      await new Promise(resolve => setTimeout(resolve, 300));
 
-      // Add photo links if available - shorten URLs first
-      if (uploadedFiles.length > 0 && savedJob) {
-        try {
-          // Get auth session for the request
-          const { data: { session } } = await supabase.auth.getSession();
-          
-          console.log('Attempting to shorten URLs for job:', savedJob.id);
-          
-          const { data: shortLinksData, error: shortenError } = await supabase.functions.invoke('shorten-url', {
-            body: {
-              urls: uploadedFiles.map(f => f.url),
-              jobRequestId: savedJob.id
-            },
-            headers: {
-              Authorization: `Bearer ${session?.access_token}`
-            }
-          });
-
-          if (shortenError) {
-            console.error('Failed to shorten URLs:', shortenError);
-            throw shortenError; // Throw to trigger retry or proper error handling
-          }
-          
-          if (shortLinksData?.shortLinks && shortLinksData.shortLinks.length > 0) {
-            console.log('Successfully shortened URLs:', shortLinksData.shortLinks.length);
-            message += `\n\n📸 Fotos (${uploadedFiles.length}):\n`;
-            shortLinksData.shortLinks.forEach((link: any, index: number) => {
-              message += `${index + 1}. ${link.short}\n`;
-            });
-          } else {
-            console.warn('No short links returned, using full URLs');
-            message += `\n\n📸 Fotos (${uploadedFiles.length}):\n`;
-            uploadedFiles.forEach((file, index) => {
-              message += `${index + 1}. ${file.url}\n`;
-            });
-          }
-        } catch (err) {
-          console.error('Error shortening URLs:', err);
-          // Always provide links as fallback
-          message += `\n\n📸 Fotos (${uploadedFiles.length}):\n`;
-          uploadedFiles.forEach((file, index) => {
-            message += `${index + 1}. ${file.url}\n`;
-          });
-        }
-      }
-      
-      // Encode the message for WhatsApp URL - use encodeURI for better emoji support
-      const encodedMessage = encodeURIComponent(message);
-      const phoneNumber = "523325438136";
-      // Use whatsapp:// deep link to directly open app and skip browser confirmation
-      const whatsappUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodedMessage}`;
-      
-      // Show success toast immediately
-      toast({
-        title: "✅ Solicitud enviada",
-        description: "Abriendo WhatsApp...",
-      });
-
-      // Silent invoice generation in background - no user notifications
+      // Generate invoice BEFORE constructing WhatsApp message
       let invoiceUrl = null;
       if (user && savedJob) {
         try {
@@ -533,17 +465,80 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
           );
 
           if (invoiceError) {
-            // Log error silently - don't notify user
             console.error('[Invoice] Failed to create invoice:', invoiceError);
-            // Continue with WhatsApp flow - invoice is optional
           } else if (invoiceData?.invoice_url) {
             invoiceUrl = invoiceData.invoice_url;
             console.log('[Invoice] Created successfully:', invoiceData.invoice_id);
-            // No toast - silent success
           }
         } catch (err) {
           console.error('[Invoice] Error creating invoice:', err);
-          // Continue with WhatsApp flow anyway - invoice is optional
+        }
+      }
+
+      // Now construct WhatsApp message WITH invoice URL
+      let message = `📋 Nueva solicitud de trabajo\n\n`;
+      message += `🔧 Servicio: ${taskDescription}\n`;
+      
+      // Add urgency indicator
+      if (datePreference === 'before') {
+        message += `⚡ URGENTE - Requerido inmediatamente\n`;
+      } else if (datePreference === 'flexible') {
+        message += `⚡ Tan pronto como sea posible\n`;
+      }
+      
+      message += `📅 Fecha: ${dateText}\n`;
+      
+      // Add time information with more clarity
+      if (needsSpecificTime && selectedTimeSlots.length > 0) {
+        message += `🕒 Hora preferida: ${timeSlotText}\n`;
+      } else if (datePreference === 'specific' && !needsSpecificTime) {
+        message += `🕒 Hora: Flexible (cualquier momento del día)\n`;
+      }
+      
+      message += `📍 Ubicación: ${location}\n`;
+      message += `💬 Detalles: ${details}`;
+
+      // Add photo links if available - shorten URLs first
+      if (uploadedFiles.length > 0 && savedJob) {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          
+          console.log('Attempting to shorten URLs for job:', savedJob.id);
+          
+          const { data: shortLinksData, error: shortenError } = await supabase.functions.invoke('shorten-url', {
+            body: {
+              urls: uploadedFiles.map(f => f.url),
+              jobRequestId: savedJob.id
+            },
+            headers: {
+              Authorization: `Bearer ${session?.access_token}`
+            }
+          });
+
+          if (shortenError) {
+            console.error('Failed to shorten URLs:', shortenError);
+            throw shortenError;
+          }
+          
+          if (shortLinksData?.shortLinks && shortLinksData.shortLinks.length > 0) {
+            console.log('Successfully shortened URLs:', shortLinksData.shortLinks.length);
+            message += `\n\n📸 Fotos (${uploadedFiles.length}):\n`;
+            shortLinksData.shortLinks.forEach((link: any, index: number) => {
+              message += `${index + 1}. ${link.short}\n`;
+            });
+          } else {
+            console.warn('No short links returned, using full URLs');
+            message += `\n\n📸 Fotos (${uploadedFiles.length}):\n`;
+            uploadedFiles.forEach((file, index) => {
+              message += `${index + 1}. ${file.url}\n`;
+            });
+          }
+        } catch (err) {
+          console.error('Error shortening URLs:', err);
+          message += `\n\n📸 Fotos (${uploadedFiles.length}):\n`;
+          uploadedFiles.forEach((file, index) => {
+            message += `${index + 1}. ${file.url}\n`;
+          });
         }
       }
 
@@ -551,6 +546,17 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
       if (invoiceUrl) {
         message += `\n\n💳 Factura de visita técnica ($250 MXN):\n${invoiceUrl}\n\n✅ Esta factura es reembolsable si el servicio se completa satisfactoriamente.`;
       }
+      
+      // Encode the message for WhatsApp URL
+      const encodedMessage = encodeURIComponent(message);
+      const phoneNumber = "523325438136";
+      const whatsappUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodedMessage}`;
+      
+      // Show success toast
+      toast({
+        title: "✅ Solicitud enviada",
+        description: "Abriendo WhatsApp...",
+      });
 
       // Clear saved form data before navigation
       clearFormData();
