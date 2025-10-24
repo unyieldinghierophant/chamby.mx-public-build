@@ -229,9 +229,13 @@ export type Database = {
           details: string | null
           exact_time: string | null
           id: string
+          invoice_due_date: string | null
           location: string | null
           photo_count: number | null
           service: string
+          stripe_invoice_id: string | null
+          stripe_invoice_pdf: string | null
+          stripe_invoice_url: string | null
           time_preference: string | null
           user_id: string | null
         }
@@ -242,9 +246,13 @@ export type Database = {
           details?: string | null
           exact_time?: string | null
           id?: string
+          invoice_due_date?: string | null
           location?: string | null
           photo_count?: number | null
           service: string
+          stripe_invoice_id?: string | null
+          stripe_invoice_pdf?: string | null
+          stripe_invoice_url?: string | null
           time_preference?: string | null
           user_id?: string | null
         }
@@ -255,9 +263,13 @@ export type Database = {
           details?: string | null
           exact_time?: string | null
           id?: string
+          invoice_due_date?: string | null
           location?: string | null
           photo_count?: number | null
           service?: string
+          stripe_invoice_id?: string | null
+          stripe_invoice_pdf?: string | null
+          stripe_invoice_url?: string | null
           time_preference?: string | null
           user_id?: string | null
         }
