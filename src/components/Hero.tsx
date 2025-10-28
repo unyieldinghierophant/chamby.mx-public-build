@@ -109,14 +109,13 @@ const Hero = () => {
                 </div>
                 
                 {/* Alien UFO */}
-                <div className="flex-shrink-0 hidden lg:block">
+                <div className="flex-shrink-0 hidden md:block relative z-20">
                   <img 
                     src={chambyAlien} 
                     alt="Chamby Alien" 
-                    className="w-64 xl:w-80 h-auto animate-bounce"
+                    className="w-48 md:w-56 lg:w-64 xl:w-80 h-auto animate-bounce"
                     style={{ 
                       animationDuration: '3s',
-                      mixBlendMode: 'screen',
                       filter: 'drop-shadow(0 10px 30px rgba(255,255,255,0.3))'
                     }}
                   />
