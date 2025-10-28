@@ -67,7 +67,7 @@ const Hero = () => {
             <div className="relative z-10">
               {/* Text Content */}
               <div className="space-y-4 md:space-y-6">
-                <h1 className="font-hero text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-white leading-[0.9] uppercase tracking-tight px-2"
+                <h1 className="font-hero text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-white leading-[0.9] uppercase tracking-tight px-2"
                   style={{
                     transform: 'perspective(800px) rotateX(-8deg) rotateZ(5deg)',
                     transformStyle: 'preserve-3d',
