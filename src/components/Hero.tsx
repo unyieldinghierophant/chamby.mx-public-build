@@ -19,28 +19,31 @@ const Hero = () => {
   return <section className="relative min-h-screen bg-background flex items-center justify-center pt-16 overflow-hidden">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 md:py-16 relative z-10 py-[50px]">
         <div className="max-w-4xl mx-auto text-center space-y-12">
-          {/* Main Heading */}
-          <div className="space-y-4 -mt-12">
-            <h1 className="font-dillan text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-tight pb-2">
-              Servicios del hogar
-              <span className="block bg-gradient-button bg-clip-text text-transparent py-[4px]">
-                confiables y seguros
-              </span>
-            </h1>
-            <p className="text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed max-w-3xl mx-auto px-4 pt-0 font-normal text-zinc-600">Soluciona en minutos no en dias</p>
-          </div>
+          {/* Floating Blue Card Container */}
+          <div className="relative bg-gradient-to-br from-[#1e3a8a] to-[#1e40af] rounded-[2rem] md:rounded-[3rem] p-8 md:p-12 lg:p-16 shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] border border-white/10">
+            {/* Main Heading */}
+            <div className="space-y-4">
+              <h1 className="font-dillan text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-tight pb-2">
+                Servicios del hogar
+                <span className="block text-white py-2 pb-4">
+                  confiables y seguros
+                </span>
+              </h1>
+              <p className="text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed max-w-3xl mx-auto px-4 pt-0 font-normal text-white/90">Soluciona en minutos no en dias</p>
+            </div>
 
-          {/* AI Search Bar */}
-          <div className="max-w-sm sm:max-w-md md:max-w-xl lg:max-w-2xl mx-auto px-4 sm:px-0">
-            <AISearchBar className="w-full" />
-            
-            {/* Mobile-only Tasker CTA */}
-            <div className="md:hidden mt-4">
-              <Link to="/tasker-landing">
-                <ModernButton variant="outline" className="w-full">
-                  Ofrecer servicios
-                </ModernButton>
-              </Link>
+            {/* AI Search Bar */}
+            <div className="max-w-sm sm:max-w-md md:max-w-xl lg:max-w-2xl mx-auto px-4 sm:px-0 mt-8">
+              <AISearchBar className="w-full" />
+              
+              {/* Mobile-only Tasker CTA */}
+              <div className="md:hidden mt-4">
+                <Link to="/tasker-landing">
+                  <ModernButton variant="outline" className="w-full bg-white/10 text-white border-white/20 hover:bg-white/20">
+                    Ofrecer servicios
+                  </ModernButton>
+                </Link>
+              </div>
             </div>
           </div>
 
