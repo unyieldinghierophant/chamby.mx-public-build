@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, X, Send, User, Bot } from "lucide-react";
+import { X, Send, User, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import chatbotAstronaut from "@/assets/chatbot-astronaut.png";
 
 interface Message {
   role: "user" | "assistant";
@@ -97,16 +98,20 @@ const ChatBot = () => {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-24 right-6 z-40 bg-primary hover:bg-primary/90 text-white rounded-full p-4 shadow-lg transition-all hover:scale-110"
+        className="fixed bottom-6 right-6 z-50 group hover:scale-110 transition-transform duration-300"
         aria-label="Abrir chat"
       >
-        <MessageCircle className="w-6 h-6" />
+        <img 
+          src={chatbotAstronaut} 
+          alt="Chat Chamby" 
+          className="w-20 h-20 drop-shadow-lg"
+        />
       </button>
     );
   }
 
   return (
-    <div className="fixed bottom-24 right-6 z-40 w-[350px] sm:w-[400px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden">
+    <div className="fixed bottom-6 right-6 z-40 w-[350px] sm:w-[400px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-800 to-blue-900 text-white p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">

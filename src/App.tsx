@@ -40,7 +40,6 @@ import BookJob from "./pages/BookJob";
 import PagoVisita from "./pages/PagoVisita";
 import EsperandoProveedor from "./pages/EsperandoProveedor";
 import PhotoRedirect from "./pages/PhotoRedirect";
-import WhatsAppFloatingButton from "./components/WhatsAppFloatingButton";
 import ChatBot from "./components/ChatBot";
 
 
@@ -83,7 +82,6 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <WhatsAppFloatingButton />
         <ChatBot />
         <BrowserRouter>
           <RedirectHandler />
