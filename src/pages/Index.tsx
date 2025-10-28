@@ -44,9 +44,12 @@ const Index = () => {
             
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-4">
-              <Link to="/auth/tasker">
-                <ModernButton variant="accent">Ser Tasker</ModernButton>
-              </Link>
+            <Link 
+              to="/auth/tasker"
+              className="px-4 py-2 rounded-full text-foreground hover:bg-primary hover:text-primary-foreground transition-colors"
+            >
+              Ser Tasker
+            </Link>
               <Link to="/auth/user">
                 <ModernButton variant="primary">Iniciar Sesión</ModernButton>
               </Link>
@@ -61,10 +64,12 @@ const Index = () => {
               </SheetTrigger>
               <SheetContent side="right" className="w-[300px] sm:w-[400px]">
                 <div className="flex flex-col gap-6 mt-8">
-                  <Link to="/auth/tasker" onClick={() => setMobileMenuOpen(false)}>
-                    <ModernButton variant="accent" className="w-full">
-                      Ser Tasker
-                    </ModernButton>
+                  <Link 
+                    to="/auth/tasker" 
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="px-4 py-2 rounded-full text-foreground hover:bg-primary hover:text-primary-foreground transition-colors text-center"
+                  >
+                    Ser Tasker
                   </Link>
                   <Link to="/auth/user" onClick={() => setMobileMenuOpen(false)}>
                     <ModernButton variant="primary" className="w-full">
