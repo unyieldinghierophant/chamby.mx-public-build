@@ -108,14 +108,43 @@ const Index = () => {
                 </button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-                <div className="flex flex-col gap-6 mt-8">
-                  <Link to="/auth/tasker" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2 rounded-full text-foreground hover:bg-primary hover:text-primary-foreground transition-colors text-center">
-                    Ser Tasker
+                <div className="flex flex-col gap-4 mt-8">
+                  <button 
+                    onClick={() => {
+                      handlePostJobClick();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="px-6 py-3 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium text-center"
+                  >
+                    Buscar Servicio
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setCategoriesDialogOpen(true);
+                      setMobileMenuOpen(false);
+                    }}
+                    className="px-4 py-2 text-foreground hover:text-primary transition-colors font-medium text-left"
+                  >
+                    Categorías
+                  </button>
+                  <button 
+                    onClick={() => {
+                      handleHowItWorksClick();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="px-4 py-2 text-foreground hover:text-primary transition-colors font-medium text-left"
+                  >
+                    ¿Cómo funciona?
+                  </button>
+                  <div className="border-t border-border my-4"></div>
+                  <Link to="/auth/user" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2 text-foreground hover:text-primary transition-colors font-medium text-left">
+                    Registrarse
                   </Link>
-                  <Link to="/auth/user" onClick={() => setMobileMenuOpen(false)}>
-                    <ModernButton variant="primary" className="w-full">
-                      Iniciar Sesión
-                    </ModernButton>
+                  <Link to="/auth/user?mode=signin" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2 text-foreground hover:text-primary transition-colors font-medium text-left">
+                    Iniciar sesión
+                  </Link>
+                  <Link to="/auth/tasker" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2 text-primary hover:text-primary/80 transition-colors font-semibold text-left">
+                    Ser Chambynauta
                   </Link>
                 </div>
               </SheetContent>
