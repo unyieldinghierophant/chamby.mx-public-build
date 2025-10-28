@@ -11,6 +11,7 @@ import { ModernButton } from "@/components/ui/modern-button";
 import { Menu, X } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AllCategoriesDialog } from "@/components/AllCategoriesDialog";
+import { ReviewsCarousel } from "@/components/ReviewsCarousel";
 const Index = () => {
   const {
     user,
@@ -161,7 +162,12 @@ const Index = () => {
             <HowItWorks />
           </div>
           <div className="animate-blur-fade" style={{
-          animationDelay: "0.6s"
+          animationDelay: "0.5s"
+        }}>
+            <ReviewsCarousel />
+          </div>
+          <div className="animate-blur-fade" style={{
+          animationDelay: "0.7s"
         }}>
             <Trust />
           </div>
