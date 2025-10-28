@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AllCategoriesDialog } from "@/components/AllCategoriesDialog";
 
 interface HeaderProps {
   hideLogo?: boolean;
@@ -33,6 +34,7 @@ const Header = ({
   logoAlignment = "center"
 }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [categoriesDialogOpen, setCategoriesDialogOpen] = useState(false);
   const { user, signOut } = useAuth();
   const { role } = useUserRole();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -55,7 +57,32 @@ const Header = ({
     return isOnTaskerPage ? '/tasker-landing' : '/user-landing';
   };
 
+  const handleHowItWorksClick = (e: React.MouseEvent) => {
+    if (location.pathname === '/' || location.pathname === '/user-landing') {
+      e.preventDefault();
+      const howItWorksSection = document.getElementById('how-it-works-section');
+      if (howItWorksSection) {
+        howItWorksSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
+
+  const handlePostJobClick = () => {
+    navigate('/book-job', {
+      state: {
+        category: 'Handyman',
+        service: 'Reparaciones generales',
+        description: 'Servicio de reparaciones generales del hogar'
+      }
+    });
+  };
+
   return (
+    <>
+      <AllCategoriesDialog 
+        open={categoriesDialogOpen} 
+        onOpenChange={setCategoriesDialogOpen} 
+      />
     <header className="absolute top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-border/40">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-center h-16 md:h-20 relative">
@@ -75,20 +102,26 @@ const Header = ({
 
           {/* Center - All Navigation */}
           <div className="hidden lg:flex items-center gap-8">
-            <Link to="/book-job">
+            <button onClick={handlePostJobClick}>
               <span className="bg-primary hover:bg-primary/90 text-white rounded-full px-8 py-3 text-base font-semibold inline-block transition-colors cursor-pointer">
                 Publicar tarea
               </span>
-            </Link>
-            <Link to="/categories" className="text-foreground/70 hover:text-foreground transition-colors text-base font-normal">
+            </button>
+            <button 
+              onClick={() => setCategoriesDialogOpen(true)}
+              className="text-foreground/70 hover:text-foreground transition-colors text-base font-normal"
+            >
               Categorías
-            </Link>
+            </button>
             <Link to="/browse-tasks" className="text-foreground/70 hover:text-foreground transition-colors text-base font-normal">
               Explorar tareas
             </Link>
-            <Link to="/how-it-works" className="text-foreground/70 hover:text-foreground transition-colors text-base font-normal">
+            <button 
+              onClick={handleHowItWorksClick}
+              className="text-foreground/70 hover:text-foreground transition-colors text-base font-normal"
+            >
               Cómo funciona
-            </Link>
+            </button>
             
             {user ? (
               <DropdownMenu>
@@ -165,20 +198,26 @@ const Header = ({
         {isMenuOpen && (
           <div className="lg:hidden border-t border-border/40 bg-background">
             <div className="px-4 pt-4 pb-6 space-y-4">
-              <Link to="/book-job" className="block">
+              <button onClick={handlePostJobClick} className="block w-full">
                 <span className="w-full bg-primary hover:bg-primary/90 text-white rounded-full px-6 py-3 text-base font-semibold inline-block text-center">
                   Publicar tarea
                 </span>
-              </Link>
-              <Link to="/categories" className="block py-2 text-base font-normal text-foreground/70 hover:text-foreground">
+              </button>
+              <button 
+                onClick={() => setCategoriesDialogOpen(true)}
+                className="block w-full text-left py-2 text-base font-normal text-foreground/70 hover:text-foreground"
+              >
                 Categorías
-              </Link>
+              </button>
               <Link to="/browse-tasks" className="block py-2 text-base font-normal text-foreground/70 hover:text-foreground">
                 Explorar tareas
               </Link>
-              <Link to="/how-it-works" className="block py-2 text-base font-normal text-foreground/70 hover:text-foreground">
+              <button 
+                onClick={handleHowItWorksClick}
+                className="block w-full text-left py-2 text-base font-normal text-foreground/70 hover:text-foreground"
+              >
                 Cómo funciona
-              </Link>
+              </button>
               
               {user ? (
                 <>
@@ -232,6 +271,7 @@ const Header = ({
         )}
       </div>
     </header>
+    </>
   );
 };
 

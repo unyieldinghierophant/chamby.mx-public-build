@@ -10,6 +10,7 @@ import logo from "@/assets/chamby-logo-new-icon.png";
 import { ModernButton } from "@/components/ui/modern-button";
 import { Menu, X } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { AllCategoriesDialog } from "@/components/AllCategoriesDialog";
 const Index = () => {
   const {
     user,
@@ -17,6 +18,24 @@ const Index = () => {
   } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [categoriesDialogOpen, setCategoriesDialogOpen] = useState(false);
+
+  const handlePostJobClick = () => {
+    navigate('/book-job', {
+      state: {
+        category: 'Handyman',
+        service: 'Reparaciones generales',
+        description: 'Servicio de reparaciones generales del hogar'
+      }
+    });
+  };
+
+  const handleHowItWorksClick = () => {
+    const howItWorksSection = document.getElementById('how-it-works-section');
+    if (howItWorksSection) {
+      howItWorksSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
   useEffect(() => {
     if (!loading && user) {
       navigate("/user-landing");
@@ -34,6 +53,10 @@ const Index = () => {
   // Not logged in - show landing page
   if (!user) {
     return <div className="min-h-screen bg-background mobile-pb-nav">
+      <AllCategoriesDialog 
+        open={categoriesDialogOpen} 
+        onOpenChange={setCategoriesDialogOpen} 
+      />
       <header className="fixed top-0 left-0 right-0 bg-background z-50">
           <div className="max-w-7xl mx-auto px-4 md:px-8 py-2 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -46,13 +69,21 @@ const Index = () => {
             <div className="hidden md:flex items-center justify-between flex-1">
               {/* Center Navigation */}
               <nav className="flex items-center gap-8 mx-auto">
-                <Link to="/post-job" className="px-6 py-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium">Buscar Servicio</Link>
-                <Link to="/categories" className="text-foreground hover:text-primary transition-colors font-medium">
+                <button onClick={handlePostJobClick} className="px-6 py-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium">
+                  Buscar Servicio
+                </button>
+                <button 
+                  onClick={() => setCategoriesDialogOpen(true)}
+                  className="text-foreground hover:text-primary transition-colors font-medium"
+                >
                   Categorías
-                </Link>
-                <Link to="/explore" className="text-foreground hover:text-primary transition-colors font-medium">
-              </Link>
-                <Link to="/how-it-works" className="text-foreground hover:text-primary transition-colors font-medium">¿Cómo funciona?</Link>
+                </button>
+                <button 
+                  onClick={handleHowItWorksClick}
+                  className="text-foreground hover:text-primary transition-colors font-medium"
+                >
+                  ¿Cómo funciona?
+                </button>
               </nav>
 
               {/* Right Auth Links */}

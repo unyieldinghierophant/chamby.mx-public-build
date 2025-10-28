@@ -37,7 +37,7 @@ const HowItWorks = () => {
   ];
 
   return (
-    <section id="como-funciona" className="py-20 bg-gradient-main bg-gradient-mesh">
+    <section id="how-it-works-section" className="py-20 bg-gradient-main bg-gradient-mesh">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
