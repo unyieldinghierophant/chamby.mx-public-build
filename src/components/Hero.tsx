@@ -17,10 +17,10 @@ const Hero = () => {
     user
   } = useAuth();
   return <section className="relative min-h-screen bg-background flex items-center justify-center pt-16 overflow-hidden">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 py-4">
-        <div className="max-w-5xl mx-auto text-center space-y-6">
+      <div className="container mx-auto px-2 sm:px-4 lg:px-6 relative z-10 py-4">
+        <div className="max-w-7xl mx-auto text-center space-y-6">
           {/* Floating Blue Card Container */}
-          <div className="relative bg-gradient-to-br from-[#1e3a8a] to-[#1e40af] rounded-[2rem] md:rounded-[3rem] p-10 md:p-14 lg:p-20 shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] border border-white/10 overflow-hidden">
+          <div className="relative bg-gradient-to-br from-[#1e3a8a] to-[#1e40af] rounded-[1.5rem] md:rounded-[2.5rem] p-8 md:p-12 lg:p-16 xl:p-20 shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] border border-white/10 overflow-hidden">
             {/* Shiny Stars Background - SVG Stars */}
             <div className="absolute inset-0 pointer-events-none">
               {/* Large stars */}
@@ -51,60 +51,60 @@ const Hero = () => {
               </svg>
             </div>
             {/* Main Heading with Airtasker-style Warping */}
-            <div className="space-y-6">
-              <h1 className="font-hero text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-white leading-[0.95] uppercase tracking-tight"
+            <div className="space-y-4 md:space-y-6">
+              <h1 className="font-hero text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black text-white leading-[0.9] uppercase tracking-tight px-2"
                   style={{
-                    transform: 'perspective(500px) rotateX(-5deg) rotateZ(3deg)',
+                    transform: 'perspective(800px) rotateX(-8deg) rotateZ(5deg)',
                     transformStyle: 'preserve-3d',
                   }}>
-                <span className="inline-block" style={{ transform: 'scale(0.85) translateY(8px)' }}>S</span>
-                <span className="inline-block" style={{ transform: 'scale(0.9) translateY(5px)' }}>e</span>
-                <span className="inline-block" style={{ transform: 'scale(0.95) translateY(3px)' }}>r</span>
-                <span className="inline-block" style={{ transform: 'scale(1) translateY(0px)' }}>v</span>
-                <span className="inline-block" style={{ transform: 'scale(1.05) translateY(-2px)' }}>i</span>
-                <span className="inline-block" style={{ transform: 'scale(1.05) translateY(-2px)' }}>c</span>
-                <span className="inline-block" style={{ transform: 'scale(1) translateY(0px)' }}>i</span>
-                <span className="inline-block" style={{ transform: 'scale(0.95) translateY(3px)' }}>o</span>
-                <span className="inline-block" style={{ transform: 'scale(0.9) translateY(5px)' }}>s</span>
-                <span className="inline-block mx-2" style={{ transform: 'scale(0.85) translateY(8px)' }}></span>
-                <span className="inline-block" style={{ transform: 'scale(0.85) translateY(8px)' }}>d</span>
-                <span className="inline-block" style={{ transform: 'scale(0.9) translateY(5px)' }}>e</span>
-                <span className="inline-block" style={{ transform: 'scale(0.95) translateY(3px)' }}>l</span>
-                <span className="block mt-2 text-white">
-                  <span className="inline-block" style={{ transform: 'scale(0.85) translateY(8px)' }}>h</span>
-                  <span className="inline-block" style={{ transform: 'scale(0.9) translateY(5px)' }}>o</span>
-                  <span className="inline-block" style={{ transform: 'scale(0.95) translateY(3px)' }}>g</span>
-                  <span className="inline-block" style={{ transform: 'scale(1) translateY(0px)' }}>a</span>
-                  <span className="inline-block" style={{ transform: 'scale(1.05) translateY(-2px)' }}>r</span>
-                  <span className="inline-block mx-3" style={{ transform: 'scale(1.05) translateY(-2px)' }}></span>
-                  <span className="inline-block" style={{ transform: 'scale(1) translateY(0px)' }}>c</span>
-                  <span className="inline-block" style={{ transform: 'scale(0.95) translateY(3px)' }}>o</span>
-                  <span className="inline-block" style={{ transform: 'scale(0.9) translateY(5px)' }}>n</span>
-                  <span className="inline-block" style={{ transform: 'scale(0.88) translateY(6px)' }}>f</span>
-                  <span className="inline-block" style={{ transform: 'scale(0.86) translateY(7px)' }}>i</span>
-                  <span className="inline-block" style={{ transform: 'scale(0.85) translateY(8px)' }}>a</span>
-                  <span className="inline-block" style={{ transform: 'scale(0.84) translateY(8px)' }}>b</span>
-                  <span className="inline-block" style={{ transform: 'scale(0.83) translateY(9px)' }}>l</span>
-                  <span className="inline-block" style={{ transform: 'scale(0.82) translateY(10px)' }}>e</span>
-                  <span className="inline-block" style={{ transform: 'scale(0.81) translateY(11px)' }}>s</span>
+                <span className="inline-block" style={{ transform: 'scale(0.82) translateY(12px) rotateZ(-8deg)' }}>S</span>
+                <span className="inline-block" style={{ transform: 'scale(0.88) translateY(8px) rotateZ(-5deg)' }}>e</span>
+                <span className="inline-block" style={{ transform: 'scale(0.93) translateY(5px) rotateZ(-3deg)' }}>r</span>
+                <span className="inline-block" style={{ transform: 'scale(0.98) translateY(2px) rotateZ(-1deg)' }}>v</span>
+                <span className="inline-block" style={{ transform: 'scale(1.03) translateY(-1px) rotateZ(1deg)' }}>i</span>
+                <span className="inline-block" style={{ transform: 'scale(1.06) translateY(-3px) rotateZ(2deg)' }}>c</span>
+                <span className="inline-block" style={{ transform: 'scale(1.03) translateY(-1px) rotateZ(1deg)' }}>i</span>
+                <span className="inline-block" style={{ transform: 'scale(0.98) translateY(2px) rotateZ(-1deg)' }}>o</span>
+                <span className="inline-block" style={{ transform: 'scale(0.93) translateY(5px) rotateZ(-3deg)' }}>s</span>
+                <span className="inline-block mx-1 sm:mx-2" style={{ transform: 'scale(0.88) translateY(8px) rotateZ(-5deg)' }}></span>
+                <span className="inline-block" style={{ transform: 'scale(0.82) translateY(12px) rotateZ(-8deg)' }}>d</span>
+                <span className="inline-block" style={{ transform: 'scale(0.88) translateY(8px) rotateZ(-5deg)' }}>e</span>
+                <span className="inline-block" style={{ transform: 'scale(0.93) translateY(5px) rotateZ(-3deg)' }}>l</span>
+                <span className="block mt-1 sm:mt-2 text-white">
+                  <span className="inline-block" style={{ transform: 'scale(0.82) translateY(12px) rotateZ(-8deg)' }}>h</span>
+                  <span className="inline-block" style={{ transform: 'scale(0.88) translateY(8px) rotateZ(-5deg)' }}>o</span>
+                  <span className="inline-block" style={{ transform: 'scale(0.93) translateY(5px) rotateZ(-3deg)' }}>g</span>
+                  <span className="inline-block" style={{ transform: 'scale(0.98) translateY(2px) rotateZ(-1deg)' }}>a</span>
+                  <span className="inline-block" style={{ transform: 'scale(1.03) translateY(-1px) rotateZ(1deg)' }}>r</span>
+                  <span className="inline-block mx-2 sm:mx-3" style={{ transform: 'scale(1.06) translateY(-3px) rotateZ(2deg)' }}></span>
+                  <span className="inline-block" style={{ transform: 'scale(1.03) translateY(-1px) rotateZ(1deg)' }}>c</span>
+                  <span className="inline-block" style={{ transform: 'scale(0.98) translateY(2px) rotateZ(-1deg)' }}>o</span>
+                  <span className="inline-block" style={{ transform: 'scale(0.93) translateY(5px) rotateZ(-3deg)' }}>n</span>
+                  <span className="inline-block" style={{ transform: 'scale(0.9) translateY(6px) rotateZ(-4deg)' }}>f</span>
+                  <span className="inline-block" style={{ transform: 'scale(0.87) translateY(9px) rotateZ(-6deg)' }}>i</span>
+                  <span className="inline-block" style={{ transform: 'scale(0.84) translateY(11px) rotateZ(-7deg)' }}>a</span>
+                  <span className="inline-block" style={{ transform: 'scale(0.82) translateY(12px) rotateZ(-8deg)' }}>b</span>
+                  <span className="inline-block" style={{ transform: 'scale(0.80) translateY(14px) rotateZ(-9deg)' }}>l</span>
+                  <span className="inline-block" style={{ transform: 'scale(0.78) translateY(15px) rotateZ(-10deg)' }}>e</span>
+                  <span className="inline-block" style={{ transform: 'scale(0.76) translateY(17px) rotateZ(-11deg)' }}>s</span>
                 </span>
-                <span className="block text-white mt-2">
-                  <span className="inline-block" style={{ transform: 'scale(0.85) translateY(8px)' }}>y</span>
-                  <span className="inline-block mx-2" style={{ transform: 'scale(0.9) translateY(5px)' }}></span>
-                  <span className="inline-block" style={{ transform: 'scale(0.95) translateY(3px)' }}>s</span>
-                  <span className="inline-block" style={{ transform: 'scale(1) translateY(0px)' }}>e</span>
-                  <span className="inline-block" style={{ transform: 'scale(1.05) translateY(-2px)' }}>g</span>
-                  <span className="inline-block" style={{ transform: 'scale(1.05) translateY(-2px)' }}>u</span>
-                  <span className="inline-block" style={{ transform: 'scale(1) translateY(0px)' }}>r</span>
-                  <span className="inline-block" style={{ transform: 'scale(0.95) translateY(3px)' }}>o</span>
-                  <span className="inline-block" style={{ transform: 'scale(0.9) translateY(5px)' }}>s</span>
+                <span className="block text-white mt-1 sm:mt-2">
+                  <span className="inline-block" style={{ transform: 'scale(0.82) translateY(12px) rotateZ(-8deg)' }}>y</span>
+                  <span className="inline-block mx-1 sm:mx-2" style={{ transform: 'scale(0.88) translateY(8px) rotateZ(-5deg)' }}></span>
+                  <span className="inline-block" style={{ transform: 'scale(0.93) translateY(5px) rotateZ(-3deg)' }}>s</span>
+                  <span className="inline-block" style={{ transform: 'scale(0.98) translateY(2px) rotateZ(-1deg)' }}>e</span>
+                  <span className="inline-block" style={{ transform: 'scale(1.03) translateY(-1px) rotateZ(1deg)' }}>g</span>
+                  <span className="inline-block" style={{ transform: 'scale(1.06) translateY(-3px) rotateZ(2deg)' }}>u</span>
+                  <span className="inline-block" style={{ transform: 'scale(1.03) translateY(-1px) rotateZ(1deg)' }}>r</span>
+                  <span className="inline-block" style={{ transform: 'scale(0.98) translateY(2px) rotateZ(-1deg)' }}>o</span>
+                  <span className="inline-block" style={{ transform: 'scale(0.93) translateY(5px) rotateZ(-3deg)' }}>s</span>
                 </span>
               </h1>
-              <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl leading-relaxed max-w-3xl mx-auto px-4 pt-2 font-medium text-white">Soluciona en minutos no en dias</p>
+              <p className="text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed max-w-3xl mx-auto px-4 pt-2 font-medium text-white">Soluciona en minutos no en dias</p>
             </div>
 
             {/* AI Search Bar */}
-            <div className="max-w-sm sm:max-w-md md:max-w-xl lg:max-w-2xl mx-auto px-4 sm:px-0 mt-8">
+            <div className="max-w-sm sm:max-w-md md:max-w-xl lg:max-w-2xl mx-auto px-2 sm:px-4 mt-6 md:mt-8">
               <AISearchBar className="w-full" />
               
               {/* Gana dinero CTA */}
