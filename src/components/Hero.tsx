@@ -10,6 +10,7 @@ import categoryHandyman from "@/assets/category-handyman.png";
 import categoryElectrician from "@/assets/category-electrician.png";
 import categoryPlumbing from "@/assets/category-plumbing.png";
 import categoryAuto from "@/assets/category-auto.png";
+import ufoChamby from "@/assets/ufo-chamby.png";
 const Hero = () => {
   const [location, setLocation] = useState("");
   const navigate = useNavigate();
@@ -50,9 +51,11 @@ const Hero = () => {
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
               </svg>
             </div>
-            {/* Main Heading with Airtasker-style Warping */}
-            <div className="space-y-4 md:space-y-6">
-              <h1 className="font-hero text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-white leading-[0.9] uppercase tracking-tight px-2"
+            {/* Main Content - Two Column Layout */}
+            <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+              {/* Left Column - Text Content */}
+              <div className="flex-1 space-y-4 md:space-y-6">
+                <h1 className="font-hero text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-white leading-[0.9] uppercase tracking-tight px-2"
                   style={{
                     transform: 'perspective(800px) rotateX(-8deg) rotateZ(5deg)',
                     transformStyle: 'preserve-3d',
@@ -100,21 +103,34 @@ const Hero = () => {
                   <span className="inline-block" style={{ transform: 'scale(1.03) translateY(-1px) rotateZ(1deg)' }}>O</span>
                   <span className="inline-block" style={{ transform: 'scale(1.06) translateY(-3px) rotateZ(2deg)' }}>.</span>
                 </span>
-              </h1>
-              <p className="text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed max-w-3xl mx-auto px-4 pt-2 font-medium text-white">Soluciona en minutos no en dias</p>
-            </div>
-
-            {/* AI Search Bar */}
-            <div className="max-w-sm sm:max-w-md md:max-w-xl lg:max-w-2xl mx-auto px-2 sm:px-4 mt-6 md:mt-8">
-              <AISearchBar className="w-full" />
+                </h1>
+                <p className="text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed max-w-3xl mx-auto px-4 pt-2 font-medium text-white">Soluciona en minutos no en dias</p>
               
-              {/* Gana dinero CTA */}
-              <div className="mt-4">
-                <Link to="/tasker-landing">
-                  <ModernButton variant="outline" className="w-full bg-white/10 text-white border-white/20 hover:bg-white/20">
-                    💰 Gana dinero como Chambynauta
-                  </ModernButton>
-                </Link>
+                {/* AI Search Bar */}
+                <div className="max-w-sm sm:max-w-md md:max-w-xl lg:max-w-2xl mx-auto px-2 sm:px-4 mt-6 md:mt-8">
+                  <AISearchBar className="w-full" />
+                  
+                  {/* Gana dinero CTA */}
+                  <div className="mt-4">
+                    <Link to="/tasker-landing">
+                      <ModernButton variant="outline" className="w-full bg-white/10 text-white border-white/20 hover:bg-white/20">
+                        💰 Gana dinero como Chambynauta
+                      </ModernButton>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column - UFO Image */}
+              <div className="hidden lg:block flex-shrink-0 relative z-20">
+                <img 
+                  src={ufoChamby} 
+                  alt="Chamby UFO" 
+                  className="w-48 md:w-56 lg:w-64 xl:w-80 animate-[float_3s_ease-in-out_infinite] drop-shadow-[0_0_30px_rgba(255,255,255,0.3)]"
+                  style={{
+                    filter: 'drop-shadow(0 10px 30px rgba(30, 58, 138, 0.4))'
+                  }}
+                />
               </div>
             </div>
           </div>
