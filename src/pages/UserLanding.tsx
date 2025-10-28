@@ -66,21 +66,25 @@ const UserLanding = () => {
     icon: Car,
     category: "Auto y Lavado",
     description: "Lavado, aspirado, encerado, batería",
+    gradient: "from-purple-400 via-purple-500 to-purple-600",
     services: ["Lavado exterior completo", "Aspirado interior", "Encerado y pulido", "Cambio de batería", "Mantenimiento básico"]
   }, {
     icon: Wrench,
     category: "Fontanería",
     description: "Fugas, WC, bombas",
+    gradient: "from-blue-400 via-cyan-500 to-blue-600",
     services: ["Reparación de fugas", "Reparación de WC", "Instalación de bombas", "Destapado de cañerías", "Cambio de llaves"]
   }, {
     icon: Zap,
     category: "Electricidad",
     description: "Apagadores, cortos, lámparas",
+    gradient: "from-yellow-400 via-orange-500 to-amber-600",
     services: ["Instalación de apagadores", "Reparación de cortos circuitos", "Instalación de lámparas", "Revisión de tablero eléctrico", "Cableado eléctrico"]
   }, {
     icon: Hammer,
     category: "Handyman",
     description: "Arreglos, pintura, colgar TV, mover muebles",
+    gradient: "from-emerald-400 via-teal-500 to-green-600",
     services: ["Arreglos generales", "Pintura de interiores", "Colgar TV en pared", "Mover muebles", "Montaje de muebles", "Reparaciones menores"]
   }];
   return <div className="min-h-screen bg-gradient-subtle">
@@ -225,7 +229,7 @@ const UserLanding = () => {
             Categorías de Servicios
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {categories.map((category, index) => <CategoryCard key={index} icon={category.icon} category={category.category} description={category.description} services={category.services} />)}
+            {categories.map((category, index) => <CategoryCard key={index} icon={category.icon} category={category.category} description={category.description} gradient={category.gradient} services={category.services} />)}
           </div>
         </div>
 

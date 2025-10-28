@@ -92,24 +92,28 @@ const Hero = () => {
                 icon={Hammer}
                 category="Handyman"
                 description="Reparaciones generales"
+                gradient="from-emerald-400 via-teal-500 to-green-600"
                 services={["Reparaciones menores", "Instalaciones", "Mantenimiento"]}
               />
               <CategoryCard
                 icon={Zap}
                 category="Electricidad"
                 description="Servicios eléctricos"
+                gradient="from-yellow-400 via-orange-500 to-amber-600"
                 services={["Instalaciones eléctricas", "Reparaciones", "Mantenimiento"]}
               />
               <CategoryCard
                 icon={Droplets}
                 category="Plomería"
                 description="Servicios de plomería"
+                gradient="from-blue-400 via-cyan-500 to-blue-600"
                 services={["Reparaciones", "Instalaciones", "Destapes"]}
               />
               <CategoryCard
                 icon={Car}
                 category="Auto y lavado"
                 description="Servicios automotrices"
+                gradient="from-purple-400 via-purple-500 to-purple-600"
                 services={["Lavado de autos", "Detallado", "Mantenimiento básico"]}
               />
             </div>
