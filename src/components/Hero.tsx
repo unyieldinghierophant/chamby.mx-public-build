@@ -64,11 +64,11 @@ const Hero = () => {
           <div className="space-y-4 -mt-12">
             <h1 className="font-dillan text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-tight pb-2">
               Servicios del hogar
-              <span className="block bg-gradient-button bg-clip-text text-transparent py-[4px]">
+              <span className="block bg-gradient-button bg-clip-text text-transparent py-2 pb-4">
                 confiables y seguros
               </span>
             </h1>
-            <p className="text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed max-w-3xl mx-auto px-4 pt-0 font-normal text-zinc-600">Soluciona en minutos no en dias</p>
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed max-w-3xl mx-auto px-4 pt-2 font-normal text-zinc-600">Soluciona en minutos no en dias</p>
           </div>
 
           {/* AI Search Bar */}
