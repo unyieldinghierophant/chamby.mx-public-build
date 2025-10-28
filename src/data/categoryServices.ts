@@ -50,6 +50,9 @@ export const categoryServicesMap: Record<string, ServiceOption[]> = {
     { name: "Detallado completo", description: "Servicio de detallado premium completo" },
     { name: "Lavado de llantas", description: "Limpieza y abrillantado de llantas" },
     { name: "Eliminación de olores", description: "Sanitización y eliminación de malos olores" },
-    { name: "Lavado express", description: "Lavado rápido exterior" }
+    { name: "Lavado express", description: "Lavado rápido exterior" },
+    { name: "Cambio de batería", description: "Reemplazo de batería de vehículo" },
+    { name: "Cambio de llanta", description: "Cambio de neumáticos y ruedas" },
+    { name: "Parchado de llanta", description: "Reparación de pinchazos en neumáticos" }
   ]
 };

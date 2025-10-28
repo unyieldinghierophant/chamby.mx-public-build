@@ -11,6 +11,7 @@ import categoryElectrician from "@/assets/category-electrician.png";
 import categoryPlumbing from "@/assets/category-plumbing.png";
 import categoryAuto from "@/assets/category-auto.png";
 import ufoChamby from "@/assets/ufo-chamby-final.png";
+import moneyBagIcon from "@/assets/money-bag-icon.png";
 const Hero = () => {
   const [location, setLocation] = useState("");
   const navigate = useNavigate();
@@ -124,8 +125,9 @@ const Hero = () => {
                   {/* Gana dinero CTA */}
                   <div className="mt-4">
                     <Link to="/tasker-landing">
-                      <ModernButton variant="outline" className="w-full bg-white/10 text-white border-white/20 hover:bg-white/20">
-                        💰 Gana dinero como Chambynauta
+                      <ModernButton variant="outline" className="w-full bg-white/10 text-white border-white/20 hover:bg-white/20 flex items-center justify-center gap-2">
+                        <img src={moneyBagIcon} alt="Money bag" className="w-5 h-5" />
+                        Gana dinero como Chambynauta
                       </ModernButton>
                     </Link>
                   </div>
