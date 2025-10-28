@@ -27,7 +27,7 @@ export const CategoryCard = ({ icon, category, description, gradient }: Category
       onClick={handleCardClick}
       className="group cursor-pointer hover:shadow-elegant transition-all duration-300 hover:scale-105 bg-gradient-card border-white/20 h-full"
     >
-      <CardHeader className="pb-6">
+      <CardHeader className="pb-6 flex flex-col items-center text-center">
         <Icon3D icon={icon} gradient={gradient} size="md" className="mb-4" />
         <CardTitle className="text-xl mb-2">{category}</CardTitle>
         <p className="text-sm text-muted-foreground">{description}</p>
