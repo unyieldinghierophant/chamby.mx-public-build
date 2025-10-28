@@ -64,11 +64,11 @@ const Hero = () => {
           <div className="space-y-4 -mt-12">
             <h1 className="font-dillan text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-tight pb-2">
               Servicios del hogar
-              <span className="block bg-gradient-button bg-clip-text text-transparent py-2 pb-4">
+              <span className="block bg-gradient-button bg-clip-text text-transparent py-[4px]">
                 confiables y seguros
               </span>
             </h1>
-            <p className="text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed max-w-3xl mx-auto px-4 pt-2 font-normal text-zinc-600">Soluciona en minutos no en dias</p>
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed max-w-3xl mx-auto px-4 pt-0 font-normal text-zinc-600">Soluciona en minutos no en dias</p>
           </div>
 
           {/* AI Search Bar */}
@@ -92,28 +92,24 @@ const Hero = () => {
                 icon={Hammer}
                 category="Handyman"
                 description="Reparaciones generales"
-                gradient="from-emerald-400 via-teal-500 to-green-600"
                 services={["Reparaciones menores", "Instalaciones", "Mantenimiento"]}
               />
               <CategoryCard
                 icon={Zap}
                 category="Electricidad"
                 description="Servicios eléctricos"
-                gradient="from-yellow-400 via-orange-500 to-amber-600"
                 services={["Instalaciones eléctricas", "Reparaciones", "Mantenimiento"]}
               />
               <CategoryCard
                 icon={Droplets}
                 category="Plomería"
                 description="Servicios de plomería"
-                gradient="from-blue-400 via-cyan-500 to-blue-600"
                 services={["Reparaciones", "Instalaciones", "Destapes"]}
               />
               <CategoryCard
                 icon={Car}
                 category="Auto y lavado"
                 description="Servicios automotrices"
-                gradient="from-purple-400 via-purple-500 to-purple-600"
                 services={["Lavado de autos", "Detallado", "Mantenimiento básico"]}
               />
             </div>
