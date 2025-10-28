@@ -10,7 +10,7 @@ import categoryHandyman from "@/assets/category-handyman.png";
 import categoryElectrician from "@/assets/category-electrician.png";
 import categoryPlumbing from "@/assets/category-plumbing.png";
 import categoryAuto from "@/assets/category-auto.png";
-import ufoChamby from "@/assets/ufo-chamby-transparent.png";
+import ufoChamby from "@/assets/ufo-chamby-final.png";
 const Hero = () => {
   const [location, setLocation] = useState("");
   const navigate = useNavigate();
