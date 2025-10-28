@@ -21,11 +21,12 @@ const Hero = () => {
         <div className="text-center space-y-6">
           {/* Space Background Hero Container */}
           <div 
-            className="relative rounded-[1.5rem] md:rounded-[2.5rem] p-8 md:p-12 lg:p-16 xl:p-20 shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] overflow-hidden min-h-[500px] md:min-h-[600px] flex flex-col items-center justify-center"
+            className="relative rounded-[1.5rem] md:rounded-[2.5rem] bg-[#0a0e27] p-8 md:p-12 lg:p-16 xl:p-20 shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] overflow-hidden min-h-[600px] md:min-h-[700px] lg:min-h-[800px] flex flex-col items-center justify-center"
             style={{
               backgroundImage: `url(${heroSpaceBackground})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
+              backgroundSize: 'contain',
+              backgroundPosition: 'center top',
+              backgroundRepeat: 'no-repeat',
             }}
           >
             {/* Shiny Stars Overlay - SVG Stars */}
@@ -59,7 +60,7 @@ const Hero = () => {
             </div>
 
             {/* AI Search Bar - Positioned over the background */}
-            <div className="relative z-20 max-w-sm sm:max-w-md md:max-w-xl lg:max-w-2xl mx-auto px-2 sm:px-4 w-full">
+            <div className="relative z-20 max-w-sm sm:max-w-md md:max-w-xl lg:max-w-2xl mx-auto px-2 sm:px-4 w-full mt-12 md:mt-16 lg:mt-20">
               <AISearchBar className="w-full" />
               
               {/* Gana dinero CTA */}
