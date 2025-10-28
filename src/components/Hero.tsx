@@ -2,7 +2,7 @@ import { ModernButton } from "@/components/ui/modern-button";
 import { Search, Shield, Star, MapPin, Home, Wrench, Droplets, Truck, SprayCan, Hammer, Zap, Car } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import heroImage from "@/assets/hero-services.jpg";
+import heroSpaceBackground from "@/assets/hero-space-background.png";
 import { AISearchBar } from "@/components/AISearchBar";
 import { useAuth } from "@/contexts/AuthContext";
 import { CategoryCard } from "@/components/CategoryCard";
@@ -19,10 +19,17 @@ const Hero = () => {
   return <section className="relative min-h-screen bg-background flex items-start justify-center pt-4 md:pt-6 overflow-hidden">
       <div className="w-[96%] md:w-[98%] mx-auto relative z-10 mt-0">
         <div className="text-center space-y-6">
-          {/* Floating Blue Card Container */}
-          <div className="relative bg-gradient-to-br from-[#1e3a8a] to-[#1e40af] rounded-[1.5rem] md:rounded-[2.5rem] p-6 md:p-8 lg:p-10 xl:p-12 shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] border border-white/10 overflow-hidden">
-            {/* Shiny Stars Background - SVG Stars */}
-            <div className="absolute inset-0 pointer-events-none">
+          {/* Space Background Hero Container */}
+          <div 
+            className="relative rounded-[1.5rem] md:rounded-[2.5rem] p-8 md:p-12 lg:p-16 xl:p-20 shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] overflow-hidden min-h-[500px] md:min-h-[600px] flex flex-col items-center justify-center"
+            style={{
+              backgroundImage: `url(${heroSpaceBackground})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
+          >
+            {/* Shiny Stars Overlay - SVG Stars */}
+            <div className="absolute inset-0 pointer-events-none z-10">
               {/* Large stars */}
               <svg className="absolute top-[8%] left-[12%] w-6 h-6 text-white animate-[pulse_2s_ease-in-out_infinite]" style={{ animationDelay: '0s', filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.8))' }} viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
@@ -50,62 +57,9 @@ const Hero = () => {
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
               </svg>
             </div>
-            {/* Main Heading with Airtasker-style Warping */}
-            <div className="space-y-4 md:space-y-6">
-              <h1 className="font-hero text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-white leading-[0.9] uppercase tracking-tight px-2"
-                  style={{
-                    transform: 'perspective(800px) rotateX(-8deg) rotateZ(5deg)',
-                    transformStyle: 'preserve-3d',
-                    wordSpacing: '0.3em',
-                  }}>
-                <span className="inline-block" style={{ transform: 'scale(0.82) translateY(12px) rotateZ(-8deg)' }}>S</span>
-                <span className="inline-block" style={{ transform: 'scale(0.88) translateY(8px) rotateZ(-5deg)' }}>E</span>
-                <span className="inline-block" style={{ transform: 'scale(0.93) translateY(5px) rotateZ(-3deg)' }}>R</span>
-                <span className="inline-block" style={{ transform: 'scale(0.98) translateY(2px) rotateZ(-1deg)' }}>V</span>
-                <span className="inline-block" style={{ transform: 'scale(1.03) translateY(-1px) rotateZ(1deg)' }}>I</span>
-                <span className="inline-block" style={{ transform: 'scale(1.06) translateY(-3px) rotateZ(2deg)' }}>C</span>
-                <span className="inline-block" style={{ transform: 'scale(1.03) translateY(-1px) rotateZ(1deg)' }}>I</span>
-                <span className="inline-block" style={{ transform: 'scale(0.98) translateY(2px) rotateZ(-1deg)' }}>O</span>
-                <span className="inline-block" style={{ transform: 'scale(0.93) translateY(5px) rotateZ(-3deg)' }}>S</span>
-                {' '}
-                <span className="inline-block" style={{ transform: 'scale(0.88) translateY(8px) rotateZ(-5deg)' }}>D</span>
-                <span className="inline-block" style={{ transform: 'scale(0.82) translateY(12px) rotateZ(-8deg)' }}>E</span>
-                <span className="inline-block" style={{ transform: 'scale(0.88) translateY(8px) rotateZ(-5deg)' }}>L</span>
-                <span className="block mt-1 sm:mt-2 text-white">
-                  <span className="inline-block" style={{ transform: 'scale(0.82) translateY(12px) rotateZ(-8deg)' }}>H</span>
-                  <span className="inline-block" style={{ transform: 'scale(0.88) translateY(8px) rotateZ(-5deg)' }}>O</span>
-                  <span className="inline-block" style={{ transform: 'scale(0.93) translateY(5px) rotateZ(-3deg)' }}>G</span>
-                  <span className="inline-block" style={{ transform: 'scale(0.98) translateY(2px) rotateZ(-1deg)' }}>A</span>
-                  <span className="inline-block" style={{ transform: 'scale(1.03) translateY(-1px) rotateZ(1deg)' }}>R</span>
-                  {' '}
-                  <span className="inline-block" style={{ transform: 'scale(1.06) translateY(-3px) rotateZ(2deg)' }}>F</span>
-                  <span className="inline-block" style={{ transform: 'scale(1.03) translateY(-1px) rotateZ(1deg)' }}>U</span>
-                  <span className="inline-block" style={{ transform: 'scale(0.98) translateY(2px) rotateZ(-1deg)' }}>E</span>
-                  <span className="inline-block" style={{ transform: 'scale(0.93) translateY(5px) rotateZ(-3deg)' }}>R</span>
-                  <span className="inline-block" style={{ transform: 'scale(0.9) translateY(6px) rotateZ(-4deg)' }}>A</span>
-                </span>
-                <span className="block text-white mt-1 sm:mt-2">
-                  <span className="inline-block" style={{ transform: 'scale(0.87) translateY(9px) rotateZ(-6deg)' }}>D</span>
-                  <span className="inline-block" style={{ transform: 'scale(0.84) translateY(11px) rotateZ(-7deg)' }}>E</span>
-                  {' '}
-                  <span className="inline-block" style={{ transform: 'scale(0.82) translateY(12px) rotateZ(-8deg)' }}>E</span>
-                  <span className="inline-block" style={{ transform: 'scale(0.80) translateY(14px) rotateZ(-9deg)' }}>S</span>
-                  <span className="inline-block" style={{ transform: 'scale(0.78) translateY(15px) rotateZ(-10deg)' }}>T</span>
-                  <span className="inline-block" style={{ transform: 'scale(0.76) translateY(17px) rotateZ(-11deg)' }}>E</span>
-                  {' '}
-                  <span className="inline-block" style={{ transform: 'scale(0.82) translateY(12px) rotateZ(-8deg)' }}>M</span>
-                  <span className="inline-block" style={{ transform: 'scale(0.88) translateY(8px) rotateZ(-5deg)' }}>U</span>
-                  <span className="inline-block" style={{ transform: 'scale(0.93) translateY(5px) rotateZ(-3deg)' }}>N</span>
-                  <span className="inline-block" style={{ transform: 'scale(0.98) translateY(2px) rotateZ(-1deg)' }}>D</span>
-                  <span className="inline-block" style={{ transform: 'scale(1.03) translateY(-1px) rotateZ(1deg)' }}>O</span>
-                  <span className="inline-block" style={{ transform: 'scale(1.06) translateY(-3px) rotateZ(2deg)' }}>.</span>
-                </span>
-              </h1>
-              <p className="text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed max-w-3xl mx-auto px-4 pt-2 font-medium text-white">Soluciona en minutos no en dias</p>
-            </div>
 
-            {/* AI Search Bar */}
-            <div className="max-w-sm sm:max-w-md md:max-w-xl lg:max-w-2xl mx-auto px-2 sm:px-4 mt-6 md:mt-8">
+            {/* AI Search Bar - Positioned over the background */}
+            <div className="relative z-20 max-w-sm sm:max-w-md md:max-w-xl lg:max-w-2xl mx-auto px-2 sm:px-4 w-full">
               <AISearchBar className="w-full" />
               
               {/* Gana dinero CTA */}
