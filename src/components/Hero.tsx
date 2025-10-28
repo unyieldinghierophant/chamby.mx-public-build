@@ -16,7 +16,7 @@ const Hero = () => {
   const {
     user
   } = useAuth();
-  return <section className="relative min-h-screen bg-background flex items-start justify-center pt-16 md:pt-18 overflow-hidden">
+  return <section className="relative min-h-screen bg-background flex items-start justify-center pt-4 md:pt-6 overflow-hidden">
       <div className="w-[96%] md:w-[98%] mx-auto relative z-10 mt-0">
         <div className="text-center space-y-6">
           {/* Floating Blue Card Container */}
