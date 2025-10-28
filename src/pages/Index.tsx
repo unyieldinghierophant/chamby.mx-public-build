@@ -43,16 +43,56 @@ const Index = () => {
             </div>
             
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-4">
-            <Link 
-              to="/auth/tasker"
-              className="px-4 py-2 rounded-full text-foreground hover:bg-primary hover:text-primary-foreground transition-colors"
-            >
-              Ser Tasker
-            </Link>
-              <Link to="/auth/user">
-                <ModernButton variant="primary">Iniciar Sesión</ModernButton>
-              </Link>
+            <div className="hidden md:flex items-center justify-between flex-1">
+              {/* Center Navigation */}
+              <nav className="flex items-center gap-8 mx-auto">
+                <Link 
+                  to="/post-job"
+                  className="px-6 py-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium"
+                >
+                  Publicar tarea
+                </Link>
+                <Link 
+                  to="/categories"
+                  className="text-foreground hover:text-primary transition-colors font-medium"
+                >
+                  Categorías
+                </Link>
+                <Link 
+                  to="/explore"
+                  className="text-foreground hover:text-primary transition-colors font-medium"
+                >
+                  Explorar tareas
+                </Link>
+                <Link 
+                  to="/how-it-works"
+                  className="text-foreground hover:text-primary transition-colors font-medium"
+                >
+                  Cómo funciona
+                </Link>
+              </nav>
+
+              {/* Right Auth Links */}
+              <div className="flex items-center gap-6">
+                <Link 
+                  to="/auth/user"
+                  className="text-foreground hover:text-primary transition-colors font-medium"
+                >
+                  Registrarse
+                </Link>
+                <Link 
+                  to="/auth/user"
+                  className="text-foreground hover:text-primary transition-colors font-medium"
+                >
+                  Iniciar sesión
+                </Link>
+                <Link 
+                  to="/auth/tasker"
+                  className="text-primary hover:text-primary/80 transition-colors font-medium"
+                >
+                  Ser Chambynauta
+                </Link>
+              </div>
             </div>
 
             {/* Mobile Hamburger Menu */}
