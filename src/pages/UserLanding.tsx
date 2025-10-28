@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, LogOut, User, Settings, CreditCard, Shield, Users } from "lucide-react";
 import { AISearchBar } from "@/components/AISearchBar";
 import { CategoryCard } from "@/components/CategoryCard";
-import logo from "@/assets/chamby-logo-new-icon.png";
+import logo from "@/assets/chamby-logo-text.png";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import categoryAuto from "@/assets/category-auto.png";

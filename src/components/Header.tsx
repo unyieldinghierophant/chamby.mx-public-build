@@ -5,7 +5,7 @@ import { ModernButton } from "@/components/ui/modern-button";
 import { Button } from "@/components/ui/button";
 import { Menu, X, LogOut, User, Settings, CreditCard, Shield, Users } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import chambyLogo from "@/assets/chamby-logo-new.png";
+import chambyLogo from "@/assets/chamby-logo-text.png";
 import { BackButton } from "@/components/BackButton";
 import {
   DropdownMenu,
