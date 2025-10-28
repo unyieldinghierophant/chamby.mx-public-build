@@ -161,18 +161,19 @@ const Header = ({
               </div>
             )}
 
-            {/* Auth Buttons for Non-Logged In Users */}
+            {/* Auth Links for Non-Logged In Users */}
             {!hideProfileMenu && !user && (
-              <div className="hidden md:flex items-center space-x-4">
-                <Link to="/auth/tasker">
-                  <ModernButton variant="accent">
-                    Ser Tasker
-                  </ModernButton>
+              <div className="hidden md:flex items-center space-x-6 text-sm font-medium">
+                <Link to="/auth/tasker" className="text-foreground hover:text-primary transition-colors">
+                  Ser Chambynauta
                 </Link>
-                <Link to="/auth/user">
-                  <ModernButton variant="primary">
-                    Iniciar Sesión
-                  </ModernButton>
+                <span className="text-muted-foreground">|</span>
+                <Link to="/auth/user" className="text-foreground hover:text-primary transition-colors">
+                  Iniciar Sesión
+                </Link>
+                <span className="text-muted-foreground">|</span>
+                <Link to="/auth/user?mode=signup" className="text-foreground hover:text-primary transition-colors">
+                  Registrarse
                 </Link>
               </div>
             )}
@@ -242,19 +243,18 @@ const Header = ({
                     </Button>
                   </>
                 ) : (
-                  /* Not logged in - mobile auth buttons */
-                  <>
-                    <Link to="/auth/tasker">
-                      <ModernButton variant="accent" className="w-full">
-                        Ser Tasker
-                      </ModernButton>
+                  /* Not logged in - mobile auth links */
+                  <div className="space-y-3 text-center py-2">
+                    <Link to="/auth/tasker" className="block text-foreground hover:text-primary transition-colors py-2">
+                      Ser Chambynauta
                     </Link>
-                    <Link to="/auth/user">
-                      <ModernButton variant="primary" className="w-full">
-                        Iniciar Sesión
-                      </ModernButton>
+                    <Link to="/auth/user" className="block text-foreground hover:text-primary transition-colors py-2">
+                      Iniciar Sesión
                     </Link>
-                  </>
+                    <Link to="/auth/user?mode=signup" className="block text-foreground hover:text-primary transition-colors py-2">
+                      Registrarse
+                    </Link>
+                  </div>
                 )}
               </div>
             </div>

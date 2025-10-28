@@ -17,10 +17,19 @@ const Hero = () => {
     user
   } = useAuth();
   return <section className="relative min-h-screen bg-background flex items-center justify-center pt-16 overflow-hidden">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 md:py-16 relative z-10 py-[50px]">
-        <div className="max-w-4xl mx-auto text-center space-y-12">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 md:py-16 relative z-10 py-8">
+        <div className="max-w-4xl mx-auto text-center space-y-8">
           {/* Floating Blue Card Container */}
-          <div className="relative bg-gradient-to-br from-[#1e3a8a] to-[#1e40af] rounded-[2rem] md:rounded-[3rem] p-8 md:p-12 lg:p-16 shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] border border-white/10">
+          <div className="relative bg-gradient-to-br from-[#1e3a8a] to-[#1e40af] rounded-[2rem] md:rounded-[3rem] p-8 md:p-12 lg:p-16 shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] border border-white/10 overflow-hidden">
+            {/* Shiny Stars Background */}
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-[10%] left-[15%] text-2xl animate-[pulse_2s_ease-in-out_infinite]" style={{ animationDelay: '0s' }}>⭐</div>
+              <div className="absolute top-[20%] right-[20%] text-xl animate-[pulse_2.5s_ease-in-out_infinite]" style={{ animationDelay: '0.5s' }}>✨</div>
+              <div className="absolute bottom-[15%] left-[10%] text-lg animate-[pulse_3s_ease-in-out_infinite]" style={{ animationDelay: '1s' }}>⭐</div>
+              <div className="absolute top-[60%] right-[15%] text-2xl animate-[pulse_2s_ease-in-out_infinite]" style={{ animationDelay: '1.5s' }}>✨</div>
+              <div className="absolute bottom-[25%] right-[25%] text-xl animate-[pulse_2.5s_ease-in-out_infinite]" style={{ animationDelay: '2s' }}>⭐</div>
+              <div className="absolute top-[40%] left-[20%] text-lg animate-[pulse_3s_ease-in-out_infinite]" style={{ animationDelay: '2.5s' }}>✨</div>
+            </div>
             {/* Main Heading */}
             <div className="space-y-4">
               <h1 className="font-dillan text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-tight pb-2">
@@ -36,11 +45,11 @@ const Hero = () => {
             <div className="max-w-sm sm:max-w-md md:max-w-xl lg:max-w-2xl mx-auto px-4 sm:px-0 mt-8">
               <AISearchBar className="w-full" />
               
-              {/* Mobile-only Tasker CTA */}
-              <div className="md:hidden mt-4">
+              {/* Gana dinero CTA */}
+              <div className="mt-4">
                 <Link to="/tasker-landing">
                   <ModernButton variant="outline" className="w-full bg-white/10 text-white border-white/20 hover:bg-white/20">
-                    Ofrecer servicios
+                    💰 Gana dinero como Chambynauta
                   </ModernButton>
                 </Link>
               </div>
