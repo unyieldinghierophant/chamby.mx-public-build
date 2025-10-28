@@ -16,11 +16,11 @@ const Hero = () => {
   const {
     user
   } = useAuth();
-  return <section className="relative min-h-screen bg-background flex items-start justify-center pt-20 md:pt-24 overflow-hidden">
-      <div className="w-[96%] md:w-[98%] mx-auto relative z-10 mt-2 md:mt-4">
+  return <section className="relative min-h-screen bg-background flex items-start justify-center pt-16 md:pt-18 overflow-hidden">
+      <div className="w-[96%] md:w-[98%] mx-auto relative z-10 mt-0">
         <div className="text-center space-y-6">
           {/* Floating Blue Card Container */}
-          <div className="relative bg-gradient-to-br from-[#1e3a8a] to-[#1e40af] rounded-[1.5rem] md:rounded-[2.5rem] p-8 md:p-12 lg:p-16 xl:p-20 shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] border border-white/10 overflow-hidden">
+          <div className="relative bg-gradient-to-br from-[#1e3a8a] to-[#1e40af] rounded-[1.5rem] md:rounded-[2.5rem] p-6 md:p-8 lg:p-10 xl:p-12 shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] border border-white/10 overflow-hidden">
             {/* Shiny Stars Background - SVG Stars */}
             <div className="absolute inset-0 pointer-events-none">
               {/* Large stars */}
@@ -52,7 +52,7 @@ const Hero = () => {
             </div>
             {/* Main Heading with Airtasker-style Warping */}
             <div className="space-y-4 md:space-y-6">
-              <h1 className="font-hero text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black text-white leading-[0.9] uppercase tracking-tight px-2"
+              <h1 className="font-hero text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-white leading-[0.9] uppercase tracking-tight px-2"
                   style={{
                     transform: 'perspective(800px) rotateX(-8deg) rotateZ(5deg)',
                     transformStyle: 'preserve-3d',
