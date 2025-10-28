@@ -1,5 +1,5 @@
 import { ModernButton } from "@/components/ui/modern-button";
-import { Search, Shield, Star, MapPin, Home, Wrench, Droplets, Truck, SprayCan } from "lucide-react";
+import { Search, Shield, Star, MapPin, Home, Wrench, Droplets, Truck, SprayCan, Hammer, Zap, Car } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import heroImage from "@/assets/hero-services.jpg";
@@ -89,32 +89,28 @@ const Hero = () => {
           <div className="max-w-6xl mx-auto px-4">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               <CategoryCard
-                icon="🔧"
+                icon={Hammer}
                 category="Handyman"
                 description="Reparaciones generales"
                 services={["Reparaciones menores", "Instalaciones", "Mantenimiento"]}
-                gradient="from-orange-400 to-orange-600"
               />
               <CategoryCard
-                icon="⚡"
+                icon={Zap}
                 category="Electricidad"
                 description="Servicios eléctricos"
                 services={["Instalaciones eléctricas", "Reparaciones", "Mantenimiento"]}
-                gradient="from-yellow-400 to-yellow-600"
               />
               <CategoryCard
-                icon="🔨"
+                icon={Droplets}
                 category="Plomería"
                 description="Servicios de plomería"
                 services={["Reparaciones", "Instalaciones", "Destapes"]}
-                gradient="from-blue-400 to-blue-600"
               />
               <CategoryCard
-                icon="🚗"
+                icon={Car}
                 category="Auto y lavado"
                 description="Servicios automotrices"
                 services={["Lavado de autos", "Detallado", "Mantenimiento básico"]}
-                gradient="from-cyan-400 to-cyan-600"
               />
             </div>
           </div>

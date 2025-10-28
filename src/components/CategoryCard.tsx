@@ -1,15 +1,15 @@
 import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
+import { LucideIcon } from 'lucide-react';
 
 interface CategoryCardProps {
-  icon: string;
+  icon: LucideIcon;
   category: string;
   description: string;
   services: string[];
-  gradient: string;
 }
 
-export const CategoryCard = ({ icon, category, description, gradient }: CategoryCardProps) => {
+export const CategoryCard = ({ icon: Icon, category, description }: CategoryCardProps) => {
   const navigate = useNavigate();
 
   const handleCardClick = () => {
@@ -26,8 +26,8 @@ export const CategoryCard = ({ icon, category, description, gradient }: Category
       className="group cursor-pointer hover:shadow-elegant transition-all duration-300 hover:scale-105 bg-gradient-card border-white/20 h-full"
     >
       <CardHeader className="pb-6">
-        <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center mb-4 shadow-glow text-3xl group-hover:scale-110 transition-transform`}>
-          {icon}
+        <div className="w-16 h-16 rounded-2xl bg-background/50 backdrop-blur-sm border border-border flex items-center justify-center mb-4 group-hover:bg-background/80 transition-all">
+          <Icon className="w-8 h-8 text-primary" strokeWidth={1.5} />
         </div>
         <CardTitle className="text-xl mb-2">{category}</CardTitle>
         <p className="text-sm text-muted-foreground">{description}</p>
