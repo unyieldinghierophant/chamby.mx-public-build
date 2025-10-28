@@ -41,6 +41,7 @@ import PagoVisita from "./pages/PagoVisita";
 import EsperandoProveedor from "./pages/EsperandoProveedor";
 import PhotoRedirect from "./pages/PhotoRedirect";
 import WhatsAppFloatingButton from "./components/WhatsAppFloatingButton";
+import ChatBot from "./components/ChatBot";
 
 
 const queryClient = new QueryClient();
@@ -83,6 +84,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <WhatsAppFloatingButton />
+        <ChatBot />
         <BrowserRouter>
           <RedirectHandler />
           <Routes>
