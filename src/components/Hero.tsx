@@ -17,51 +17,6 @@ const Hero = () => {
     user
   } = useAuth();
   return <section className="relative min-h-screen bg-background flex items-center justify-center pt-16 overflow-hidden">
-      {/* 3D Glass Morphic Background Icons */}
-      <div className="absolute inset-0 pointer-events-none">
-        {/* House Icon - Top Left */}
-        <div className="absolute top-20 left-2 sm:top-32 sm:left-16 transform">
-          <div className="w-14 h-14 sm:w-20 sm:h-20 bg-white/20 backdrop-blur-xl rounded-2xl shadow-raised border border-white/30 flex items-center justify-center transform rotate-12 hover:rotate-6 transition-transform duration-300">
-            <Home size={24} className="sm:w-8 sm:h-8 text-muted-foreground/60" />
-          </div>
-        </div>
-        
-        {/* Wrench Icon - Top Right */}
-        <div className="absolute top-20 right-2 sm:top-40 sm:right-20 transform">
-          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white/20 backdrop-blur-xl rounded-xl shadow-raised border border-white/30 flex items-center justify-center transform -rotate-12 hover:rotate-0 transition-transform duration-300">
-            <Wrench size={20} className="sm:w-6 sm:h-6 text-muted-foreground/60" />
-          </div>
-        </div>
-        
-        {/* Droplets Icon - Left Side */}
-        <div className="absolute top-1/2 left-8 transform -translate-y-1/2">
-          <div className="w-20 h-20 bg-white/20 backdrop-blur-xl rounded-2xl shadow-raised border border-white/30 flex items-center justify-center transform rotate-45 hover:rotate-12 transition-transform duration-300">
-            <Droplets size={28} className="text-muted-foreground/60" />
-          </div>
-        </div>
-        
-        {/* Truck Icon - Right Side */}
-        <div className="absolute top-1/2 right-12 transform -translate-y-1/2">
-          <div className="w-24 h-24 bg-white/20 backdrop-blur-xl rounded-2xl shadow-raised border border-white/30 flex items-center justify-center transform -rotate-6 hover:rotate-6 transition-transform duration-300">
-            <Truck size={32} className="text-muted-foreground/60" />
-          </div>
-        </div>
-        
-        {/* SprayCan Icon - Bottom Left */}
-        <div className="absolute bottom-32 left-24 transform">
-          <div className="w-16 h-16 bg-white/20 backdrop-blur-xl rounded-xl shadow-raised border border-white/30 flex items-center justify-center transform rotate-20 hover:rotate-0 transition-transform duration-300">
-            <SprayCan size={24} className="text-muted-foreground/60" />
-          </div>
-        </div>
-        
-        {/* Additional Icon - Bottom Right */}
-        <div className="absolute bottom-28 right-16 transform">
-          <div className="w-20 h-20 bg-white/20 backdrop-blur-xl rounded-2xl shadow-raised border border-white/30 flex items-center justify-center transform -rotate-15 hover:rotate-3 transition-transform duration-300">
-            <Shield size={28} className="text-muted-foreground/60" />
-          </div>
-        </div>
-      </div>
-
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 md:py-16 relative z-10 py-[50px]">
         <div className="max-w-4xl mx-auto text-center space-y-12">
           {/* Main Heading */}
