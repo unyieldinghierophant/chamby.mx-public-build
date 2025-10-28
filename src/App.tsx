@@ -40,6 +40,7 @@ import BookJob from "./pages/BookJob";
 import PagoVisita from "./pages/PagoVisita";
 import EsperandoProveedor from "./pages/EsperandoProveedor";
 import PhotoRedirect from "./pages/PhotoRedirect";
+import WhatsAppFloatingButton from "./components/WhatsAppFloatingButton";
 
 
 const queryClient = new QueryClient();
@@ -81,6 +82,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <WhatsAppFloatingButton />
         <BrowserRouter>
           <RedirectHandler />
           <Routes>
