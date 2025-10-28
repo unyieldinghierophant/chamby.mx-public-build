@@ -1,40 +1,45 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Shield, FileCheck, Star, MessageSquare, CreditCard, Clock } from "lucide-react";
+import verifiedIcon from "@/assets/verified-icon.png";
+import documentsIcon from "@/assets/documents-icon.png";
+import ratingsIcon from "@/assets/ratings-icon.png";
+import customerSupportIcon from "@/assets/customer-support-icon.png";
+import securityIcon from "@/assets/security-icon.png";
+import guaranteeIcon from "@/assets/guarantee-icon.png";
 
 const Trust = () => {
   const trustFeatures = [
     {
-      icon: Shield,
+      icon: verifiedIcon,
       title: "Verificación completa",
       description: "Verificamos identidad y referencias laborales de todos los profesionales",
       stats: "100% verificados"
     },
     {
-      icon: FileCheck,
+      icon: documentsIcon,
       title: "Documentación visual",
       description: "Grabamos el área de trabajo antes y después para darte paz mental de que no te falte nada",
       stats: "Registro completo"
     },
     {
-      icon: Star,
+      icon: ratingsIcon,
       title: "Sistema de calificaciones",
       description: "Calificaciones reales de clientes para ayudarte a elegir el mejor",
       stats: "4.9★ promedio"
     },
     {
-      icon: MessageSquare,
+      icon: customerSupportIcon,
       title: "Soporte 24/7",
       description: "Nuestro equipo está disponible para resolver cualquier problema",
       stats: "Respuesta inmediata"
     },
     {
-      icon: CreditCard,
+      icon: securityIcon,
       title: "Pagos seguros",
       description: "Procesamos pagos de forma segura. El profesional cobra hasta que termines",
       stats: "Pago protegido"
     },
     {
-      icon: Clock,
+      icon: guaranteeIcon,
       title: "Garantía de servicio",
       description: "Si no quedas satisfecho, regresamos a corregir el trabajo sin costo",
       stats: "30 días garantía"
@@ -65,8 +70,8 @@ const Trust = () => {
               <CardContent className="p-6">
                 <div className="flex items-start space-x-4">
                   <div className="flex-shrink-0">
-                    <div className="w-12 h-12 bg-primary-light rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                      <feature.icon className="h-6 w-6 text-primary" />
+                    <div className="w-16 h-16 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                      <img src={feature.icon} alt={feature.title} className="w-14 h-14 object-contain" />
                     </div>
                   </div>
                   <div className="flex-1">
