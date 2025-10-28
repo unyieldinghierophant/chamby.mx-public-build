@@ -15,6 +15,7 @@ export default {
     extend: {
       fontFamily: {
         'dillan': ['Made Dillan', 'sans-serif'],
+        'hero': ['Outfit', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
