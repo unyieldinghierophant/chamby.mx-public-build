@@ -6,6 +6,10 @@ import heroImage from "@/assets/hero-services.jpg";
 import { AISearchBar } from "@/components/AISearchBar";
 import { useAuth } from "@/contexts/AuthContext";
 import { CategoryCard } from "@/components/CategoryCard";
+import categoryHandyman from "@/assets/category-handyman.png";
+import categoryElectrician from "@/assets/category-electrician.png";
+import categoryPlumbing from "@/assets/category-plumbing.png";
+import categoryAuto from "@/assets/category-auto.png";
 const Hero = () => {
   const [location, setLocation] = useState("");
   const navigate = useNavigate();
@@ -89,25 +93,25 @@ const Hero = () => {
           <div className="max-w-6xl mx-auto px-4">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               <CategoryCard
-                icon={Hammer}
+                image={categoryHandyman}
                 category="Handyman"
                 description="Reparaciones generales"
                 services={["Reparaciones menores", "Instalaciones", "Mantenimiento"]}
               />
               <CategoryCard
-                icon={Zap}
+                image={categoryElectrician}
                 category="Electricidad"
                 description="Servicios eléctricos"
                 services={["Instalaciones eléctricas", "Reparaciones", "Mantenimiento"]}
               />
               <CategoryCard
-                icon={Droplets}
+                image={categoryPlumbing}
                 category="Plomería"
                 description="Servicios de plomería"
                 services={["Reparaciones", "Instalaciones", "Destapes"]}
               />
               <CategoryCard
-                icon={Car}
+                image={categoryAuto}
                 category="Auto y lavado"
                 description="Servicios automotrices"
                 services={["Lavado de autos", "Detallado", "Mantenimiento básico"]}

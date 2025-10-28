@@ -7,12 +7,16 @@ import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, LogOut, User, Settings, CreditCard, Shield, Users, Car, Wrench, Zap, Hammer } from "lucide-react";
+import { TrendingUp, LogOut, User, Settings, CreditCard, Shield, Users } from "lucide-react";
 import { AISearchBar } from "@/components/AISearchBar";
 import { CategoryCard } from "@/components/CategoryCard";
 import logo from "@/assets/chamby-logo-new-icon.png";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import categoryAuto from "@/assets/category-auto.png";
+import categoryPlumbing from "@/assets/category-plumbing.png";
+import categoryElectrician from "@/assets/category-electrician.png";
+import categoryHandyman from "@/assets/category-handyman.png";
 const UserLanding = () => {
   const {
     user,
@@ -63,22 +67,22 @@ const UserLanding = () => {
     return null;
   }
   const categories = [{
-    icon: Car,
+    image: categoryAuto,
     category: "Auto y Lavado",
     description: "Lavado, aspirado, encerado, batería",
     services: ["Lavado exterior completo", "Aspirado interior", "Encerado y pulido", "Cambio de batería", "Mantenimiento básico"]
   }, {
-    icon: Wrench,
+    image: categoryPlumbing,
     category: "Fontanería",
     description: "Fugas, WC, bombas",
     services: ["Reparación de fugas", "Reparación de WC", "Instalación de bombas", "Destapado de cañerías", "Cambio de llaves"]
   }, {
-    icon: Zap,
+    image: categoryElectrician,
     category: "Electricidad",
     description: "Apagadores, cortos, lámparas",
     services: ["Instalación de apagadores", "Reparación de cortos circuitos", "Instalación de lámparas", "Revisión de tablero eléctrico", "Cableado eléctrico"]
   }, {
-    icon: Hammer,
+    image: categoryHandyman,
     category: "Handyman",
     description: "Arreglos, pintura, colgar TV, mover muebles",
     services: ["Arreglos generales", "Pintura de interiores", "Colgar TV en pared", "Mover muebles", "Montaje de muebles", "Reparaciones menores"]
@@ -225,7 +229,7 @@ const UserLanding = () => {
             Categorías de Servicios
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {categories.map((category, index) => <CategoryCard key={index} icon={category.icon} category={category.category} description={category.description} services={category.services} />)}
+            {categories.map((category, index) => <CategoryCard key={index} image={category.image} category={category.category} description={category.description} services={category.services} />)}
           </div>
         </div>
 
