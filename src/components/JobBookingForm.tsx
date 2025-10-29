@@ -18,6 +18,7 @@ import { z } from 'zod';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthModal } from './AuthModal';
 import { useFormPersistence } from '@/hooks/useFormPersistence';
+import { BookingConfirmation } from './BookingConfirmation';
 
 // Input validation schema
 const jobRequestSchema = z.object({
@@ -175,6 +176,8 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isGuestMode, setIsGuestMode] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [whatsappUrl, setWhatsappUrl] = useState("");
   const { toast } = useToast();
   const { saveFormData, loadFormData, clearFormData } = useFormPersistence('job-booking');
 
@@ -276,13 +279,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
   };
 
   const handleUploadClick = () => {
-    // Check authentication before opening file picker
-    if (!user && !isGuestMode) {
-      setShowAuthModal(true);
-      return;
-    }
-    
-    // Trigger file input click
+    // Trigger file input click - auth check moved to final submit
     document.getElementById('photo-upload')?.click();
   };
 
@@ -550,35 +547,17 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
       // Encode the message for WhatsApp URL
       const encodedMessage = encodeURIComponent(message);
       const phoneNumber = "523325438136";
-      const whatsappUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodedMessage}`;
+      const generatedWhatsappUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodedMessage}`;
+      
+      // Store WhatsApp URL and show confirmation screen
+      setWhatsappUrl(generatedWhatsappUrl);
+      setShowConfirmation(true);
       
       // Show success toast
       toast({
-        title: "✅ Solicitud enviada",
-        description: "Abriendo WhatsApp...",
+        title: "✅ Solicitud guardada",
+        description: "Revisa tu información antes de enviar",
       });
-
-      // Clear saved form data before navigation
-      clearFormData();
-
-      // Reset form
-      setCurrentStep(1);
-      setTaskDescription("");
-      setDatePreference('specific');
-      setSpecificDate(undefined);
-      setNeedsSpecificTime(false);
-      setSelectedTimeSlots([]);
-      setLocation("");
-      setDetails("");
-      setUploadedFiles([]);
-      
-      // Open WhatsApp - use window.open for better mobile support
-      window.open(whatsappUrl, '_blank');
-      
-      // Navigate back to home after a brief delay
-      setTimeout(() => {
-        navigate('/user-landing');
-      }, 500);
 
     } catch (error) {
       console.error('Error submitting task:', error);
@@ -618,8 +597,59 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
     setShowAuthModal(false);
     toast({
       title: "Modo invitado activado",
-      description: "Recuerda iniciar sesión antes de enviar tu solicitud",
+      description: "Podrás continuar sin iniciar sesión",
     });
+  };
+
+  const handleConfirmSubmit = () => {
+    // Clear saved form data
+    clearFormData();
+
+    // Reset form
+    setCurrentStep(1);
+    setTaskDescription("");
+    setDatePreference('specific');
+    setSpecificDate(undefined);
+    setNeedsSpecificTime(false);
+    setSelectedTimeSlots([]);
+    setLocation("");
+    setDetails("");
+    setUploadedFiles([]);
+    setShowConfirmation(false);
+    
+    // Open WhatsApp
+    window.open(whatsappUrl, '_blank');
+    
+    // Navigate back to home after a brief delay
+    setTimeout(() => {
+      navigate('/user-landing');
+    }, 500);
+  };
+
+  const handleGoBack = () => {
+    setShowConfirmation(false);
+    setIsSubmitting(false);
+  };
+
+  // Format display values for confirmation screen
+  const getFormattedDate = () => {
+    if (datePreference === 'specific' && specificDate) {
+      return format(specificDate, "dd/MM/yyyy");
+    } else if (datePreference === 'before') {
+      return "Inmediatamente";
+    }
+    return "Flexible";
+  };
+
+  const getFormattedTimePreference = () => {
+    if (needsSpecificTime && selectedTimeSlots.length > 0) {
+      const slotLabels = selectedTimeSlots.map(slotId => {
+        const slot = timeSlots.find(s => s.id === slotId);
+        return slot ? `${slot.label} (${slot.time})` : '';
+      }).filter(Boolean);
+      return slotLabels.join(', ');
+    }
+    return "Sin preferencia";
   };
 
   return (
@@ -630,7 +660,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
         onOpenChange={setShowAuthModal}
         onLogin={handleAuthModalLogin}
         onGuest={handleGuestContinue}
-        showGuestOption={currentStep < 4}
+        showGuestOption={true}
       />
 
       {/* Sidebar Navigation */}
@@ -661,6 +691,20 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
 
       {/* Main Content */}
       <div className="flex-1 max-w-3xl">
+        {/* Show confirmation screen or form */}
+        {showConfirmation ? (
+          <BookingConfirmation
+            service={taskDescription}
+            date={getFormattedDate()}
+            timePreference={getFormattedTimePreference()}
+            location={location}
+            details={details}
+            photoCount={uploadedFiles.length}
+            onConfirm={handleConfirmSubmit}
+            onGoBack={handleGoBack}
+          />
+        ) : (
+          <>
         {/* Step 1: Title & Date */}
           {currentStep === 1 && (
             <div className="space-y-8">
@@ -925,14 +969,6 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
                   </div>
                 )}
                </div>
-               
-               {isGuestMode && !user && (
-                 <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mt-4">
-                   <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                     <strong>Modo invitado:</strong> Inicia sesión antes de enviar tu solicitud final.
-                   </p>
-                 </div>
-               )}
              </div>
            )}
 
@@ -960,26 +996,15 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
                 Siguiente
               </ModernButton>
             ) : (
-              !user && !isGuestMode ? (
-                <ModernButton
-                  variant="primary"
-                  size="xl"
-                  onClick={() => setShowAuthModal(true)}
-                  className="h-16 px-12 text-lg rounded-full transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-xl shadow-lg"
-                >
-                  Continuar para enviar
-                </ModernButton>
-              ) : (
-                <ModernButton
-                  variant="primary"
-                  size="xl"
-                  onClick={handleSubmit}
-                  disabled={!canProceedToNextStep() || isSubmitting}
-                  className="h-16 px-12 text-lg rounded-full transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-xl shadow-lg"
-                >
-                  {isSubmitting ? "Enviando..." : "Solicitar servicio"}
-                </ModernButton>
-              )
+              <ModernButton
+                variant="primary"
+                size="xl"
+                onClick={handleSubmit}
+                disabled={!canProceedToNextStep() || isSubmitting}
+                className="h-16 px-12 text-lg rounded-full transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-xl shadow-lg"
+              >
+                {isSubmitting ? "Procesando..." : "Continuar para solicitar"}
+              </ModernButton>
             )}
           </div>
 
@@ -997,6 +1022,8 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
             />
           ))}
         </div>
+        </>
+        )}
         </div>
     </div>
   );

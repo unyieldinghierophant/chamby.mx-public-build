@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation as useRouterLocation, useNavigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { useEffect } from "react";
 import Index from "./pages/Index";
@@ -45,10 +45,22 @@ import ChatBot from "./components/ChatBot";
 
 const queryClient = new QueryClient();
 
+// Component to conditionally render ChatBot
+const ConditionalChatBot = () => {
+  const location = useRouterLocation();
+  const hideOnRoutes = ['/book-job', '/solicitar-servicio'];
+  
+  if (hideOnRoutes.includes(location.pathname)) {
+    return null;
+  }
+  
+  return <ChatBot />;
+};
+
 // Component to handle GitHub Pages redirects
 const RedirectHandler = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const location = useRouterLocation();
 
   useEffect(() => {
     console.log('App mounted, current location:', location.pathname);
@@ -82,8 +94,8 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <ChatBot />
         <BrowserRouter>
+          <ConditionalChatBot />
           <RedirectHandler />
           <Routes>
             <Route path="/" element={<Index />} />
