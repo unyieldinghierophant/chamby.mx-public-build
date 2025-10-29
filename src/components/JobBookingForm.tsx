@@ -284,6 +284,17 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Check if user is authenticated
+    if (!user) {
+      setShowAuthModal(true);
+      toast({
+        title: "Autenticación requerida",
+        description: "Debes iniciar sesión para subir fotos",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
@@ -617,13 +628,8 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
     setUploadedFiles([]);
     setShowConfirmation(false);
     
-    // Open WhatsApp
+    // Open WhatsApp - let it open naturally without immediate navigation
     window.open(whatsappUrl, '_blank');
-    
-    // Navigate back to home after a brief delay
-    setTimeout(() => {
-      navigate('/user-landing');
-    }, 500);
   };
 
   const handleGoBack = () => {
