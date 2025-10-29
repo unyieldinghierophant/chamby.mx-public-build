@@ -6,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import ufoChamby from "@/assets/ufo-chamby-final.png";
-import chambyIcon from "@/assets/chamby-logo-new-icon.png";
+import chatbotAlienLogo from "@/assets/chatbot-alien-logo.png";
 
 interface Message {
   role: "user" | "assistant";
@@ -124,7 +124,7 @@ const ChatBot = () => {
       <div className="bg-gradient-to-r from-blue-800 to-blue-900 text-white p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="bg-white/20 rounded-full p-2">
-            <img src={chambyIcon} alt="Chamby" className="w-6 h-6" />
+            <img src={chatbotAlienLogo} alt="Chamby Assistant" className="w-8 h-8 object-contain" />
           </div>
           <div>
             <h3 className="font-semibold">Asistente Chamby</h3>
