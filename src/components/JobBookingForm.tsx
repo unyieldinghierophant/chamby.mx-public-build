@@ -326,11 +326,16 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
               : f
           )
         );
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error uploading file:', error);
+        console.error('Error details:', {
+          message: error?.message,
+          statusCode: error?.statusCode,
+          error: error?.error,
+        });
         toast({
           title: "Error al subir imagen",
-          description: "Por favor intenta de nuevo",
+          description: error?.message || "Por favor intenta de nuevo",
           variant: "destructive",
         });
       }
