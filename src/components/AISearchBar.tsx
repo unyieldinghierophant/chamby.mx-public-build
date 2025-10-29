@@ -221,6 +221,67 @@ export const AISearchBar = ({ className }: { className?: string }) => {
               </>
             )}
           </Button>
+
+          {/* Autofill Dropdown - Positioned directly under input */}
+          {isOpen && !isLoading && (
+            <div className="absolute top-full left-0 right-0 mt-0.5 bg-card/95 backdrop-blur-sm rounded-2xl rounded-t-lg shadow-xl border border-white/20 border-t-white/10 max-h-80 overflow-y-auto z-50 animate-fade-in">
+              {showPopular && (
+                <div className="p-3 sm:p-4">
+                  <h3 className="text-sm sm:text-base font-medium text-foreground mb-3">
+                    Categorías Populares
+                  </h3>
+                  <div className="space-y-1">
+                    {Object.keys(SERVICE_TAXONOMY).map((category) => (
+                      <button
+                        key={category}
+                        onClick={() => handleCategoryClick(category)}
+                        className={cn(
+                          "w-full text-left px-3 py-2 sm:py-2.5 rounded-md hover:bg-accent text-foreground transition-colors capitalize text-sm sm:text-base",
+                          "flex items-center gap-2"
+                        )}
+                      >
+                        <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground" />
+                        {category}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {!showPopular && (
+                <div className="p-2">
+                  {suggestions.length > 0 ? (
+                    <div className="space-y-1">
+                      {suggestions.map((suggestion, index) => (
+                        <button
+                          key={`${suggestion.serviceType}-${suggestion.problem}-${index}`}
+                          onClick={() => handleSuggestionClick(suggestion)}
+                          className={cn(
+                            "w-full text-left p-2.5 sm:p-3 rounded-md hover:bg-accent transition-colors text-sm sm:text-base"
+                          )}
+                        >
+                          <div className="font-medium text-foreground capitalize">{suggestion.problem}</div>
+                          <div className="text-xs sm:text-sm text-muted-foreground mt-1 capitalize">{suggestion.serviceType}</div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-4 text-center text-muted-foreground">
+                      <div className="mb-2 text-sm sm:text-base">
+                        No se encontraron coincidencias
+                      </div>
+                      <button 
+                        onClick={() => handleSearch()}
+                        className="text-primary hover:text-primary/80 font-medium text-sm"
+                      >
+                        Buscar "{query}" con IA →
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <p className="text-[10px] sm:text-xs text-white/80 mt-2 ml-1 px-1">
@@ -228,66 +289,7 @@ export const AISearchBar = ({ className }: { className?: string }) => {
         </p>
       </form>
 
-      {/* Autofill Dropdown */}
-      {isOpen && !isLoading && (
-        <div className="absolute top-full left-0 right-0 mt-0.5 bg-card/95 backdrop-blur-sm rounded-2xl rounded-t-lg shadow-xl border border-white/20 border-t-white/10 max-h-80 overflow-y-auto z-50 animate-fade-in">
-          {showPopular && (
-            <div className="p-3 sm:p-4">
-              <h3 className="text-sm sm:text-base font-medium text-foreground mb-3">
-                Categorías Populares
-              </h3>
-              <div className="space-y-1">
-                {Object.keys(SERVICE_TAXONOMY).map((category) => (
-                  <button
-                    key={category}
-                    onClick={() => handleCategoryClick(category)}
-                    className={cn(
-                      "w-full text-left px-3 py-2 sm:py-2.5 rounded-md hover:bg-accent text-foreground transition-colors capitalize text-sm sm:text-base",
-                      "flex items-center gap-2"
-                    )}
-                  >
-                    <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground" />
-                    {category}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {!showPopular && (
-            <div className="p-2">
-              {suggestions.length > 0 ? (
-                <div className="space-y-1">
-                  {suggestions.map((suggestion, index) => (
-                    <button
-                      key={`${suggestion.serviceType}-${suggestion.problem}-${index}`}
-                      onClick={() => handleSuggestionClick(suggestion)}
-                      className={cn(
-                        "w-full text-left p-2.5 sm:p-3 rounded-md hover:bg-accent transition-colors text-sm sm:text-base"
-                      )}
-                    >
-                      <div className="font-medium text-foreground capitalize">{suggestion.problem}</div>
-                      <div className="text-xs sm:text-sm text-muted-foreground mt-1 capitalize">{suggestion.serviceType}</div>
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="p-4 text-center text-muted-foreground">
-                  <div className="mb-2 text-sm sm:text-base">
-                    No se encontraron coincidencias
-                  </div>
-                  <button 
-                    onClick={() => handleSearch()}
-                    className="text-primary hover:text-primary/80 font-medium text-sm"
-                  >
-                    Buscar "{query}" con IA →
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+      {/* Autofill Dropdown - Now removed from here */}
     </div>
   );
 };
