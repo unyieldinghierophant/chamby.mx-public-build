@@ -30,7 +30,7 @@ const jobRequestSchema = z.object({
 });
 
 interface UploadedFile {
-  file: File;
+  file: File | null;
   url: string;
   uploaded: boolean;
 }
@@ -197,6 +197,16 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
       setDetails(savedData.details || "");
       setCurrentStep(savedData.currentStep || 1);
       setCoordinates(savedData.coordinates || { lat: 19.4326, lng: -99.1332 });
+      
+      // Restore uploaded photos from URLs
+      if (savedData.uploadedFileUrls && savedData.uploadedFileUrls.length > 0) {
+        const restoredFiles: UploadedFile[] = savedData.uploadedFileUrls.map((url: string) => ({
+          file: null as any, // We don't have the original File object
+          url: url,
+          uploaded: true
+        }));
+        setUploadedFiles(restoredFiles);
+      }
       
       toast({
         title: "Progreso restaurado",
@@ -588,7 +598,8 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
       location,
       details,
       currentStep,
-      coordinates
+      coordinates,
+      uploadedFileUrls: uploadedFiles.filter(f => f.uploaded).map(f => f.url)
     };
     saveFormData(formData);
     
