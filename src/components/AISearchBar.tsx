@@ -197,7 +197,7 @@ export const AISearchBar = ({ className }: { className?: string }) => {
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => setIsOpen(true)}
             disabled={isLoading}
-            className={`pl-9 sm:pl-10 md:pl-12 pr-20 sm:pr-28 md:pr-36 h-11 sm:h-12 md:h-14 text-xs sm:text-sm md:text-base bg-card/95 backdrop-blur-sm border-white/20 shadow-soft hover:shadow-raised transition-all focus:shadow-glow rounded-full ${
+            className={`pl-9 sm:pl-10 md:pl-12 pr-20 sm:pr-28 md:pr-36 h-11 sm:h-12 md:h-14 text-base sm:text-base md:text-base bg-card/95 backdrop-blur-sm border-white/20 shadow-soft hover:shadow-raised transition-all focus:shadow-glow rounded-full ${
               fade ? "placeholder:opacity-100" : "placeholder:opacity-0"
             } placeholder:transition-opacity placeholder:duration-300`}
           />
