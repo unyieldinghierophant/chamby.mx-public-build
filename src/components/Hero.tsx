@@ -10,7 +10,7 @@ import categoryHandyman from "@/assets/category-handyman.png";
 import categoryElectrician from "@/assets/category-electrician.png";
 import categoryPlumbing from "@/assets/category-plumbing.png";
 import categoryAuto from "@/assets/category-auto.png";
-import ufoChamby from "@/assets/ufo-chamby-final.png";
+import chatbotAstronaut from "@/assets/chatbot-astronaut.png";
 import moneyBagIcon from "@/assets/money-bag-icon.png";
 const Hero = () => {
   const [location, setLocation] = useState("");
@@ -23,9 +23,9 @@ const Hero = () => {
         <div className="text-center space-y-6">
           {/* Floating Blue Card Container */}
           <div className="relative bg-gradient-to-br from-[#1e3a8a] to-[#1e40af] rounded-[1.5rem] md:rounded-[2.5rem] p-6 md:p-8 lg:p-10 xl:p-12 shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] border border-white/10">
-            {/* UFO Absolute Positioned */}
+            {/* Astronaut Absolute Positioned */}
             <div className="hidden md:block absolute top-[15%] right-[5%] lg:right-[8%] w-32 md:w-40 lg:w-48 xl:w-56 z-30 pointer-events-none">
-              <img src={ufoChamby} alt="Chamby UFO" className="w-full h-auto animate-[float_3s_ease-in-out_infinite]" style={{
+              <img src={chatbotAstronaut} alt="Chamby Astronaut" className="w-full h-auto animate-[float_3s_ease-in-out_infinite]" style={{
               filter: 'drop-shadow(0 10px 30px rgba(30, 58, 138, 0.4))'
             }} />
             </div>

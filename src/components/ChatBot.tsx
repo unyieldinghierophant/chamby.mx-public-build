@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import chatbotAstronaut from "@/assets/chatbot-astronaut.png";
+import ufoChamby from "@/assets/ufo-chamby-final.png";
 
 interface Message {
   role: "user" | "assistant";
@@ -102,8 +102,8 @@ const ChatBot = () => {
         aria-label="Abrir chat"
       >
         <img 
-          src={chatbotAstronaut} 
-          alt="Chat Chamby" 
+          src={ufoChamby} 
+          alt="UFO Chamby Chat" 
           className="w-20 h-20 drop-shadow-lg"
         />
       </button>
