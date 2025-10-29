@@ -102,11 +102,11 @@ const ChatBot = () => {
         className="fixed bottom-6 right-6 z-50 group"
         aria-label="Abrir chat de ayuda"
       >
-        <div className="relative flex items-center justify-center w-28 h-28 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 backdrop-blur-sm border-2 border-primary/30 shadow-elegant hover:shadow-glow hover:scale-110 hover:border-primary/50 transition-all duration-300 animate-subtle-bounce">
+        <div className="relative flex items-center justify-center w-[5.6rem] h-[5.6rem] rounded-full bg-gradient-to-br from-primary/20 to-accent/20 backdrop-blur-sm border-2 border-primary/30 shadow-elegant hover:shadow-glow hover:scale-110 hover:border-primary/50 transition-all duration-300 animate-subtle-bounce">
           <img 
             src={ufoChamby} 
             alt="UFO Chamby - Ayuda" 
-            className="w-20 h-20 drop-shadow-lg group-hover:scale-105 transition-transform duration-300"
+            className="w-24 h-24 drop-shadow-lg group-hover:scale-105 transition-transform duration-300"
           />
           <div className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full p-2 shadow-lg animate-pulse">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
