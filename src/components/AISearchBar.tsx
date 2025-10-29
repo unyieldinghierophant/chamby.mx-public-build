@@ -149,17 +149,51 @@ export const AISearchBar = ({ className }: { className?: string }) => {
 
       if (error) throw error;
 
+      console.log('AI Search Response:', data);
+
+      // Handle confidence levels
+      if (data.confidence < 50) {
+        // Low confidence - show warning but still proceed
+        toast.info("Búsqueda imprecisa - revisa los detalles", {
+          description: `Detectamos: ${data.keywords_detected?.join(', ') || 'consulta general'}`
+        });
+      } else if (data.confidence < 70) {
+        // Medium confidence - subtle feedback
+        toast.success("Búsqueda encontrada", {
+          description: `${data.service} en ${data.category}`
+        });
+      } else {
+        // High confidence - positive feedback
+        toast.success("¡Servicio encontrado!", {
+          description: `${data.service} - ${data.category}`
+        });
+      }
+
       // Navigate to book-job with the AI-interpreted service details
       navigate("/book-job", {
         state: {
           category: data.category,
           service: data.service,
           description: data.description,
+          confidence: data.confidence,
+          keywords: data.keywords_detected,
         },
       });
     } catch (error) {
       console.error("Error searching:", error);
-      toast.error("Error al buscar el servicio. Intenta de nuevo.");
+      
+      // Better error messages
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido";
+      
+      if (errorMessage.includes("clasificar")) {
+        toast.error("No pudimos entender tu búsqueda", {
+          description: "Intenta ser más específico o usa las categorías"
+        });
+      } else {
+        toast.error("Error al buscar el servicio", {
+          description: "Por favor intenta de nuevo"
+        });
+      }
     } finally {
       setIsLoading(false);
     }
