@@ -98,7 +98,7 @@ const ChatBot = () => {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-50 group hover:scale-110 transition-transform duration-300 relative"
+        className="fixed bottom-6 right-6 z-50 group hover:scale-110 transition-transform duration-300"
         aria-label="Abrir chat"
       >
         <img 
@@ -106,9 +106,6 @@ const ChatBot = () => {
           alt="UFO Chamby Chat" 
           className="w-20 h-20 drop-shadow-lg"
         />
-        <div className="absolute bottom-0 right-0 bg-blue-800 rounded-full p-1.5 shadow-lg">
-          <Send className="w-3 h-3 text-white" />
-        </div>
       </button>
     );
   }
