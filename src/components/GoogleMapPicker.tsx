@@ -158,16 +158,29 @@ export const GoogleMapPicker = ({ onLocationSelect, initialLocation }: GoogleMap
     }
   }, [reverseGeocode]);
 
-  // GPS location handler
+  // GPS location handler with improved error messages
   const handleUseMyLocation = () => {
+    // Check if browser supports geolocation
     if (!navigator.geolocation) {
       toast.error('Tu navegador no soporta geolocalización');
+      console.error('Geolocation not supported by browser');
+      return;
+    }
+
+    // Check if running on HTTPS (required for geolocation in production)
+    const isSecureContext = window.isSecureContext;
+    if (!isSecureContext && window.location.hostname !== 'localhost') {
+      toast.error('La geolocalización requiere HTTPS en sitios web');
+      console.error('Geolocation requires HTTPS in production');
       return;
     }
     
     setIsLocating(true);
+    console.log('Requesting geolocation...');
+    
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        console.log('Geolocation success:', position.coords);
         const { latitude, longitude } = position.coords;
         const newCenter = { lat: latitude, lng: longitude };
         
@@ -184,10 +197,33 @@ export const GoogleMapPicker = ({ onLocationSelect, initialLocation }: GoogleMap
       },
       (error) => {
         console.error('Geolocation error:', error);
-        toast.error('No se pudo obtener tu ubicación');
         setIsLocating(false);
+        
+        // Provide specific error messages based on error code
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            toast.error('Permiso de ubicación denegado. Por favor, activa los permisos de ubicación en tu navegador.');
+            console.error('User denied geolocation permission');
+            break;
+          case error.POSITION_UNAVAILABLE:
+            toast.error('No se pudo determinar tu ubicación. Verifica tu conexión GPS.');
+            console.error('Location information unavailable');
+            break;
+          case error.TIMEOUT:
+            toast.error('La solicitud de ubicación tardó demasiado. Intenta de nuevo.');
+            console.error('Geolocation request timed out');
+            break;
+          default:
+            toast.error('Error al obtener tu ubicación. Intenta de nuevo.');
+            console.error('Unknown geolocation error:', error.message);
+            break;
+        }
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      { 
+        enableHighAccuracy: true, 
+        timeout: 15000, // Increased timeout to 15s
+        maximumAge: 0 
+      }
     );
   };
 
