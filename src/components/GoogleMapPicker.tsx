@@ -93,6 +93,8 @@ export const GoogleMapPicker = ({ onLocationSelect, initialLocation }: GoogleMap
   const [interiorNumber, setInteriorNumber] = useState('');
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+  const [isAutoDetecting, setIsAutoDetecting] = useState(false);
+  const [hasAttemptedAutoLocation, setHasAttemptedAutoLocation] = useState(false);
   const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
@@ -144,6 +146,62 @@ export const GoogleMapPicker = ({ onLocationSelect, initialLocation }: GoogleMap
       });
     }, 500);
   }, [onLocationSelect, interiorNumber]);
+
+  // Auto-detect location on component mount
+  useEffect(() => {
+    // Only auto-detect if:
+    // 1. We haven't tried before
+    // 2. No initial location provided
+    // 3. Geolocation is supported
+    // 4. Running on HTTPS or localhost
+    if (
+      !hasAttemptedAutoLocation && 
+      !initialLocation && 
+      navigator.geolocation &&
+      (window.isSecureContext || window.location.hostname === 'localhost')
+    ) {
+      setHasAttemptedAutoLocation(true);
+      setIsAutoDetecting(true);
+      
+      console.log('[Auto-detect] Requesting user location...');
+      
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          console.log('[Auto-detect] Location detected:', position.coords);
+          const { latitude, longitude } = position.coords;
+          const newCenter = { lat: latitude, lng: longitude };
+          
+          // Animate map to new location
+          if (mapRef.current) {
+            mapRef.current.panTo(newCenter);
+            mapRef.current.setZoom(16);
+          }
+          
+          setCenter(newCenter);
+          reverseGeocode(latitude, longitude);
+          toast.success('📍 Ubicación detectada');
+          setIsAutoDetecting(false);
+        },
+        (error) => {
+          console.log('[Auto-detect] Failed or denied:', error.code, error.message);
+          setIsAutoDetecting(false);
+          
+          // Only show error toast for actual errors, not permission denials
+          if (error.code === error.POSITION_UNAVAILABLE) {
+            toast.error('No se pudo determinar tu ubicación. Usa el buscador o el botón GPS.');
+          } else if (error.code === error.TIMEOUT) {
+            toast.error('La detección de ubicación tardó mucho. Usa el buscador.');
+          }
+          // For PERMISSION_DENIED, silently fall back - user explicitly declined
+        },
+        { 
+          enableHighAccuracy: true, 
+          timeout: 8000, // 8 seconds for auto-detection
+          maximumAge: 0 
+        }
+      );
+    }
+  }, [hasAttemptedAutoLocation, initialLocation, reverseGeocode]);
 
   // Handle map drag end - this is the core of the new UX
   const handleMapDragEnd = useCallback(() => {
@@ -602,6 +660,19 @@ export const GoogleMapPicker = ({ onLocationSelect, initialLocation }: GoogleMap
 
         {/* Modern Map Container with Fixed Pin */}
         <div className="relative rounded-2xl overflow-hidden border-2 border-border shadow-2xl">
+          {/* Auto-detection loading overlay */}
+          {isAutoDetecting && (
+            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-20 flex items-center justify-center">
+              <div className="text-center space-y-3">
+                <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+                <div className="space-y-1">
+                  <p className="text-lg font-semibold text-foreground">Detectando tu ubicación...</p>
+                  <p className="text-sm text-muted-foreground">Esto solo tomará un momento</p>
+                </div>
+              </div>
+            </div>
+          )}
+          
           <GoogleMap
             mapContainerStyle={mapContainerStyle}
             center={center}
