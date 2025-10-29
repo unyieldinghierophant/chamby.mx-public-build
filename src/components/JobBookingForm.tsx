@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Card } from "@/components/ui/card";
 import { CalendarIcon, Upload, Check, Sunrise, Sun, Sunset, Moon, MapPin } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -178,6 +179,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
   const [isGuestMode, setIsGuestMode] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [whatsappUrl, setWhatsappUrl] = useState("");
+  const [showWhatsAppButton, setShowWhatsAppButton] = useState(false);
   const { toast } = useToast();
   const { saveFormData, loadFormData, clearFormData } = useFormPersistence('job-booking');
 
@@ -634,8 +636,22 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
     setUploadedFiles([]);
     setShowConfirmation(false);
     
-    // Open WhatsApp - let it open naturally without immediate navigation
-    window.open(whatsappUrl, '_blank');
+    // Try to open WhatsApp
+    const whatsappWindow = window.open(whatsappUrl, '_blank');
+    
+    // Safari often blocks window.open, show manual button as fallback
+    if (!whatsappWindow || whatsappWindow.closed || typeof whatsappWindow.closed === 'undefined') {
+      console.log('WhatsApp redirect was blocked, showing manual button');
+      setShowWhatsAppButton(true);
+      toast({
+        title: "Abre WhatsApp manualmente",
+        description: "Tu navegador bloqueó la redirección automática. Usa el botón verde para continuar.",
+        duration: 8000,
+      });
+    } else {
+      // Redirect was successful
+      setShowWhatsAppButton(false);
+    }
   };
 
   const handleGoBack = () => {
@@ -715,6 +731,41 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
             onConfirm={handleConfirmSubmit}
             onGoBack={handleGoBack}
           />
+        ) : showWhatsAppButton ? (
+          <div className="w-full max-w-3xl mx-auto space-y-8 animate-fade-in">
+            <div className="text-center space-y-4">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-success/10 mx-auto mb-4">
+                <Check className="w-8 h-8 text-success" />
+              </div>
+              <h1 className="text-4xl font-bold text-foreground font-['Made_Dillan']">
+                ¡Solicitud lista!
+              </h1>
+              <p className="text-muted-foreground text-lg">
+                Haz clic en el botón para continuar con tu solicitud en WhatsApp
+              </p>
+            </div>
+
+            <Card className="p-8 space-y-6 border-2 bg-gradient-to-br from-success/5 to-primary/5">
+              <div className="text-center space-y-4">
+                <p className="text-foreground text-lg">
+                  Tu navegador bloqueó la redirección automática.
+                </p>
+                <p className="text-muted-foreground">
+                  No te preocupes, usa el botón de abajo para abrir WhatsApp manualmente.
+                </p>
+              </div>
+              
+              <ModernButton
+                variant="primary"
+                onClick={() => {
+                  window.location.href = whatsappUrl;
+                }}
+                className="w-full h-16 px-12 text-lg rounded-full"
+              >
+                Abrir WhatsApp
+              </ModernButton>
+            </Card>
+          </div>
         ) : (
           <>
         {/* Step 1: Title & Date */}

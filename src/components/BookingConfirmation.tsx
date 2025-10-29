@@ -26,14 +26,14 @@ export const BookingConfirmation = ({
   onConfirm,
   onGoBack,
 }: BookingConfirmationProps) => {
-  const [countdown, setCountdown] = useState(5);
+  const [countdown, setCountdown] = useState(15);
   const [progressValue, setProgressValue] = useState(0);
 
   useEffect(() => {
     // Update progress bar
     const progressInterval = setInterval(() => {
       setProgressValue((prev) => {
-        const increment = (100 / 5) / 10; // Update 10 times per second
+        const increment = (100 / 15) / 10; // Update 10 times per second over 15 seconds
         if (prev >= 100) return 100;
         return prev + increment;
       });
