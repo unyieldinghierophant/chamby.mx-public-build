@@ -230,7 +230,7 @@ export const AISearchBar = ({ className }: { className?: string }) => {
 
       {/* Autofill Dropdown */}
       {isOpen && !isLoading && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-background rounded-lg shadow-xl border border-border max-h-80 overflow-y-auto z-50 animate-fade-in">
+        <div className="absolute top-full left-0 right-0 mt-0.5 bg-card/95 backdrop-blur-sm rounded-2xl rounded-t-lg shadow-xl border border-white/20 border-t-white/10 max-h-80 overflow-y-auto z-50 animate-fade-in">
           {showPopular && (
             <div className="p-3 sm:p-4">
               <h3 className="text-sm sm:text-base font-medium text-foreground mb-3">
