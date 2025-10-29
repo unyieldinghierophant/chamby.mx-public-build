@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import ufoChamby from "@/assets/ufo-chamby-final.png";
+import chambyIcon from "@/assets/chamby-logo-new-icon.png";
 
 interface Message {
   role: "user" | "assistant";
@@ -98,14 +99,21 @@ const ChatBot = () => {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-50 group hover:scale-110 transition-transform duration-300"
-        aria-label="Abrir chat"
+        className="fixed bottom-6 right-6 z-50 group"
+        aria-label="Abrir chat de ayuda"
       >
-        <img 
-          src={ufoChamby} 
-          alt="UFO Chamby Chat" 
-          className="w-20 h-20 drop-shadow-lg"
-        />
+        <div className="relative flex items-center justify-center w-28 h-28 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 backdrop-blur-sm border-2 border-primary/30 shadow-elegant hover:shadow-glow hover:scale-110 hover:border-primary/50 transition-all duration-300 animate-subtle-bounce">
+          <img 
+            src={ufoChamby} 
+            alt="UFO Chamby - Ayuda" 
+            className="w-20 h-20 drop-shadow-lg group-hover:scale-105 transition-transform duration-300"
+          />
+          <div className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full p-2 shadow-lg animate-pulse">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        </div>
       </button>
     );
   }
@@ -116,7 +124,7 @@ const ChatBot = () => {
       <div className="bg-gradient-to-r from-blue-800 to-blue-900 text-white p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="bg-white/20 rounded-full p-2">
-            <Bot className="w-5 h-5" />
+            <img src={chambyIcon} alt="Chamby" className="w-6 h-6" />
           </div>
           <div>
             <h3 className="font-semibold">Asistente Chamby</h3>
