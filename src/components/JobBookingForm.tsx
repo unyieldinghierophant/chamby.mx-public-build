@@ -284,17 +284,6 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Check if user is authenticated
-    if (!user) {
-      setShowAuthModal(true);
-      toast({
-        title: "Autenticación requerida",
-        description: "Debes iniciar sesión para subir fotos",
-        variant: "destructive",
-      });
-      return;
-    }
-
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
@@ -313,7 +302,8 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
       const file = files[i];
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `${user.id}/${fileName}`;
+      // Use temp folder for guests, user folder for authenticated users
+      const filePath = user ? `${user.id}/${fileName}` : `temp-uploads/${fileName}`;
 
       try {
         const { error } = await supabase.storage
