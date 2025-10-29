@@ -124,7 +124,7 @@ const ChatBot = () => {
       <div className="bg-gradient-to-r from-blue-800 to-blue-900 text-white p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="bg-white/20 rounded-full p-2">
-            <img src={chatbotAlienLogo} alt="Chamby Assistant" className="w-8 h-8 object-contain" />
+            <img src={chatbotAlienLogo} alt="Chamby Assistant" className="w-16 h-16 object-contain" />
           </div>
           <div>
             <h3 className="font-semibold">Asistente Chamby</h3>
@@ -148,8 +148,8 @@ const ChatBot = () => {
               className={`flex gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
             >
               {msg.role === "assistant" && (
-                <div className="bg-blue-100 rounded-full p-2 h-8 w-8 flex items-center justify-center flex-shrink-0">
-                  <Bot className="w-4 h-4 text-blue-800" />
+                <div className="bg-blue-100 rounded-full p-1.5 h-8 w-8 flex items-center justify-center flex-shrink-0">
+                  <img src={chatbotAlienLogo} alt="Assistant" className="w-6 h-6 object-contain" />
                 </div>
               )}
               <div
@@ -170,8 +170,8 @@ const ChatBot = () => {
           ))}
           {isLoading && (
             <div className="flex gap-2 justify-start">
-              <div className="bg-blue-100 rounded-full p-2 h-8 w-8 flex items-center justify-center">
-                <Bot className="w-4 h-4 text-blue-800" />
+              <div className="bg-blue-100 rounded-full p-1.5 h-8 w-8 flex items-center justify-center">
+                <img src={chatbotAlienLogo} alt="Assistant" className="w-6 h-6 object-contain" />
               </div>
               <div className="bg-gray-100 rounded-2xl rounded-bl-none px-4 py-2">
                 <div className="flex gap-1">
