@@ -41,6 +41,15 @@ import PagoVisita from "./pages/PagoVisita";
 import EsperandoProveedor from "./pages/EsperandoProveedor";
 import PhotoRedirect from "./pages/PhotoRedirect";
 import ChatBot from "./components/ChatBot";
+import ProviderPortal from "./pages/ProviderPortal";
+import ProviderDashboardHome from "./pages/provider-portal/ProviderDashboardHome";
+import ProviderJobs from "./pages/provider-portal/ProviderJobs";
+import ProviderCalendar from "./pages/provider-portal/ProviderCalendar";
+import ProviderMap from "./pages/provider-portal/ProviderMap";
+import ProviderPayments from "./pages/provider-portal/ProviderPayments";
+import ProviderVerification from "./pages/provider-portal/ProviderVerification";
+import ProviderProfileEdit from "./pages/provider-portal/ProviderProfileEdit";
+import ProviderSupport from "./pages/provider-portal/ProviderSupport";
 
 
 const queryClient = new QueryClient();
@@ -157,8 +166,26 @@ const App = () => (
                 </ProtectedRoute>
               } 
             />
+            {/* Provider Portal Routes */}
             <Route 
-              path="/profile" 
+              path="/provider-portal"
+              element={
+                <ProtectedRoute requireTasker>
+                  <ProviderPortal />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<ProviderDashboardHome />} />
+              <Route path="jobs" element={<ProviderJobs />} />
+              <Route path="calendar" element={<ProviderCalendar />} />
+              <Route path="map" element={<ProviderMap />} />
+              <Route path="payments" element={<ProviderPayments />} />
+              <Route path="verification" element={<ProviderVerification />} />
+              <Route path="profile" element={<ProviderProfileEdit />} />
+              <Route path="support" element={<ProviderSupport />} />
+            </Route>
+            <Route 
+              path="/profile"
               element={
                 <ProtectedRoute>
                   <UserProfile />
