@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProfile } from '@/hooks/useProfile';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -13,8 +14,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requireTasker = false 
 }) => {
   const { user, loading } = useAuth();
+  const { profile, loading: profileLoading } = useProfile();
 
-  if (loading) {
+  if (loading || (requireTasker && profileLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -29,10 +31,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/auth/user" replace />;
   }
 
-  // For tasker routes, we'll let the component handle the verification
-  // to avoid inconsistencies with profile loading
+  // For tasker routes, check if user is actually a tasker
   if (requireTasker && !user) {
     return <Navigate to="/auth/tasker" replace />;
+  }
+
+  // If user is logged in but not a tasker, redirect to become-provider page
+  if (requireTasker && user && profile && !profile.is_tasker) {
+    return <Navigate to="/become-provider" replace />;
   }
 
   return <>{children}</>;

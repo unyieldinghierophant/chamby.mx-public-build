@@ -47,15 +47,31 @@ const AuthCallback = () => {
     }
   }, [user, role, authLoading, roleLoading, retryCount]);
 
-  const handleSuccessComplete = () => {
+  const handleSuccessComplete = async () => {
     // Check for stored return path
     const returnTo = sessionStorage.getItem('auth_return_to');
     sessionStorage.removeItem('auth_return_to'); // Clear after reading
     
-    const defaultPath = role === "provider" ? "/provider-dashboard" : "/user-landing";
+    // Check if user is a tasker
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_tasker')
+      .eq('user_id', user?.id)
+      .single();
+    
+    const isTasker = profile?.is_tasker || false;
+    
+    // Route based on role and tasker status
+    let defaultPath = "/user-landing";
+    if (role === "provider" && isTasker) {
+      defaultPath = "/provider-portal";
+    } else if (role === "provider") {
+      defaultPath = "/provider-dashboard";
+    }
+    
     const targetPath = returnTo || defaultPath;
     
-    console.log('Success complete, redirecting to:', targetPath);
+    console.log('Success complete, redirecting to:', targetPath, { role, isTasker });
     navigate(targetPath, { replace: true });
   };
 

@@ -47,14 +47,14 @@ const UserLanding = () => {
     }
   }, [user, authLoading, navigate]);
 
-  // Redirect providers to their dashboard
+  // Redirect providers to provider portal if they're taskers
   useEffect(() => {
-    if (!roleLoading && role === "provider") {
-      navigate("/provider-dashboard", {
+    if (!roleLoading && role === "provider" && profile?.is_tasker) {
+      navigate("/provider-portal", {
         replace: true
       });
     }
-  }, [role, roleLoading, navigate]);
+  }, [role, roleLoading, profile, navigate]);
   if (authLoading || roleLoading) {
     return <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -138,10 +138,16 @@ const UserLanding = () => {
                   <Shield className="mr-2 h-4 w-4" />
                   <span>Seguridad</span>
                 </DropdownMenuItem>
-                {profile?.is_tasker && <DropdownMenuItem onClick={() => navigate("/tasker-dashboard")}>
-                    <Users className="mr-2 h-4 w-4" />
-                    <span>Dashboard Tasker</span>
-                  </DropdownMenuItem>}
+                {profile?.is_tasker && <>
+                    <DropdownMenuItem onClick={() => navigate("/tasker-dashboard")}>
+                      <Users className="mr-2 h-4 w-4" />
+                      <span>Dashboard Tasker</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/provider-portal")}>
+                      <TrendingUp className="mr-2 h-4 w-4" />
+                      <span>Portal de Proveedores</span>
+                    </DropdownMenuItem>
+                  </>}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} disabled={isLoggingOut}>
                   <LogOut className="mr-2 h-4 w-4" />
@@ -192,10 +198,16 @@ const UserLanding = () => {
                   <Shield className="mr-2 h-4 w-4" />
                   <span>Seguridad</span>
                 </DropdownMenuItem>
-                {profile?.is_tasker && <DropdownMenuItem onClick={() => navigate("/tasker-dashboard")}>
-                    <Users className="mr-2 h-4 w-4" />
-                    <span>Dashboard Tasker</span>
-                  </DropdownMenuItem>}
+                {profile?.is_tasker && <>
+                    <DropdownMenuItem onClick={() => navigate("/tasker-dashboard")}>
+                      <Users className="mr-2 h-4 w-4" />
+                      <span>Dashboard Tasker</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/provider-portal")}>
+                      <TrendingUp className="mr-2 h-4 w-4" />
+                      <span>Portal de Proveedores</span>
+                    </DropdownMenuItem>
+                  </>}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} disabled={isLoggingOut}>
                   <LogOut className="mr-2 h-4 w-4" />

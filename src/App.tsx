@@ -50,6 +50,7 @@ import ProviderPayments from "./pages/provider-portal/ProviderPayments";
 import ProviderVerification from "./pages/provider-portal/ProviderVerification";
 import ProviderProfileEdit from "./pages/provider-portal/ProviderProfileEdit";
 import ProviderSupport from "./pages/provider-portal/ProviderSupport";
+import BecomeProvider from "./pages/BecomeProvider";
 
 
 const queryClient = new QueryClient();
@@ -113,6 +114,7 @@ const App = () => (
             <Route path="/book-job" element={<BookJob />} />
             <Route path="/auth/user" element={<UserAuth />} />
             <Route path="/auth/tasker" element={<TaskerAuth />} />
+            <Route path="/become-provider" element={<BecomeProvider />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/callback" element={<AuthCallback />} />
             <Route path="/dashboard/user" element={<Navigate to="/user-landing" replace />} />
