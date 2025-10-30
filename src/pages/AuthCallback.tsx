@@ -1,21 +1,28 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { AuthSuccessOverlay } from "@/components/AuthSuccessOverlay";
 import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { CheckCircle2 } from "lucide-react";
 
 const AuthCallback = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
   const { role, loading: roleLoading } = useUserRole();
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [retryCount, setRetryCount] = useState(0);
+  const [emailConfirmed, setEmailConfirmed] = useState(false);
 
-  // Check if this is an OAuth callback by detecting URL parameters
+  // Check if this is an OAuth callback or email confirmation
   const urlParams = new URLSearchParams(window.location.search);
   const hasOAuthParams = urlParams.has('code') || urlParams.has('access_token');
+  const confirmationType = searchParams.get('type');
+  const isEmailConfirmation = confirmationType === 'signup' || confirmationType === 'email';
 
   useEffect(() => {
     console.log('AuthCallback mounted', { 
@@ -24,8 +31,14 @@ const AuthCallback = () => {
       user: !!user, 
       role,
       hasOAuthParams,
+      isEmailConfirmation,
       url: window.location.href 
     });
+
+    // Detect email confirmation success
+    if (isEmailConfirmation) {
+      setEmailConfirmed(true);
+    }
 
     // If OAuth callback detected, try to explicitly get session for Safari
     if (hasOAuthParams && !user) {
@@ -111,6 +124,46 @@ const AuthCallback = () => {
       </div>
     );
   }
+
+  // Show email confirmation success screen
+  if (emailConfirmed && !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-main bg-gradient-mesh p-4">
+        <Card className="w-full max-w-md bg-card/95 backdrop-blur-sm">
+          <CardHeader className="text-center">
+            <div className="mx-auto w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-4">
+              <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400" />
+            </div>
+            <CardTitle className="text-2xl">¡Email verificado exitosamente!</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-center text-muted-foreground">
+              Ya puedes iniciar sesión con tu cuenta de Chambynauta
+            </p>
+            <Button
+              onClick={() => navigate('/auth/tasker?tab=login', { replace: true })}
+              className="w-full"
+            >
+              Iniciar Sesión
+            </Button>
+            <p className="text-xs text-center text-muted-foreground">
+              Serás redirigido automáticamente en 5 segundos...
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Auto-redirect after 5 seconds for email confirmation
+  useEffect(() => {
+    if (emailConfirmed && !user) {
+      const timer = setTimeout(() => {
+        navigate('/auth/tasker?tab=login', { replace: true });
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [emailConfirmed, user, navigate]);
 
   // If still no user after all attempts, will be handled by redirect effect above
   if (!user) {

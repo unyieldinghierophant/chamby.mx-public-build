@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { Navigate, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { Button } from '@/components/ui/button';
@@ -9,11 +9,13 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Briefcase, Phone, Mail, FileCheck } from 'lucide-react';
+import { ArrowLeft, Briefcase, Phone, Mail, FileCheck, Eye, EyeOff, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { AuthSuccessOverlay } from '@/components/AuthSuccessOverlay';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { supabase } from '@/integrations/supabase/client';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -24,21 +26,49 @@ const signupSchema = z.object({
   fullName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   email: z.string().email('Email inválido'),
   phone: z.string().min(10, 'El teléfono debe tener al menos 10 dígitos'),
-  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres')
+  password: z.string()
+    .min(8, 'La contraseña debe tener al menos 8 caracteres')
+    .regex(/[A-Z]/, 'Debe contener al menos una mayúscula')
+    .regex(/[a-z]/, 'Debe contener al menos una minúscula')
+    .regex(/[0-9]/, 'Debe contener al menos un número')
+    .regex(/[^A-Za-z0-9]/, 'Debe contener al menos un carácter especial'),
+  confirmPassword: z.string()
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Las contraseñas no coinciden",
+  path: ["confirmPassword"]
 });
+
+// Password strength calculator
+const calculatePasswordStrength = (password: string): { strength: number; label: string; color: string } => {
+  let strength = 0;
+  if (password.length >= 8) strength++;
+  if (password.length >= 12) strength++;
+  if (/[A-Z]/.test(password)) strength++;
+  if (/[a-z]/.test(password)) strength++;
+  if (/[0-9]/.test(password)) strength++;
+  if (/[^A-Za-z0-9]/.test(password)) strength++;
+  
+  if (strength <= 2) return { strength, label: 'Débil', color: 'bg-red-500' };
+  if (strength <= 4) return { strength, label: 'Regular', color: 'bg-yellow-500' };
+  return { strength, label: 'Fuerte', color: 'bg-green-500' };
+};
 
 const TaskerAuth = () => {
   const { user, signUp, signIn, signInWithGoogle, resetPassword } = useAuth();
   const { role, loading: roleLoading } = useUserRole();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('login');
+  
+  // Check for tab parameter in URL
+  const tabParam = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState(tabParam === 'login' ? 'login' : 'signup');
   
   // Form states
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [signupData, setSignupData] = useState({
-    email: '', password: '', fullName: '', phone: ''
+    email: '', password: '', fullName: '', phone: '', confirmPassword: ''
   });
   const [resetEmail, setResetEmail] = useState('');
   const [showResetForm, setShowResetForm] = useState(false);
@@ -47,10 +77,20 @@ const TaskerAuth = () => {
   const [showEmailAuth, setShowEmailAuth] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [showEmailVerificationModal, setShowEmailVerificationModal] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState('');
   
   // Error states
   const [loginErrors, setLoginErrors] = useState<Record<string, string>>({});
   const [signupErrors, setSignupErrors] = useState<Record<string, string>>({});
+  
+  // Password visibility states
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  
+  // Password strength
+  const passwordStrength = calculatePasswordStrength(signupData.password);
 
   // Redirect to provider dashboard if already authenticated  
   useEffect(() => {
@@ -86,11 +126,21 @@ const TaskerAuth = () => {
     const { error } = await signIn(loginData.email, loginData.password);
     
     if (error) {
-      toast.error(error.message);
-      if (error.message.includes('email')) {
+      // Check for unconfirmed email
+      if (error.message.includes('Email not confirmed') || error.message.includes('email_not_confirmed')) {
+        setLoginErrors({ 
+          email: '⚠️ Email no verificado. Por favor verifica tu correo electrónico antes de iniciar sesión.' 
+        });
+        toast.error('Email no verificado', {
+          description: 'Revisa tu bandeja de entrada o spam para el correo de verificación.',
+          action: {
+            label: 'Reenviar',
+            onClick: () => handleResendVerification(loginData.email)
+          }
+        });
+      } else {
+        toast.error('Email o contraseña incorrectos');
         setLoginErrors({ email: 'Email o contraseña incorrectos' });
-      } else if (error.message.includes('password')) {
-        setLoginErrors({ password: 'Email o contraseña incorrectos' });
       }
     } else {
       setSuccessMessage('¡Inicio de sesión exitoso!');
@@ -98,6 +148,19 @@ const TaskerAuth = () => {
     }
     
     setLoading(false);
+  };
+
+  const handleResendVerification = async (email: string) => {
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: email,
+    });
+    
+    if (error) {
+      toast.error('Error al reenviar correo');
+    } else {
+      toast.success('Correo de verificación reenviado');
+    }
   };
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -130,10 +193,14 @@ const TaskerAuth = () => {
     );
     
     if (error) {
-      toast.error(error.message);
+      toast.error('Error en el registro', {
+        description: error.message
+      });
+      setSignupErrors({ email: error.message });
     } else {
-      setSuccessMessage('¡Registro exitoso! Verifica tu correo electrónico');
-      setShowSuccess(true);
+      // Show email verification modal instead of success overlay
+      setVerificationEmail(signupData.email);
+      setShowEmailVerificationModal(true);
     }
     
     setLoading(false);
@@ -163,7 +230,7 @@ const TaskerAuth = () => {
 
   const getLabelClassName = (fieldName: string, errors: Record<string, string>) => {
     const baseClass = "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70";
-    return errors[fieldName] ? `${baseClass} text-red-500` : baseClass;
+    return errors[fieldName] ? `${baseClass} text-red-600` : baseClass;
   };
 
   const handleGoogleLogin = async () => {
@@ -282,23 +349,38 @@ const TaskerAuth = () => {
                         required
                       />
                       {loginErrors.email && (
-                        <p className="text-red-500 text-sm">{loginErrors.email}</p>
+                        <p className="text-red-600 text-sm flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          {loginErrors.email}
+                        </p>
                       )}
                     </div>
-                    <div className="space-y-2">
+                     <div className="space-y-2">
                       <Label htmlFor="login-password" className={getLabelClassName('password', loginErrors)}>
                         Contraseña
                       </Label>
-                      <Input
-                        id="login-password"
-                        type="password"
-                        value={loginData.password}
-                        onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                        className={getInputClassName('password', loginErrors)}
-                        required
-                      />
+                      <div className="relative">
+                        <Input
+                          id="login-password"
+                          type={showLoginPassword ? "text" : "password"}
+                          value={loginData.password}
+                          onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                          className={getInputClassName('password', loginErrors)}
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowLoginPassword(!showLoginPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          {showLoginPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
                       {loginErrors.password && (
-                        <p className="text-red-500 text-sm">{loginErrors.password}</p>
+                        <p className="text-red-600 text-sm flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          {loginErrors.password}
+                        </p>
                       )}
                     </div>
                     <Button type="submit" className="w-full" disabled={loading}>
@@ -377,7 +459,10 @@ const TaskerAuth = () => {
                         required
                       />
                       {signupErrors.fullName && (
-                        <p className="text-red-500 text-sm">{signupErrors.fullName}</p>
+                        <p className="text-red-600 text-sm flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          {signupErrors.fullName}
+                        </p>
                       )}
                     </div>
                     <div className="space-y-2">
@@ -393,7 +478,10 @@ const TaskerAuth = () => {
                         required
                       />
                       {signupErrors.email && (
-                        <p className="text-red-500 text-sm">{signupErrors.email}</p>
+                        <p className="text-red-600 text-sm flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          {signupErrors.email}
+                        </p>
                       )}
                     </div>
                     <div className="space-y-2">
@@ -410,25 +498,119 @@ const TaskerAuth = () => {
                         required
                       />
                       {signupErrors.phone && (
-                        <p className="text-red-500 text-sm">{signupErrors.phone}</p>
+                        <p className="text-red-600 text-sm flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          {signupErrors.phone}
+                        </p>
                       )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="signup-password" className={getLabelClassName('password', signupErrors)}>
                         Contraseña Segura
                       </Label>
-                      <Input
-                        id="signup-password"
-                        type="password"
-                        value={signupData.password}
-                        onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
-                        className={getInputClassName('password', signupErrors)}
-                        required
-                      />
+                      <div className="relative">
+                        <Input
+                          id="signup-password"
+                          type={showPassword ? "text" : "password"}
+                          value={signupData.password}
+                          onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
+                          className={getInputClassName('password', signupErrors)}
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      
+                      {/* Password strength bar */}
+                      {signupData.password && (
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground">Seguridad:</span>
+                            <span className={`font-medium ${
+                              passwordStrength.label === 'Débil' ? 'text-red-600' :
+                              passwordStrength.label === 'Regular' ? 'text-yellow-600' :
+                              'text-green-600'
+                            }`}>
+                              {passwordStrength.label}
+                            </span>
+                          </div>
+                          <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                            <div
+                              className={`h-full transition-all duration-300 ${passwordStrength.color}`}
+                              style={{ width: `${(passwordStrength.strength / 6) * 100}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Password requirements checklist */}
+                      {signupData.password && (
+                        <div className="space-y-1 text-xs">
+                          <div className={`flex items-center gap-1 ${signupData.password.length >= 8 ? 'text-green-600' : 'text-muted-foreground'}`}>
+                            {signupData.password.length >= 8 ? <CheckCircle2 className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
+                            Al menos 8 caracteres
+                          </div>
+                          <div className={`flex items-center gap-1 ${/[A-Z]/.test(signupData.password) ? 'text-green-600' : 'text-muted-foreground'}`}>
+                            {/[A-Z]/.test(signupData.password) ? <CheckCircle2 className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
+                            Una letra mayúscula
+                          </div>
+                          <div className={`flex items-center gap-1 ${/[a-z]/.test(signupData.password) ? 'text-green-600' : 'text-muted-foreground'}`}>
+                            {/[a-z]/.test(signupData.password) ? <CheckCircle2 className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
+                            Una letra minúscula
+                          </div>
+                          <div className={`flex items-center gap-1 ${/[0-9]/.test(signupData.password) ? 'text-green-600' : 'text-muted-foreground'}`}>
+                            {/[0-9]/.test(signupData.password) ? <CheckCircle2 className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
+                            Un número
+                          </div>
+                          <div className={`flex items-center gap-1 ${/[^A-Za-z0-9]/.test(signupData.password) ? 'text-green-600' : 'text-muted-foreground'}`}>
+                            {/[^A-Za-z0-9]/.test(signupData.password) ? <CheckCircle2 className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
+                            Un carácter especial (!@#$%^&*)
+                          </div>
+                        </div>
+                      )}
+                      
                       {signupErrors.password && (
-                        <p className="text-red-500 text-sm">{signupErrors.password}</p>
+                        <p className="text-red-600 text-sm flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          {signupErrors.password}
+                        </p>
                       )}
                     </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-confirm-password" className={getLabelClassName('confirmPassword', signupErrors)}>
+                        Confirmar Contraseña
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          id="signup-confirm-password"
+                          type={showConfirmPassword ? "text" : "password"}
+                          value={signupData.confirmPassword}
+                          onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
+                          className={getInputClassName('confirmPassword', signupErrors)}
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      {signupErrors.confirmPassword && (
+                        <p className="text-red-600 text-sm flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          {signupErrors.confirmPassword}
+                        </p>
+                      )}
+                    </div>
+                    
                     <Button type="submit" className="w-full" disabled={loading}>
                       {loading ? 'Creando cuenta...' : 'Crear Cuenta de Tasker'}
                     </Button>
@@ -452,6 +634,48 @@ const TaskerAuth = () => {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Email Verification Modal */}
+      <Dialog open={showEmailVerificationModal} onOpenChange={setShowEmailVerificationModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="w-5 h-5 text-primary" />
+              ¡Registro exitoso! 📧
+            </DialogTitle>
+            <DialogDescription className="space-y-3 pt-4">
+              <p className="text-base">
+                Te hemos enviado un correo de verificación a{' '}
+                <span className="font-semibold text-foreground">{verificationEmail}</span>
+              </p>
+              <p>
+                Por favor revisa tu bandeja de entrada y haz clic en el enlace para activar tu cuenta de Chambynauta.
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Si no ves el correo, revisa tu carpeta de spam.
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-2 mt-4">
+            <Button
+              onClick={() => handleResendVerification(verificationEmail)}
+              variant="outline"
+              className="w-full"
+            >
+              Reenviar correo
+            </Button>
+            <Button
+              onClick={() => {
+                setShowEmailVerificationModal(false);
+                setActiveTab('login');
+              }}
+              className="w-full"
+            >
+              Entendido
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
     </>
   );
