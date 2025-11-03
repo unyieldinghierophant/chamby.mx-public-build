@@ -138,16 +138,12 @@ const UserLanding = () => {
                   <Shield className="mr-2 h-4 w-4" />
                   <span>Seguridad</span>
                 </DropdownMenuItem>
-                {profile?.is_tasker && <>
-                    <DropdownMenuItem onClick={() => navigate("/tasker-dashboard")}>
-                      <Users className="mr-2 h-4 w-4" />
-                      <span>Dashboard Tasker</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/provider-portal")}>
-                      <TrendingUp className="mr-2 h-4 w-4" />
-                      <span>Portal de Proveedores</span>
-                    </DropdownMenuItem>
-                  </>}
+                {profile?.is_tasker && (
+                  <DropdownMenuItem onClick={() => navigate("/provider-portal")}>
+                    <TrendingUp className="mr-2 h-4 w-4" />
+                    <span>Portal de Proveedores</span>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} disabled={isLoggingOut}>
                   <LogOut className="mr-2 h-4 w-4" />
@@ -198,16 +194,12 @@ const UserLanding = () => {
                   <Shield className="mr-2 h-4 w-4" />
                   <span>Seguridad</span>
                 </DropdownMenuItem>
-                {profile?.is_tasker && <>
-                    <DropdownMenuItem onClick={() => navigate("/tasker-dashboard")}>
-                      <Users className="mr-2 h-4 w-4" />
-                      <span>Dashboard Tasker</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/provider-portal")}>
-                      <TrendingUp className="mr-2 h-4 w-4" />
-                      <span>Portal de Proveedores</span>
-                    </DropdownMenuItem>
-                  </>}
+                {profile?.is_tasker && (
+                  <DropdownMenuItem onClick={() => navigate("/provider-portal")}>
+                    <TrendingUp className="mr-2 h-4 w-4" />
+                    <span>Portal de Proveedores</span>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} disabled={isLoggingOut}>
                   <LogOut className="mr-2 h-4 w-4" />
@@ -272,7 +264,7 @@ const UserLanding = () => {
               <p className="text-muted-foreground mb-4">
                 Únete como proveedor y empieza a ganar dinero hoy
               </p>
-              <Button onClick={() => navigate("/tasker-landing")} className="bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant">
+              <Button onClick={() => navigate("/become-provider")} className="bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant">
                 Convertirse en Proveedor
               </Button>
             </CardContent>

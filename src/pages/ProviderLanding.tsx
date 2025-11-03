@@ -50,27 +50,31 @@ const ProviderLanding = () => {
 
   const handleGetStarted = () => {
     if (user) {
-      // Usuario logueado - llevar a página de crear servicio
-      navigate('/tasker-dashboard');
+      // Usuario logueado - verificar si es tasker
+      if (profile?.is_tasker) {
+        navigate('/provider-portal');
+      } else {
+        navigate('/become-provider');
+      }
     } else {
-      // Usuario no logueado - llevar a registro
-      navigate('/auth/tasker');
+      // Usuario no logueado - llevar a registro con tab de signup
+      navigate('/auth/tasker?tab=signup');
     }
   };
 
   const handleListServices = () => {
     if (!user) {
       // No logueado - llevar a registro
-      navigate('/auth/tasker');
-    } else if (role !== 'provider') {
-      // Logueado pero no es provider - llevar a onboarding
-      navigate('/tasker-onboarding');
+      navigate('/auth/tasker?tab=signup');
+    } else if (!profile?.is_tasker) {
+      // Logueado pero no es tasker - llevar a onboarding
+      navigate('/become-provider');
     } else if (!isVerified) {
-      // Es provider pero no verificado - llevar a verificación
+      // Es tasker pero no verificado - llevar a verificación
       navigate('/tasker-verification');
     } else {
-      // Es provider y verificado - llevar a crear trabajo
-      navigate('/tasker-dashboard');
+      // Es tasker y verificado - llevar a portal
+      navigate('/provider-portal');
     }
   };
 
@@ -181,16 +185,10 @@ const ProviderLanding = () => {
                     <span>Pagos</span>
                   </DropdownMenuItem>
                   {profile?.is_tasker && (
-                    <>
-                      <DropdownMenuItem onClick={() => navigate("/tasker-dashboard")}>
-                        <Users className="mr-2 h-4 w-4" />
-                        <span>Dashboard Tasker</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate("/provider-portal")}>
-                        <TrendingUp className="mr-2 h-4 w-4" />
-                        <span>Portal de Proveedores</span>
-                      </DropdownMenuItem>
-                    </>
+                    <DropdownMenuItem onClick={() => navigate("/provider-portal")}>
+                      <TrendingUp className="mr-2 h-4 w-4" />
+                      <span>Portal de Proveedores</span>
+                    </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut} disabled={isLoggingOut}>

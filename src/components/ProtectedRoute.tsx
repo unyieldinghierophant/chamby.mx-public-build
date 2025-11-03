@@ -38,6 +38,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // If user is logged in but not a tasker, redirect to become-provider page
   if (requireTasker && user && profile && !profile.is_tasker) {
+    console.log('User is not a tasker, redirecting to become-provider');
     return <Navigate to="/become-provider" replace />;
   }
 

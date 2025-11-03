@@ -14,7 +14,6 @@ import UserLanding from "./pages/UserLanding";
 import AuthCallback from "./pages/AuthCallback";
 import TaskerOnboarding from "./pages/TaskerOnboarding";
 import TaskerVerification from "./pages/TaskerVerification";
-import TaskerDashboard from "./pages/TaskerDashboard";
 import TaskerProfile from "./pages/TaskerProfile";
 import UserProfile from "./pages/UserProfile";
 import ProfileSettings from "./pages/ProfileSettings";
@@ -24,7 +23,6 @@ import GeneralSettings from "./pages/GeneralSettings";
 import SavedLocations from "./pages/SavedLocations";
 import DataExport from "./pages/DataExport";
 import AccountDeletion from "./pages/AccountDeletion";
-import ProviderDashboard from "./pages/ProviderDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import BookingForm from "./pages/BookingForm";
 import BookingSummary from "./pages/BookingSummary";
@@ -128,38 +126,9 @@ const App = () => (
             
             <Route path="/pago-visita" element={<PagoVisita />} />
             <Route path="/esperando-proveedor" element={<EsperandoProveedor />} />
-            <Route
-              path="/provider-dashboard" 
-              element={
-                <ProtectedRoute requireAuth>
-                  <ProviderDashboard />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/tasker-onboarding" 
-              element={
-                <ProtectedRoute requireTasker>
-                  <TaskerOnboarding />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/taskerverification" 
-              element={
-                <ProtectedRoute requireTasker>
-                  <TaskerVerification />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/tasker-dashboard" 
-              element={
-                <ProtectedRoute requireTasker>
-                  <TaskerDashboard />
-                </ProtectedRoute>
-              } 
-            />
+            {/* Old dashboard routes - redirect to provider-portal */}
+            <Route path="/provider-dashboard" element={<Navigate to="/provider-portal" replace />} />
+            <Route path="/tasker-dashboard" element={<Navigate to="/provider-portal" replace />} />
             <Route 
               path="/tasker-profile" 
               element={

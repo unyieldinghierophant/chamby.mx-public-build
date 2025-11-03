@@ -89,7 +89,10 @@ const AuthCallback = () => {
   useEffect(() => {
     if (emailConfirmed && !user) {
       const timer = setTimeout(() => {
-        navigate('/auth/tasker?tab=login', { replace: true });
+        // Check if they were signing up as tasker or client
+        const loginContext = sessionStorage.getItem('login_context');
+        const targetAuth = loginContext === 'tasker' ? '/auth/tasker?tab=login' : '/auth/user?tab=login';
+        navigate(targetAuth, { replace: true });
       }, 5000);
       return () => clearTimeout(timer);
     }
@@ -169,10 +172,14 @@ const AuthCallback = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-center text-muted-foreground">
-              Ya puedes iniciar sesión con tu cuenta de Chambynauta
+              Ya puedes iniciar sesión con tu cuenta
             </p>
             <Button
-              onClick={() => navigate('/auth/tasker?tab=login', { replace: true })}
+              onClick={() => {
+                const loginContext = sessionStorage.getItem('login_context');
+                const targetAuth = loginContext === 'tasker' ? '/auth/tasker?tab=login' : '/auth/user?tab=login';
+                navigate(targetAuth, { replace: true });
+              }}
               className="w-full"
             >
               Iniciar Sesión

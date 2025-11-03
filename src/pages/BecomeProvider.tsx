@@ -21,7 +21,7 @@ const BecomeProvider = () => {
 
   // If already a provider, redirect to portal
   if (profile?.is_tasker) {
-    navigate("/provider-portal", { replace: true });
+    setTimeout(() => navigate("/provider-portal", { replace: true }), 0);
     return null;
   }
 
@@ -92,13 +92,20 @@ const BecomeProvider = () => {
             <Button 
               size="lg" 
               className="gap-2"
-              onClick={() => navigate("/auth/tasker")}
+              onClick={() => {
+                // Set context so callback knows this is tasker signup
+                sessionStorage.setItem('login_context', 'tasker');
+                navigate("/auth/tasker?tab=signup");
+              }}
             >
               Comenzar Registro
               <ArrowRight className="h-5 w-5" />
             </Button>
             <p className="text-sm text-muted-foreground">
-              ¿Ya eres proveedor? <button onClick={() => navigate("/auth/tasker")} className="text-primary hover:underline">Inicia sesión aquí</button>
+              ¿Ya eres proveedor? <button onClick={() => {
+                sessionStorage.setItem('login_context', 'tasker');
+                navigate("/auth/tasker?tab=login");
+              }} className="text-primary hover:underline">Inicia sesión aquí</button>
             </p>
           </div>
         </div>
