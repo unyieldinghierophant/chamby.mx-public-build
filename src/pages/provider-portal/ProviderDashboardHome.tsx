@@ -110,11 +110,21 @@ const ProviderDashboardHome = () => {
           .eq("tasker_id", user?.id)
           .in("status", ["pending", "confirmed", "in_progress"]);
 
+        // Fetch reviews
+        const { data: reviews } = await supabase
+          .from("reviews")
+          .select("rating")
+          .eq("provider_id", user?.id);
+
+        const avgRating = reviews?.length
+          ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+          : 0;
+
         setStats({
           completedJobs: completedBookings?.length || 0,
           activeJobs: activeBookings?.length || 0,
-          rating: 0, // Will be calculated from reviews
-          totalReviews: 0, // Will be calculated from reviews
+          rating: avgRating,
+          totalReviews: reviews?.length || 0,
         });
       }
     } catch (error) {

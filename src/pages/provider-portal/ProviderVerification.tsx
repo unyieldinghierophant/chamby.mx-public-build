@@ -1,9 +1,13 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, Circle, Upload, UserCheck, Award } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
+import { DocumentUploadDialog } from "@/components/provider-portal/DocumentUploadDialog";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const verificationSteps = [
   {
@@ -33,9 +37,81 @@ const verificationSteps = [
 ];
 
 const ProviderVerification = () => {
+  const { user } = useAuth();
   const { profile } = useProfile();
+  const [uploadDialog, setUploadDialog] = useState<{
+    open: boolean;
+    docType: string;
+    title: string;
+    description: string;
+  }>({ open: false, docType: "", title: "", description: "" });
+  const [documents, setDocuments] = useState<any[]>([]);
+  const [completedJobs, setCompletedJobs] = useState(0);
+  const [loading, setLoading] = useState(true);
+
   const isVerified = profile?.verification_status === "verified";
-  const progress = isVerified ? 100 : 0;
+
+  useEffect(() => {
+    if (user) {
+      fetchVerificationData();
+    }
+  }, [user]);
+
+  const fetchVerificationData = async () => {
+    if (!user) return;
+
+    try {
+      // Get client data
+      const { data: clientData } = await supabase
+        .from("clients")
+        .select("id")
+        .eq("email", user.email)
+        .single();
+
+      if (clientData) {
+        // Fetch documents
+        const { data: docs } = await supabase
+          .from("documents")
+          .select("*")
+          .eq("client_id", clientData.id);
+
+        setDocuments(docs || []);
+      }
+
+      // Fetch completed jobs count
+      const { data: jobs } = await supabase
+        .from("bookings")
+        .select("id", { count: "exact" })
+        .eq("tasker_id", user.id)
+        .eq("status", "completed");
+
+      setCompletedJobs(jobs?.length || 0);
+    } catch (error) {
+      console.error("Error fetching verification data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const hasDocument = (docType: string) => {
+    return documents.some((doc) => doc.doc_type === docType);
+  };
+
+  const calculateProgress = () => {
+    if (isVerified) return 100;
+    let progress = 0;
+    if (hasDocument("face_photo")) progress += 25;
+    if (hasDocument("id_card")) progress += 25;
+    if (hasDocument("criminal_record")) progress += 25;
+    if (completedJobs >= 5) progress += 25;
+    return progress;
+  };
+
+  const progress = calculateProgress();
+
+  const handleUploadClick = (docType: string, title: string, description: string) => {
+    setUploadDialog({ open: true, docType, title, description });
+  };
 
   return (
     <div className="container mx-auto p-4 lg:p-6 space-y-6 max-w-4xl">
@@ -76,31 +152,160 @@ const ProviderVerification = () => {
           </div>
 
           <div className="space-y-4 mt-6">
-            {verificationSteps.map((step) => (
-              <div
-                key={step.id}
-                className="flex items-start gap-4 p-4 border rounded-lg"
-              >
-                <div className="mt-1">
-                  {isVerified ? (
-                    <CheckCircle className="h-6 w-6 text-green-600" />
-                  ) : (
-                    <Circle className="h-6 w-6 text-muted-foreground" />
-                  )}
-                </div>
-                <div className="flex-1 space-y-1">
-                  <h3 className="font-medium">{step.title}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {step.description}
-                  </p>
-                </div>
-                {!isVerified && (
-                  <Button variant="outline" size="sm">
-                    Iniciar
-                  </Button>
+            {/* Step 1: Face Photo */}
+            <div className="flex items-start gap-4 p-4 border rounded-lg">
+              <div className="mt-1">
+                {hasDocument("face_photo") ? (
+                  <CheckCircle className="h-6 w-6 text-green-600" />
+                ) : (
+                  <Circle className="h-6 w-6 text-muted-foreground" />
                 )}
               </div>
-            ))}
+              <div className="flex-1 space-y-1">
+                <h3 className="font-medium">Subir foto de rostro</h3>
+                <p className="text-sm text-muted-foreground">
+                  Una foto clara de tu rostro para identificación
+                </p>
+                {hasDocument("face_photo") && (
+                  <Badge className="bg-green-500/10 text-green-700">
+                    Completado
+                  </Badge>
+                )}
+              </div>
+              {!hasDocument("face_photo") && !isVerified && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    handleUploadClick(
+                      "face_photo",
+                      "Foto de Rostro",
+                      "Sube una foto clara de tu rostro"
+                    )
+                  }
+                >
+                  Subir
+                </Button>
+              )}
+            </div>
+
+            {/* Step 2: ID Card */}
+            <div className="flex items-start gap-4 p-4 border rounded-lg">
+              <div className="mt-1">
+                {hasDocument("id_card") ? (
+                  <CheckCircle className="h-6 w-6 text-green-600" />
+                ) : (
+                  <Circle className="h-6 w-6 text-muted-foreground" />
+                )}
+              </div>
+              <div className="flex-1 space-y-1">
+                <h3 className="font-medium">Subir INE</h3>
+                <p className="text-sm text-muted-foreground">
+                  Identificación oficial para verificación
+                </p>
+                {hasDocument("id_card") && (
+                  <Badge className="bg-green-500/10 text-green-700">
+                    Completado
+                  </Badge>
+                )}
+              </div>
+              {!hasDocument("id_card") && !isVerified && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    handleUploadClick(
+                      "id_card",
+                      "INE/IFE",
+                      "Sube tu identificación oficial por ambos lados"
+                    )
+                  }
+                >
+                  Subir
+                </Button>
+              )}
+            </div>
+
+            {/* Step 3: Criminal Record */}
+            <div className="flex items-start gap-4 p-4 border rounded-lg">
+              <div className="mt-1">
+                {hasDocument("criminal_record") ? (
+                  <CheckCircle className="h-6 w-6 text-green-600" />
+                ) : (
+                  <Circle className="h-6 w-6 text-muted-foreground" />
+                )}
+              </div>
+              <div className="flex-1 space-y-1">
+                <h3 className="font-medium">Carta de antecedentes no penales</h3>
+                <p className="text-sm text-muted-foreground">
+                  Documento de antecedentes no penales actualizado
+                </p>
+                {hasDocument("criminal_record") && (
+                  <Badge className="bg-green-500/10 text-green-700">
+                    Completado
+                  </Badge>
+                )}
+              </div>
+              {!hasDocument("criminal_record") && !isVerified && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    handleUploadClick(
+                      "criminal_record",
+                      "Antecedentes No Penales",
+                      "Sube tu carta de antecedentes no penales"
+                    )
+                  }
+                >
+                  Subir
+                </Button>
+              )}
+            </div>
+
+            {/* Step 4: Interview (Admin controlled) */}
+            <div className="flex items-start gap-4 p-4 border rounded-lg">
+              <div className="mt-1">
+                {isVerified ? (
+                  <CheckCircle className="h-6 w-6 text-green-600" />
+                ) : (
+                  <Circle className="h-6 w-6 text-muted-foreground" />
+                )}
+              </div>
+              <div className="flex-1 space-y-1">
+                <h3 className="font-medium">Completar entrevista presencial</h3>
+                <p className="text-sm text-muted-foreground">
+                  Contacta al equipo de Chamby para agendar tu entrevista
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Email: armando@chamby.mx | Tel: 223 543 8136
+                </p>
+              </div>
+            </div>
+
+            {/* Step 5: Complete 5 jobs */}
+            <div className="flex items-start gap-4 p-4 border rounded-lg">
+              <div className="mt-1">
+                {completedJobs >= 5 ? (
+                  <CheckCircle className="h-6 w-6 text-green-600" />
+                ) : (
+                  <Circle className="h-6 w-6 text-muted-foreground" />
+                )}
+              </div>
+              <div className="flex-1 space-y-1">
+                <h3 className="font-medium">
+                  Completar 5 trabajos con calificación positiva
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Demuestra tu calidad de servicio ({completedJobs}/5 completados)
+                </p>
+                {completedJobs >= 5 && (
+                  <Badge className="bg-green-500/10 text-green-700">
+                    Completado
+                  </Badge>
+                )}
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -134,6 +339,17 @@ const ProviderVerification = () => {
           </ul>
         </CardContent>
       </Card>
+
+      <DocumentUploadDialog
+        open={uploadDialog.open}
+        onOpenChange={(open) =>
+          setUploadDialog({ ...uploadDialog, open })
+        }
+        docType={uploadDialog.docType}
+        title={uploadDialog.title}
+        description={uploadDialog.description}
+        onUploadComplete={fetchVerificationData}
+      />
     </div>
   );
 };

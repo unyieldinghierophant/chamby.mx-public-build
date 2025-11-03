@@ -705,6 +705,7 @@ export type Database = {
           hourly_rate: number | null
           id: string
           is_tasker: boolean | null
+          payment_schedule: string | null
           phone: string | null
           rating: number | null
           skills: string[] | null
@@ -725,6 +726,7 @@ export type Database = {
           hourly_rate?: number | null
           id?: string
           is_tasker?: boolean | null
+          payment_schedule?: string | null
           phone?: string | null
           rating?: number | null
           skills?: string[] | null
@@ -745,6 +747,7 @@ export type Database = {
           hourly_rate?: number | null
           id?: string
           is_tasker?: boolean | null
+          payment_schedule?: string | null
           phone?: string | null
           rating?: number | null
           skills?: string[] | null
@@ -840,6 +843,50 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "jobs"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      provider_payment_methods: {
+        Row: {
+          account_holder_name: string
+          account_number: string
+          bank_name: string
+          clabe: string | null
+          created_at: string | null
+          id: string
+          is_default: boolean | null
+          provider_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          account_holder_name: string
+          account_number: string
+          bank_name: string
+          clabe?: string | null
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          provider_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          account_holder_name?: string
+          account_number?: string
+          bank_name?: string
+          clabe?: string | null
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          provider_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_payment_methods_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
           },
         ]
       }

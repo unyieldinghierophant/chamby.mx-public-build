@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,6 +9,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { MessageCircle, Mail, Phone } from "lucide-react";
+import ChatBot from "@/components/ChatBot";
 
 const faqs = [
   {
@@ -33,6 +35,8 @@ const faqs = [
 ];
 
 const ProviderSupport = () => {
+  const [chatOpen, setChatOpen] = useState(false);
+
   return (
     <div className="container mx-auto p-4 lg:p-6 space-y-6 max-w-4xl">
       <div>
@@ -43,7 +47,10 @@ const ProviderSupport = () => {
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <Card className="cursor-pointer hover:border-primary transition-colors">
+        <Card
+          className="cursor-pointer hover:border-primary transition-colors"
+          onClick={() => setChatOpen(true)}
+        >
           <CardContent className="pt-6 text-center space-y-2">
             <MessageCircle className="h-8 w-8 mx-auto text-primary" />
             <h3 className="font-medium">Chat en Vivo</h3>
@@ -53,22 +60,28 @@ const ProviderSupport = () => {
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:border-primary transition-colors">
+        <Card
+          className="cursor-pointer hover:border-primary transition-colors"
+          onClick={() => window.open("mailto:armando@chamby.mx")}
+        >
           <CardContent className="pt-6 text-center space-y-2">
             <Mail className="h-8 w-8 mx-auto text-primary" />
             <h3 className="font-medium">Email</h3>
             <p className="text-sm text-muted-foreground">
-              soporte@chamby.mx
+              armando@chamby.mx
             </p>
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:border-primary transition-colors">
+        <Card
+          className="cursor-pointer hover:border-primary transition-colors"
+          onClick={() => window.open("tel:+522235438136")}
+        >
           <CardContent className="pt-6 text-center space-y-2">
             <Phone className="h-8 w-8 mx-auto text-primary" />
             <h3 className="font-medium">Teléfono</h3>
             <p className="text-sm text-muted-foreground">
-              +52 33 1234 5678
+              223 543 8136
             </p>
           </CardContent>
         </Card>
@@ -102,6 +115,8 @@ const ProviderSupport = () => {
           </Accordion>
         </CardContent>
       </Card>
+
+      {chatOpen && <ChatBot />}
     </div>
   );
 };
