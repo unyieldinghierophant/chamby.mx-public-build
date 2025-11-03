@@ -80,6 +80,59 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_reschedules: {
+        Row: {
+          booking_id: string
+          created_at: string | null
+          id: string
+          original_date: string
+          provider_response: string | null
+          reason: string | null
+          requested_by: string
+          requested_date: string
+          responded_at: string | null
+          status: string | null
+          suggested_date: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string | null
+          id?: string
+          original_date: string
+          provider_response?: string | null
+          reason?: string | null
+          requested_by: string
+          requested_date: string
+          responded_at?: string | null
+          status?: string | null
+          suggested_date?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string | null
+          id?: string
+          original_date?: string
+          provider_response?: string | null
+          reason?: string | null
+          requested_by?: string
+          requested_date?: string
+          responded_at?: string | null
+          status?: string | null
+          suggested_date?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_reschedules_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           address: string | null
@@ -88,7 +141,11 @@ export type Database = {
           description: string | null
           duration_hours: number | null
           id: string
+          original_scheduled_date: string | null
           payment_status: string | null
+          reschedule_requested_at: string | null
+          reschedule_requested_date: string | null
+          reschedule_response_deadline: string | null
           scheduled_date: string
           service_id: string
           status: string | null
@@ -105,7 +162,11 @@ export type Database = {
           description?: string | null
           duration_hours?: number | null
           id?: string
+          original_scheduled_date?: string | null
           payment_status?: string | null
+          reschedule_requested_at?: string | null
+          reschedule_requested_date?: string | null
+          reschedule_response_deadline?: string | null
           scheduled_date: string
           service_id: string
           status?: string | null
@@ -122,7 +183,11 @@ export type Database = {
           description?: string | null
           duration_hours?: number | null
           id?: string
+          original_scheduled_date?: string | null
           payment_status?: string | null
+          reschedule_requested_at?: string | null
+          reschedule_requested_date?: string | null
+          reschedule_response_deadline?: string | null
           scheduled_date?: string
           service_id?: string
           status?: string | null
@@ -1122,6 +1187,7 @@ export type Database = {
         Returns: boolean
       }
       cleanup_expired_otps: { Args: never; Returns: undefined }
+      create_job_reminders: { Args: never; Returns: undefined }
       generate_short_code: { Args: never; Returns: string }
       get_admin_dashboard_stats: {
         Args: never

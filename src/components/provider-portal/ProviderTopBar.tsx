@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -10,10 +10,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
 import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { NotificationPanel } from "./NotificationPanel";
 
 export function ProviderTopBar() {
   const { profile } = useProfile();
@@ -48,12 +48,7 @@ export function ProviderTopBar() {
           Ver solicitudes activas
         </Button>
 
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
-          <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
-            3
-          </Badge>
-        </Button>
+        <NotificationPanel />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

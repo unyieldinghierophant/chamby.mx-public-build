@@ -48,6 +48,8 @@ import ProviderPayments from "./pages/provider-portal/ProviderPayments";
 import ProviderVerification from "./pages/provider-portal/ProviderVerification";
 import ProviderProfileEdit from "./pages/provider-portal/ProviderProfileEdit";
 import ProviderSupport from "./pages/provider-portal/ProviderSupport";
+import ProviderNotifications from "./pages/provider-portal/ProviderNotifications";
+import RescheduleRequest from "./pages/provider-portal/RescheduleRequest";
 import BecomeProvider from "./pages/BecomeProvider";
 
 
@@ -154,6 +156,8 @@ const App = () => (
               <Route path="verification" element={<ProviderVerification />} />
               <Route path="profile" element={<ProviderProfileEdit />} />
               <Route path="support" element={<ProviderSupport />} />
+              <Route path="notifications" element={<ProviderNotifications />} />
+              <Route path="reschedule/:id" element={<RescheduleRequest />} />
             </Route>
             <Route 
               path="/profile"
