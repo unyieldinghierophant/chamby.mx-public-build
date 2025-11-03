@@ -176,7 +176,6 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [isGuestMode, setIsGuestMode] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [whatsappUrl, setWhatsappUrl] = useState("");
   const [showWhatsAppButton, setShowWhatsAppButton] = useState(false);
@@ -389,8 +388,8 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
   const handleSubmit = async () => {
     if (!canProceedToNextStep()) return;
 
-    // Final submission requires authentication or guest mode
-    if (!user && !isGuestMode) {
+    // Final submission requires authentication
+    if (!user) {
       setShowAuthModal(true);
       return;
     }
@@ -611,19 +610,6 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
     });
   };
 
-  const handleGuestContinue = () => {
-    setIsGuestMode(true);
-    setShowAuthModal(false);
-    toast({
-      title: "Modo invitado activado",
-      description: "Podrás continuar sin iniciar sesión",
-    });
-    // Continue with submission after setting guest mode
-    setTimeout(() => {
-      handleSubmit();
-    }, 100);
-  };
-
   const handleConfirmSubmit = () => {
     // Clear saved form data
     clearFormData();
@@ -691,8 +677,8 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
         open={showAuthModal}
         onOpenChange={setShowAuthModal}
         onLogin={handleAuthModalLogin}
-        onGuest={handleGuestContinue}
-        showGuestOption={true}
+        onGuest={() => {}}
+        showGuestOption={false}
       />
 
       {/* Sidebar Navigation */}
