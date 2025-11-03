@@ -275,6 +275,101 @@ export type Database = {
         }
         Relationships: []
       }
+      job_tracking: {
+        Row: {
+          created_at: string
+          id: string
+          job_id: string
+          latitude: number
+          longitude: number
+          provider_id: string
+          route_polyline: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          job_id: string
+          latitude: number
+          longitude: number
+          provider_id: string
+          route_polyline?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          job_id?: string
+          latitude?: number
+          longitude?: number
+          provider_id?: string
+          route_polyline?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_tracking_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_tracking_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      job_visits: {
+        Row: {
+          created_at: string
+          evidence_photos: string[] | null
+          id: string
+          job_id: string
+          notes: string | null
+          scheduled_date: string
+          status: string
+          updated_at: string
+          visit_type: string
+        }
+        Insert: {
+          created_at?: string
+          evidence_photos?: string[] | null
+          id?: string
+          job_id: string
+          notes?: string | null
+          scheduled_date: string
+          status?: string
+          updated_at?: string
+          visit_type?: string
+        }
+        Update: {
+          created_at?: string
+          evidence_photos?: string[] | null
+          id?: string
+          job_id?: string
+          notes?: string | null
+          scheduled_date?: string
+          status?: string
+          updated_at?: string
+          visit_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_visits_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       jobs: {
         Row: {
           category: string
@@ -355,6 +450,102 @@ export type Database = {
           },
         ]
       }
+      messages: {
+        Row: {
+          attachment_url: string | null
+          created_at: string
+          id: string
+          job_id: string
+          message_text: string
+          read: boolean
+          receiver_id: string
+          sender_id: string
+        }
+        Insert: {
+          attachment_url?: string | null
+          created_at?: string
+          id?: string
+          job_id: string
+          message_text: string
+          read?: boolean
+          receiver_id: string
+          sender_id: string
+        }
+        Update: {
+          attachment_url?: string | null
+          created_at?: string
+          id?: string
+          job_id?: string
+          message_text?: string
+          read?: boolean
+          receiver_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_receiver_id_fkey"
+            columns: ["receiver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          link: string | null
+          message: string
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          link?: string | null
+          message: string
+          read?: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          link?: string | null
+          message?: string
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       otp_rate_limit_log: {
         Row: {
           action: string
@@ -378,6 +569,66 @@ export type Database = {
           phone_number?: string | null
         }
         Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          job_id: string | null
+          payment_method: string | null
+          provider_id: string
+          released_at: string | null
+          status: string
+          transaction_id: string | null
+          type: string
+          updated_at: string
+          withdrawn_at: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          payment_method?: string | null
+          provider_id: string
+          released_at?: string | null
+          status?: string
+          transaction_id?: string | null
+          type?: string
+          updated_at?: string
+          withdrawn_at?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          payment_method?: string | null
+          provider_id?: string
+          released_at?: string | null
+          status?: string
+          transaction_id?: string | null
+          type?: string
+          updated_at?: string
+          withdrawn_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       phone_verification_otps: {
         Row: {
@@ -506,6 +757,44 @@ export type Database = {
           zone_served?: string | null
         }
         Relationships: []
+      }
+      provider_availability: {
+        Row: {
+          created_at: string
+          date: string
+          end_time: string
+          id: string
+          is_available: boolean
+          provider_id: string
+          start_time: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          end_time: string
+          id?: string
+          is_available?: boolean
+          provider_id: string
+          start_time: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          end_time?: string
+          id?: string
+          is_available?: boolean
+          provider_id?: string
+          start_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_availability_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       provider_invoices: {
         Row: {
