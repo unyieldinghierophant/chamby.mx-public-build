@@ -1,6 +1,9 @@
 import { ModernButton } from "@/components/ui/modern-button";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { 
   Star, 
   DollarSign, 
@@ -14,19 +17,36 @@ import {
   Truck, 
   SprayCan,
   ArrowRight,
-  Quote
+  Quote,
+  LogOut,
+  User,
+  Settings,
+  CreditCard,
+  TrendingUp
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useVerificationStatus } from "@/hooks/useVerificationStatus";
-import Header from "@/components/Header";
+import { useProfile } from "@/hooks/useProfile";
+import { useState } from "react";
+import logo from "@/assets/chamby-logo-text.png";
+import Footer from "@/components/Footer";
+import MobileBottomNav from "@/components/MobileBottomNav";
 
 const ProviderLanding = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { role } = useUserRole();
   const { isVerified } = useVerificationStatus();
+  const { profile } = useProfile();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleSignOut = async () => {
+    setIsLoggingOut(true);
+    await signOut();
+    setIsLoggingOut(false);
+  };
 
   const handleGetStarted = () => {
     if (user) {
@@ -115,11 +135,83 @@ const ProviderLanding = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-200">
-      <Header />
+    <div className="min-h-screen bg-gradient-subtle">
+      {/* Simple Header matching user landing page */}
+      <header className="fixed top-0 left-0 right-0 bg-background border-b border-border z-50">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-2 flex items-center justify-between">
+          <button onClick={() => navigate('/')} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <img src={logo} alt="Chamby" className="w-40 h-40 -my-16" />
+          </button>
+          
+          {user && (
+            <div className="hidden md:block">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={user?.user_metadata?.avatar_url} />
+                      <AvatarFallback>
+                        {(profile?.full_name || user?.email || "U").charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {profile?.full_name || "Usuario"}
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {user?.email}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate("/profile")}>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Perfil</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/profile/settings")}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Configuración</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/profile/payment-settings")}>
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    <span>Pagos</span>
+                  </DropdownMenuItem>
+                  {profile?.is_tasker && (
+                    <>
+                      <DropdownMenuItem onClick={() => navigate("/tasker-dashboard")}>
+                        <Users className="mr-2 h-4 w-4" />
+                        <span>Dashboard Tasker</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate("/provider-portal")}>
+                        <TrendingUp className="mr-2 h-4 w-4" />
+                        <span>Portal de Proveedores</span>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} disabled={isLoggingOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>{isLoggingOut ? 'Saliendo...' : 'Cerrar Sesión'}</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
+
+          {!user && (
+            <Button onClick={() => navigate('/auth/tasker')} className="bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant">
+              Iniciar Sesión
+            </Button>
+          )}
+        </div>
+      </header>
       
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden">
+      <section className="relative min-h-screen flex items-center justify-center pt-24 overflow-hidden">
         {/* Background Icons - Positioned around the text */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-16 left-8">
@@ -181,7 +273,7 @@ const ProviderLanding = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <ModernButton 
                 size="xl" 
-                className="bg-primary hover:bg-primary/90 text-white font-semibold px-8 py-4 text-lg"
+                className="bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant font-semibold px-8 py-4 text-lg"
                 onClick={handleGetStarted}
               >
                 Comenzar Ahora
@@ -208,7 +300,7 @@ const ProviderLanding = () => {
       </section>
 
       {/* Value Proposition Grid */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
@@ -221,13 +313,13 @@ const ProviderLanding = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {valueProps.map((prop, index) => (
-              <Card key={index} className="bg-white hover:shadow-lg transition-all duration-300 hover:transform hover:-translate-y-2 border-gray-200">
+              <Card key={index} className="bg-gradient-card border-white/20 hover:shadow-elegant transition-all duration-300 hover:transform hover:-translate-y-2">
                 <CardContent className="p-8 text-center">
                   <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
                     <prop.icon className="h-8 w-8 text-primary" />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">{prop.title}</h3>
-                  <p className="text-gray-600 mb-4">{prop.description}</p>
+                  <h3 className="text-xl font-bold text-foreground mb-3">{prop.title}</h3>
+                  <p className="text-muted-foreground mb-4">{prop.description}</p>
                   <Badge className="bg-green-100 text-green-700 border-green-200">
                     {prop.highlight}
                   </Badge>
@@ -239,7 +331,7 @@ const ProviderLanding = () => {
       </section>
 
       {/* How It Works */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gradient-subtle">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
@@ -254,17 +346,17 @@ const ProviderLanding = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {steps.map((step, index) => (
                 <div key={index} className="relative">
-                  <Card className="bg-white hover:shadow-lg transition-all duration-300">
+                  <Card className="bg-gradient-card border-white/20 hover:shadow-elegant transition-all duration-300">
                     <CardContent className="p-8">
                       <div className="text-6xl font-bold text-primary/20 mb-4">{step.number}</div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-4">{step.title}</h3>
-                      <p className="text-gray-600 leading-relaxed">{step.description}</p>
+                      <h3 className="text-xl font-bold text-foreground mb-4">{step.title}</h3>
+                      <p className="text-muted-foreground leading-relaxed">{step.description}</p>
                     </CardContent>
                   </Card>
                   
                   {index < steps.length - 1 && (
                     <div className="hidden lg:block absolute top-1/2 -right-4 transform -translate-y-1/2">
-                      <ArrowRight className="h-8 w-8 text-gray-300" />
+                      <ArrowRight className="h-8 w-8 text-muted-foreground/30" />
                     </div>
                   )}
                 </div>
@@ -275,7 +367,7 @@ const ProviderLanding = () => {
       </section>
 
       {/* Testimonials Placeholder */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
@@ -288,17 +380,17 @@ const ProviderLanding = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {[1, 2, 3].map((item) => (
-              <Card key={item} className="bg-gray-50 border-gray-200">
+              <Card key={item} className="bg-gradient-card border-white/20">
                 <CardContent className="p-8">
                   <Quote className="h-8 w-8 text-primary mb-4" />
-                  <p className="text-gray-600 mb-6 italic">
+                  <p className="text-muted-foreground mb-6 italic">
                     "Testimonial placeholder - Historia de éxito de un profesional que trabaja con Chamby."
                   </p>
                   <div className="flex items-center">
-                    <div className="w-12 h-12 bg-gray-300 rounded-full mr-4"></div>
+                    <div className="w-12 h-12 bg-muted rounded-full mr-4"></div>
                     <div>
-                      <div className="font-semibold text-gray-900">Nombre del Profesional</div>
-                      <div className="text-sm text-gray-600">Especialidad</div>
+                      <div className="font-semibold text-foreground">Nombre del Profesional</div>
+                      <div className="text-sm text-muted-foreground">Especialidad</div>
                     </div>
                   </div>
                   <div className="flex mt-4">
@@ -314,7 +406,7 @@ const ProviderLanding = () => {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gradient-subtle">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
@@ -327,10 +419,10 @@ const ProviderLanding = () => {
 
           <div className="max-w-3xl mx-auto space-y-6">
             {faqs.map((faq, index) => (
-              <Card key={index} className="bg-white border-gray-200">
+              <Card key={index} className="bg-gradient-card border-white/20">
                 <CardContent className="p-8">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">{faq.question}</h3>
-                  <p className="text-gray-600 leading-relaxed">{faq.answer}</p>
+                  <h3 className="text-xl font-bold text-foreground mb-4">{faq.question}</h3>
+                  <p className="text-muted-foreground leading-relaxed">{faq.answer}</p>
                 </CardContent>
               </Card>
             ))}
@@ -365,6 +457,10 @@ const ProviderLanding = () => {
         </div>
       </section>
 
+      <Footer />
+      <div className="desktop-only">
+        <MobileBottomNav />
+      </div>
     </div>
   );
 };
