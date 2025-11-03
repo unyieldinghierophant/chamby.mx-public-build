@@ -135,7 +135,7 @@ const AuthCallback = () => {
       if (role === "provider" && isTasker) {
         defaultPath = "/provider-portal";
       } else if (role === "provider") {
-        defaultPath = "/provider-dashboard";
+        defaultPath = "/provider-portal";
       }
     }
     

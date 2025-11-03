@@ -92,10 +92,10 @@ const TaskerAuth = () => {
   // Password strength
   const passwordStrength = calculatePasswordStrength(signupData.password);
 
-  // Redirect to provider dashboard if already authenticated  
+  // Redirect to provider portal if already authenticated  
   useEffect(() => {
     if (user && !roleLoading) {
-      const returnTo = (location.state as { returnTo?: string })?.returnTo || '/provider-dashboard';
+      const returnTo = (location.state as { returnTo?: string })?.returnTo || '/provider-portal';
       navigate(returnTo, { replace: true });
     }
   }, [user, roleLoading, navigate, location]);
@@ -252,7 +252,7 @@ const TaskerAuth = () => {
         <AuthSuccessOverlay
           message={successMessage}
           onComplete={() => {
-            const returnTo = (location.state as { returnTo?: string })?.returnTo || '/provider-dashboard';
+            const returnTo = (location.state as { returnTo?: string })?.returnTo || '/provider-portal';
             navigate(returnTo);
           }}
         />
