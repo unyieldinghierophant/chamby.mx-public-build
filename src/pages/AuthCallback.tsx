@@ -120,21 +120,15 @@ const AuthCallback = () => {
     let defaultPath = "/user-landing";
     
     if (loginContext === 'tasker') {
-      // User logged in from tasker portal
-      if (isTasker) {
-        defaultPath = "/provider-portal";
-      } else {
-        // Not a tasker yet, send to become-provider page
-        defaultPath = "/become-provider";
-      }
+      // User logged in/signed up from tasker portal - always go to provider portal
+      // New signups will complete onboarding from there
+      defaultPath = "/provider-portal";
     } else if (loginContext === 'client') {
       // User logged in from client portal
       defaultPath = "/user-landing";
     } else {
       // No login context - use role-based routing (fallback)
-      if (role === "provider" && isTasker) {
-        defaultPath = "/provider-portal";
-      } else if (role === "provider") {
+      if (role === "provider" || isTasker) {
         defaultPath = "/provider-portal";
       }
     }
