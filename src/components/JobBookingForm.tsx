@@ -931,6 +931,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
               <GoogleMapPicker 
                 onLocationSelect={handleMapLocationSelect}
                 initialLocation={location}
+                onConfirm={() => setCurrentStep(3)}
               />
             </div>
           )}

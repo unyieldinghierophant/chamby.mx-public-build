@@ -3,7 +3,7 @@ import { GoogleMap, LoadScript, Autocomplete } from '@react-google-maps/api';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { MapPin, Building2, Star, Plus, Trash2, Edit2, Navigation, Loader2 } from 'lucide-react';
+import { MapPin, Building2, Star, Plus, Trash2, Edit2, Navigation, Loader2, Search } from 'lucide-react';
 import { useSavedLocations } from '@/hooks/useSavedLocations';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
@@ -82,9 +82,10 @@ const guadalajaraBounds = {
 interface GoogleMapPickerProps {
   onLocationSelect: (lat: number, lng: number, address: string) => void;
   initialLocation?: string;
+  onConfirm?: () => void;
 }
 
-export const GoogleMapPicker = ({ onLocationSelect, initialLocation }: GoogleMapPickerProps) => {
+export const GoogleMapPicker = ({ onLocationSelect, initialLocation, onConfirm }: GoogleMapPickerProps) => {
   const { user } = useAuth();
   const { locations, loading: locationsLoading, addLocation, updateLocation, deleteLocation } = useSavedLocations();
   const [center, setCenter] = useState(defaultCenter);
@@ -637,7 +638,7 @@ export const GoogleMapPicker = ({ onLocationSelect, initialLocation }: GoogleMap
             Arrastra el mapa para seleccionar ubicación
           </Label>
           <div className="relative">
-            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
             <Autocomplete
               onLoad={onLoad}
               onPlaceChanged={onPlaceChanged}
@@ -786,6 +787,13 @@ export const GoogleMapPicker = ({ onLocationSelect, initialLocation }: GoogleMap
                     : currentAddress;
                   onLocationSelect(center.lat, center.lng, fullAddress);
                   toast.success('✓ Ubicación confirmada');
+                  
+                  // Auto-advance to next step if callback provided
+                  if (onConfirm) {
+                    setTimeout(() => {
+                      onConfirm();
+                    }, 300);
+                  }
                 }}
               >
                 {isGeocoding ? 'Cargando...' : 'Confirmar ubicación'}
