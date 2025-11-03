@@ -63,6 +63,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (email: string, password: string, fullName: string, phone?: string, isTasker?: boolean, role?: string) => {
     const redirectUrl = `${window.location.origin}/auth/callback`;
     
+    // Store login context for post-verification routing
+    const loginContext = isTasker ? 'tasker' : 'client';
+    sessionStorage.setItem('login_context', loginContext);
+    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -72,7 +76,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           full_name: fullName,
           phone: phone,
           is_tasker: isTasker || false,
-          role: role || 'client'
+          role: role || 'client',
+          login_context: loginContext // Store in user metadata as backup
         }
       }
     });
@@ -114,7 +119,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`
+        redirectTo: `${window.location.origin}/auth/callback`,
+        queryParams: {
+          // Pass login context through OAuth state
+          access_type: 'offline',
+          prompt: 'consent',
+          // Store context in URL to retrieve after OAuth
+          state: btoa(JSON.stringify({ 
+            login_context: loginContext || 'client',
+            is_provider: isProvider 
+          }))
+        }
       }
     });
     
