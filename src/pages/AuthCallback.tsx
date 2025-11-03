@@ -24,6 +24,7 @@ const AuthCallback = () => {
   const confirmationType = searchParams.get('type');
   const isEmailConfirmation = confirmationType === 'signup' || confirmationType === 'email';
 
+  // Initial mount effect
   useEffect(() => {
     console.log('AuthCallback mounted', { 
       authLoading, 
@@ -49,6 +50,7 @@ const AuthCallback = () => {
     }
   }, []);
 
+  // Auth state change effect
   useEffect(() => {
     console.log('Auth state changed', { authLoading, roleLoading, user: !!user, role, retryCount });
     
@@ -59,6 +61,39 @@ const AuthCallback = () => {
       setShowSuccess(true);
     }
   }, [user, role, authLoading, roleLoading, retryCount]);
+
+  // Safari ITP handling effect
+  useEffect(() => {
+    if (!authLoading && !roleLoading && !user && hasOAuthParams && retryCount < 6) {
+      console.log(`Waiting for Safari session restoration... attempt ${retryCount + 1}/6`);
+      const timer = setTimeout(() => {
+        setRetryCount(prev => prev + 1);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+
+    // Only redirect to login if no OAuth params AND we've waited long enough
+    if (!authLoading && !roleLoading && !user && !hasOAuthParams) {
+      console.log('No user and no OAuth params, redirecting to login');
+      navigate("/auth/user", { replace: true });
+    }
+
+    // Last resort: if we've waited 3 seconds and still no user
+    if (!authLoading && !roleLoading && !user && hasOAuthParams && retryCount >= 6) {
+      console.error('Safari session restoration failed after 3 seconds');
+      navigate("/auth/user", { replace: true });
+    }
+  }, [authLoading, roleLoading, user, hasOAuthParams, retryCount, navigate]);
+
+  // Auto-redirect after 5 seconds for email confirmation
+  useEffect(() => {
+    if (emailConfirmed && !user) {
+      const timer = setTimeout(() => {
+        navigate('/auth/tasker?tab=login', { replace: true });
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [emailConfirmed, user, navigate]);
 
   const handleSuccessComplete = async () => {
     // Check for stored return path
@@ -87,29 +122,6 @@ const AuthCallback = () => {
     console.log('Success complete, redirecting to:', targetPath, { role, isTasker });
     navigate(targetPath, { replace: true });
   };
-
-  // Safari ITP handling: Wait for session restoration if OAuth callback detected
-  useEffect(() => {
-    if (!authLoading && !roleLoading && !user && hasOAuthParams && retryCount < 6) {
-      console.log(`Waiting for Safari session restoration... attempt ${retryCount + 1}/6`);
-      const timer = setTimeout(() => {
-        setRetryCount(prev => prev + 1);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-
-    // Only redirect to login if no OAuth params AND we've waited long enough
-    if (!authLoading && !roleLoading && !user && !hasOAuthParams) {
-      console.log('No user and no OAuth params, redirecting to login');
-      navigate("/auth/user", { replace: true });
-    }
-
-    // Last resort: if we've waited 3 seconds and still no user
-    if (!authLoading && !roleLoading && !user && hasOAuthParams && retryCount >= 6) {
-      console.error('Safari session restoration failed after 3 seconds');
-      navigate("/auth/user", { replace: true });
-    }
-  }, [authLoading, roleLoading, user, hasOAuthParams, retryCount, navigate]);
 
   // Show loading while determining where to redirect
   if (authLoading || roleLoading || (hasOAuthParams && !user && retryCount < 6)) {
@@ -154,16 +166,6 @@ const AuthCallback = () => {
       </div>
     );
   }
-
-  // Auto-redirect after 5 seconds for email confirmation
-  useEffect(() => {
-    if (emailConfirmed && !user) {
-      const timer = setTimeout(() => {
-        navigate('/auth/tasker?tab=login', { replace: true });
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [emailConfirmed, user, navigate]);
 
   // If still no user after all attempts, will be handled by redirect effect above
   if (!user) {
