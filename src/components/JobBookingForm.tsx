@@ -389,8 +389,8 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
   const handleSubmit = async () => {
     if (!canProceedToNextStep()) return;
 
-    // Final submission requires authentication
-    if (!user) {
+    // Final submission requires authentication or guest mode
+    if (!user && !isGuestMode) {
       setShowAuthModal(true);
       return;
     }
@@ -618,6 +618,10 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
       title: "Modo invitado activado",
       description: "Podrás continuar sin iniciar sesión",
     });
+    // Continue with submission after setting guest mode
+    setTimeout(() => {
+      handleSubmit();
+    }, 100);
   };
 
   const handleConfirmSubmit = () => {
