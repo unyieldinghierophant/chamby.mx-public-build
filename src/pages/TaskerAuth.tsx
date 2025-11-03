@@ -123,7 +123,7 @@ const TaskerAuth = () => {
     }
     
     setLoading(true);
-    const { error } = await signIn(loginData.email, loginData.password);
+    const { error } = await signIn(loginData.email, loginData.password, 'tasker');
     
     if (error) {
       // Check for unconfirmed email
@@ -240,7 +240,7 @@ const TaskerAuth = () => {
       sessionStorage.setItem('auth_return_to', returnTo);
     }
     
-    const { error } = await signInWithGoogle(true); // true = provider
+    const { error } = await signInWithGoogle(true, 'tasker'); // true = provider, 'tasker' = login context
     if (error) {
       toast.error(error.message);
     }

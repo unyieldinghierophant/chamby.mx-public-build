@@ -96,9 +96,13 @@ const AuthCallback = () => {
   }, [emailConfirmed, user, navigate]);
 
   const handleSuccessComplete = async () => {
-    // Check for stored return path
+    // Check for stored return path and login context
     const returnTo = sessionStorage.getItem('auth_return_to');
-    sessionStorage.removeItem('auth_return_to'); // Clear after reading
+    const loginContext = sessionStorage.getItem('login_context');
+    
+    // Clear after reading
+    sessionStorage.removeItem('auth_return_to');
+    sessionStorage.removeItem('login_context');
     
     // Check if user is a tasker
     const { data: profile } = await supabase
@@ -109,17 +113,32 @@ const AuthCallback = () => {
     
     const isTasker = profile?.is_tasker || false;
     
-    // Route based on role and tasker status
+    // Route based on login context first, then role
     let defaultPath = "/user-landing";
-    if (role === "provider" && isTasker) {
-      defaultPath = "/provider-portal";
-    } else if (role === "provider") {
-      defaultPath = "/provider-dashboard";
+    
+    if (loginContext === 'tasker') {
+      // User logged in from tasker portal
+      if (isTasker) {
+        defaultPath = "/provider-portal";
+      } else {
+        // Not a tasker yet, send to become-provider page
+        defaultPath = "/become-provider";
+      }
+    } else if (loginContext === 'client') {
+      // User logged in from client portal
+      defaultPath = "/user-landing";
+    } else {
+      // No login context - use role-based routing (fallback)
+      if (role === "provider" && isTasker) {
+        defaultPath = "/provider-portal";
+      } else if (role === "provider") {
+        defaultPath = "/provider-dashboard";
+      }
     }
     
     const targetPath = returnTo || defaultPath;
     
-    console.log('Success complete, redirecting to:', targetPath, { role, isTasker });
+    console.log('Success complete, redirecting to:', targetPath, { role, isTasker, loginContext });
     navigate(targetPath, { replace: true });
   };
 

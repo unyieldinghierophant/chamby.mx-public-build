@@ -7,8 +7,8 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signUp: (email: string, password: string, fullName: string, phone?: string, isTasker?: boolean, role?: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signInWithGoogle: (isProvider?: boolean) => Promise<{ error: any }>;
+  signIn: (email: string, password: string, loginContext?: 'client' | 'tasker') => Promise<{ error: any }>;
+  signInWithGoogle: (isProvider?: boolean, loginContext?: 'client' | 'tasker') => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: any }>;
 }
@@ -85,7 +85,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error };
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, loginContext?: 'client' | 'tasker') => {
+    // Store login context before authentication
+    if (loginContext) {
+      sessionStorage.setItem('login_context', loginContext);
+    }
+    
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password
@@ -93,7 +98,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error };
   };
 
-  const signInWithGoogle = async (isProvider: boolean = false) => {
+  const signInWithGoogle = async (isProvider: boolean = false, loginContext?: 'client' | 'tasker') => {
+    // Store login context before OAuth redirect
+    if (loginContext) {
+      sessionStorage.setItem('login_context', loginContext);
+    }
+    
     // Store role preference before OAuth redirect
     if (isProvider) {
       sessionStorage.setItem('pending_role', 'provider');

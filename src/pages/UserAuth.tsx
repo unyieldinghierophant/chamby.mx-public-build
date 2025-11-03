@@ -93,7 +93,7 @@ const UserAuth = () => {
     }
     
     setLoading(true);
-    const { error } = await signIn(loginData.email, loginData.password);
+    const { error } = await signIn(loginData.email, loginData.password, 'client');
     
     if (error) {
       toast.error(error.message);
@@ -263,7 +263,7 @@ const UserAuth = () => {
       sessionStorage.setItem('auth_return_to', returnTo);
     }
     
-    const { error } = await signInWithGoogle(false);
+    const { error } = await signInWithGoogle(false, 'client'); // false = not provider, 'client' = login context
     if (error) {
       toast.error(error.message);
     }
