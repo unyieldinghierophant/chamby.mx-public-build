@@ -457,6 +457,29 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
         throw saveError;
       }
 
+      // Also create a booking entry so providers can see it
+      const scheduledDate = specificDate || new Date(Date.now() + 24 * 60 * 60 * 1000); // Use specified date or tomorrow
+      
+      const { error: bookingError } = await supabase
+        .from('bookings')
+        .insert({
+          customer_id: user.id,
+          tasker_id: null, // Available for any provider
+          service_id: savedJob.id, // Reference to job request
+          title: taskDescription,
+          description: details,
+          scheduled_date: scheduledDate.toISOString(),
+          address: location,
+          total_amount: 250, // Initial visit fee
+          status: 'pending',
+          payment_status: 'pending'
+        });
+
+      if (bookingError) {
+        console.error('Error creating booking:', bookingError);
+        // Don't throw - job request was saved successfully
+      }
+
       // Small delay to ensure DB processes the insert and RLS allows reading
       await new Promise(resolve => setTimeout(resolve, 300));
 
