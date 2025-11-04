@@ -83,8 +83,8 @@ const Hero = () => {
               </svg>
             </div>
             {/* Main Content - Single Column Layout */}
-            <div className="relative z-10">
-              {/* Text Content */}
+            <div className="relative z-10 space-y-6 md:space-y-8">
+              {/* Text Content with transforms */}
               <div className="space-y-4 md:space-y-6">
                 <h1 className="font-hero text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-white leading-[0.9] uppercase tracking-tight px-2" style={{
                 transform: 'perspective(800px) rotateX(-8deg) rotateZ(5deg)',
@@ -203,20 +203,20 @@ const Hero = () => {
                 </span>
                 </h1>
                 <p className="text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed max-w-3xl mx-auto px-4 pt-2 font-medium text-white">Soluciona en minutos no en dias</p>
+              </div>
               
-                {/* AI Search Bar */}
-                <div className="max-w-sm sm:max-w-md md:max-w-xl lg:max-w-2xl mx-auto px-2 sm:px-4 mt-6 md:mt-8">
-                  <AISearchBar className="w-full" />
-                  
-                  {/* Gana dinero CTA */}
-                  <div className="mt-4">
-                    <Link to="/tasker-landing">
-                      <ModernButton variant="outline" className="w-full bg-white/10 text-white border-white/20 hover:bg-white/20 flex items-center justify-center gap-2">
-                        <img src={moneyBagIcon} alt="Money bag" className="w-10 h-10" />
-                        Gana dinero como Chambynauta
-                      </ModernButton>
-                    </Link>
-                  </div>
+              {/* Search Bar Section - Isolated from transforms */}
+              <div className="max-w-sm sm:max-w-md md:max-w-xl lg:max-w-2xl mx-auto px-2 sm:px-4" style={{ transform: 'none' }}>
+                <AISearchBar className="w-full" />
+                
+                {/* Gana dinero CTA */}
+                <div className="mt-4">
+                  <Link to="/tasker-landing">
+                    <ModernButton variant="outline" className="w-full bg-white/10 text-white border-white/20 hover:bg-white/20 flex items-center justify-center gap-2">
+                      <img src={moneyBagIcon} alt="Money bag" className="w-10 h-10" />
+                      Gana dinero como Chambynauta
+                    </ModernButton>
+                  </Link>
                 </div>
               </div>
             </div>

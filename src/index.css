@@ -161,6 +161,26 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Safari mobile input fixes - prevents cursor clipping and zoom */
+  input, textarea {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    box-sizing: border-box;
+  }
+
+  /* Prevent iOS zoom and alignment issues */
+  input:focus, textarea:focus {
+    font-size: 16px !important;
+    transform: none !important;
+  }
+
+  /* Fix for transformed parent containers */
+  input {
+    transform: translateZ(0);
+    will-change: auto;
+  }
 }
 
 /* Mobile-specific utilities */
