@@ -257,6 +257,7 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
             "pl-12 pr-4 bg-white/90 border-gray-300 rounded-2xl focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm placeholder:text-[#999] text-gray-900",
             sizeClasses[size]
           )}
+          style={{ fontSize: '16px' }}
         />
         <Search 
           className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 cursor-pointer" 
