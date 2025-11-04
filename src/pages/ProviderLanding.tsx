@@ -31,6 +31,7 @@ import { useVerificationStatus } from "@/hooks/useVerificationStatus";
 import { useProfile } from "@/hooks/useProfile";
 import { useState } from "react";
 import logo from "@/assets/chamby-logo-text.png";
+import walkingProvider from "@/assets/walking-provider.png";
 import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
 
@@ -209,88 +210,64 @@ const ProviderLanding = () => {
       </header>
       
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center pt-24 overflow-hidden">
-        {/* Background Icons - Positioned around the text */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-16 left-8">
-            <div className="w-20 h-20 bg-white/20 backdrop-blur-xl rounded-2xl shadow-[0_16px_32px_rgba(0,0,0,0.2),inset_0_2px_0_rgba(255,255,255,0.4)] border border-white/40 flex items-center justify-center transform rotate-12 hover:rotate-6 transition-transform duration-300">
-              <Home size={32} className="text-gray-600/50" />
-            </div>
-          </div>
-          
-          <div className="absolute top-24 right-16">
-            <div className="w-16 h-16 bg-white/20 backdrop-blur-xl rounded-xl shadow-[0_12px_24px_rgba(0,0,0,0.18),inset_0_1px_0_rgba(255,255,255,0.35)] border border-white/35 flex items-center justify-center transform -rotate-12 hover:rotate-0 transition-transform duration-300">
-              <Wrench size={24} className="text-gray-600/50" />
-            </div>
-          </div>
-          
-          <div className="absolute top-80 left-4">
-            <div className="w-18 h-18 bg-white/20 backdrop-blur-xl rounded-2xl shadow-[0_14px_28px_rgba(0,0,0,0.19),inset_0_1px_0_rgba(255,255,255,0.38)] border border-white/38 flex items-center justify-center transform rotate-45 hover:rotate-12 transition-transform duration-300">
-              <Droplets size={28} className="text-gray-600/50" />
-            </div>
-          </div>
-          
-          <div className="absolute top-96 right-8">
-            <div className="w-24 h-24 bg-white/20 backdrop-blur-xl rounded-2xl shadow-[0_18px_36px_rgba(0,0,0,0.22),inset_0_2px_0_rgba(255,255,255,0.42)] border border-white/42 flex items-center justify-center transform -rotate-6 hover:rotate-6 transition-transform duration-300">
-              <Truck size={32} className="text-gray-600/50" />
-            </div>
-          </div>
-          
-          <div className="absolute bottom-40 left-16">
-            <div className="w-16 h-16 bg-white/20 backdrop-blur-xl rounded-xl shadow-[0_12px_24px_rgba(0,0,0,0.18),inset_0_1px_0_rgba(255,255,255,0.35)] border border-white/35 flex items-center justify-center transform rotate-20 hover:rotate-0 transition-transform duration-300">
-              <SprayCan size={24} className="text-gray-600/50" />
-            </div>
-          </div>
-          
-          <div className="absolute bottom-24 right-20">
-            <div className="w-20 h-20 bg-white/20 backdrop-blur-xl rounded-2xl shadow-[0_16px_32px_rgba(0,0,0,0.2),inset_0_2px_0_rgba(255,255,255,0.4)] border border-white/40 flex items-center justify-center transform -rotate-15 hover:rotate-0 transition-transform duration-300">
-              <Home size={30} className="text-gray-600/50" />
-            </div>
-          </div>
-        </div>
-
+      <section className="relative min-h-screen flex items-center justify-center pt-24 pb-12 overflow-hidden bg-gradient-to-br from-background to-accent/20">
         <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-4xl mx-auto text-center space-y-8">
-            <Badge className="bg-primary/10 text-primary border-primary/20 text-sm font-medium px-4 py-2">
-              🚀 Únete a más de 500+ profesionales
-            </Badge>
-            
-            <div className="space-y-6">
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 leading-tight">
-                Sé tu Propio Jefe.
-                <span className="block text-primary">
-                  Trabaja Cuando Quieras.
-                </span>
-              </h1>
-              
-              <p className="text-xl md:text-2xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
-                Únete a Chamby y gana más con comisiones bajas, pagos garantizados y un flujo constante de clientes.
-              </p>
-            </div>
+          <div className="max-w-7xl mx-auto">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              {/* Left Column - Text Content */}
+              <div className="space-y-8 text-center lg:text-left">
+                <Badge className="bg-primary/10 text-primary border-primary/20 text-sm font-medium px-4 py-2 inline-flex items-center gap-2">
+                  🚀 Únete a más de 500+ profesionales
+                </Badge>
+                
+                <div className="space-y-6">
+                  <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-[1.1]">
+                    Sé tu Propio Jefe.{" "}
+                    <span className="block mt-2">
+                      Trabaja Cuando Quieras.
+                    </span>
+                  </h1>
+                  
+                  <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-2xl">
+                    Únete a Chamby y gana más con comisiones bajas, pagos garantizados y un flujo constante de clientes.
+                  </p>
+                </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <ModernButton 
-                size="xl" 
-                className="bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant font-semibold px-8 py-4 text-lg"
-                onClick={handleGetStarted}
-              >
-                Comenzar Ahora
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </ModernButton>
-            </div>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                  <ModernButton 
+                    size="xl" 
+                    className="bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant font-semibold px-8 py-4 text-lg"
+                    onClick={handleGetStarted}
+                  >
+                    Comenzar Ahora
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </ModernButton>
+                </div>
 
-            <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-600 mt-8">
-              <div className="flex items-center space-x-2">
-                <CheckCircle className="h-5 w-5 text-green-500" />
-                <span>Sin costos ocultos</span>
+                <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 sm:gap-6 text-sm text-muted-foreground">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="h-5 w-5 text-success" />
+                    <span>Sin costos ocultos</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="h-5 w-5 text-success" />
+                    <span>Registro gratuito</span>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <CheckCircle className="h-5 w-5 text-green-500" />
-                <span>Registro gratuito</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <CheckCircle className="h-5 w-5 text-green-500" />
-                <span>Soporte 24/7</span>
+
+              {/* Right Column - Character Illustration */}
+              <div className="relative flex items-center justify-center lg:justify-end">
+                <div className="relative w-full max-w-md lg:max-w-lg">
+                  <img 
+                    src={walkingProvider} 
+                    alt="Chamby Professional" 
+                    className="w-full h-auto animate-[float_3s_ease-in-out_infinite]"
+                    style={{
+                      filter: 'drop-shadow(0 20px 40px rgba(30, 58, 138, 0.3))'
+                    }}
+                  />
+                </div>
               </div>
             </div>
           </div>
