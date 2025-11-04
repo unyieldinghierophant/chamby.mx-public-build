@@ -65,7 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // Store login context for post-verification routing
     const loginContext = isTasker ? 'tasker' : 'client';
-    sessionStorage.setItem('login_context', loginContext);
+    localStorage.setItem('login_context', loginContext);
     
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -93,7 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signIn = async (email: string, password: string, loginContext?: 'client' | 'tasker') => {
     // Store login context before authentication
     if (loginContext) {
-      sessionStorage.setItem('login_context', loginContext);
+      localStorage.setItem('login_context', loginContext);
     }
     
     const { error } = await supabase.auth.signInWithPassword({
@@ -106,30 +106,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signInWithGoogle = async (isProvider: boolean = false, loginContext?: 'client' | 'tasker') => {
     // Store login context before OAuth redirect
     if (loginContext) {
-      sessionStorage.setItem('login_context', loginContext);
+      localStorage.setItem('login_context', loginContext);
+      console.log('Storing login_context in localStorage:', loginContext);
     }
     
     // Store role preference before OAuth redirect
     if (isProvider) {
-      sessionStorage.setItem('pending_role', 'provider');
+      localStorage.setItem('pending_role', 'provider');
     } else {
-      sessionStorage.setItem('pending_role', 'client');
+      localStorage.setItem('pending_role', 'client');
     }
     
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-        queryParams: {
-          // Pass login context through OAuth state
-          access_type: 'offline',
-          prompt: 'consent',
-          // Store context in URL to retrieve after OAuth
-          state: btoa(JSON.stringify({ 
-            login_context: loginContext || 'client',
-            is_provider: isProvider 
-          }))
-        }
+        redirectTo: `${window.location.origin}/auth/callback`
       }
     });
     

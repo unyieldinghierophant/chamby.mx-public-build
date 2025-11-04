@@ -24,7 +24,7 @@ const ProviderPortal = () => {
   }
 
   // Allow access if login context was 'tasker' (new signups) or if already a tasker
-  const loginContext = sessionStorage.getItem('login_context');
+  const loginContext = localStorage.getItem('login_context');
   if (!profile?.is_tasker && loginContext !== 'tasker') {
     return <Navigate to="/become-provider" replace />;
   }

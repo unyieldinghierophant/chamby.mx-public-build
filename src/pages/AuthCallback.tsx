@@ -101,21 +101,9 @@ const AuthCallback = () => {
   const handleSuccessComplete = async () => {
     // Check for stored return path and login context
     const returnTo = sessionStorage.getItem('auth_return_to');
-    let loginContext = sessionStorage.getItem('login_context');
+    let loginContext = localStorage.getItem('login_context');
     
-    // Try to get login_context from OAuth state parameter if not in sessionStorage
-    if (!loginContext) {
-      const stateParam = searchParams.get('state');
-      if (stateParam) {
-        try {
-          const decodedState = JSON.parse(atob(stateParam));
-          loginContext = decodedState.login_context;
-          console.log('Recovered login_context from OAuth state:', loginContext);
-        } catch (e) {
-          console.log('Could not parse OAuth state parameter');
-        }
-      }
-    }
+    console.log('Login context from localStorage:', loginContext);
     
     // Fallback: Check user metadata for login_context
     if (!loginContext && user?.user_metadata?.login_context) {
@@ -125,6 +113,7 @@ const AuthCallback = () => {
     
     // Clear after reading
     sessionStorage.removeItem('auth_return_to');
+    localStorage.removeItem('login_context');
     sessionStorage.removeItem('login_context');
     
     // Check if user is a tasker

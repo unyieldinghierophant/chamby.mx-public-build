@@ -37,7 +37,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // For tasker routes, allow if login context is 'tasker' (new signups) or if already a tasker
-  const loginContext = sessionStorage.getItem('login_context');
+  const loginContext = localStorage.getItem('login_context');
   if (requireTasker && user && profile && !profile.is_tasker && loginContext !== 'tasker') {
     console.log('User is not a tasker, redirecting to become-provider');
     return <Navigate to="/become-provider" replace />;
