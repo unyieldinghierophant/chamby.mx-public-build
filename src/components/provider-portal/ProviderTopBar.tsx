@@ -44,7 +44,12 @@ export function ProviderTopBar() {
       </div>
 
       <div className="flex items-center gap-4">
-        <Button variant="default" size="sm" className="hidden md:flex">
+        <Button 
+          variant="default" 
+          size="sm" 
+          className="hidden md:flex"
+          onClick={() => navigate('/provider-portal/jobs')}
+        >
           Ver solicitudes activas
         </Button>
 
