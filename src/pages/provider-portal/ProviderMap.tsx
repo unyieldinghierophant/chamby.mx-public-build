@@ -29,6 +29,26 @@ const ProviderMap = () => {
   useEffect(() => {
     if (user) {
       fetchJobs();
+
+      // Subscribe to realtime changes
+      const channel = supabase
+        .channel('map-jobs-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'bookings'
+          },
+          () => {
+            fetchJobs();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user]);
 
@@ -36,7 +56,8 @@ const ProviderMap = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      // Fetch assigned jobs
+      const { data: assignedJobs, error: assignedError } = await supabase
         .from("bookings")
         .select(`
           id,
@@ -51,10 +72,35 @@ const ProviderMap = () => {
         .in("status", ["pending", "confirmed", "in_progress"])
         .not("address", "is", null);
 
-      if (error) throw error;
+      // Fetch available jobs (not assigned yet)
+      const { data: availableJobs, error: availableError } = await supabase
+        .from("bookings")
+        .select(`
+          id,
+          title,
+          address,
+          status,
+          scheduled_date,
+          total_amount,
+          customer:profiles!bookings_customer_id_fkey(full_name)
+        `)
+        .is("tasker_id", null)
+        .eq("status", "pending")
+        .not("address", "is", null);
+
+      if (assignedError) throw assignedError;
+      if (availableError) throw availableError;
+
+      // Mark available jobs with a special status
+      const markedAvailableJobs = (availableJobs || []).map(job => ({
+        ...job,
+        status: 'available'
+      }));
+
+      const allJobs = [...(assignedJobs || []), ...markedAvailableJobs];
 
       // For demo purposes, assign random coordinates near Guadalajara
-      const jobsWithCoords = (data || []).map((job, index) => ({
+      const jobsWithCoords = allJobs.map((job, index) => ({
         ...job,
         coordinates: {
           lat: 20.6597 + (Math.random() - 0.5) * 0.1,
@@ -76,6 +122,8 @@ const ProviderMap = () => {
         return "http://maps.google.com/mapfiles/ms/icons/green-dot.png";
       case "pending":
         return "http://maps.google.com/mapfiles/ms/icons/yellow-dot.png";
+      case "available":
+        return "http://maps.google.com/mapfiles/ms/icons/yellow-dot.png";
       case "in_progress":
         return "http://maps.google.com/mapfiles/ms/icons/blue-dot.png";
       default:
@@ -89,6 +137,8 @@ const ProviderMap = () => {
         return "bg-green-500/10 text-green-700";
       case "pending":
         return "bg-yellow-500/10 text-yellow-700";
+      case "available":
+        return "bg-yellow-500/20 text-yellow-700 animate-pulse";
       case "in_progress":
         return "bg-blue-500/10 text-blue-700";
       default:
@@ -135,6 +185,10 @@ const ProviderMap = () => {
               <span>Pendiente</span>
             </div>
             <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-yellow-500 animate-pulse" />
+              <span>Disponible</span>
+            </div>
+            <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-blue-500" />
               <span>En progreso</span>
             </div>
@@ -154,6 +208,7 @@ const ProviderMap = () => {
                     position={job.coordinates}
                     icon={getMarkerColor(job.status)}
                     onClick={() => setSelectedJob(job)}
+                    animation={job.status === 'available' ? window.google?.maps.Animation.BOUNCE : undefined}
                   />
                 ) : null
               )}

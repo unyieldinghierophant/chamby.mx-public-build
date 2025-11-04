@@ -33,6 +33,26 @@ const ProviderCalendar = () => {
   useEffect(() => {
     if (user) {
       fetchJobs();
+
+      // Subscribe to realtime changes
+      const channel = supabase
+        .channel('calendar-jobs-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'bookings'
+          },
+          () => {
+            fetchJobs();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user, currentMonth]);
 
@@ -54,7 +74,8 @@ const ProviderCalendar = () => {
       const monthStart = startOfMonth(currentMonth);
       const monthEnd = endOfMonth(currentMonth);
 
-      const { data, error } = await supabase
+      // Fetch assigned jobs
+      const { data: assignedJobs, error: assignedError } = await supabase
         .from("bookings")
         .select(`
           id,
@@ -70,8 +91,33 @@ const ProviderCalendar = () => {
         .gte("scheduled_date", monthStart.toISOString())
         .lte("scheduled_date", monthEnd.toISOString());
 
-      if (error) throw error;
-      setJobs(data || []);
+      // Fetch available jobs (not assigned yet)
+      const { data: availableJobs, error: availableError } = await supabase
+        .from("bookings")
+        .select(`
+          id,
+          title,
+          scheduled_date,
+          address,
+          status,
+          total_amount,
+          customer:profiles!bookings_customer_id_fkey(full_name)
+        `)
+        .is("tasker_id", null)
+        .eq("status", "pending")
+        .gte("scheduled_date", monthStart.toISOString())
+        .lte("scheduled_date", monthEnd.toISOString());
+
+      if (assignedError) throw assignedError;
+      if (availableError) throw availableError;
+
+      // Mark available jobs with a special status
+      const markedAvailableJobs = (availableJobs || []).map(job => ({
+        ...job,
+        status: 'available' // Special status for unassigned jobs
+      }));
+
+      setJobs([...(assignedJobs || []), ...markedAvailableJobs]);
     } catch (error) {
       console.error("Error fetching jobs:", error);
     } finally {
@@ -85,6 +131,8 @@ const ProviderCalendar = () => {
         return "bg-green-500/10 text-green-700 border-green-500/20";
       case "pending":
         return "bg-yellow-500/10 text-yellow-700 border-yellow-500/20";
+      case "available":
+        return "bg-yellow-500/20 text-yellow-700 border-yellow-500/30 animate-pulse";
       case "in_progress":
         return "bg-blue-500/10 text-blue-700 border-blue-500/20";
       default:
@@ -98,6 +146,8 @@ const ProviderCalendar = () => {
         return "Confirmado";
       case "pending":
         return "Pendiente";
+      case "available":
+        return "Disponible";
       case "in_progress":
         return "En progreso";
       default:
@@ -127,6 +177,9 @@ const ProviderCalendar = () => {
     pending: jobs
       .filter((j) => j.status === "pending")
       .map((j) => new Date(j.scheduled_date)),
+    available: jobs
+      .filter((j) => j.status === "available")
+      .map((j) => new Date(j.scheduled_date)),
     inProgress: jobs
       .filter((j) => j.status === "in_progress")
       .map((j) => new Date(j.scheduled_date)),
@@ -135,6 +188,7 @@ const ProviderCalendar = () => {
   const modifiersClassNames = {
     confirmed: "bg-green-500/20 text-green-900 font-semibold hover:bg-green-500/30",
     pending: "bg-yellow-500/20 text-yellow-900 font-semibold hover:bg-yellow-500/30",
+    available: "bg-yellow-500/30 text-yellow-900 font-bold hover:bg-yellow-500/40 animate-pulse",
     inProgress: "bg-blue-500/20 text-blue-900 font-semibold hover:bg-blue-500/30",
   };
 
@@ -210,6 +264,10 @@ const ProviderCalendar = () => {
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 rounded bg-yellow-500/40" />
                   <span>Pendiente</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-yellow-500/60 animate-pulse" />
+                  <span>Disponible (no asignado)</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 rounded bg-blue-500/40" />

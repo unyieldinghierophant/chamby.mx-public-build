@@ -21,7 +21,9 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Badge } from "@/components/ui/badge";
 import chambyLogo from "@/assets/chamby-logo-new.png";
+import { useAvailableJobsCount } from "@/hooks/useAvailableJobsCount";
 
 const menuItems = [
   { title: "Dashboard", url: "/provider-portal", icon: LayoutDashboard, end: true },
@@ -37,6 +39,7 @@ const menuItems = [
 export function ProviderSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
+  const { count: availableJobsCount } = useAvailableJobsCount();
 
   return (
     <Sidebar className={collapsed ? "w-14" : "w-64"} collapsible="icon">
@@ -66,8 +69,25 @@ export function ProviderSidebar() {
                           : "hover:bg-muted/50"
                       }
                     >
-                      <item.icon className="h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
+                      <div className="relative">
+                        <item.icon className="h-4 w-4" />
+                        {item.title === "Trabajos" && availableJobsCount > 0 && (
+                          <span className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-500 rounded-full animate-ping" />
+                        )}
+                      </div>
+                      {!collapsed && (
+                        <div className="flex items-center justify-between flex-1">
+                          <span>{item.title}</span>
+                          {item.title === "Trabajos" && availableJobsCount > 0 && (
+                            <Badge 
+                              variant="secondary" 
+                              className="ml-auto bg-yellow-500/20 text-yellow-700 animate-pulse"
+                            >
+                              {availableJobsCount}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

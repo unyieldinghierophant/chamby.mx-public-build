@@ -460,7 +460,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
       // Also create a booking entry so providers can see it
       const scheduledDate = specificDate || new Date(Date.now() + 24 * 60 * 60 * 1000); // Use specified date or tomorrow
       
-      const { error: bookingError } = await supabase
+      const { data: newBooking, error: bookingError } = await supabase
         .from('bookings')
         .insert({
           customer_id: user.id,
@@ -473,11 +473,39 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
           total_amount: 250, // Initial visit fee
           status: 'pending',
           payment_status: 'pending'
-        });
+        })
+        .select()
+        .single();
 
       if (bookingError) {
         console.error('Error creating booking:', bookingError);
         // Don't throw - job request was saved successfully
+      }
+
+      // Create notifications for all verified providers
+      if (newBooking) {
+        try {
+          const { data: providers } = await supabase
+            .from('profiles')
+            .select('user_id')
+            .eq('is_tasker', true)
+            .eq('verification_status', 'verified');
+
+          if (providers && providers.length > 0) {
+            const notifications = providers.map(provider => ({
+              user_id: provider.user_id,
+              type: 'new_job_available',
+              title: '¡Nuevo trabajo disponible!',
+              message: `${taskDescription} - ${location}`,
+              link: `/provider-portal/jobs`,
+              created_at: new Date().toISOString()
+            }));
+
+            await supabase.from('notifications').insert(notifications);
+          }
+        } catch (err) {
+          console.error('Error creating notifications:', err);
+        }
       }
 
       // Small delay to ensure DB processes the insert and RLS allows reading
