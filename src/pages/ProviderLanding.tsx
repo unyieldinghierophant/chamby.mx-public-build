@@ -215,7 +215,7 @@ const ProviderLanding = () => {
           <div className="max-w-7xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               {/* Left Column - Text Content */}
-              <div className="space-y-8 text-center lg:text-left">
+              <div className="space-y-8 text-left">
                 <Badge className="bg-primary/10 text-primary border-primary/20 text-sm font-medium px-4 py-2 inline-flex items-center gap-2">
                   🚀 Únete a más de 500+ profesionales
                 </Badge>
@@ -233,7 +233,7 @@ const ProviderLanding = () => {
                   </p>
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                <div className="flex flex-col sm:flex-row gap-4">
                   <ModernButton 
                     size="xl" 
                     className="bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant font-semibold px-8 py-4 text-lg"
@@ -244,7 +244,7 @@ const ProviderLanding = () => {
                   </ModernButton>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 sm:gap-6 text-sm text-muted-foreground">
+                <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 text-sm text-muted-foreground">
                   <div className="flex items-center space-x-2">
                     <CheckCircle className="h-5 w-5 text-success" />
                     <span>Sin costos ocultos</span>
@@ -256,9 +256,9 @@ const ProviderLanding = () => {
                 </div>
               </div>
 
-              {/* Right Column - Character Illustration */}
+              {/* Right Column - Character Illustration - 2x larger */}
               <div className="relative flex items-center justify-center lg:justify-end">
-                <div className="relative w-full max-w-md lg:max-w-lg">
+                <div className="relative w-full" style={{ maxWidth: '800px' }}>
                   <img 
                     src={walkingProvider} 
                     alt="Chamby Professional" 
