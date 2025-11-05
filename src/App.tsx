@@ -130,10 +130,8 @@ const App = () => (
             
             <Route path="/pago-visita" element={<PagoVisita />} />
             <Route path="/esperando-proveedor" element={<EsperandoProveedor />} />
-            {/* Old dashboard routes - redirect to provider-portal */}
-            <Route path="/provider-dashboard" element={<Navigate to="/provider-portal" replace />} />
-            <Route path="/tasker-dashboard" element={<Navigate to="/provider-portal" replace />} />
-            <Route 
+            
+            <Route
               path="/tasker-profile" 
               element={
                 <ProtectedRoute requireTasker>

@@ -29,7 +29,7 @@ export default function Home() {
   // Redirect providers to their dashboard
   useEffect(() => {
     if (!roleLoading && role === "provider") {
-      navigate("/provider-dashboard", { replace: true });
+      navigate("/provider-portal", { replace: true });
     }
   }, [role, roleLoading, navigate]);
 

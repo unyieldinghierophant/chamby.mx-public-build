@@ -50,7 +50,7 @@ const Header = ({
   const isTasker = user?.user_metadata?.is_tasker;
   
   // Determine if we're on a tasker page based on current route
-  const isOnTaskerPage = location.pathname.startsWith('/tasker') || location.pathname === '/provider-dashboard';
+  const isOnTaskerPage = location.pathname.startsWith('/provider-portal');
   
   // Determine where the logo should navigate based on current page context
   const getLogoDestination = () => {
@@ -156,9 +156,9 @@ const Header = ({
                     <span>Configuración</span>
                   </DropdownMenuItem>
                   {isTasker && (
-                    <DropdownMenuItem onClick={() => navigate("/tasker-dashboard")}>
+                    <DropdownMenuItem onClick={() => navigate("/provider-portal")}>
                       <Users className="mr-2 h-4 w-4" />
-                      <span>Dashboard</span>
+                      <span>Portal Proveedor</span>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
@@ -241,8 +241,8 @@ const Header = ({
                     Ver Perfil
                   </Link>
                   {isTasker && (
-                    <Link to="/tasker-dashboard" className="block py-2 text-base font-normal text-foreground/70 hover:text-foreground">
-                      Dashboard
+                    <Link to="/provider-portal" className="block py-2 text-base font-normal text-foreground/70 hover:text-foreground">
+                      Portal Proveedor
                     </Link>
                   )}
                   <button 

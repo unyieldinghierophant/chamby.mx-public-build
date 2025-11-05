@@ -56,11 +56,11 @@ const RoleSelection = () => {
     // Clear login context after selection
     localStorage.removeItem('login_context');
     
+    console.log('[RoleSelection] User selected role:', role);
+    
     // Redirect based on role
-    if (role === 'provider') {
+    if (role === 'provider' || role === 'admin') {
       navigate('/provider-portal');
-    } else if (role === 'admin') {
-      navigate('/admin'); // TODO: Create admin dashboard
     } else {
       navigate('/user-landing');
     }

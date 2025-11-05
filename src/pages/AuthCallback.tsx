@@ -67,7 +67,39 @@ const AuthCallback = () => {
             return;
           }
 
-          const roles = userRoles?.map(r => r.role) || [];
+          let roles = userRoles?.map(r => r.role) || [];
+          const loginContext = localStorage.getItem('login_context');
+
+          console.log('[AuthCallback] User roles:', roles);
+          console.log('[AuthCallback] Login context:', loginContext);
+
+          // 🔥 AUTO-CREATE PROVIDER ROLE if coming from /auth/tasker
+          if (loginContext === 'provider' && !roles.includes('provider')) {
+            console.log('[AuthCallback] Auto-creating provider role for tasker signup');
+            
+            // Insert provider role
+            const { error: insertError } = await supabase
+              .from('user_roles')
+              .insert({
+                user_id: user.id,
+                role: 'provider'
+              });
+
+            if (insertError && insertError.code !== '23505') { // Ignore duplicate error
+              console.error('[AuthCallback] Error creating provider role:', insertError);
+            } else {
+              // Update profile to is_tasker = true
+              await supabase
+                .from('profiles')
+                .update({ is_tasker: true })
+                .eq('user_id', user.id);
+
+              // Add to roles array
+              roles.push('provider');
+              console.log('[AuthCallback] Provider role created successfully');
+            }
+          }
+
           const selectedRole = localStorage.getItem('selected_role');
           
           console.log('[AuthCallback] Role check:', {
