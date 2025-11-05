@@ -36,11 +36,22 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/auth/tasker" replace />;
   }
 
-  // For tasker routes, allow if login context is 'tasker' (new signups) or if already a tasker
-  const loginContext = localStorage.getItem('login_context');
-  if (requireTasker && user && profile && !profile.is_tasker && loginContext !== 'tasker') {
-    console.log('User is not a tasker, redirecting to become-provider');
-    return <Navigate to="/become-provider" replace />;
+  // For tasker routes, verify selected_role is provider or admin
+  if (requireTasker && user) {
+    const selectedRole = localStorage.getItem('selected_role');
+    
+    // If no role selected or role is client, redirect to role picker
+    if (!selectedRole || selectedRole === 'client') {
+      console.log('No provider/admin role selected, redirecting to role picker');
+      return <Navigate to="/choose-role" replace />;
+    }
+    
+    // Additional check: if role is provider but not actually a tasker in profile
+    const loginContext = localStorage.getItem('login_context');
+    if (profile && !profile.is_tasker && loginContext !== 'tasker') {
+      console.log('User is not a tasker, redirecting to become-provider');
+      return <Navigate to="/become-provider" replace />;
+    }
   }
 
   return <>{children}</>;

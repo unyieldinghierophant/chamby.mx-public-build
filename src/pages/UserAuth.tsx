@@ -257,6 +257,14 @@ const UserAuth = () => {
   };
 
   const handleGoogleLogin = async () => {
+    // Clear any previous role selection to force fresh role picker
+    localStorage.removeItem('selected_role');
+    localStorage.setItem('login_context', 'client');
+    
+    // Clear any stale returnTo values
+    localStorage.removeItem('auth_return_to');
+    sessionStorage.removeItem('auth_return_to');
+    
     // Store return path before OAuth redirect
     const returnTo = (location.state as { returnTo?: string })?.returnTo;
     if (returnTo) {

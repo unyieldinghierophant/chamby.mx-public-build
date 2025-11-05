@@ -53,6 +53,9 @@ const RoleSelection = () => {
     // Store selected role in localStorage for session persistence
     localStorage.setItem('selected_role', role);
     
+    // Clear login context after selection
+    localStorage.removeItem('login_context');
+    
     // Redirect based on role
     if (role === 'provider') {
       navigate('/provider-portal');

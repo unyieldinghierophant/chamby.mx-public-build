@@ -51,7 +51,7 @@ const AuthCallback = () => {
   useEffect(() => {
     const checkUserRoles = async () => {
       if (!authLoading && user && !rolesChecked) {
-        console.log('Checking user roles for multi-role handling...');
+        console.log('[AuthCallback] Checking user roles for multi-role handling...');
         
         try {
           const { data: userRoles, error } = await supabase
@@ -60,7 +60,7 @@ const AuthCallback = () => {
             .eq('user_id', user.id);
 
           if (error) {
-            console.error('Error fetching roles:', error);
+            console.error('[AuthCallback] Error fetching roles:', error);
             setRolesChecked(true);
             setSuccessMessage("¡Autenticación exitosa!");
             setShowSuccess(true);
@@ -70,21 +70,33 @@ const AuthCallback = () => {
           const roles = userRoles?.map(r => r.role) || [];
           const selectedRole = localStorage.getItem('selected_role');
           
-          console.log('User roles:', roles, 'Selected role:', selectedRole);
+          console.log('[AuthCallback] Role check:', {
+            roles,
+            selectedRole,
+            hasMultiple: roles.length > 1,
+            willShowPicker: roles.length > 1 && !selectedRole
+          });
 
-          // Multiple roles and no selection? Go to role picker immediately
+          // If user has multiple roles and hasn't selected one, redirect to role picker
+          // This MUST happen BEFORE checking returnTo
           if (roles.length > 1 && !selectedRole) {
-            console.log('Multiple roles detected, redirecting to role selection');
+            console.log('[AuthCallback] Multiple roles, no selection - showing role picker');
             navigate('/choose-role', { replace: true });
             return;
           }
 
-          // Single role or already selected - show success
+          // If single role, set it automatically
+          if (roles.length === 1) {
+            console.log('[AuthCallback] Single role detected, setting:', roles[0]);
+            localStorage.setItem('selected_role', roles[0]);
+          }
+
+          // Show success overlay and continue
           setRolesChecked(true);
           setSuccessMessage("¡Autenticación exitosa!");
           setShowSuccess(true);
         } catch (error) {
-          console.error('Error during role check:', error);
+          console.error('[AuthCallback] Error during role check:', error);
           setRolesChecked(true);
           setSuccessMessage("¡Autenticación exitosa!");
           setShowSuccess(true);
@@ -131,76 +143,37 @@ const AuthCallback = () => {
     }
   }, [emailConfirmed, user, navigate]);
 
-  const handleSuccessComplete = async () => {
-    console.log('[AuthCallback] Success animation complete, determining redirect...');
-    
+  const handleSuccessComplete = () => {
     try {
-      const loginContext = sessionStorage.getItem('login_context') || localStorage.getItem('login_context');
+      console.log('[AuthCallback] Success complete, cleaning up and redirecting');
+      
+      // Get selected role (should be set by now)
+      const selectedRole = localStorage.getItem('selected_role');
+      console.log('[AuthCallback] Selected role:', selectedRole);
+      
+      // Check for stored return path AFTER role is determined
       const returnTo = sessionStorage.getItem('auth_return_to') || localStorage.getItem('auth_return_to');
       
-      console.log('[AuthCallback] Login context:', loginContext);
-      console.log('[AuthCallback] Return to:', returnTo);
-      
-      // Clear the stored values
-      sessionStorage.removeItem('login_context');
-      localStorage.removeItem('login_context');
+      // Clear stored values
       sessionStorage.removeItem('auth_return_to');
       localStorage.removeItem('auth_return_to');
-
+      sessionStorage.removeItem('pending_oauth');
+      sessionStorage.removeItem('oauth_retry_count');
+      localStorage.removeItem('login_context');
+      
       if (returnTo) {
-        console.log('[AuthCallback] Redirecting to stored return path:', returnTo);
+        console.log('[AuthCallback] Redirecting to stored path:', returnTo);
         navigate(returnTo);
         return;
       }
 
-      // Check user's roles from user_roles table
-      if (user) {
-        const { data: userRoles, error } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id);
-
-        if (error) {
-          console.error('[AuthCallback] Error fetching roles:', error);
-          navigate('/user-landing');
-          return;
-        }
-
-        console.log('[AuthCallback] User roles:', userRoles);
-
-        const roles = userRoles?.map(r => r.role) || [];
-
-        // If user has multiple roles, redirect to role selection
-        if (roles.length > 1) {
-          console.log('[AuthCallback] Multiple roles detected, showing role selection');
-          navigate('/choose-role');
-          return;
-        }
-
-        // If single role, redirect accordingly
-        if (roles.length === 1) {
-          const role = roles[0];
-          localStorage.setItem('selected_role', role);
-          
-          if (role === 'provider') {
-            console.log('[AuthCallback] Redirecting to provider portal');
-            navigate('/provider-portal');
-          } else if (role === 'admin') {
-            console.log('[AuthCallback] Redirecting to admin dashboard');
-            navigate('/admin');
-          } else {
-            console.log('[AuthCallback] Redirecting to user landing');
-            navigate('/user-landing');
-          }
-          return;
-        }
-
-        // No roles found, default to user landing
-        console.log('[AuthCallback] No roles found, redirecting to user landing');
-        navigate('/user-landing');
+      // Redirect based on selected role
+      if (selectedRole === 'provider' || selectedRole === 'admin') {
+        console.log('[AuthCallback] Redirecting to provider portal');
+        navigate('/provider-portal');
       } else {
-        console.log('[AuthCallback] No user found, redirecting to home');
-        navigate('/');
+        console.log('[AuthCallback] Redirecting to user landing');
+        navigate('/user-landing');
       }
     } catch (error) {
       console.error('[AuthCallback] Error during redirect:', error);
