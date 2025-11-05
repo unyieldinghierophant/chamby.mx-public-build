@@ -43,7 +43,7 @@ export function ProviderSidebar() {
 
   return (
     <Sidebar className={collapsed ? "w-14" : "w-64"} collapsible="icon">
-      <div className="p-4 border-b border-border flex items-center justify-between">
+      <div className="h-16 px-4 border-b border-border flex items-center justify-between">
         {!collapsed && (
           <img src={chambyLogo} alt="Chamby" className="h-40" />
         )}
