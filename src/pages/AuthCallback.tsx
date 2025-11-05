@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useUserRole } from "@/hooks/useUserRole";
 import { AuthSuccessOverlay } from "@/components/AuthSuccessOverlay";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,11 +11,11 @@ const AuthCallback = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
-  const { role, loading: roleLoading } = useUserRole();
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [retryCount, setRetryCount] = useState(0);
   const [emailConfirmed, setEmailConfirmed] = useState(false);
+  const [rolesChecked, setRolesChecked] = useState(false);
 
   // Check if this is an OAuth callback or email confirmation
   const urlParams = new URLSearchParams(window.location.search);
@@ -28,9 +27,7 @@ const AuthCallback = () => {
   useEffect(() => {
     console.log('AuthCallback mounted', { 
       authLoading, 
-      roleLoading, 
       user: !!user, 
-      role,
       hasOAuthParams,
       isEmailConfirmation,
       url: window.location.href 
@@ -50,21 +47,57 @@ const AuthCallback = () => {
     }
   }, []);
 
-  // Auth state change effect
+  // Check roles and handle multi-role scenario
   useEffect(() => {
-    console.log('Auth state changed', { authLoading, roleLoading, user: !!user, role, retryCount });
-    
-    // Only show success if we have a user and roles are loaded
-    if (!authLoading && !roleLoading && user && role) {
-      console.log('Showing success overlay');
-      setSuccessMessage("¡Autenticación exitosa!");
-      setShowSuccess(true);
-    }
-  }, [user, role, authLoading, roleLoading, retryCount]);
+    const checkUserRoles = async () => {
+      if (!authLoading && user && !rolesChecked) {
+        console.log('Checking user roles for multi-role handling...');
+        
+        try {
+          const { data: userRoles, error } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', user.id);
+
+          if (error) {
+            console.error('Error fetching roles:', error);
+            setRolesChecked(true);
+            setSuccessMessage("¡Autenticación exitosa!");
+            setShowSuccess(true);
+            return;
+          }
+
+          const roles = userRoles?.map(r => r.role) || [];
+          const selectedRole = localStorage.getItem('selected_role');
+          
+          console.log('User roles:', roles, 'Selected role:', selectedRole);
+
+          // Multiple roles and no selection? Go to role picker immediately
+          if (roles.length > 1 && !selectedRole) {
+            console.log('Multiple roles detected, redirecting to role selection');
+            navigate('/choose-role', { replace: true });
+            return;
+          }
+
+          // Single role or already selected - show success
+          setRolesChecked(true);
+          setSuccessMessage("¡Autenticación exitosa!");
+          setShowSuccess(true);
+        } catch (error) {
+          console.error('Error during role check:', error);
+          setRolesChecked(true);
+          setSuccessMessage("¡Autenticación exitosa!");
+          setShowSuccess(true);
+        }
+      }
+    };
+
+    checkUserRoles();
+  }, [authLoading, user, rolesChecked, navigate]);
 
   // Safari ITP handling effect
   useEffect(() => {
-    if (!authLoading && !roleLoading && !user && hasOAuthParams && retryCount < 6) {
+    if (!authLoading && !user && hasOAuthParams && retryCount < 6) {
       console.log(`Waiting for Safari session restoration... attempt ${retryCount + 1}/6`);
       const timer = setTimeout(() => {
         setRetryCount(prev => prev + 1);
@@ -73,17 +106,17 @@ const AuthCallback = () => {
     }
 
     // Only redirect to login if no OAuth params AND we've waited long enough
-    if (!authLoading && !roleLoading && !user && !hasOAuthParams) {
+    if (!authLoading && !user && !hasOAuthParams) {
       console.log('No user and no OAuth params, redirecting to login');
       navigate("/auth/user", { replace: true });
     }
 
     // Last resort: if we've waited 3 seconds and still no user
-    if (!authLoading && !roleLoading && !user && hasOAuthParams && retryCount >= 6) {
+    if (!authLoading && !user && hasOAuthParams && retryCount >= 6) {
       console.error('Safari session restoration failed after 3 seconds');
       navigate("/auth/user", { replace: true });
     }
-  }, [authLoading, roleLoading, user, hasOAuthParams, retryCount, navigate]);
+  }, [authLoading, user, hasOAuthParams, retryCount, navigate]);
 
   // Auto-redirect after 5 seconds for email confirmation
   useEffect(() => {
@@ -176,7 +209,7 @@ const AuthCallback = () => {
   };
 
   // Show loading while determining where to redirect
-  if (authLoading || roleLoading || (hasOAuthParams && !user && retryCount < 6)) {
+  if (authLoading || (hasOAuthParams && !user && retryCount < 6) || (user && !rolesChecked)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
