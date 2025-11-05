@@ -152,10 +152,50 @@ const ProviderMap = () => {
       window.open(url, "_blank");
     }
   };
+  const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+      </div>
+    );
+  }
+
+  if (!GOOGLE_MAPS_API_KEY) {
+    return (
+      <div className="container mx-auto p-4 lg:p-6">
+        <div className="p-8 text-center border border-destructive rounded-lg bg-destructive/10">
+          <MapPin className="h-12 w-12 text-destructive mx-auto mb-4" />
+          <p className="text-destructive font-semibold text-lg mb-2">
+            Google Maps API key no configurado
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Por favor configura VITE_GOOGLE_MAPS_API_KEY en las variables de entorno para ver el mapa
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (jobs.length === 0) {
+    return (
+      <div className="container mx-auto p-4 lg:p-6">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Mapa en Tiempo Real</h1>
+          <p className="text-muted-foreground">
+            Visualiza tus trabajos activos en el mapa
+          </p>
+        </div>
+        <Card className="mt-6">
+          <CardContent className="p-12 text-center">
+            <MapPin className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold mb-2">No hay trabajos activos</h3>
+            <p className="text-muted-foreground">
+              Cuando tengas trabajos asignados, aparecerán aquí en el mapa
+            </p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -173,9 +213,9 @@ const ProviderMap = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MapPin className="h-5 w-5" />
-            Ubicación de Trabajos
+            Ubicación de Trabajos ({jobs.length})
           </CardTitle>
-          <div className="flex gap-4 text-sm mt-2">
+          <div className="flex flex-wrap gap-4 text-sm mt-2">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-green-500" />
               <span>Confirmado</span>
@@ -195,7 +235,7 @@ const ProviderMap = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <LoadScript googleMapsApiKey="AIzaSyAsjwDHqMRXOW8lsFoMU9mTq6Yqy0O-YEg">
+          <LoadScript googleMapsApiKey={GOOGLE_MAPS_API_KEY}>
             <GoogleMap
               mapContainerStyle={{ width: "100%", height: "500px" }}
               center={mapCenter}
@@ -221,7 +261,7 @@ const ProviderMap = () => {
                   <div className="p-2 min-w-[200px]">
                     <h3 className="font-medium mb-2">{selectedJob.title}</h3>
                     <Badge className={getStatusColor(selectedJob.status)}>
-                      {selectedJob.status}
+                      {selectedJob.status === 'available' ? 'Disponible' : selectedJob.status}
                     </Badge>
                     <p className="text-sm mt-2">
                       Cliente: {selectedJob.customer?.full_name || "Cliente"}
