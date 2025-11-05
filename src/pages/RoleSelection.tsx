@@ -116,25 +116,9 @@ const RoleSelection = () => {
               >
                 <Briefcase className="h-12 w-12 text-primary" />
                 <div className="space-y-2">
-                  <div className="font-semibold text-lg">Continuar como Proveedor</div>
+                  <div className="font-semibold text-lg">Continuar como Chambynauta</div>
                   <div className="text-sm text-muted-foreground">
                     Ofrece tus servicios profesionales
-                  </div>
-                </div>
-              </Button>
-            )}
-
-            {roles.includes('admin') && (
-              <Button
-                onClick={() => handleRoleSelection('admin')}
-                className="h-auto py-8 flex flex-col items-center gap-4 bg-gradient-subtle hover:bg-gradient-button transition-all"
-                variant="outline"
-              >
-                <Briefcase className="h-12 w-12 text-primary" />
-                <div className="space-y-2">
-                  <div className="font-semibold text-lg">Continuar como Admin</div>
-                  <div className="text-sm text-muted-foreground">
-                    Panel de administración
                   </div>
                 </div>
               </Button>
