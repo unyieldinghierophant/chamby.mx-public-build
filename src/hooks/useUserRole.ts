@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface UserRole {
   role: 'client' | 'provider' | null;
+  roles: string[];
   loading: boolean;
   error: string | null;
 }
@@ -11,6 +12,7 @@ interface UserRole {
 export const useUserRole = (): UserRole => {
   const { user } = useAuth();
   const [role, setRole] = useState<'client' | 'provider' | null>(null);
+  const [roles, setRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,18 +35,28 @@ export const useUserRole = (): UserRole => {
         }
 
         if (data && data.length > 0) {
-          // Priority: provider > client > admin
-          // Find provider role first, then client, then admin
-          const providerRole = data.find(r => r.role === 'provider');
-          const clientRole = data.find(r => r.role === 'client');
+          const userRoles = data.map(r => r.role);
+          setRoles(userRoles);
+
+          // Check if user has selected a role in this session
+          const selectedRole = localStorage.getItem('selected_role') as 'client' | 'provider' | 'admin' | null;
           
-          if (providerRole) {
-            setRole('provider');
-          } else if (clientRole) {
-            setRole('client');
+          if (selectedRole && userRoles.includes(selectedRole)) {
+            // Use the previously selected role
+            setRole(selectedRole === 'provider' ? 'provider' : 'client');
           } else {
-            // If only admin or other roles, default to client
-            setRole('client');
+            // Priority: provider > client > admin
+            const providerRole = data.find(r => r.role === 'provider');
+            const clientRole = data.find(r => r.role === 'client');
+            
+            if (providerRole) {
+              setRole('provider');
+            } else if (clientRole) {
+              setRole('client');
+            } else {
+              // If only admin or other roles, default to client
+              setRole('client');
+            }
           }
         } else {
           // Default to client if no role found
@@ -64,5 +76,5 @@ export const useUserRole = (): UserRole => {
     fetchUserRole();
   }, [user]);
 
-  return { role, loading, error };
+  return { role, roles, loading, error };
 };

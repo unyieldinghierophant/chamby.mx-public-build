@@ -51,6 +51,7 @@ import ProviderSupport from "./pages/provider-portal/ProviderSupport";
 import ProviderNotifications from "./pages/provider-portal/ProviderNotifications";
 import RescheduleRequest from "./pages/provider-portal/RescheduleRequest";
 import BecomeProvider from "./pages/BecomeProvider";
+import RoleSelection from "./pages/RoleSelection";
 
 
 const queryClient = new QueryClient();
@@ -115,6 +116,7 @@ const App = () => (
             <Route path="/auth/user" element={<UserAuth />} />
             <Route path="/auth/tasker" element={<TaskerAuth />} />
             <Route path="/become-provider" element={<BecomeProvider />} />
+            <Route path="/choose-role" element={<RoleSelection />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/callback" element={<AuthCallback />} />
             <Route path="/dashboard/user" element={<Navigate to="/user-landing" replace />} />

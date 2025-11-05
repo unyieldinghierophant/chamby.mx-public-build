@@ -99,53 +99,80 @@ const AuthCallback = () => {
   }, [emailConfirmed, user, navigate]);
 
   const handleSuccessComplete = async () => {
-    // Check for stored return path and login context
-    const returnTo = sessionStorage.getItem('auth_return_to');
-    let loginContext = localStorage.getItem('login_context');
+    console.log('[AuthCallback] Success animation complete, determining redirect...');
     
-    console.log('Login context from localStorage:', loginContext);
-    
-    // Fallback: Check user metadata for login_context
-    if (!loginContext && user?.user_metadata?.login_context) {
-      loginContext = user.user_metadata.login_context;
-      console.log('Using login_context from user metadata:', loginContext);
-    }
-    
-    // Clear after reading
-    sessionStorage.removeItem('auth_return_to');
-    localStorage.removeItem('login_context');
-    sessionStorage.removeItem('login_context');
-    
-    // Check if user is a tasker
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('is_tasker')
-      .eq('user_id', user?.id)
-      .single();
-    
-    const isTasker = profile?.is_tasker || false;
-    
-    // Route based on login context first, then role
-    let defaultPath = "/user-landing";
-    
-    if (loginContext === 'tasker') {
-      // User logged in/signed up from tasker portal - always go to provider portal
-      // New signups will complete onboarding from there
-      defaultPath = "/provider-portal";
-    } else if (loginContext === 'client') {
-      // User logged in from client portal
-      defaultPath = "/user-landing";
-    } else {
-      // No login context - use role-based routing (fallback)
-      if (role === "provider" || isTasker) {
-        defaultPath = "/provider-portal";
+    try {
+      const loginContext = sessionStorage.getItem('login_context') || localStorage.getItem('login_context');
+      const returnTo = sessionStorage.getItem('auth_return_to') || localStorage.getItem('auth_return_to');
+      
+      console.log('[AuthCallback] Login context:', loginContext);
+      console.log('[AuthCallback] Return to:', returnTo);
+      
+      // Clear the stored values
+      sessionStorage.removeItem('login_context');
+      localStorage.removeItem('login_context');
+      sessionStorage.removeItem('auth_return_to');
+      localStorage.removeItem('auth_return_to');
+
+      if (returnTo) {
+        console.log('[AuthCallback] Redirecting to stored return path:', returnTo);
+        navigate(returnTo);
+        return;
       }
+
+      // Check user's roles from user_roles table
+      if (user) {
+        const { data: userRoles, error } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id);
+
+        if (error) {
+          console.error('[AuthCallback] Error fetching roles:', error);
+          navigate('/user-landing');
+          return;
+        }
+
+        console.log('[AuthCallback] User roles:', userRoles);
+
+        const roles = userRoles?.map(r => r.role) || [];
+
+        // If user has multiple roles, redirect to role selection
+        if (roles.length > 1) {
+          console.log('[AuthCallback] Multiple roles detected, showing role selection');
+          navigate('/choose-role');
+          return;
+        }
+
+        // If single role, redirect accordingly
+        if (roles.length === 1) {
+          const role = roles[0];
+          localStorage.setItem('selected_role', role);
+          
+          if (role === 'provider') {
+            console.log('[AuthCallback] Redirecting to provider portal');
+            navigate('/provider-portal');
+          } else if (role === 'admin') {
+            console.log('[AuthCallback] Redirecting to admin dashboard');
+            navigate('/admin');
+          } else {
+            console.log('[AuthCallback] Redirecting to user landing');
+            navigate('/user-landing');
+          }
+          return;
+        }
+
+        // No roles found, default to user landing
+        console.log('[AuthCallback] No roles found, redirecting to user landing');
+        navigate('/user-landing');
+      } else {
+        console.log('[AuthCallback] No user found, redirecting to home');
+        navigate('/');
+      }
+    } catch (error) {
+      console.error('[AuthCallback] Error during redirect:', error);
+      navigate('/');
     }
-    
-    const targetPath = returnTo || defaultPath;
-    
-    console.log('Success complete, redirecting to:', targetPath, { role, isTasker, loginContext });
-    navigate(targetPath, { replace: true });
   };
 
   // Show loading while determining where to redirect
