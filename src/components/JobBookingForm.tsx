@@ -185,7 +185,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
   // Get category from route state
   const category = locationState?.category;
 
-  // Load saved form data on mount
+  // Load saved form data on mount and check for post-auth return
   useEffect(() => {
     const savedData = loadFormData();
     if (savedData) {
@@ -209,12 +209,18 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
         setUploadedFiles(restoredFiles);
       }
       
-      toast({
-        title: "Progreso restaurado",
-        description: "Hemos recuperado tu trabajo anterior",
-      });
+      // If user just authenticated and should see confirmation
+      if (savedData.showConfirmationOnReturn && user) {
+        // Auto-submit to generate WhatsApp link and show confirmation
+        handleSubmit();
+      } else {
+        toast({
+          title: "Progreso restaurado",
+          description: "Hemos recuperado tu trabajo anterior",
+        });
+      }
     }
-  }, []);
+  }, [user]);
 
   // Auto-save form data when it changes
   useEffect(() => {
@@ -649,16 +655,18 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
       selectedTimeSlots,
       location,
       details,
-      currentStep,
+      currentStep: 4, // Set to step 4 so they return to final step
       coordinates,
-      uploadedFileUrls: uploadedFiles.filter(f => f.uploaded).map(f => f.url)
+      uploadedFileUrls: uploadedFiles.filter(f => f.uploaded).map(f => f.url),
+      showConfirmationOnReturn: true // Flag to show confirmation after auth
     };
     saveFormData(formData);
     
-    // Navigate to auth with return URL
-    navigate('/auth/user', { 
-      state: { returnTo: window.location.pathname + window.location.search } 
-    });
+    // Store return path in sessionStorage for auth callback
+    sessionStorage.setItem('auth_return_to', '/book-job');
+    
+    // Navigate to auth
+    navigate('/auth/user');
   };
 
   const handleConfirmSubmit = () => {
