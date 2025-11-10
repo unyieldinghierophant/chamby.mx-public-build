@@ -31,7 +31,7 @@ import { useVerificationStatus } from "@/hooks/useVerificationStatus";
 import { useProfile } from "@/hooks/useProfile";
 import { useState } from "react";
 import logo from "@/assets/chamby-logo-text.png";
-import walkingProvider from "@/assets/walking-provider.png";
+import walkingProvider from "@/assets/provider-character.png";
 import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
 
