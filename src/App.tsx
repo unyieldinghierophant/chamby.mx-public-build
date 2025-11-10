@@ -52,6 +52,8 @@ import ProviderNotifications from "./pages/provider-portal/ProviderNotifications
 import RescheduleRequest from "./pages/provider-portal/RescheduleRequest";
 import BecomeProvider from "./pages/BecomeProvider";
 import RoleSelection from "./pages/RoleSelection";
+import Blog from "./pages/Blog";
+import HelpCenter from "./pages/HelpCenter";
 
 
 const queryClient = new QueryClient();
@@ -130,6 +132,9 @@ const App = () => (
             
             <Route path="/pago-visita" element={<PagoVisita />} />
             <Route path="/esperando-proveedor" element={<EsperandoProveedor />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/help-center" element={<HelpCenter />} />
+            <Route path="/provider-landing" element={<ProviderLanding />} />
             
             <Route
               path="/tasker-profile" 

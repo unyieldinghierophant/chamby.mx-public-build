@@ -1,5 +1,8 @@
 import { Facebook, Twitter, Instagram, Mail, Phone, MapPin } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+
 const Footer = () => {
+  const navigate = useNavigate();
   return <footer className="bg-muted/30 text-foreground border-t">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -32,11 +35,31 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-semibold mb-4">Servicios</h4>
             <ul className="space-y-2 text-muted-foreground">
-              <li><a href="#" className="hover:text-primary transition-colors">Limpieza del hogar</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Reparaciones</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Jardinería</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Pintura</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Instalaciones</a></li>
+              <li>
+                <button onClick={() => navigate('/book-job', { state: { service: "Limpieza del hogar" }})} className="hover:text-primary transition-colors text-left">
+                  Limpieza del hogar
+                </button>
+              </li>
+              <li>
+                <button onClick={() => navigate('/book-job', { state: { service: "Reparaciones" }})} className="hover:text-primary transition-colors text-left">
+                  Reparaciones
+                </button>
+              </li>
+              <li>
+                <button onClick={() => navigate('/book-job', { state: { service: "Jardinería" }})} className="hover:text-primary transition-colors text-left">
+                  Jardinería
+                </button>
+              </li>
+              <li>
+                <button onClick={() => navigate('/book-job', { state: { service: "Pintura" }})} className="hover:text-primary transition-colors text-left">
+                  Pintura
+                </button>
+              </li>
+              <li>
+                <button onClick={() => navigate('/book-job', { state: { service: "Instalaciones" }})} className="hover:text-primary transition-colors text-left">
+                  Instalaciones
+                </button>
+              </li>
             </ul>
           </div>
 
@@ -46,9 +69,9 @@ const Footer = () => {
             <ul className="space-y-2 text-muted-foreground">
               <li><a href="#" className="hover:text-primary transition-colors">Acerca de nosotros</a></li>
               <li><a href="#" className="hover:text-primary transition-colors">Cómo funciona</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Ser profesional</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Centro de ayuda</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Blog</a></li>
+              <li><a href="/provider-landing" className="hover:text-primary transition-colors">Ser profesional</a></li>
+              <li><a href="/help-center" className="hover:text-primary transition-colors">Centro de ayuda</a></li>
+              <li><a href="/blog" className="hover:text-primary transition-colors">Blog</a></li>
             </ul>
           </div>
 
