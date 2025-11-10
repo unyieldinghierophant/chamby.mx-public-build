@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Card } from "@/components/ui/card";
-import { CalendarIcon, Upload, Check, Sunrise, Sun, Sunset, Moon, MapPin } from "lucide-react";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { CalendarIcon, Upload, Check, Sunrise, Sun, Sunset, Moon, MapPin, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -179,6 +180,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [whatsappUrl, setWhatsappUrl] = useState("");
   const [showWhatsAppButton, setShowWhatsAppButton] = useState(false);
+  const [isLoadingForm, setIsLoadingForm] = useState(true);
   const { toast } = useToast();
   const { saveFormData, loadFormData, clearFormData } = useFormPersistence('job-booking');
 
@@ -190,19 +192,21 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
     const savedData = loadFormData();
     if (savedData) {
       setTaskDescription(savedData.taskDescription || "");
-      setDatePreference(savedData.datePreference || 'specific');
-      setSpecificDate(savedData.specificDate ? new Date(savedData.specificDate) : undefined);
-      setNeedsSpecificTime(savedData.needsSpecificTime || false);
+      if (savedData.datePreference) setDatePreference(savedData.datePreference);
+      if (savedData.specificDate) setSpecificDate(new Date(savedData.specificDate));
+      if (savedData.needsSpecificTime !== undefined) setNeedsSpecificTime(savedData.needsSpecificTime);
       setSelectedTimeSlots(savedData.selectedTimeSlots || []);
       setLocation(savedData.location || "");
       setDetails(savedData.details || "");
       setCurrentStep(savedData.currentStep || 1);
-      setCoordinates(savedData.coordinates || { lat: 19.4326, lng: -99.1332 });
       
-      // Restore uploaded photos from URLs
-      if (savedData.uploadedFileUrls && savedData.uploadedFileUrls.length > 0) {
-        const restoredFiles: UploadedFile[] = savedData.uploadedFileUrls.map((url: string) => ({
-          file: null as any, // We don't have the original File object
+      if (savedData.coordinates) {
+        setCoordinates(savedData.coordinates);
+      }
+      
+      if (savedData.uploadedFileUrls) {
+        const restoredFiles = savedData.uploadedFileUrls.map((url: string, index: number) => ({
+          file: null,
           url: url,
           uploaded: true
         }));
@@ -220,6 +224,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
         });
       }
     }
+    setIsLoadingForm(false);
   }, [user]);
 
   // Auto-save form data when it changes
@@ -728,6 +733,43 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
     }
     return "Sin preferencia";
   };
+
+  // Show loading skeleton while form data is being loaded
+  if (isLoadingForm) {
+    return (
+      <div className="w-full flex gap-8">
+        <div className="hidden lg:block w-56 flex-shrink-0">
+          <div className="sticky top-32">
+            <Skeleton className="h-8 w-48 mb-6" />
+            <div className="space-y-2">
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+            </div>
+          </div>
+        </div>
+        <div className="flex-1 max-w-3xl">
+          <Skeleton className="h-12 w-3/4 mb-8" />
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <Skeleton className="h-6 w-1/3" />
+              <Skeleton className="h-14 w-full" />
+            </div>
+            <div className="space-y-3">
+              <Skeleton className="h-6 w-1/4" />
+              <Skeleton className="h-14 w-full" />
+            </div>
+            <div className="space-y-3">
+              <Skeleton className="h-6 w-1/3" />
+              <Skeleton className="h-32 w-full" />
+            </div>
+            <Skeleton className="h-12 w-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full flex gap-8">
