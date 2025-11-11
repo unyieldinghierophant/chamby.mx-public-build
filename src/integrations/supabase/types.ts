@@ -437,16 +437,22 @@ export type Database = {
       }
       jobs: {
         Row: {
+          amount_booking_fee: number | null
+          amount_service_total: number | null
           category: string
           client_id: string | null
           created_at: string
           description: string | null
+          escrow_captured: boolean | null
+          escrow_refunded: boolean | null
           id: string
           invoice_due_date: string | null
           location: string | null
+          payment_status: string | null
           photos: string[] | null
           problem: string | null
           provider_id: string
+          provider_visited: boolean | null
           rate: number
           scheduled_at: string | null
           service_type: string | null
@@ -454,22 +460,29 @@ export type Database = {
           stripe_invoice_id: string | null
           stripe_invoice_pdf: string | null
           stripe_invoice_url: string | null
+          stripe_payment_intent_id: string | null
           title: string
           updated_at: string
           urgent: boolean | null
           visit_fee_paid: boolean | null
         }
         Insert: {
+          amount_booking_fee?: number | null
+          amount_service_total?: number | null
           category: string
           client_id?: string | null
           created_at?: string
           description?: string | null
+          escrow_captured?: boolean | null
+          escrow_refunded?: boolean | null
           id?: string
           invoice_due_date?: string | null
           location?: string | null
+          payment_status?: string | null
           photos?: string[] | null
           problem?: string | null
           provider_id: string
+          provider_visited?: boolean | null
           rate: number
           scheduled_at?: string | null
           service_type?: string | null
@@ -477,22 +490,29 @@ export type Database = {
           stripe_invoice_id?: string | null
           stripe_invoice_pdf?: string | null
           stripe_invoice_url?: string | null
+          stripe_payment_intent_id?: string | null
           title: string
           updated_at?: string
           urgent?: boolean | null
           visit_fee_paid?: boolean | null
         }
         Update: {
+          amount_booking_fee?: number | null
+          amount_service_total?: number | null
           category?: string
           client_id?: string | null
           created_at?: string
           description?: string | null
+          escrow_captured?: boolean | null
+          escrow_refunded?: boolean | null
           id?: string
           invoice_due_date?: string | null
           location?: string | null
+          payment_status?: string | null
           photos?: string[] | null
           problem?: string | null
           provider_id?: string
+          provider_visited?: boolean | null
           rate?: number
           scheduled_at?: string | null
           service_type?: string | null
@@ -500,6 +520,7 @@ export type Database = {
           stripe_invoice_id?: string | null
           stripe_invoice_pdf?: string | null
           stripe_invoice_url?: string | null
+          stripe_payment_intent_id?: string | null
           title?: string
           updated_at?: string
           urgent?: boolean | null
