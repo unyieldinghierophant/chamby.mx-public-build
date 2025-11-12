@@ -451,7 +451,7 @@ export type Database = {
           payment_status: string | null
           photos: string[] | null
           problem: string | null
-          provider_id: string
+          provider_id: string | null
           provider_visited: boolean | null
           rate: number
           scheduled_at: string | null
@@ -481,7 +481,7 @@ export type Database = {
           payment_status?: string | null
           photos?: string[] | null
           problem?: string | null
-          provider_id: string
+          provider_id?: string | null
           provider_visited?: boolean | null
           rate: number
           scheduled_at?: string | null
@@ -511,7 +511,7 @@ export type Database = {
           payment_status?: string | null
           photos?: string[] | null
           problem?: string | null
-          provider_id?: string
+          provider_id?: string | null
           provider_visited?: boolean | null
           rate?: number
           scheduled_at?: string | null
