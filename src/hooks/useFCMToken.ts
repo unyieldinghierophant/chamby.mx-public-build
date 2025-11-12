@@ -1,75 +1,52 @@
-import { useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
-import { firebaseConfig, VAPID_KEY } from '@/lib/firebase';
+import { useEffect, useState } from "react";
+import { getToken, onMessage } from "firebase/messaging";
+import { messaging } from "@/lib/firebase";
 
-export const useFCMToken = () => {
-  const { user } = useAuth();
-  const { toast } = useToast();
+/**
+ * useFCMToken hook
+ * Requests permission for notifications, retrieves the FCM token,
+ * and listens for incoming messages (foreground notifications).
+ */
+export function useFCMToken() {
+  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) return;
-
-    const registerFCM = async () => {
+    async function requestPermissionAndToken() {
       try {
-        // Check if service worker and Firebase are supported
-        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-          console.log('Push notifications not supported');
-          return;
-        }
-
-        // Request notification permission
+        // Ask browser for notification permission
         const permission = await Notification.requestPermission();
-        
-        if (permission !== 'granted') {
-          console.log('Notification permission denied');
+        if (permission !== "granted") {
+          console.warn("🔕 Notification permission not granted by user.");
           return;
         }
 
-        console.log('Notification permission granted');
+        // Get registration token from Firebase Messaging
+        const currentToken = await getToken(messaging, {
+          vapidKey: "BCK5XVCFGLZVgxpbDA2DwfTLcHk0o2bJma-0t6i434_PhLnD5M1dAf7VNl_Zk8bWV2Gb0ZQUbG32ULgU5_uBcHA",
+        });
 
-        // Dynamically import Firebase to avoid type checker issues
-        const { initializeApp } = await import('firebase/app');
-        const { getMessaging, getToken, onMessage } = await import('firebase/messaging');
-
-        const app = initializeApp(firebaseConfig);
-        const messaging = getMessaging(app);
-
-        // Get FCM token
-        const token = await getToken(messaging, { vapidKey: VAPID_KEY });
-
-        if (token) {
-          console.log('FCM token obtained');
-          
-          // Store token in Supabase
-          const { error } = await supabase
-            .from('profiles')
-            .update({ fcm_token: token })
-            .eq('user_id', user.id);
-
-          if (error) {
-            console.error('Error storing FCM token:', error);
-          } else {
-            console.log('FCM token registered successfully');
-          }
-
-          // Handle foreground messages
-          onMessage(messaging, (payload: any) => {
-            console.log('Foreground message received:', payload);
-            
-            toast({
-              title: payload.notification?.title || 'Nueva notificación',
-              description: payload.notification?.body,
-              duration: 5000,
-            });
-          });
+        if (currentToken) {
+          console.log("✅ FCM Token acquired:", currentToken);
+          setToken(currentToken);
+        } else {
+          console.warn("⚠️ No registration token available (permission blocked or missing SW).");
         }
       } catch (error) {
-        console.error('Error setting up FCM:', error);
+        console.error("❌ Error while retrieving FCM token:", error);
       }
-    };
+    }
 
-    registerFCM();
-  }, [user, toast]);
-};
+    requestPermissionAndToken();
+
+    // Listen for foreground notifications
+    onMessage(messaging, (payload) => {
+      console.log("📨 Foreground message received:", payload);
+      if (payload?.notification) {
+        const { title, body } = payload.notification;
+        new Notification(title || "Chamby", { body: body || "Tienes una nueva notificación." });
+      }
+    });
+  }, []);
+
+  return token;
+}
