@@ -509,23 +509,34 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
         throw jobError;
       }
 
-      console.log('✅ Job created successfully:', newJob.id);
+      console.log('✅ [BOOKING-FORM] Job created successfully:', {
+        jobId: newJob.id,
+        status: 'pending',
+        visit_fee_paid: false
+      });
 
       // Invoke create-visit-payment edge function directly
+      console.log('🔵 [BOOKING-FORM] Calling create-visit-payment...');
       const { data: paymentData, error: paymentError } = await supabase.functions.invoke(
         "create-visit-payment",
         { body: { job_id: newJob.id } }
       );
 
       if (paymentError) {
-        console.error('Error creating payment:', paymentError);
+        console.error('❌ [BOOKING-FORM] Payment error:', {
+          message: paymentError.message,
+          details: paymentError
+        });
         throw new Error(paymentError.message || "No se pudo procesar el pago");
       }
+
+      console.log('✅ [BOOKING-FORM] Payment response:', paymentData);
 
       if (paymentData?.url) {
         // Clear saved form data
         clearFormData();
         
+        console.log('🔵 [BOOKING-FORM] Opening Stripe checkout:', paymentData.url);
         // Open Stripe Checkout in new tab
         window.open(paymentData.url, "_blank");
         
@@ -534,6 +545,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
           description: "Se abrió la página de pago en una nueva pestaña",
         });
       } else {
+        console.error('❌ [BOOKING-FORM] No payment URL received');
         throw new Error("No se recibió la URL de pago");
       }
 

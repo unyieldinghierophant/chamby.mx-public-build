@@ -25,6 +25,8 @@ const EsperandoProveedor = () => {
 
   const verifyPaymentAndUpdateJob = async () => {
     try {
+      console.log('🔵 [ESPERANDO] Verifying payment for job:', jobId);
+      
       // Fetch the job to check payment status
       const { data: jobData, error: jobError } = await supabase
         .from("jobs")
@@ -32,37 +34,55 @@ const EsperandoProveedor = () => {
         .eq("id", jobId)
         .single();
 
-      if (jobError) throw jobError;
+      if (jobError) {
+        console.error('❌ [ESPERANDO] Error fetching job:', jobError);
+        throw jobError;
+      }
 
-      // If payment not yet marked as paid, update it
-      if (!jobData.visit_fee_paid) {
-        const { error: updateError } = await supabase
+      console.log('✅ [ESPERANDO] Job fetched:', {
+        jobId: jobData.id,
+        status: jobData.status,
+        visit_fee_paid: jobData.visit_fee_paid,
+        payment_status: jobData.payment_status
+      });
+
+      // If payment not yet marked as active, update it
+      // (Webhook should have already done this, but this is a safety net)
+      if (!jobData.visit_fee_paid || jobData.status !== 'active') {
+        console.log('⚠️ [ESPERANDO] Job not active, updating...', {
+          current_status: jobData.status,
+          current_visit_fee_paid: jobData.visit_fee_paid
+        });
+
+        const { data: updatedJobData, error: updateError } = await supabase
           .from("jobs")
           .update({
             visit_fee_paid: true,
-            status: "active", // Changed to 'active' to trigger notify_providers_new_job trigger
+            status: "active", // Trigger notify_providers_new_job
+            updated_at: new Date().toISOString()
           })
-          .eq("id", jobId);
-
-        if (updateError) {
-          console.error("Error updating job:", updateError);
-        }
-
-        // Refresh job data
-        const { data: updatedJob } = await supabase
-          .from("jobs")
-          .select("*")
           .eq("id", jobId)
+          .select()
           .single();
 
-        setJob(updatedJob);
+        if (updateError) {
+          console.error("❌ [ESPERANDO] Error updating job:", updateError);
+        } else {
+          console.log("✅ [ESPERANDO] Job updated to active:", {
+            jobId: updatedJobData.id,
+            status: updatedJobData.status,
+            visit_fee_paid: updatedJobData.visit_fee_paid
+          });
+          setJob(updatedJobData);
+        }
       } else {
+        console.log('✅ [ESPERANDO] Job already active, no update needed');
         setJob(jobData);
       }
 
       toast.success("¡Pago confirmado exitosamente!");
     } catch (error) {
-      console.error("Error verifying payment:", error);
+      console.error("❌ [ESPERANDO] Error:", error);
       toast.error("Error al verificar el pago");
     } finally {
       setVerifying(false);

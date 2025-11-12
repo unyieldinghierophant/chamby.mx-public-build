@@ -64,7 +64,7 @@ serve(async (req) => {
       throw new Error("No autorizado");
     }
 
-    console.log("Creating visit payment for job:", job_id, "user:", user.email);
+    console.log("🔵 [VISIT-PAYMENT] Starting payment for job:", job_id, "user:", user.email);
 
     // First, get the client_id from the clients table
     const { data: clientData, error: clientError } = await supabaseClient
@@ -74,11 +74,15 @@ serve(async (req) => {
       .single();
 
     if (clientError || !clientData) {
-      console.error("Error fetching client:", clientError);
+      console.error("❌ [VISIT-PAYMENT] Error fetching client:", {
+        email: user.email,
+        error: clientError?.message,
+        code: clientError?.code
+      });
       throw new Error("Cliente no encontrado");
     }
 
-    console.log("Client found:", clientData.id);
+    console.log("✅ [VISIT-PAYMENT] Client found:", clientData.id);
 
     // Fetch job details using the correct client_id
     const { data: job, error: jobError } = await supabaseClient
@@ -89,12 +93,25 @@ serve(async (req) => {
       .single();
 
     if (jobError || !job) {
-      console.error("Error fetching job:", jobError);
+      console.error("❌ [VISIT-PAYMENT] Error fetching job:", {
+        job_id,
+        client_id: clientData.id,
+        error: jobError?.message,
+        code: jobError?.code
+      });
       throw new Error("Solicitud no encontrada");
     }
 
+    console.log("✅ [VISIT-PAYMENT] Job found:", {
+      job_id: job.id,
+      status: job.status,
+      visit_fee_paid: job.visit_fee_paid,
+      payment_status: job.payment_status
+    });
+
     // Check if already paid
     if (job.visit_fee_paid) {
+      console.log("⚠️ [VISIT-PAYMENT] Job already paid");
       throw new Error("La visita ya ha sido pagada");
     }
 
@@ -150,24 +167,32 @@ serve(async (req) => {
       },
     });
 
-    console.log("Visit payment session created:", session.id);
+    console.log("✅ [VISIT-PAYMENT] Stripe session created:", {
+      sessionId: session.id,
+      jobId: job_id,
+      amount: 25000,
+      client: customerId || user.email
+    });
 
     return new Response(
       JSON.stringify({ 
         url: session.url,
         sessionId: session.id
-      }), 
+      }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       }
     );
   } catch (error) {
-    console.error("Visit payment creation error:", error);
+    console.error("❌ [VISIT-PAYMENT] Error:", {
+      message: error.message,
+      stack: error.stack
+    });
     return new Response(
       JSON.stringify({ 
         error: error.message || "No se pudo procesar el pago. Por favor intenta nuevamente."
-      }), 
+      }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,

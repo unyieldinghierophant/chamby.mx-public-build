@@ -64,28 +64,57 @@ serve(async (req) => {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        logStep("Checkout session completed", { sessionId: session.id });
+        logStep("Checkout session completed", { 
+          sessionId: session.id, 
+          metadata: session.metadata,
+          payment_status: session.payment_status 
+        });
 
         if (session.metadata?.type === "visit_fee" && session.metadata?.job_id) {
           const jobId = session.metadata.job_id;
           const paymentIntentId = session.payment_intent as string;
 
-          // Update job with payment intent and mark as authorized
-          const { error: updateError } = await supabaseClient
+          logStep("Processing visit fee payment", { 
+            jobId, 
+            paymentIntentId,
+            clientId: session.metadata.client_id 
+          });
+
+          // Update job with payment intent, mark as paid, and ACTIVATE to trigger notifications
+          const { data: updatedJob, error: updateError } = await supabaseClient
             .from("jobs")
             .update({
               stripe_payment_intent_id: paymentIntentId,
               payment_status: "authorized",
               visit_fee_paid: true,
+              status: "active", // CRITICAL: Set to active to trigger notify_providers_new_job
               updated_at: new Date().toISOString(),
             })
-            .eq("id", jobId);
+            .eq("id", jobId)
+            .select()
+            .single();
 
           if (updateError) {
-            logStep("Error updating job", { error: updateError });
+            logStep("❌ ERROR updating job", { 
+              jobId, 
+              error: updateError.message,
+              code: updateError.code,
+              details: updateError.details 
+            });
           } else {
-            logStep("Job updated to authorized", { jobId });
+            logStep("✅ Job updated successfully", { 
+              jobId,
+              status: updatedJob.status,
+              visit_fee_paid: updatedJob.visit_fee_paid,
+              payment_status: updatedJob.payment_status 
+            });
           }
+        } else {
+          logStep("⚠️ Checkout session missing required metadata", {
+            hasType: !!session.metadata?.type,
+            hasJobId: !!session.metadata?.job_id,
+            metadata: session.metadata
+          });
         }
         break;
       }
