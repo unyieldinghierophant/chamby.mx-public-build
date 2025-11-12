@@ -102,10 +102,13 @@ const RedirectHandler = () => {
   return null;
 };
 
-const App = () => (
+const App = () => {
   const token = useFCMToken();
-console.log("📲 FCM token from App:", token);
-  <QueryClientProvider client={queryClient}>
+  console.log("📲 FCM token from App:", token);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      
     <AuthProvider>
       <TooltipProvider>
         <Toaster />
@@ -269,4 +272,5 @@ console.log("📲 FCM token from App:", token);
   </QueryClientProvider>
 );
 
-export default App;
+export default App  );
+};
