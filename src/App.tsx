@@ -1,4 +1,3 @@
-import { useFCMToken } from "@/hooks/useFCMToken";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -109,9 +108,6 @@ const RedirectHandler = () => {
 };
 
 const App = () => {
-  const token = useFCMToken();
-  console.log("📲 FCM token from App:", token);
-
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
