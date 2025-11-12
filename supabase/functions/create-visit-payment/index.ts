@@ -100,7 +100,7 @@ serve(async (req) => {
       }
     }
 
-    // Create checkout session for visit fee (250 MXN)
+    // Create checkout session for visit fee (250 MXN) with manual capture for escrow
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
@@ -118,6 +118,14 @@ serve(async (req) => {
         }
       ],
       mode: "payment",
+      payment_intent_data: {
+        capture_method: 'manual', // Authorize but don't capture - escrow mode
+        metadata: {
+          job_id,
+          client_id: user.id,
+          type: "visit_fee",
+        },
+      },
       success_url: `${req.headers.get("origin")}/esperando-proveedor?job_id=${job_id}`,
       cancel_url: `${req.headers.get("origin")}/nueva-solicitud`,
       metadata: {
