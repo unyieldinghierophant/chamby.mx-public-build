@@ -468,13 +468,25 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
         throw saveError;
       }
 
+      // Get client_id from clients table
+      const { data: clientData, error: clientError } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('email', user.email)
+        .single();
+
+      if (clientError || !clientData) {
+        console.error('Error fetching client:', clientError);
+        throw new Error('No se pudo obtener información del cliente');
+      }
+
       // Create job entry in jobs table for provider notifications and payment flow
       const scheduledDate = specificDate || new Date(Date.now() + 24 * 60 * 60 * 1000);
       
       const { data: newJob, error: jobError } = await supabase
         .from('jobs')
         .insert({
-          client_id: user.id,
+          client_id: clientData.id,
           provider_id: null, // Not assigned yet
           title: taskDescription,
           description: details,
