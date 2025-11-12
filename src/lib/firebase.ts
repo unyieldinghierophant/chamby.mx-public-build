@@ -1,21 +1,14 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// Firebase configuration - Replace with your actual values from Firebase Console
 const firebaseConfig = {
-  apiKey: "AIzaSyAMWqd6KpWaolubCbu-D40cuHWgA4HeTtc",
-  authDomain: "chamby-d8e7c.firebaseapp.com",
-  projectId: "chamby-d8e7c",
-  storageBucket: "chamby-d8e7c.firebasestorage.app",
-  messagingSenderId: "66742424691",
-  appId: "1:66742424691:web:64626ffb0d2877ba160606",
-  measurementId: "G-TCC96LM6FQ",
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+const VAPID_KEY = "YOUR_VAPID_KEY";
+
+// Firebase will be initialized dynamically in useFCMToken hook
+export { firebaseConfig, VAPID_KEY };
