@@ -10,7 +10,14 @@ const corsHeaders = {
 
 // Input validation schema
 const invoiceRequestSchema = z.object({
-  job_request_id: z.string().uuid("ID de solicitud inválido")
+  job_id: z.string().uuid("ID de trabajo inválido"),
+  amount: z.number().positive("El monto debe ser positivo"),
+  description: z.string().optional(),
+  line_items: z.array(z.object({
+    description: z.string(),
+    amount: z.number().positive(),
+    quantity: z.number().int().positive().default(1)
+  })).optional()
 });
 
 // Helper logging function
@@ -28,10 +35,11 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    // Create Supabase client
+    // Create Supabase client with service role for provider verification
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } }
     );
 
     // Get and validate request body
@@ -57,10 +65,10 @@ serve(async (req) => {
       throw error;
     }
 
-    const { job_request_id } = validatedData;
-    logStep("Request validated", { job_request_id });
+    const { job_id, amount, description, line_items } = validatedData;
+    logStep("Request validated", { job_id, amount });
 
-    // Authenticate user
+    // Authenticate provider
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       throw new Error("No autorizado");
@@ -73,39 +81,53 @@ serve(async (req) => {
       throw new Error("No autorizado");
     }
 
-    logStep("User authenticated", { userId: user.id, email: user.email });
+    logStep("Provider authenticated", { userId: user.id, email: user.email });
 
-    // Fetch client profile
-    const { data: profile, error: profileError } = await supabaseClient
-      .from("profiles")
-      .select("full_name, phone")
-      .eq("user_id", user.id)
+    // Fetch job details and verify provider owns this job
+    const { data: job, error: jobError } = await supabaseClient
+      .from("jobs")
+      .select("*, clients!inner(email, phone)")
+      .eq("id", job_id)
       .single();
 
-    if (profileError) {
-      logStep("Profile fetch error", profileError);
+    if (jobError || !job) {
+      logStep("Job fetch error", jobError);
+      throw new Error("Trabajo no encontrado");
     }
 
-    const clientName = profile?.full_name || user.email || "Cliente";
-    const clientPhone = profile?.phone || null;
-    logStep("Client profile fetched", { clientName, hasPhone: !!clientPhone });
-
-    // Fetch job request details
-    const { data: jobRequest, error: jobError } = await supabaseClient
-      .from("job_requests")
-      .select("*")
-      .eq("id", job_request_id)
-      .eq("user_id", user.id)
+    // Verify the authenticated user is the provider for this job
+    const { data: providerClient, error: providerError } = await supabaseClient
+      .from("clients")
+      .select("id")
+      .eq("email", user.email)
       .single();
 
-    if (jobError || !jobRequest) {
-      logStep("Job request fetch error", jobError);
-      throw new Error("Solicitud no encontrada");
+    if (providerError || !providerClient || providerClient.id !== job.provider_id) {
+      logStep("Authorization failed", { 
+        providerClient: providerClient?.id, 
+        jobProvider: job.provider_id 
+      });
+      throw new Error("No autorizado para crear factura para este trabajo");
     }
 
-    logStep("Job request fetched", { 
-      service: jobRequest.service, 
-      location: jobRequest.location 
+    // Check if visit fee was paid
+    if (!job.visit_fee_paid || job.payment_status !== 'authorized') {
+      logStep("Visit fee not paid", { 
+        visit_fee_paid: job.visit_fee_paid, 
+        payment_status: job.payment_status 
+      });
+      throw new Error("El cliente debe pagar la visita antes de generar la factura");
+    }
+
+    // Check if invoice already exists
+    if (job.stripe_invoice_id) {
+      logStep("Invoice already exists", { invoiceId: job.stripe_invoice_id });
+      throw new Error("Ya existe una factura para este trabajo");
+    }
+
+    logStep("Job verified", { 
+      title: job.title,
+      clientEmail: job.clients.email
     });
 
     // Initialize Stripe
@@ -114,92 +136,73 @@ serve(async (req) => {
     });
     logStep("Stripe initialized");
 
-    // Create or get Stripe Customer
+    // Get or create Stripe Customer for the client
     let customer;
     const customers = await stripe.customers.list({ 
-      email: user.email, 
+      email: job.clients.email, 
       limit: 1 
     });
 
     if (customers.data.length > 0) {
       customer = customers.data[0];
       logStep("Existing customer found", { customerId: customer.id });
-      
-      // Update customer with latest info
-      await stripe.customers.update(customer.id, {
-        name: clientName,
-        phone: clientPhone || undefined,
-        metadata: {
-          user_id: user.id,
-          supabase_user: user.email || "",
-          updated_at: new Date().toISOString()
-        }
-      });
-      logStep("Customer updated");
     } else {
       customer = await stripe.customers.create({
-        email: user.email,
-        name: clientName,
-        phone: clientPhone || undefined,
+        email: job.clients.email,
+        phone: job.clients.phone || undefined,
         metadata: {
-          user_id: user.id,
-          supabase_user: user.email || "",
+          client_id: job.client_id,
           created_at: new Date().toISOString()
         }
       });
       logStep("New customer created", { customerId: customer.id });
     }
 
-    // Build detailed description for invoice
-    const descriptionParts = [
-      `📋 Servicio: ${jobRequest.service}`,
-      jobRequest.details ? `❓ Problema: ${jobRequest.details}` : '',
-      `📍 Ubicación: ${jobRequest.location || 'Por definir'}`,
-      jobRequest.date ? `📅 Fecha programada: ${jobRequest.date}` : '',
-      jobRequest.time_preference ? `⏰ Horario: ${jobRequest.time_preference}` : '',
-      jobRequest.photo_count && jobRequest.photo_count > 0 ? `📸 Fotos adjuntas: ${jobRequest.photo_count}` : ''
-    ].filter(Boolean).join('\n');
-
-    logStep("Invoice description built", { 
-      descriptionLength: descriptionParts.length 
-    });
-
-    // Create Invoice Item
-    const invoiceItem = await stripe.invoiceItems.create({
-      customer: customer.id,
-      amount: 25000, // 250 MXN in centavos
-      currency: 'mxn',
-      description: `Visita técnica - ${jobRequest.service}`,
-    });
-    logStep("Invoice item created", { invoiceItemId: invoiceItem.id });
+    // Create invoice items
+    if (line_items && line_items.length > 0) {
+      // Create separate line items if provided
+      for (const item of line_items) {
+        await stripe.invoiceItems.create({
+          customer: customer.id,
+          amount: Math.round(item.amount * 100), // Convert to cents
+          currency: 'mxn',
+          description: item.description,
+          quantity: item.quantity
+        });
+      }
+      logStep("Invoice items created", { count: line_items.length });
+    } else {
+      // Create single invoice item with total amount
+      await stripe.invoiceItems.create({
+        customer: customer.id,
+        amount: Math.round(amount * 100), // Convert to cents
+        currency: 'mxn',
+        description: description || `Servicio completado - ${job.title}`,
+        quantity: 1
+      });
+      logStep("Invoice item created");
+    }
 
     // Create Invoice
     const invoice = await stripe.invoices.create({
       customer: customer.id,
       collection_method: 'send_invoice',
-      days_until_due: 0, // Due immediately
-      auto_advance: false, // Don't auto-finalize (we do it manually)
-      description: 'Visita técnica Chamby',
-      footer: '✅ Gracias por confiar en Chamby. Este pago es reembolsable si el servicio se completa satisfactoriamente.\n\n🏠 Chamby.mx - Servicios técnicos a domicilio',
+      days_until_due: 3, // 3 days to pay
+      auto_advance: false, // Manual finalization
+      description: `Factura de servicio - ${job.title}`,
+      footer: '✅ Gracias por usar Chamby. Al pagar esta factura, se reembolsará automáticamente el costo de la visita técnica.\n\n🏠 Chamby.mx - Servicios técnicos a domicilio',
       metadata: {
-        job_request_id: job_request_id,
-        user_id: user.id,
-        service_type: jobRequest.service || 'general',
-        type: 'visit_fee',
-        client_name: clientName
-      },
-      custom_fields: [
-        {
-          name: 'Detalles del servicio',
-          value: descriptionParts.length > 1000 
-            ? descriptionParts.substring(0, 997) + '...' 
-            : descriptionParts
-        }
-      ]
+        job_id: job_id,
+        client_id: job.client_id,
+        provider_id: job.provider_id,
+        payment_intent_id: job.stripe_payment_intent_id || '',
+        type: 'service_completion',
+        service_type: job.category
+      }
     });
     logStep("Invoice created", { invoiceId: invoice.id });
 
-    // Finalize invoice (makes it viewable but doesn't send)
+    // Finalize invoice
     const finalizedInvoice = await stripe.invoices.finalizeInvoice(invoice.id);
     logStep("Invoice finalized", { 
       invoiceId: finalizedInvoice.id,
@@ -207,35 +210,44 @@ serve(async (req) => {
       hostedUrl: finalizedInvoice.hosted_invoice_url
     });
 
-    // Update job_requests table with invoice data
+    // Send invoice to customer
+    await stripe.invoices.sendInvoice(finalizedInvoice.id);
+    logStep("Invoice sent to customer");
+
+    // Update jobs table with invoice data
     const { error: updateError } = await supabaseClient
-      .from("job_requests")
+      .from("jobs")
       .update({
         stripe_invoice_id: finalizedInvoice.id,
         stripe_invoice_url: finalizedInvoice.hosted_invoice_url,
         stripe_invoice_pdf: finalizedInvoice.invoice_pdf,
         invoice_due_date: finalizedInvoice.due_date 
           ? new Date(finalizedInvoice.due_date * 1000).toISOString()
-          : new Date().toISOString()
+          : new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+        amount_service_total: amount,
+        updated_at: new Date().toISOString()
       })
-      .eq("id", job_request_id);
+      .eq("id", job_id);
 
     if (updateError) {
-      logStep("Warning: Failed to update job_requests table", updateError);
-      // Don't throw - invoice is created successfully
-    } else {
-      logStep("Job request updated with invoice data");
+      logStep("ERROR: Failed to update jobs table", updateError);
+      throw new Error("No se pudo actualizar el trabajo con los datos de la factura");
     }
+    
+    logStep("Job updated with invoice data");
 
-    // Return invoice URLs
+    // Return invoice details
     const response = {
       success: true,
       invoice_id: finalizedInvoice.id,
       invoice_url: finalizedInvoice.hosted_invoice_url,
       invoice_pdf: finalizedInvoice.invoice_pdf,
       customer_id: customer.id,
-      amount: 250,
-      currency: 'MXN'
+      amount: amount,
+      currency: 'MXN',
+      due_date: finalizedInvoice.due_date 
+        ? new Date(finalizedInvoice.due_date * 1000).toISOString()
+        : null
     };
 
     logStep("Invoice creation completed successfully", response);
@@ -254,8 +266,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: false,
-        error: "No se pudo generar la factura. Por favor intenta nuevamente.",
-        details: errorMessage
+        error: errorMessage
       }), 
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
