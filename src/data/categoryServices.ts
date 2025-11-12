@@ -28,7 +28,7 @@ export const categoryServicesMap: Record<string, ServiceOption[]> = {
     { name: "Revisión eléctrica general", description: "Inspección completa del sistema eléctrico" },
     { name: "Instalación de reflectores", description: "Montaje de reflectores y luces exteriores" }
   ],
-  "Plomería": [
+  "Fontanería": [
     { name: "Reparación de grifos", description: "Arreglo de llaves y grifos con fugas" },
     { name: "Destape de cañerías", description: "Limpieza y destape de tuberías obstruidas" },
     { name: "Instalación de lavamanos", description: "Colocación de lavabos y accesorios" },
@@ -40,7 +40,7 @@ export const categoryServicesMap: Record<string, ServiceOption[]> = {
     { name: "Instalación de lavadoras", description: "Conexión hidráulica de lavadoras" },
     { name: "Limpieza de drenajes", description: "Mantenimiento y limpieza de drenajes" }
   ],
-  "Auto y lavado": [
+  "Auto y Lavado": [
     { name: "Lavado básico", description: "Lavado exterior del vehículo" },
     { name: "Lavado premium", description: "Lavado completo exterior e interior" },
     { name: "Pulido y encerado", description: "Pulido y protección de pintura" },
