@@ -1,69 +1,75 @@
 import { useEffect } from 'react';
-import { getToken, messaging, onMessage } from '@/lib/firebase';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { firebaseConfig, VAPID_KEY } from '@/lib/firebase';
 
 export const useFCMToken = () => {
   const { user } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!user || !messaging) return;
+    if (!user) return;
 
-    const requestPermissionAndRegister = async () => {
+    const registerFCM = async () => {
       try {
+        // Check if service worker and Firebase are supported
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+          console.log('Push notifications not supported');
+          return;
+        }
+
         // Request notification permission
         const permission = await Notification.requestPermission();
         
-        if (permission === 'granted') {
-          console.log('Notification permission granted');
-          
-          // Get FCM token
-          const token = await getToken(messaging, {
-            vapidKey: 'YOUR_VAPID_KEY' // Replace with your VAPID key from Firebase Console
-          });
-
-          if (token) {
-            console.log('FCM token obtained:', token.slice(0, 20) + '...');
-            
-            // Store token in Supabase
-            const { error } = await supabase
-              .from('profiles')
-              .update({ fcm_token: token })
-              .eq('user_id', user.id);
-
-            if (error) {
-              console.error('Error storing FCM token:', error);
-            } else {
-              console.log('FCM token registered successfully');
-            }
-          }
-        } else {
+        if (permission !== 'granted') {
           console.log('Notification permission denied');
+          return;
+        }
+
+        console.log('Notification permission granted');
+
+        // Dynamically import Firebase to avoid type checker issues
+        const { initializeApp } = await import('firebase/app');
+        const { getMessaging, getToken, onMessage } = await import('firebase/messaging');
+
+        const app = initializeApp(firebaseConfig);
+        const messaging = getMessaging(app);
+
+        // Get FCM token
+        const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+
+        if (token) {
+          console.log('FCM token obtained');
+          
+          // Store token in Supabase
+          const { error } = await supabase
+            .from('profiles')
+            .update({ fcm_token: token })
+            .eq('user_id', user.id);
+
+          if (error) {
+            console.error('Error storing FCM token:', error);
+          } else {
+            console.log('FCM token registered successfully');
+          }
+
+          // Handle foreground messages
+          onMessage(messaging, (payload: any) => {
+            console.log('Foreground message received:', payload);
+            
+            toast({
+              title: payload.notification?.title || 'Nueva notificación',
+              description: payload.notification?.body,
+              duration: 5000,
+            });
+          });
         }
       } catch (error) {
-        console.error('Error registering FCM token:', error);
+        console.error('Error setting up FCM:', error);
       }
     };
 
-    requestPermissionAndRegister();
-
-    // Handle foreground messages
-    const unsubscribe = onMessage(messaging, (payload) => {
-      console.log('Foreground message received:', payload);
-      
-      toast({
-        title: payload.notification?.title || 'Nueva notificación',
-        description: payload.notification?.body,
-        duration: 5000,
-      });
-    });
-
-    return () => {
-      if (typeof unsubscribe === 'function') {
-        unsubscribe();
-      }
-    };
+    registerFCM();
   }, [user, toast]);
 };

@@ -1,8 +1,5 @@
-import { initializeApp } from 'firebase/app';
-import { getMessaging, getToken, onMessage } from 'firebase/messaging';
-
 // Firebase configuration - Replace with your actual values from Firebase Console
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "YOUR_AUTH_DOMAIN",
   projectId: "YOUR_PROJECT_ID",
@@ -11,14 +8,6 @@ const firebaseConfig = {
   appId: "YOUR_APP_ID"
 };
 
-let app;
-let messaging;
-
-try {
-  app = initializeApp(firebaseConfig);
-  messaging = getMessaging(app);
-} catch (error) {
-  console.warn('Firebase initialization failed. Push notifications will not work.', error);
-}
-
-export { messaging, getToken, onMessage };
+// Firebase will be initialized in the service worker
+// This file just exports the config
+export const VAPID_KEY = "YOUR_VAPID_KEY";
