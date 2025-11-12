@@ -6,21 +6,22 @@ export interface AvailableJob {
   id: string;
   title: string;
   description: string | null;
-  service_id: string;
-  customer_id: string;
-  scheduled_date: string;
-  duration_hours: number;
-  total_amount: number;
-  address: string | null;
+  category: string;
+  service_type: string | null;
+  location: string | null;
+  client_id: string | null;
+  scheduled_at: string | null;
+  rate: number;
   status: string;
   created_at: string;
-  service?: {
-    name: string;
-    category: string;
-  };
-  customer?: {
-    full_name: string | null;
-    avatar_url: string | null;
+  visit_fee_paid: boolean;
+  payment_status: string;
+  problem: string | null;
+  urgent: boolean;
+  photos: string[] | null;
+  clients?: {
+    email: string | null;
+    phone: string | null;
   };
 }
 
@@ -46,15 +47,17 @@ export const useAvailableJobs = (): UseAvailableJobsResult => {
 
     try {
       setLoading(true);
+      
+      // Fetch jobs that are active and don't have a provider assigned yet
       const { data, error: fetchError } = await supabase
-        .from('bookings')
+        .from('jobs')
         .select(`
           *,
-          service:services(name, category),
-          customer:profiles!bookings_customer_id_fkey(full_name, avatar_url)
+          clients!jobs_client_id_fkey(email, phone)
         `)
-        .eq('status', 'pending')
-        .is('tasker_id', null)
+        .eq('status', 'active')
+        .is('provider_id', null)
+        .eq('visit_fee_paid', true)
         .order('created_at', { ascending: false });
 
       if (fetchError) throw fetchError;
@@ -75,16 +78,48 @@ export const useAvailableJobs = (): UseAvailableJobsResult => {
     }
 
     try {
+      // Get the client ID for this provider
+      const { data: clientData, error: clientError } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('email', user.email)
+        .single();
+
+      if (clientError || !clientData) {
+        throw new Error('No se pudo obtener la información del proveedor');
+      }
+
+      // Update job with provider_id
       const { error: updateError } = await supabase
-        .from('bookings')
+        .from('jobs')
         .update({ 
-          tasker_id: user.id,
-          status: 'confirmed'
+          provider_id: clientData.id,
+          status: 'assigned',
+          updated_at: new Date().toISOString()
         })
         .eq('id', jobId)
-        .is('tasker_id', null); // Only accept if not already taken
+        .is('provider_id', null); // Only accept if not already taken
 
       if (updateError) throw updateError;
+
+      // Create notification for client
+      const { data: jobData } = await supabase
+        .from('jobs')
+        .select('client_id, title')
+        .eq('id', jobId)
+        .single();
+
+      if (jobData?.client_id) {
+        await supabase
+          .from('notifications')
+          .insert({
+            user_id: jobData.client_id,
+            type: 'job_accepted',
+            title: 'Proveedor asignado',
+            message: `Un proveedor ha aceptado tu solicitud: ${jobData.title}`,
+            link: `/job/${jobId}`
+          });
+      }
 
       // Refetch jobs after accepting
       await fetchJobs();
@@ -99,7 +134,7 @@ export const useAvailableJobs = (): UseAvailableJobsResult => {
   useEffect(() => {
     fetchJobs();
 
-    // Subscribe to real-time changes
+    // Subscribe to real-time changes on jobs table
     const subscription = supabase
       .channel('available-jobs')
       .on(
@@ -107,8 +142,8 @@ export const useAvailableJobs = (): UseAvailableJobsResult => {
         {
           event: '*',
           schema: 'public',
-          table: 'bookings',
-          filter: 'status=eq.pending'
+          table: 'jobs',
+          filter: 'status=eq.active'
         },
         () => {
           fetchJobs();

@@ -5,6 +5,7 @@ import { useAvailableJobs } from "@/hooks/useAvailableJobs";
 import { useActiveJobs } from "@/hooks/useActiveJobs";
 import { JobCardAvailable } from "@/components/provider-portal/JobCardAvailable";
 import { JobCardActive } from "@/components/provider-portal/JobCardActive";
+import { InvoiceCreationDialog } from "@/components/provider-portal/InvoiceCreationDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
