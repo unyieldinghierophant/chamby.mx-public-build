@@ -40,7 +40,7 @@ const EsperandoProveedor = () => {
           .from("jobs")
           .update({
             visit_fee_paid: true,
-            status: "awaiting_provider",
+            status: "active", // Changed to 'active' to trigger notify_providers_new_job trigger
           })
           .eq("id", jobId);
 

@@ -457,7 +457,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
         return;
       }
 
-      // Save to Supabase
+      // Save to Supabase - Create job_requests entry for records
       const { data: savedJob, error: saveError } = await supabase
         .from('job_requests')
         .insert([jobData])
@@ -468,175 +468,49 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
         throw saveError;
       }
 
-      // Also create a booking entry so providers can see it
-      const scheduledDate = specificDate || new Date(Date.now() + 24 * 60 * 60 * 1000); // Use specified date or tomorrow
+      // Create job entry in jobs table for provider notifications and payment flow
+      const scheduledDate = specificDate || new Date(Date.now() + 24 * 60 * 60 * 1000);
       
-      const { data: newBooking, error: bookingError } = await supabase
-        .from('bookings')
+      const { data: newJob, error: jobError } = await supabase
+        .from('jobs')
         .insert({
-          customer_id: user.id,
-          tasker_id: null, // Available for any provider
-          service_id: savedJob.id, // Reference to job request
+          client_id: user.id,
+          provider_id: null, // Not assigned yet
           title: taskDescription,
           description: details,
-          scheduled_date: scheduledDate.toISOString(),
-          address: location,
-          total_amount: 250, // Initial visit fee
-          status: 'pending',
-          payment_status: 'pending'
+          category: category || 'General',
+          service_type: taskDescription,
+          problem: details,
+          location: location,
+          photos: uploadedFiles.filter(f => f.uploaded).map(f => f.url),
+          rate: 250, // Base visit fee
+          status: 'pending', // Pending payment
+          visit_fee_paid: false,
+          payment_status: 'pending',
+          scheduled_at: scheduledDate.toISOString()
         })
-        .select()
+        .select('id')
         .single();
 
-      if (bookingError) {
-        console.error('Error creating booking:', bookingError);
-        // Don't throw - job request was saved successfully
+      if (jobError) {
+        console.error('Error creating job:', jobError);
+        throw jobError;
       }
 
-      // Create notifications for all verified providers
-      if (newBooking) {
-        try {
-          const { data: providers } = await supabase
-            .from('profiles')
-            .select('user_id')
-            .eq('is_tasker', true)
-            .eq('verification_status', 'verified');
+      console.log('✅ Job created successfully:', newJob.id);
 
-          if (providers && providers.length > 0) {
-            const notifications = providers.map(provider => ({
-              user_id: provider.user_id,
-              type: 'new_job_available',
-              title: '¡Nuevo trabajo disponible!',
-              message: `${taskDescription} - ${location}`,
-              link: `/provider-portal/jobs`,
-              created_at: new Date().toISOString()
-            }));
-
-            await supabase.from('notifications').insert(notifications);
-          }
-        } catch (err) {
-          console.error('Error creating notifications:', err);
-        }
-      }
-
-      // Small delay to ensure DB processes the insert and RLS allows reading
-      await new Promise(resolve => setTimeout(resolve, 300));
-
-      // Generate invoice BEFORE constructing WhatsApp message
-      let invoiceUrl = null;
-      if (user && savedJob) {
-        try {
-          console.log('[Invoice] Creating invoice for job:', savedJob.id);
-
-          const { data: { session } } = await supabase.auth.getSession();
-          
-          const { data: invoiceData, error: invoiceError } = await supabase.functions.invoke(
-            'create-visit-invoice',
-            {
-              body: { job_request_id: savedJob.id },
-              headers: {
-                Authorization: `Bearer ${session?.access_token}`
-              }
-            }
-          );
-
-          if (invoiceError) {
-            console.error('[Invoice] Failed to create invoice:', invoiceError);
-          } else if (invoiceData?.invoice_url) {
-            invoiceUrl = invoiceData.invoice_url;
-            console.log('[Invoice] Created successfully:', invoiceData.invoice_id);
-          }
-        } catch (err) {
-          console.error('[Invoice] Error creating invoice:', err);
-        }
-      }
-
-      // Now construct WhatsApp message WITH invoice URL
-      let message = `📋 Nueva solicitud de trabajo\n\n`;
-      message += `🔧 Servicio: ${taskDescription}\n`;
+      // Clear saved form data
+      clearFormData();
       
-      // Add urgency indicator
-      if (datePreference === 'before') {
-        message += `⚡ URGENTE - Requerido inmediatamente\n`;
-      } else if (datePreference === 'flexible') {
-        message += `⚡ Tan pronto como sea posible\n`;
-      }
+      // Redirect to payment page
+      navigate(`/pago-visita?job_id=${newJob.id}`);
       
-      message += `📅 Fecha: ${dateText}\n`;
-      
-      // Add time information with more clarity
-      if (needsSpecificTime && selectedTimeSlots.length > 0) {
-        message += `🕒 Hora preferida: ${timeSlotText}\n`;
-      } else if (datePreference === 'specific' && !needsSpecificTime) {
-        message += `🕒 Hora: Flexible (cualquier momento del día)\n`;
-      }
-      
-      message += `📍 Ubicación: ${location}\n`;
-      message += `💬 Detalles: ${details}`;
-
-      // Add photo links if available - shorten URLs first
-      if (uploadedFiles.length > 0 && savedJob) {
-        try {
-          const { data: { session } } = await supabase.auth.getSession();
-          
-          console.log('Attempting to shorten URLs for job:', savedJob.id);
-          
-          const { data: shortLinksData, error: shortenError } = await supabase.functions.invoke('shorten-url', {
-            body: {
-              urls: uploadedFiles.map(f => f.url),
-              jobRequestId: savedJob.id
-            },
-            headers: {
-              Authorization: `Bearer ${session?.access_token}`
-            }
-          });
-
-          if (shortenError) {
-            console.error('Failed to shorten URLs:', shortenError);
-            throw shortenError;
-          }
-          
-          if (shortLinksData?.shortLinks && shortLinksData.shortLinks.length > 0) {
-            console.log('Successfully shortened URLs:', shortLinksData.shortLinks.length);
-            message += `\n\n📸 Fotos (${uploadedFiles.length}):\n`;
-            shortLinksData.shortLinks.forEach((link: any, index: number) => {
-              message += `${index + 1}. ${link.short}\n`;
-            });
-          } else {
-            console.warn('No short links returned, using full URLs');
-            message += `\n\n📸 Fotos (${uploadedFiles.length}):\n`;
-            uploadedFiles.forEach((file, index) => {
-              message += `${index + 1}. ${file.url}\n`;
-            });
-          }
-        } catch (err) {
-          console.error('Error shortening URLs:', err);
-          message += `\n\n📸 Fotos (${uploadedFiles.length}):\n`;
-          uploadedFiles.forEach((file, index) => {
-            message += `${index + 1}. ${file.url}\n`;
-          });
-        }
-      }
-
-      // Add invoice link to WhatsApp message if available
-      if (invoiceUrl) {
-        message += `\n\n💳 Factura de visita técnica ($250 MXN):\n${invoiceUrl}\n\n✅ Esta factura es reembolsable si el servicio se completa satisfactoriamente.`;
-      }
-      
-      // Encode the message for WhatsApp URL
-      const encodedMessage = encodeURIComponent(message);
-      const phoneNumber = "523325438136";
-      const generatedWhatsappUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodedMessage}`;
-      
-      // Store WhatsApp URL and show confirmation screen
-      setWhatsappUrl(generatedWhatsappUrl);
-      setShowConfirmation(true);
-      
-      // Show success toast
       toast({
-        title: "✅ Solicitud guardada",
-        description: "Revisa tu información antes de enviar",
+        title: "✅ Solicitud creada",
+        description: "Serás redirigido al pago de la visita técnica",
       });
+
+      return; // Exit early, no need for WhatsApp message construction
 
     } catch (error) {
       console.error('Error submitting task:', error);
