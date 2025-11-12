@@ -30,9 +30,9 @@ const ProviderMap = () => {
     if (user) {
       fetchJobs();
 
-      // Subscribe to realtime changes
-      const channel = supabase
-        .channel('map-jobs-changes')
+      // Subscribe to realtime changes for both bookings and jobs
+      const bookingsChannel = supabase
+        .channel('map-bookings-changes')
         .on(
           'postgres_changes',
           {
@@ -46,8 +46,25 @@ const ProviderMap = () => {
         )
         .subscribe();
 
+      const jobsChannel = supabase
+        .channel('map-jobs-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'jobs',
+            filter: 'status=eq.active'
+          },
+          () => {
+            fetchJobs();
+          }
+        )
+        .subscribe();
+
       return () => {
-        supabase.removeChannel(channel);
+        supabase.removeChannel(bookingsChannel);
+        supabase.removeChannel(jobsChannel);
       };
     }
   }, [user]);
@@ -56,7 +73,7 @@ const ProviderMap = () => {
     if (!user) return;
 
     try {
-      // Fetch assigned jobs
+      // Fetch assigned bookings
       const { data: assignedJobs, error: assignedError } = await supabase
         .from("bookings")
         .select(`
@@ -72,7 +89,7 @@ const ProviderMap = () => {
         .in("status", ["pending", "confirmed", "in_progress"])
         .not("address", "is", null);
 
-      // Fetch available jobs (not assigned yet)
+      // Fetch available bookings (not assigned yet)
       const { data: availableJobs, error: availableError } = await supabase
         .from("bookings")
         .select(`
@@ -88,16 +105,51 @@ const ProviderMap = () => {
         .eq("status", "pending")
         .not("address", "is", null);
 
+      // Fetch available job requests from jobs table
+      const { data: jobRequests, error: jobRequestsError } = await supabase
+        .from("jobs")
+        .select("*")
+        .eq("status", "active")
+        .is("provider_id", null)
+        .eq("visit_fee_paid", true)
+        .not("location", "is", null);
+
       if (assignedError) throw assignedError;
       if (availableError) throw availableError;
+      if (jobRequestsError) throw jobRequestsError;
 
-      // Mark available jobs with a special status
+      // Mark available bookings with a special status
       const markedAvailableJobs = (availableJobs || []).map(job => ({
         ...job,
         status: 'available'
       }));
 
-      const allJobs = [...(assignedJobs || []), ...markedAvailableJobs];
+      // Convert job requests to map format
+      const formattedJobRequests = await Promise.all(
+        (jobRequests || []).map(async (job) => {
+          let customerName = null;
+          if (job.client_id) {
+            const { data: clientData } = await supabase
+              .from("clients")
+              .select("email")
+              .eq("id", job.client_id)
+              .single();
+            customerName = clientData?.email || null;
+          }
+
+          return {
+            id: job.id,
+            title: job.title,
+            address: job.location,
+            status: 'available',
+            scheduled_date: job.scheduled_at || new Date().toISOString(),
+            total_amount: job.rate,
+            customer: { full_name: customerName }
+          };
+        })
+      );
+
+      const allJobs = [...(assignedJobs || []), ...markedAvailableJobs, ...formattedJobRequests];
 
       // For demo purposes, assign random coordinates near Guadalajara
       const jobsWithCoords = allJobs.map((job, index) => ({

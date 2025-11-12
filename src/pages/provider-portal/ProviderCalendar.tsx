@@ -34,9 +34,9 @@ const ProviderCalendar = () => {
     if (user) {
       fetchJobs();
 
-      // Subscribe to realtime changes
-      const channel = supabase
-        .channel('calendar-jobs-changes')
+      // Subscribe to realtime changes for both bookings and jobs
+      const bookingsChannel = supabase
+        .channel('calendar-bookings-changes')
         .on(
           'postgres_changes',
           {
@@ -50,8 +50,25 @@ const ProviderCalendar = () => {
         )
         .subscribe();
 
+      const jobsChannel = supabase
+        .channel('calendar-jobs-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'jobs',
+            filter: 'status=eq.active'
+          },
+          () => {
+            fetchJobs();
+          }
+        )
+        .subscribe();
+
       return () => {
-        supabase.removeChannel(channel);
+        supabase.removeChannel(bookingsChannel);
+        supabase.removeChannel(jobsChannel);
       };
     }
   }, [user, currentMonth]);
@@ -74,7 +91,7 @@ const ProviderCalendar = () => {
       const monthStart = startOfMonth(currentMonth);
       const monthEnd = endOfMonth(currentMonth);
 
-      // Fetch assigned jobs
+      // Fetch assigned bookings
       const { data: assignedJobs, error: assignedError } = await supabase
         .from("bookings")
         .select(`
@@ -91,7 +108,7 @@ const ProviderCalendar = () => {
         .gte("scheduled_date", monthStart.toISOString())
         .lte("scheduled_date", monthEnd.toISOString());
 
-      // Fetch available jobs (not assigned yet)
+      // Fetch available bookings (not assigned yet)
       const { data: availableJobs, error: availableError } = await supabase
         .from("bookings")
         .select(`
@@ -108,16 +125,53 @@ const ProviderCalendar = () => {
         .gte("scheduled_date", monthStart.toISOString())
         .lte("scheduled_date", monthEnd.toISOString());
 
+      // Fetch available job requests from jobs table
+      const { data: jobRequests, error: jobRequestsError } = await supabase
+        .from("jobs")
+        .select("*")
+        .eq("status", "active")
+        .is("provider_id", null)
+        .eq("visit_fee_paid", true)
+        .not("scheduled_at", "is", null)
+        .gte("scheduled_at", monthStart.toISOString())
+        .lte("scheduled_at", monthEnd.toISOString());
+
       if (assignedError) throw assignedError;
       if (availableError) throw availableError;
+      if (jobRequestsError) throw jobRequestsError;
 
       // Mark available jobs with a special status
       const markedAvailableJobs = (availableJobs || []).map(job => ({
         ...job,
-        status: 'available' // Special status for unassigned jobs
+        status: 'available'
       }));
 
-      setJobs([...(assignedJobs || []), ...markedAvailableJobs]);
+      // Convert job requests to calendar format
+      const formattedJobRequests = await Promise.all(
+        (jobRequests || []).map(async (job) => {
+          let customerName = null;
+          if (job.client_id) {
+            const { data: clientData } = await supabase
+              .from("clients")
+              .select("email")
+              .eq("id", job.client_id)
+              .single();
+            customerName = clientData?.email || null;
+          }
+
+          return {
+            id: job.id,
+            title: job.title,
+            scheduled_date: job.scheduled_at,
+            address: job.location,
+            status: 'available',
+            total_amount: job.rate,
+            customer: { full_name: customerName }
+          };
+        })
+      );
+
+      setJobs([...(assignedJobs || []), ...markedAvailableJobs, ...formattedJobRequests]);
     } catch (error) {
       console.error("Error fetching jobs:", error);
     } finally {

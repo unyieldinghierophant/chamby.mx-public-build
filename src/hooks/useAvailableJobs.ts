@@ -49,12 +49,9 @@ export const useAvailableJobs = (): UseAvailableJobsResult => {
       setLoading(true);
       
       // Fetch jobs that are active and don't have a provider assigned yet
-      const { data, error: fetchError } = await supabase
+      const { data: jobsData, error: fetchError } = await supabase
         .from('jobs')
-        .select(`
-          *,
-          clients!jobs_client_id_fkey(email, phone)
-        `)
+        .select('*')
         .eq('status', 'active')
         .is('provider_id', null)
         .eq('visit_fee_paid', true)
@@ -62,7 +59,29 @@ export const useAvailableJobs = (): UseAvailableJobsResult => {
 
       if (fetchError) throw fetchError;
 
-      setJobs((data || []) as AvailableJob[]);
+      // Fetch client details separately for each job
+      const jobsWithClients = await Promise.all(
+        (jobsData || []).map(async (job) => {
+          if (job.client_id) {
+            const { data: clientData } = await supabase
+              .from('clients')
+              .select('email, phone')
+              .eq('id', job.client_id)
+              .single();
+            
+            return {
+              ...job,
+              clients: clientData || { email: null, phone: null }
+            };
+          }
+          return {
+            ...job,
+            clients: { email: null, phone: null }
+          };
+        })
+      );
+
+      setJobs(jobsWithClients as AvailableJob[]);
       setError(null);
     } catch (err: any) {
       console.error('Error fetching available jobs:', err);
