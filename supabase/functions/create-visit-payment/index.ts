@@ -66,7 +66,7 @@ serve(async (req) => {
 
     console.log("Creating visit payment for job:", job_id, "user:", user.email);
 
-    // First, get the client_id from the clients table using the user's email
+    // First, get the client_id from the clients table
     const { data: clientData, error: clientError } = await supabaseClient
       .from("clients")
       .select("id")
@@ -78,9 +78,9 @@ serve(async (req) => {
       throw new Error("Cliente no encontrado");
     }
 
-    console.log("Found client:", clientData.id);
+    console.log("Client found:", clientData.id);
 
-    // Now fetch job details using the correct client_id
+    // Fetch job details using the correct client_id
     const { data: job, error: jobError } = await supabaseClient
       .from("jobs")
       .select("*")
@@ -137,15 +137,15 @@ serve(async (req) => {
         capture_method: 'manual', // Authorize but don't capture - escrow mode
         metadata: {
           job_id,
-          client_id: user.id,
+          client_id: clientData.id,
           type: "visit_fee",
         },
       },
       success_url: `${req.headers.get("origin")}/esperando-proveedor?job_id=${job_id}`,
-      cancel_url: `${req.headers.get("origin")}/nueva-solicitud`,
+      cancel_url: `${req.headers.get("origin")}/book-job`,
       metadata: {
         job_id,
-        client_id: user.id,
+        client_id: clientData.id,
         type: "visit_fee",
       },
     });
@@ -166,7 +166,7 @@ serve(async (req) => {
     console.error("Visit payment creation error:", error);
     return new Response(
       JSON.stringify({ 
-        error: "No se pudo procesar el pago. Por favor intenta nuevamente."
+        error: error.message || "No se pudo procesar el pago. Por favor intenta nuevamente."
       }), 
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
