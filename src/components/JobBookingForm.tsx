@@ -511,18 +511,33 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
 
       console.log('✅ Job created successfully:', newJob.id);
 
-      // Clear saved form data
-      clearFormData();
-      
-      // Redirect to payment page
-      navigate(`/pago-visita?job_id=${newJob.id}`);
-      
-      toast({
-        title: "✅ Solicitud creada",
-        description: "Serás redirigido al pago de la visita técnica",
-      });
+      // Invoke create-visit-payment edge function directly
+      const { data: paymentData, error: paymentError } = await supabase.functions.invoke(
+        "create-visit-payment",
+        { body: { job_id: newJob.id } }
+      );
 
-      return; // Exit early, no need for WhatsApp message construction
+      if (paymentError) {
+        console.error('Error creating payment:', paymentError);
+        throw new Error(paymentError.message || "No se pudo procesar el pago");
+      }
+
+      if (paymentData?.url) {
+        // Clear saved form data
+        clearFormData();
+        
+        // Open Stripe Checkout in new tab
+        window.open(paymentData.url, "_blank");
+        
+        toast({
+          title: "✅ Solicitud creada",
+          description: "Se abrió la página de pago en una nueva pestaña",
+        });
+      } else {
+        throw new Error("No se recibió la URL de pago");
+      }
+
+      return; // Exit early
 
     } catch (error) {
       console.error('Error submitting task:', error);
@@ -1044,7 +1059,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
                 disabled={!canProceedToNextStep() || isSubmitting}
                 className="h-16 px-12 text-lg rounded-full transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-xl shadow-lg"
               >
-                {isSubmitting ? "Procesando..." : "Continuar para solicitar"}
+                {isSubmitting ? "Procesando..." : "Continuar al pago"}
               </ModernButton>
             )}
           </div>

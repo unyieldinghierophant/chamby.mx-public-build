@@ -66,15 +66,30 @@ serve(async (req) => {
 
     console.log("Creating visit payment for job:", job_id, "user:", user.email);
 
-    // Fetch job details
+    // First, get the client_id from the clients table using the user's email
+    const { data: clientData, error: clientError } = await supabaseClient
+      .from("clients")
+      .select("id")
+      .eq("email", user.email)
+      .single();
+
+    if (clientError || !clientData) {
+      console.error("Error fetching client:", clientError);
+      throw new Error("Cliente no encontrado");
+    }
+
+    console.log("Found client:", clientData.id);
+
+    // Now fetch job details using the correct client_id
     const { data: job, error: jobError } = await supabaseClient
       .from("jobs")
       .select("*")
       .eq("id", job_id)
-      .eq("client_id", user.id)
+      .eq("client_id", clientData.id)
       .single();
 
     if (jobError || !job) {
+      console.error("Error fetching job:", jobError);
       throw new Error("Solicitud no encontrada");
     }
 
