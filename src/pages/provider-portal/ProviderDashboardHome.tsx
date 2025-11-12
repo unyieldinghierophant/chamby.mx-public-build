@@ -18,6 +18,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { useFCMToken } from "@/hooks/useFCMToken";
 
 interface UpcomingJob {
   id: string;
@@ -32,6 +33,10 @@ const ProviderDashboardHome = () => {
   const { user } = useAuth();
   const { profile } = useProfile();
   const navigate = useNavigate();
+  
+  // Register FCM token for push notifications
+  useFCMToken();
+  
   const [upcomingJobs, setUpcomingJobs] = useState<UpcomingJob[]>([]);
   const [earnings, setEarnings] = useState({ total: 0, pending: 0 });
   const [stats, setStats] = useState({

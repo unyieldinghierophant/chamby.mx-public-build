@@ -8,7 +8,8 @@ const corsHeaders = {
 interface WhatsAppNotificationRequest {
   reschedule_id?: string;
   booking_id?: string;
-  type: 'reschedule_request' | 'job_reminder' | 'transfer_warning';
+  job_id?: string;
+  type: 'reschedule_request' | 'job_reminder' | 'transfer_warning' | 'new_job_available';
 }
 
 Deno.serve(async (req) => {
@@ -22,7 +23,7 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { reschedule_id, booking_id, type } = await req.json() as WhatsAppNotificationRequest;
+    const { reschedule_id, booking_id, job_id, type } = await req.json() as WhatsAppNotificationRequest;
 
     let phoneNumber: string;
     let message: string;
@@ -110,6 +111,75 @@ Deno.serve(async (req) => {
       phoneNumber = reschedule.bookings.profiles.phone;
       linkUrl = `https://chamby.mx/provider-portal/reschedule/${reschedule_id}`;
       message = `⚠️ Atención ${reschedule.bookings.profiles.full_name}, solo tienes 30 minutos para responder la reprogramación o el trabajo será reasignado: ${linkUrl}`;
+
+    } else if (type === 'new_job_available' && job_id) {
+      // Get job details
+      const { data: job } = await supabase
+        .from('jobs')
+        .select('*')
+        .eq('id', job_id)
+        .single();
+
+      if (!job) {
+        throw new Error('Job not found');
+      }
+
+      // Get all verified providers
+      const { data: providers } = await supabase
+        .from('profiles')
+        .select('phone, full_name')
+        .eq('is_tasker', true)
+        .eq('verification_status', 'verified')
+        .not('phone', 'is', null);
+
+      if (!providers || providers.length === 0) {
+        return new Response(
+          JSON.stringify({ success: true, message: 'No providers to notify' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Send to all providers (batch operation)
+      const labsMobileToken = Deno.env.get('LABSMOBILE_API_TOKEN');
+      if (!labsMobileToken) {
+        throw new Error('LabsMobile API token not configured');
+      }
+
+      const results = [];
+      for (const provider of providers) {
+        linkUrl = `https://chamby.mx/provider-portal/jobs`;
+        message = `🔔 Nuevo trabajo: "${job.title}" - ${job.category || 'Sin categoría'} en ${job.location || 'ubicación no especificada'}. Ver detalles: ${linkUrl}`;
+        
+        const cleanPhone = provider.phone.replace(/[\s+]/g, '');
+        
+        try {
+          const response = await fetch('https://api.labsmobile.com/json/send', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Cache-Control': 'no-cache',
+            },
+            body: JSON.stringify({
+              bearer: labsMobileToken,
+              message: message,
+              tpoa: 'Chamby',
+              recipient: [{ msisdn: cleanPhone }],
+            }),
+          });
+
+          const result = await response.json();
+          results.push({ phone: cleanPhone, success: response.ok, result });
+          console.log('WhatsApp sent to provider:', provider.full_name, cleanPhone);
+        } catch (error) {
+          console.error('Error sending to provider:', provider.full_name, error);
+          results.push({ phone: cleanPhone, success: false, error: error.message });
+        }
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, results }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
 
     } else {
       throw new Error('Invalid request type or missing IDs');
