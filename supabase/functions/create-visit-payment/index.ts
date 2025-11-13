@@ -115,10 +115,12 @@ serve(async (req) => {
       throw new Error("La visita ya ha sido pagada");
     }
 
-    // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    // Initialize Stripe with TEST key for sandbox mode
+    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY_test") || "", {
       apiVersion: "2025-08-27.basil",
     });
+    
+    console.log("🧪 [VISIT-PAYMENT] Using Stripe TEST mode (sandbox)");
 
     // Check if user has existing Stripe customer
     let customerId;

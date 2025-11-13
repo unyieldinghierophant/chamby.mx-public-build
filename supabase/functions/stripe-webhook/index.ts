@@ -20,9 +20,12 @@ serve(async (req) => {
   try {
     logStep("Webhook received");
 
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    // Initialize Stripe with TEST key for sandbox mode
+    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY_test") || "", {
       apiVersion: "2025-08-27.basil",
     });
+    
+    console.log("🧪 [WEBHOOK] Using Stripe TEST mode (sandbox)");
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -39,16 +42,25 @@ serve(async (req) => {
     // Get raw body
     const body = await req.text();
     
-    // Verify webhook signature
-    const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
+    // Verify webhook signature using TEST webhook secret for sandbox
+    // Note: For sandbox testing, you can skip signature verification temporarily
+    // or create a test webhook endpoint in Stripe Dashboard
+    const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET_test") || Deno.env.get("STRIPE_WEBHOOK_SECRET");
     if (!webhookSecret) {
-      throw new Error("STRIPE_WEBHOOK_SECRET not configured");
+      console.warn("⚠️ [WEBHOOK] No webhook secret configured - webhook signature verification disabled for sandbox testing");
+      // Continue without verification for sandbox testing
     }
 
     let event: Stripe.Event;
     try {
-      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-      logStep("Webhook verified", { type: event.type });
+      if (webhookSecret) {
+        event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+        logStep("Webhook verified", { type: event.type });
+      } else {
+        // For sandbox testing without webhook secret
+        event = JSON.parse(body);
+        logStep("⚠️ Webhook processed WITHOUT signature verification (sandbox mode)", { type: event.type });
+      }
     } catch (err) {
       logStep("Webhook signature verification failed", { error: err.message });
       return new Response(

@@ -130,11 +130,11 @@ serve(async (req) => {
       clientEmail: job.clients.email
     });
 
-    // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    // Initialize Stripe with TEST key for sandbox mode
+    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY_test") || "", {
       apiVersion: "2025-08-27.basil",
     });
-    logStep("Stripe initialized");
+    logStep("Stripe initialized in TEST mode (sandbox)");
 
     // Get or create Stripe Customer for the client
     let customer;

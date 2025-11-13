@@ -68,10 +68,12 @@ serve(async (req) => {
 
     console.log("Creating payment for:", { serviceType, providerId, date, time, user: user?.email });
 
-    // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    // Initialize Stripe with TEST key for sandbox mode
+    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY_test") || "", {
       apiVersion: "2025-08-27.basil",
     });
+    
+    console.log("🧪 [CREATE-PAYMENT] Using Stripe TEST mode (sandbox)");
 
     // Service pricing mapping
     const servicePricing = {
