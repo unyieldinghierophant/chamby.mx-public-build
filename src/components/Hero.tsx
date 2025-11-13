@@ -227,7 +227,7 @@ const Hero = () => {
           {/* Medcharge Button */}
           <div className="max-w-6xl mx-auto px-4">
             <div className="mb-8 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-              <div className="col-span-2 lg:col-start-2">
+              <div className="col-span-2 lg:col-span-4">
                 <a href="https://medcharge.mx/landing/" target="_blank" rel="noopener noreferrer" className="block">
                   <ModernButton variant="glass" className="w-full flex items-center justify-center gap-4 px-8 py-6 h-auto shadow-[0_0_30px_rgba(34,197,94,0.4)] hover:shadow-[0_0_40px_rgba(34,197,94,0.6)] transition-shadow duration-300">
                     <img src={medchargeIcon} alt="Charging Icon" className="h-12 w-auto" />
