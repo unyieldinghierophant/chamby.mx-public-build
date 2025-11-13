@@ -12,6 +12,7 @@ import categoryPlumbing from "@/assets/category-plumbing.png";
 import categoryAuto from "@/assets/category-auto.png";
 import chatbotAstronaut from "@/assets/chatbot-astronaut.png";
 import moneyBagIcon from "@/assets/money-bag-icon.png";
+import medchargeLogo from "@/assets/medcharge-logo.webp";
 const Hero = () => {
   const [location, setLocation] = useState("");
   const navigate = useNavigate();
@@ -229,6 +230,16 @@ const Hero = () => {
               <CategoryCard image={categoryElectrician} category="Electricidad" description="Servicios eléctricos" services={["Instalaciones eléctricas", "Reparaciones", "Mantenimiento"]} />
               <CategoryCard image={categoryPlumbing} category="Plomería" description="Servicios de plomería" services={["Reparaciones", "Instalaciones", "Destapes"]} />
               <CategoryCard image={categoryAuto} category="Auto y lavado" description="Servicios automotrices" services={["Lavado de autos", "Detallado", "Mantenimiento básico"]} />
+            </div>
+            
+            {/* Medcharge Button */}
+            <div className="mt-6 flex justify-center">
+              <a href="https://medcharge.mx/landing/" target="_blank" rel="noopener noreferrer" className="inline-block">
+                <ModernButton variant="glass" className="flex items-center gap-3 px-6 py-4 h-auto">
+                  <img src={medchargeLogo} alt="Medcharge" className="h-8 w-auto" />
+                  <span className="text-base font-semibold">Instalación de Cargadores Eléctricos</span>
+                </ModernButton>
+              </a>
             </div>
           </div>
 
