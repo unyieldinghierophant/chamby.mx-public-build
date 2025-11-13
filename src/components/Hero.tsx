@@ -235,9 +235,9 @@ const Hero = () => {
             {/* Medcharge Button */}
             <div className="mt-6 flex justify-center">
               <a href="https://medcharge.mx/landing/" target="_blank" rel="noopener noreferrer" className="inline-block">
-                <ModernButton variant="glass" className="flex items-center gap-3 px-6 py-4 h-auto">
-                  <img src={medchargeLogo} alt="Medcharge" className="h-8 w-auto" />
-                  <span className="text-base font-semibold">Instalación de Cargadores Eléctricos</span>
+                <ModernButton variant="glass" className="flex items-center gap-4 px-8 py-6 h-auto">
+                  <img src={medchargeLogo} alt="Medcharge" className="h-12 w-auto" />
+                  <span className="text-lg md:text-xl font-semibold">Instalación de Cargadores Eléctricos y Paneles Solares</span>
                 </ModernButton>
               </a>
             </div>
