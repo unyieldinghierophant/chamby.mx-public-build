@@ -224,6 +224,21 @@ const Hero = () => {
             </div>
           </div>
 
+          {/* Medcharge Button */}
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="mb-8 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="col-span-2 lg:col-start-2">
+                <a href="https://medcharge.mx/landing/" target="_blank" rel="noopener noreferrer" className="block">
+                  <ModernButton variant="glass" className="w-full flex items-center justify-center gap-4 px-8 py-6 h-auto shadow-[0_0_30px_rgba(34,197,94,0.4)] hover:shadow-[0_0_40px_rgba(34,197,94,0.6)] transition-shadow duration-300">
+                    <img src={medchargeIcon} alt="Charging Icon" className="h-12 w-auto" />
+                    <img src={medchargeLogo} alt="Medcharge" className="h-12 w-auto" />
+                    <span className="text-lg md:text-xl font-semibold">Instalación de Cargadores Eléctricos y Paneles Solares</span>
+                  </ModernButton>
+                </a>
+              </div>
+            </div>
+          </div>
+
           {/* Categories Section */}
           <div className="max-w-6xl mx-auto px-4">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -231,19 +246,6 @@ const Hero = () => {
               <CategoryCard image={categoryElectrician} category="Electricidad" description="Servicios eléctricos" services={["Instalaciones eléctricas", "Reparaciones", "Mantenimiento"]} />
               <CategoryCard image={categoryPlumbing} category="Plomería" description="Servicios de plomería" services={["Reparaciones", "Instalaciones", "Destapes"]} />
               <CategoryCard image={categoryAuto} category="Auto y lavado" description="Servicios automotrices" services={["Lavado de autos", "Detallado", "Mantenimiento básico"]} />
-            </div>
-            
-            {/* Medcharge Button */}
-            <div className="mt-8 mb-12 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-              <div className="col-span-2 lg:col-start-2">
-                <a href="https://medcharge.mx/landing/" target="_blank" rel="noopener noreferrer" className="block">
-                <ModernButton variant="glass" className="w-full flex items-center justify-center gap-4 px-8 py-6 h-auto shadow-[0_0_30px_rgba(34,197,94,0.4)] hover:shadow-[0_0_40px_rgba(34,197,94,0.6)] transition-shadow duration-300">
-                  <img src={medchargeIcon} alt="Charging Icon" className="h-12 w-auto" />
-                  <img src={medchargeLogo} alt="Medcharge" className="h-12 w-auto" />
-                  <span className="text-lg md:text-xl font-semibold">Instalación de Cargadores Eléctricos y Paneles Solares</span>
-                </ModernButton>
-                </a>
-              </div>
             </div>
           </div>
 
