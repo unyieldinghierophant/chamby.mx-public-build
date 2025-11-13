@@ -13,6 +13,7 @@ import categoryAuto from "@/assets/category-auto.png";
 import chatbotAstronaut from "@/assets/chatbot-astronaut.png";
 import moneyBagIcon from "@/assets/money-bag-icon.png";
 import medchargeLogo from "@/assets/medcharge-logo.webp";
+import medchargeIcon from "@/assets/medcharge-icon.png";
 const Hero = () => {
   const [location, setLocation] = useState("");
   const navigate = useNavigate();
@@ -236,10 +237,11 @@ const Hero = () => {
             <div className="mt-8 mb-12 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               <div className="col-span-2 lg:col-start-2">
                 <a href="https://medcharge.mx/landing/" target="_blank" rel="noopener noreferrer" className="block">
-                  <ModernButton variant="glass" className="w-full flex items-center justify-center gap-4 px-8 py-6 h-auto shadow-[0_0_30px_rgba(34,197,94,0.4)] hover:shadow-[0_0_40px_rgba(34,197,94,0.6)] transition-shadow duration-300">
-                    <img src={medchargeLogo} alt="Medcharge" className="h-12 w-auto" />
-                    <span className="text-lg md:text-xl font-semibold">Instalación de Cargadores Eléctricos y Paneles Solares</span>
-                  </ModernButton>
+                <ModernButton variant="glass" className="w-full flex items-center justify-center gap-4 px-8 py-6 h-auto shadow-[0_0_30px_rgba(34,197,94,0.4)] hover:shadow-[0_0_40px_rgba(34,197,94,0.6)] transition-shadow duration-300">
+                  <img src={medchargeIcon} alt="Charging Icon" className="h-12 w-auto" />
+                  <img src={medchargeLogo} alt="Medcharge" className="h-12 w-auto" />
+                  <span className="text-lg md:text-xl font-semibold">Instalación de Cargadores Eléctricos y Paneles Solares</span>
+                </ModernButton>
                 </a>
               </div>
             </div>
