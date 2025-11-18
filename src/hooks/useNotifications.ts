@@ -20,9 +20,9 @@ export const useNotifications = () => {
   const fetchNotifications = async () => {
     if (!user) return;
 
-    // @ts-ignore
+    // 🔥 STEP 1 — force 2 generics
     const { data, error } = await supabase
-      .from<any>("job_notifications")
+      .from<any, any>("job_notifications")
       .select(
         `
         id,
@@ -34,7 +34,7 @@ export const useNotifications = () => {
         )
       `,
       )
-      .eq("provider_id", user.id)
+      .eq<any>("provider_id", user.id) // 🔥 STEP 3
       .order("sent_at", { ascending: false });
 
     if (error) {
@@ -58,8 +58,11 @@ export const useNotifications = () => {
   };
 
   const markAsRead = async (notificationId: string) => {
-    // @ts-ignore
-    await supabase.from("job_notifications").update({ seen_at: new Date().toISOString() }).eq("id", notificationId);
+    // 🔥 STEP 1 + 2 + 3
+    await supabase
+      .from<any, any>("job_notifications")
+      .update({ seen_at: new Date().toISOString() } as any)
+      .eq<any>("id", notificationId);
 
     setNotifications((prev) => prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n)));
 
@@ -69,15 +72,14 @@ export const useNotifications = () => {
   const markAllAsRead = async () => {
     if (!user) return;
 
-    // @ts-ignore
+    // 🔥 STEP 1 + 2 + 3
     await supabase
-      .from<any>("job_notifications")
-      .update({ seen_at: new Date().toISOString() })
-      .eq("provider_id", user.id)
+      .from<any, any>("job_notifications")
+      .update({ seen_at: new Date().toISOString() } as any)
+      .eq<any>("provider_id", user.id)
       .is("seen_at", null);
 
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-
     setUnreadCount(0);
   };
 
