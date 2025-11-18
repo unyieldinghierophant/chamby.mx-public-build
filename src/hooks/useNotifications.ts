@@ -20,9 +20,8 @@ export const useNotifications = () => {
   const fetchNotifications = async () => {
     if (!user) return;
 
-    // 🔥 STEP 1 — force 2 generics
     const { data, error } = await supabase
-      .from<any, any>("job_notifications")
+      .from("job_notifications" as any)
       .select(
         `
         id,
@@ -34,7 +33,7 @@ export const useNotifications = () => {
         )
       `,
       )
-      .eq<any>("provider_id", user.id) // 🔥 STEP 3
+      .eq("provider_id", user.id as any)
       .order("sent_at", { ascending: false });
 
     if (error) {
@@ -58,11 +57,10 @@ export const useNotifications = () => {
   };
 
   const markAsRead = async (notificationId: string) => {
-    // 🔥 STEP 1 + 2 + 3
     await supabase
-      .from<any, any>("job_notifications")
+      .from("job_notifications" as any)
       .update({ seen_at: new Date().toISOString() } as any)
-      .eq<any>("id", notificationId);
+      .eq("id", notificationId as any);
 
     setNotifications((prev) => prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n)));
 
@@ -72,11 +70,10 @@ export const useNotifications = () => {
   const markAllAsRead = async () => {
     if (!user) return;
 
-    // 🔥 STEP 1 + 2 + 3
     await supabase
-      .from<any, any>("job_notifications")
+      .from("job_notifications" as any)
       .update({ seen_at: new Date().toISOString() } as any)
-      .eq<any>("provider_id", user.id)
+      .eq("provider_id", user.id as any)
       .is("seen_at", null);
 
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
@@ -87,7 +84,6 @@ export const useNotifications = () => {
     if (!user) return;
     fetchNotifications();
 
-    // @ts-ignore
     const channel = supabase
       .channel("job_notifications_rt")
       .on(

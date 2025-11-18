@@ -1,5 +1,5 @@
 import { Bell, CheckCheck, Filter } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,14 +7,13 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 const ProviderNotifications = () => {
   const { notifications, unreadCount, markAsRead, markAllAsRead, loading } = useNotifications();
   const navigate = useNavigate();
 
-  const unreadNotifications = notifications.filter((n) => !n.seen_at);
-  const readNotifications = notifications.filter((n) => n.seen_at);
+  const unreadNotifications = notifications.filter((n) => !n.read);
+  const readNotifications = notifications.filter((n) => n.read);
 
   const handleNotificationClick = (notification: any) => {
     markAsRead(notification.id);
