@@ -13,8 +13,8 @@ const ProviderNotifications = () => {
   const { notifications, unreadCount, markAsRead, markAllAsRead, loading } = useNotifications();
   const navigate = useNavigate();
 
-  const unreadNotifications = notifications.filter(n => !n.read);
-  const readNotifications = notifications.filter(n => n.read);
+  const unreadNotifications = notifications.filter((n) => !n.seen_at);
+  const readNotifications = notifications.filter((n) => n.seen_at);
 
   const handleNotificationClick = (notification: any) => {
     markAsRead(notification.id);
@@ -37,9 +37,9 @@ const ProviderNotifications = () => {
         <div>
           <h1 className="text-3xl font-bold text-foreground">Notificaciones</h1>
           <p className="text-muted-foreground">
-            {unreadCount > 0 
-              ? `Tienes ${unreadCount} notificación${unreadCount > 1 ? 'es' : ''} sin leer` 
-              : 'Estás al día con tus notificaciones'}
+            {unreadCount > 0
+              ? `Tienes ${unreadCount} notificación${unreadCount > 1 ? "es" : ""} sin leer`
+              : "Estás al día con tus notificaciones"}
           </p>
         </div>
         {unreadCount > 0 && (
@@ -77,9 +77,7 @@ const ProviderNotifications = () => {
               <CardContent className="flex flex-col items-center justify-center py-12 text-center">
                 <Bell className="h-16 w-16 mb-4 opacity-20" />
                 <h3 className="text-lg font-semibold mb-2">No tienes notificaciones</h3>
-                <p className="text-sm text-muted-foreground">
-                  Cuando recibas notificaciones, aparecerán aquí
-                </p>
+                <p className="text-sm text-muted-foreground">Cuando recibas notificaciones, aparecerán aquí</p>
               </CardContent>
             </Card>
           ) : (
@@ -88,7 +86,7 @@ const ProviderNotifications = () => {
                 <Card
                   key={notification.id}
                   className={`cursor-pointer transition-all hover:shadow-md ${
-                    !notification.read ? 'border-primary bg-primary/5' : ''
+                    !notification.read ? "border-primary bg-primary/5" : ""
                   }`}
                   onClick={() => handleNotificationClick(notification)}
                 >
@@ -103,9 +101,7 @@ const ProviderNotifications = () => {
                             </Badge>
                           )}
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          {notification.message}
-                        </p>
+                        <p className="text-sm text-muted-foreground">{notification.message}</p>
                         <p className="text-xs text-muted-foreground">
                           {formatDistanceToNow(new Date(notification.created_at), {
                             addSuffix: true,
@@ -127,9 +123,7 @@ const ProviderNotifications = () => {
               <CardContent className="flex flex-col items-center justify-center py-12 text-center">
                 <CheckCheck className="h-16 w-16 mb-4 opacity-20" />
                 <h3 className="text-lg font-semibold mb-2">¡Todo al día!</h3>
-                <p className="text-sm text-muted-foreground">
-                  No tienes notificaciones sin leer
-                </p>
+                <p className="text-sm text-muted-foreground">No tienes notificaciones sin leer</p>
               </CardContent>
             </Card>
           ) : (
@@ -149,9 +143,7 @@ const ProviderNotifications = () => {
                             Nueva
                           </Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          {notification.message}
-                        </p>
+                        <p className="text-sm text-muted-foreground">{notification.message}</p>
                         <p className="text-xs text-muted-foreground">
                           {formatDistanceToNow(new Date(notification.created_at), {
                             addSuffix: true,
@@ -187,9 +179,7 @@ const ProviderNotifications = () => {
                     <div className="flex gap-4">
                       <div className="flex-1 space-y-1">
                         <h4 className="font-semibold">{notification.title}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {notification.message}
-                        </p>
+                        <p className="text-sm text-muted-foreground">{notification.message}</p>
                         <p className="text-xs text-muted-foreground">
                           {formatDistanceToNow(new Date(notification.created_at), {
                             addSuffix: true,
