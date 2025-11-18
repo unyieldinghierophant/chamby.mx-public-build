@@ -42,12 +42,11 @@ export const useNotifications = () => {
     if (!error && data) {
       const formatted = data.map((n: any) => ({
         id: n.id,
-        job_id: n.job_id,
-        provider_id: n.provider_id,
-        sent_at: n.sent_at,
-        seen_at: n.seen_at,
-        job_title: n.jobs?.title ?? "(Nuevo trabajo)",
-        job_description: n.jobs?.description ?? "",
+        read: n.seen_at !== null,
+        type: "new_job",
+        title: n.jobs?.title ?? "Nuevo trabajo disponible",
+        message: n.jobs?.description ?? "Un cliente ha solicitado un servicio.",
+        created_at: n.sent_at,
       }));
 
       setNotifications(formatted);
