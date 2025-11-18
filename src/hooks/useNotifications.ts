@@ -23,17 +23,7 @@ export const useNotifications = () => {
 
     const { data, error } = await supabase
       .from("job_notifications" as any)
-      .select(
-        `
-        id,
-        seen_at,
-        sent_at,
-        jobs (
-          title,
-          description
-        )
-      `,
-      )
+      .select("id, seen_at, sent_at, job_id")
       .eq("provider_id", user.id as any)
       .order("sent_at", { ascending: false });
 
@@ -43,14 +33,25 @@ export const useNotifications = () => {
       return;
     }
 
-    const formatted = data.map((n: any) => ({
-      id: n.id,
-      read: n.seen_at !== null,
-      type: "new_job",
-      title: n.jobs?.title ?? "Nuevo trabajo disponible",
-      message: n.jobs?.description ?? "Un cliente ha solicitado un servicio.",
-      created_at: n.sent_at,
-    }));
+    // Fetch job details separately to avoid forbidden auth.users join
+    const jobIds = data.map((n: any) => n.job_id);
+    const { data: jobs } = await supabase
+      .from("jobs" as any)
+      .select("id, title, description")
+      .in("id", jobIds);
+
+    // Merge the results
+    const formatted = data.map((n: any) => {
+      const job = jobs?.find((j: any) => j.id === n.job_id);
+      return {
+        id: n.id,
+        read: n.seen_at !== null,
+        type: "new_job",
+        title: job?.title ?? "Nuevo trabajo disponible",
+        message: job?.description ?? "Un cliente ha solicitado un servicio.",
+        created_at: n.sent_at,
+      };
+    });
 
     setNotifications(formatted);
     setUnreadCount(formatted.filter((n) => !n.read).length);
