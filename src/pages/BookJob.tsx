@@ -1,15 +1,22 @@
 import { JobBookingForm } from "@/components/JobBookingForm";
 import { X } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import logo from "@/assets/chamby-logo-text.png";
 const BookJob = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  
+  // Get prefill data from either location state or URL params
   const prefillData = location.state as {
     category?: string;
     service?: string;
     description?: string;
   } | null;
+  
+  const serviceParam = searchParams.get('service');
+  const descriptionParam = searchParams.get('description');
+  
   return <>
       <header className="fixed top-0 left-0 right-0 bg-background border-b border-border z-50">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-2 flex items-center justify-between">
@@ -25,7 +32,10 @@ const BookJob = () => {
         </div>
       </header>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-background to-blue-50/30 dark:from-blue-950/20 dark:via-background dark:to-blue-950/10 pt-24 pb-12 px-4 md:px-8">
-        <JobBookingForm initialService={prefillData?.service} initialDescription={prefillData?.description} />
+        <JobBookingForm 
+          initialService={serviceParam || prefillData?.service} 
+          initialDescription={descriptionParam || prefillData?.description} 
+        />
       </div>
     </>;
 };

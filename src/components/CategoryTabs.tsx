@@ -29,30 +29,30 @@ export const CategoryTabs = () => {
   const currentCategory = categories.find(cat => cat.id === selectedCategory);
   const services = currentCategory ? categoryServicesMap[currentCategory.dataKey] || [] : [];
 
-  const handleServiceClick = (serviceName: string) => {
-    // Navigate to booking with pre-selected service
-    navigate(`/book-job?service=${encodeURIComponent(serviceName)}`);
+  const handleServiceClick = (serviceName: string, description: string) => {
+    // Navigate to booking with pre-selected service and description
+    navigate(`/book-job?service=${encodeURIComponent(serviceName)}&description=${encodeURIComponent(description)}`);
   };
 
   return (
     <div className="w-full max-w-6xl mx-auto px-4">
       <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
         {/* Category Tabs */}
-        <TabsList className="w-full h-auto bg-background/50 backdrop-blur-sm p-2 rounded-2xl grid grid-cols-4 gap-2">
+        <TabsList className="w-full h-auto bg-background/50 backdrop-blur-sm p-3 rounded-2xl grid grid-cols-4 gap-3">
           {categories.map((category) => (
             <TabsTrigger
               key={category.id}
               value={category.id}
-              className="flex flex-col items-center gap-2 p-3 data-[state=active]:bg-primary/10 data-[state=active]:text-primary rounded-xl transition-all h-auto"
+              className="flex flex-col items-center gap-3 p-4 data-[state=active]:bg-primary/10 data-[state=active]:text-primary rounded-xl transition-all h-auto"
             >
-              <div className="w-12 h-12 md:w-14 md:h-14 flex items-center justify-center">
+              <div className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center">
                 <img 
                   src={category.icon} 
                   alt={category.name} 
                   className="w-full h-full object-contain"
                 />
               </div>
-              <span className="text-xs md:text-sm font-medium whitespace-nowrap">
+              <span className="text-sm md:text-base font-medium whitespace-nowrap">
                 {category.name}
               </span>
             </TabsTrigger>
@@ -64,13 +64,13 @@ export const CategoryTabs = () => {
           <TabsContent 
             key={category.id} 
             value={category.id}
-            className="mt-6 animate-in fade-in-50 duration-300"
+            className="mt-8 animate-in fade-in-50 duration-300"
           >
-            <div className="flex flex-wrap gap-3 justify-center">
+            <div className="flex flex-wrap gap-3 justify-center pb-6">
               {services.map((service) => (
                 <Button
                   key={service.name}
-                  onClick={() => handleServiceClick(service.name)}
+                  onClick={() => handleServiceClick(service.name, service.description)}
                   variant="outline"
                   className="rounded-full px-6 py-3 h-auto text-sm md:text-base bg-background/50 backdrop-blur-sm hover:bg-primary/10 hover:text-primary hover:border-primary transition-all"
                 >
