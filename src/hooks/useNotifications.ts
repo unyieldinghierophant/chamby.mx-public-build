@@ -1,23 +1,20 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
 
-export interface Notification {
+export interface ProviderNotification {
   id: string;
-  user_id: string;
-  type: string;
-  title: string;
-  message: string;
-  link: string | null;
-  read: boolean;
-  created_at: string;
+  job_id: string;
+  provider_id: string;
+  sent_at: string;
+  seen_at: string | null;
+  job_title: string;
+  job_description: string;
 }
 
 export const useNotifications = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<ProviderNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -26,18 +23,37 @@ export const useNotifications = () => {
 
     try {
       const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(20);
+        .from('job_notifications')
+        .select(`
+          id,
+          job_id,
+          provider_id,
+          sent_at,
+          seen_at,
+          jobs (
+            title,
+            description
+          )
+        `)
+        .eq('provider_id', user.id)
+        .order('sent_at', { ascending: false });
 
       if (error) throw error;
 
-      setNotifications(data || []);
-      setUnreadCount(data?.filter(n => !n.read).length || 0);
+      const formatted = data.map((n: any) => ({
+        id: n.id,
+        job_id: n.job_id,
+        provider_id: n.provider_id,
+        sent_at: n.sent_at,
+        seen_at: n.seen_at,
+        job_title: n.jobs.title,
+        job_description: n.jobs.description
+      }));
+
+      setNotifications(formatted);
+      setUnreadCount(formatted.filter(n => !n.seen_at).length);
     } catch (error) {
-      console.error('Error fetching notifications:', error);
+      console.error('Error fetching job notifications:', error);
     } finally {
       setLoading(false);
     }
@@ -45,16 +61,15 @@ export const useNotifications = () => {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true })
+      await supabase
+        .from('job_notifications')
+        .update({ seen_at: new Date().toISOString() })
         .eq('id', notificationId);
 
-      if (error) throw error;
-
       setNotifications(prev =>
-        prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
+        prev.map(n => n.id === notificationId ? { ...n, seen_at: new Date().toISOString() } : n)
       );
+
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
       console.error('Error marking notification as read:', error);
@@ -65,18 +80,19 @@ export const useNotifications = () => {
     if (!user) return;
 
     try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true })
-        .eq('user_id', user.id)
-        .eq('read', false);
+      await supabase
+        .from('job_notifications')
+        .update({ seen_at: new Date().toISOString() })
+        .eq('provider_id', user.id)
+        .is('seen_at', null);
 
-      if (error) throw error;
+      setNotifications(prev =>
+        prev.map(n => ({ ...n, seen_at: new Date().toISOString() }))
+      );
 
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
       setUnreadCount(0);
     } catch (error) {
-      console.error('Error marking all as read:', error);
+      console.error('Error marking all notifications as read:', error);
     }
   };
 
@@ -85,45 +101,30 @@ export const useNotifications = () => {
 
     fetchNotifications();
 
-    // Subscribe to real-time notifications
     const channel = supabase
-      .channel('notifications')
+      .channel('job_notifications')
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`,
+          table: 'job_notifications',
+          filter: `provider_id=eq.${user.id}`,
         },
-        (payload) => {
-          const newNotification = payload.new as Notification;
-          setNotifications(prev => [newNotification, ...prev]);
-          setUnreadCount(prev => prev + 1);
+        payload => {
+          const n = payload.new as any;
 
-          // Show toast for important notifications
-          if (['reschedule_request', 'transfer_warning', 'job_reminder_1h'].includes(newNotification.type)) {
-            toast({
-              title: newNotification.title,
-              description: newNotification.message,
-              duration: 5000,
-            });
-          }
+          setNotifications(prev => [
+            {
+              ...n,
+              job_title: '(Nuevo trabajo)',
+              job_description: ''
+            },
+            ...prev
+          ]);
+
+          setUnreadCount(prev => prev + 1);
         }
       )
-      .subscribe();
+      .subscri
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user]);
-
-  return {
-    notifications,
-    unreadCount,
-    loading,
-    markAsRead,
-    markAllAsRead,
-    refetch: fetchNotifications,
-  };
-};
