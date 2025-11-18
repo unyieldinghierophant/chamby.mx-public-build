@@ -100,19 +100,16 @@ const AuthCallback = () => {
             }
           }
 
-          const selectedRole = localStorage.getItem('selected_role');
-          
           console.log('[AuthCallback] Role check:', {
             roles,
-            selectedRole,
-            hasMultiple: roles.length > 1,
-            willShowPicker: roles.length > 1 && !selectedRole
+            hasMultiple: roles.length > 1
           });
 
-          // If user has multiple roles and hasn't selected one, redirect to role picker
-          // This MUST happen BEFORE checking returnTo
-          if (roles.length > 1 && !selectedRole) {
-            console.log('[AuthCallback] Multiple roles, no selection - showing role picker');
+          // If user has multiple roles, always clear stored role and redirect to picker
+          // This ensures users explicitly choose their role each time they log in
+          if (roles.length > 1) {
+            localStorage.removeItem('selected_role');
+            console.log('[AuthCallback] Multiple roles detected - clearing stored role and showing picker');
             navigate('/choose-role', { replace: true });
             return;
           }
