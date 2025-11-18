@@ -21,7 +21,7 @@ export const useNotifications = () => {
     if (!user) return;
 
     const { data, error } = await supabase
-      .from<any>("job_notifications")
+      .from<any, any>("job_notifications")
       .select(
         `
         id,
