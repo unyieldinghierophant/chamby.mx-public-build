@@ -38,17 +38,17 @@ export const useNotifications = () => {
     const { data: jobs } = await supabase
       .from("jobs" as any)
       .select("id, title, description")
-      .in("id", jobIds);
+      .in("id", jobIds as any);
 
     // Merge the results
     const formatted = data.map((n: any) => {
-      const job = jobs?.find((j: any) => j.id === n.job_id);
+      const job = (jobs as any)?.find((j: any) => j.id === n.job_id);
       return {
         id: n.id,
         read: n.seen_at !== null,
         type: "new_job",
-        title: job?.title ?? "Nuevo trabajo disponible",
-        message: job?.description ?? "Un cliente ha solicitado un servicio.",
+        title: (job as any)?.title ?? "Nuevo trabajo disponible",
+        message: (job as any)?.description ?? "Un cliente ha solicitado un servicio.",
         created_at: n.sent_at,
       };
     });
