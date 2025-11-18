@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+// @ts-ignore - prevent deep Supabase type recursion
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
