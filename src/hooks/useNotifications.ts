@@ -22,7 +22,7 @@ export const useNotifications = () => {
 
     // @ts-ignore
     const { data, error } = await supabase
-      .from("job_notifications")
+      .from<any>("job_notifications")
       .select(
         `
         id,
@@ -71,7 +71,7 @@ export const useNotifications = () => {
 
     // @ts-ignore
     await supabase
-      .from("job_notifications")
+      .from<any>("job_notifications")
       .update({ seen_at: new Date().toISOString() })
       .eq("provider_id", user.id)
       .is("seen_at", null);
