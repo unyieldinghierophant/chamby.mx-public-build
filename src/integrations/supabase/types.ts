@@ -577,7 +577,7 @@ export type Database = {
             foreignKeyName: "jobs_provider_id_fkey"
             columns: ["provider_id"]
             isOneToOne: false
-            referencedRelation: "clients"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
