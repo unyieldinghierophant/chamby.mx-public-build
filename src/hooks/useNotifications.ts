@@ -20,20 +20,14 @@ export const useNotifications = () => {
   const fetchNotifications = async () => {
     if (!user) return;
 
+    // @ts-ignore
     const { data, error } = await supabase
-     // @ts-ignore
-const { data, error } = await supabase
-  .from("job_notifications")
-  .select("*")
-  .eq("provider_id", user.id)
-  .order("sent_at", { ascending: false });
+      .from("job_notifications")
       .select(
         `
         id,
-        job_id,
-        provider_id,
-        sent_at,
         seen_at,
+        sent_at,
         jobs (
           title,
           description
@@ -65,10 +59,7 @@ const { data, error } = await supabase
 
   const markAsRead = async (notificationId: string) => {
     // @ts-ignore
-await supabase
-  .from("job_notifications")
-  .update({ seen_at: new Date().toISOString() })
-  .eq("id", notificationId);
+    await supabase.from("job_notifications").update({ seen_at: new Date().toISOString() }).eq("id", notificationId);
 
     setNotifications((prev) => prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n)));
 
@@ -78,14 +69,15 @@ await supabase
   const markAllAsRead = async () => {
     if (!user) return;
 
-  // @ts-ignore
-await supabase
-  .from("job_notifications")
+    // @ts-ignore
+    await supabase
+      .from("job_notifications")
       .update({ seen_at: new Date().toISOString() })
       .eq("provider_id", user.id)
       .is("seen_at", null);
 
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+
     setUnreadCount(0);
   };
 
@@ -93,6 +85,7 @@ await supabase
     if (!user) return;
     fetchNotifications();
 
+    // @ts-ignore
     const channel = supabase
       .channel("job_notifications_rt")
       .on(
