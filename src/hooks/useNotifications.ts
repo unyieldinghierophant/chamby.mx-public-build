@@ -22,33 +22,46 @@ export const useNotifications = () => {
 
     const { data, error } = await supabase
       .from("job_notifications")
-      .select("*")
+      .select(
+        `
+        id,
+        job_id,
+        provider_id,
+        sent_at,
+        seen_at,
+        jobs (
+          title,
+          description
+        )
+      `,
+      )
       .eq("provider_id", user.id)
       .order("sent_at", { ascending: false });
 
-    if (!error && data) {
-      const formatted = data.map((n: any) => ({
-        id: n.id,
-        read: n.seen_at !== null,
-        type: "new_job",
-        title: n.jobs?.title ?? "Nuevo trabajo disponible",
-        message: n.jobs?.description ?? "Un cliente ha solicitado un servicio.",
-        created_at: n.sent_at,
-      }));
-
-      setNotifications(formatted);
-      setUnreadCount(formatted.filter((n) => !n.seen_at).length);
+    if (error) {
+      console.error("fetchNotifications error:", error);
+      setLoading(false);
+      return;
     }
 
+    const formatted = data.map((n: any) => ({
+      id: n.id,
+      read: n.seen_at !== null,
+      type: "new_job",
+      title: n.jobs?.title ?? "Nuevo trabajo disponible",
+      message: n.jobs?.description ?? "Un cliente ha solicitado un servicio.",
+      created_at: n.sent_at,
+    }));
+
+    setNotifications(formatted);
+    setUnreadCount(formatted.filter((n) => !n.read).length);
     setLoading(false);
   };
 
   const markAsRead = async (notificationId: string) => {
     await supabase.from("job_notifications").update({ seen_at: new Date().toISOString() }).eq("id", notificationId);
 
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === notificationId ? { ...n, seen_at: new Date().toISOString() } : n)),
-    );
+    setNotifications((prev) => prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n)));
 
     setUnreadCount((prev) => Math.max(prev - 1, 0));
   };
@@ -62,13 +75,12 @@ export const useNotifications = () => {
       .eq("provider_id", user.id)
       .is("seen_at", null);
 
-    setNotifications((prev) => prev.map((n) => ({ ...n, seen_at: new Date().toISOString() })));
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     setUnreadCount(0);
   };
 
   useEffect(() => {
     if (!user) return;
-
     fetchNotifications();
 
     const channel = supabase
@@ -83,18 +95,17 @@ export const useNotifications = () => {
         },
         (payload) => {
           const n = payload.new as any;
-          setNotifications((prev) => [
-            {
-              id: n.id,
-              job_id: n.job_id,
-              provider_id: n.provider_id,
-              sent_at: n.sent_at,
-              seen_at: n.seen_at,
-              job_title: "(Nuevo trabajo)",
-              job_description: "",
-            },
-            ...prev,
-          ]);
+
+          const newNotification: Notification = {
+            id: n.id,
+            read: false,
+            type: "new_job",
+            title: "Nuevo trabajo disponible",
+            message: "Un cliente ha solicitado un servicio.",
+            created_at: n.sent_at,
+          };
+
+          setNotifications((prev) => [newNotification, ...prev]);
           setUnreadCount((prev) => prev + 1);
         },
       )
