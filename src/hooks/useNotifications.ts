@@ -25,11 +25,14 @@ export const useNotifications = () => {
       .from("job_notifications" as any)
       .select(
         `
-  id,
-  seen_at,
-  sent_at,
-  job_id
-`,
+        id,
+        seen_at,
+        sent_at,
+        jobs (
+          title,
+          description
+        )
+      `,
       )
       .eq("provider_id", user.id as any)
       .order("sent_at", { ascending: false });
