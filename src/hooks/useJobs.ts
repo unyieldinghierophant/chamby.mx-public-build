@@ -35,10 +35,7 @@ export const useJobs = (filters?: JobFilters) => {
       setLoading(true);
       let query = supabase
         .from('jobs')
-        .select(`
-          *,
-          provider:clients!jobs_provider_id_fkey(id, email, phone)
-        `)
+        .select('*')
         .eq('status', 'active');
 
       // Apply filters

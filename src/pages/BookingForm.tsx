@@ -56,15 +56,12 @@ const BookingForm = () => {
     try {
       const { data, error } = await supabase
         .from('jobs')
-        .select(`
-          *,
-          provider:clients!jobs_provider_id_fkey(email)
-        `)
+        .select('*')
         .eq('id', jobId)
         .single();
 
       if (error) throw error;
-      setJob(data);
+      setJob(data as any);
     } catch (error) {
       console.error('Error fetching job:', error);
       toast.error('Error al cargar el servicio');
