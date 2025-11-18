@@ -227,6 +227,16 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
     setIsLoadingForm(false);
   }, [user]);
 
+  // Update form when initialService or initialDescription changes
+  useEffect(() => {
+    if (initialService && initialService !== taskDescription) {
+      setTaskDescription(initialService);
+    }
+    if (initialDescription && initialDescription !== details) {
+      setDetails(initialDescription);
+    }
+  }, [initialService, initialDescription]);
+
   // Auto-save form data when it changes
   useEffect(() => {
     const formData = {
