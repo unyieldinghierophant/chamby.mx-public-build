@@ -2,19 +2,19 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
-export interface ProviderNotification {
+export interface Notification {
   id: string;
   job_id: string;
   provider_id: string;
   sent_at: string;
   seen_at: string | null;
-  job_title: string;
-  job_description: string;
+  job_title?: string;
+  job_description?: string;
 }
 
 export const useNotifications = () => {
   const { user } = useAuth();
-  const [notifications, setNotifications] = useState<ProviderNotification[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
