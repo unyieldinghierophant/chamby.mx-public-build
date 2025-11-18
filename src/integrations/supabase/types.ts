@@ -286,6 +286,45 @@ export type Database = {
           },
         ]
       }
+      job_notifications: {
+        Row: {
+          id: string
+          job_id: string | null
+          provider_id: string | null
+          seen_at: string | null
+          sent_at: string | null
+        }
+        Insert: {
+          id?: string
+          job_id?: string | null
+          provider_id?: string | null
+          seen_at?: string | null
+          sent_at?: string | null
+        }
+        Update: {
+          id?: string
+          job_id?: string | null
+          provider_id?: string | null
+          seen_at?: string | null
+          sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_notifications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_notifications_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_requests: {
         Row: {
           budget: string | null
@@ -527,6 +566,13 @@ export type Database = {
           visit_fee_paid?: boolean | null
         }
         Relationships: [
+          {
+            foreignKeyName: "jobs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "jobs_provider_id_fkey"
             columns: ["provider_id"]
