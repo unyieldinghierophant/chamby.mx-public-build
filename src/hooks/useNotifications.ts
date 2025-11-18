@@ -4,12 +4,11 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export interface Notification {
   id: string;
-  job_id: string;
-  provider_id: string;
-  sent_at: string;
-  seen_at: string | null;
-  job_title?: string;
-  job_description?: string;
+  read: boolean;
+  type: string;
+  title: string;
+  message: string;
+  created_at: string;
 }
 
 export const useNotifications = () => {
