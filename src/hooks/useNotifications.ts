@@ -23,16 +23,12 @@ export const useNotifications = () => {
 
     const { data, error } = await supabase
       .from("job_notifications" as any)
-      .select(
-        `
-        id,
-        seen_at,
-        sent_at,
-        jobs (
-          title,
-          description
-        )
-      `,
+    .select(`
+  id,
+  seen_at,
+  sent_at,
+  job_id
+`)
       )
       .eq("provider_id", user.id as any)
       .order("sent_at", { ascending: false });
