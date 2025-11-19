@@ -1,4 +1,3 @@
-import { useFCMToken } from "@/hooks/useFCMToken";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -26,7 +25,7 @@ import TaskerProfile from "./pages/TaskerProfile";
 import UserProfile from "./pages/UserProfile";
 import ProfileSettings from "./pages/ProfileSettings";
 import SecuritySettings from "./pages/SecuritySettings";
-import PaymentSettings from "./pages/PaymentSettings";
+// Payment features disabled during cleanup
 import GeneralSettings from "./pages/GeneralSettings";
 import SavedLocations from "./pages/SavedLocations";
 import DataExport from "./pages/DataExport";
@@ -52,11 +51,11 @@ import ProviderDashboardHome from "./pages/provider-portal/ProviderDashboardHome
 import ProviderJobs from "./pages/provider-portal/ProviderJobs";
 import ProviderCalendar from "./pages/provider-portal/ProviderCalendar";
 import ProviderMap from "./pages/provider-portal/ProviderMap";
-import ProviderPayments from "./pages/provider-portal/ProviderPayments";
+// Provider payment features disabled during cleanup
 import ProviderVerification from "./pages/provider-portal/ProviderVerification";
 import ProviderProfileEdit from "./pages/provider-portal/ProviderProfileEdit";
 import ProviderSupport from "./pages/provider-portal/ProviderSupport";
-import ProviderNotifications from "./pages/provider-portal/ProviderNotifications";
+// Provider notifications disabled during cleanup
 import RescheduleRequest from "./pages/provider-portal/RescheduleRequest";
 import BecomeProvider from "./pages/BecomeProvider";
 import RoleSelection from "./pages/RoleSelection";
@@ -69,9 +68,6 @@ const queryClient = new QueryClient();
 const ConditionalChatBot = () => {
   const location = useRouterLocation();
   const hideOnRoutes = ["/book-job", "/solicitar-servicio"];
-
-  const token = useFCMToken();
-  console.log("📲 FCM token from ChatBot:", token);
 
   if (hideOnRoutes.includes(location.pathname)) {
     return null;
@@ -168,11 +164,9 @@ const App = () => {
                 <Route path="jobs" element={<ProviderJobs />} />
                 <Route path="calendar" element={<ProviderCalendar />} />
                 <Route path="map" element={<ProviderMap />} />
-                <Route path="payments" element={<ProviderPayments />} />
                 <Route path="verification" element={<ProviderVerification />} />
                 <Route path="profile" element={<ProviderProfileEdit />} />
                 <Route path="support" element={<ProviderSupport />} />
-                <Route path="notifications" element={<ProviderNotifications />} />
                 <Route path="reschedule/:id" element={<RescheduleRequest />} />
               </Route>
               <Route
@@ -196,14 +190,6 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <SecuritySettings />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/profile/payments"
-                element={
-                  <ProtectedRoute>
-                    <PaymentSettings />
                   </ProtectedRoute>
                 }
               />

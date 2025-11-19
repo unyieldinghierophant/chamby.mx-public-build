@@ -63,7 +63,7 @@ const BookingSummary = () => {
     );
   }
 
-  const handlePayment = async () => {
+  const handleConfirmBooking = async () => {
     if (!user) {
       navigate('/auth/user', { state: { returnTo: window.location.pathname + window.location.search } });
       return;
@@ -72,25 +72,39 @@ const BookingSummary = () => {
     setIsProcessingPayment(true);
     
     try {
-      const { data, error } = await supabase.functions.invoke('create-payment', {
+      // Insert job directly into database
+      const { data: job, error: jobError } = await supabase
+        .from('jobs')
+        .insert({
+          client_id: user.id,
+          title: currentService.title,
+          description: currentService.description,
+          category: currentService.category,
+          location: 'Ubicación pendiente',
+          status: 'active',
+          rate: hourlyRate,
+          provider_id: bookingData.providerId || null,
+          scheduled_at: `${bookingData.date}T${bookingData.time}:00`,
+        })
+        .select()
+        .single();
+
+      if (jobError) throw jobError;
+
+      // Send WhatsApp notification
+      await supabase.functions.invoke('send-whatsapp-notification', {
         body: {
-          serviceType: bookingData.service,
-          providerId: bookingData.providerId,
-          date: bookingData.date,
-          time: bookingData.time,
-          duration: 2 // Default duration
+          job_id: job.id,
+          type: 'new_job_request',
+          message: `Nueva solicitud: ${currentService.title} - ${format(parse(bookingData.date, 'yyyy-MM-dd', new Date()), 'PPP', { locale: es })} a las ${bookingData.time}`
         }
       });
 
-      if (error) throw error;
-
-      if (data.url) {
-        // Redirect to Stripe Checkout
-        window.open(data.url, '_blank');
-      }
+      toast.success('Solicitud enviada correctamente');
+      navigate('/payment-success');
     } catch (error) {
-      console.error('Payment error:', error);
-      toast.error('Error al procesar el pago');
+      console.error('Booking error:', error);
+      toast.error('Error al enviar la solicitud');
     } finally {
       setIsProcessingPayment(false);
     }
@@ -288,7 +302,7 @@ const BookingSummary = () => {
         {/* Payment Button */}
         <div className="sticky bottom-20 md:bottom-4 bg-white border-t md:border-0 p-4 md:p-0 shadow-lg md:shadow-none rounded-t-lg md:rounded-none">
           <ModernButton
-            onClick={handlePayment}
+            onClick={handleConfirmBooking}
             disabled={isProcessingPayment}
             className="w-full"
             size="lg"
@@ -296,12 +310,12 @@ const BookingSummary = () => {
             {isProcessingPayment ? (
               <div className="flex items-center space-x-2">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                <span>Procesando...</span>
+                <span>Enviando...</span>
               </div>
             ) : (
               <>
-                <CreditCard className="w-4 h-4 mr-2" />
-                Pagar Cuota de Visita ${totalAmount.toLocaleString('es-MX')}
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Confirmar Solicitud
               </>
             )}
           </ModernButton>

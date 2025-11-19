@@ -84,11 +84,13 @@ const PaymentSuccess = () => {
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle className="w-10 h-10 text-green-600" />
             </div>
-            <h2 className="text-2xl font-bold text-foreground mb-2">
-              ¡Reserva Confirmada!
+            <h2 className="text-2xl font-bold text-foreground mb-4">
+              ¡Solicitud Enviada!
             </h2>
-            <p className="text-muted-foreground mb-4">
-              Tu pago se ha procesado exitosamente y tu servicio está reservado.
+            
+            <p className="text-muted-foreground mb-8 leading-relaxed">
+              Tu solicitud se ha enviado correctamente. Un proveedor se pondrá en contacto 
+              contigo pronto para coordinar los detalles del servicio.
             </p>
             <Badge variant="secondary" className="text-sm">
               ID de Reserva: {bookingDetails.id}
