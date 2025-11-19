@@ -209,7 +209,7 @@ export type Database = {
             foreignKeyName: "bookings_service_id_fkey"
             columns: ["service_id"]
             isOneToOne: false
-            referencedRelation: "services"
+            referencedRelation: "jobs"
             referencedColumns: ["id"]
           },
           {
@@ -825,72 +825,6 @@ export type Database = {
           table_name?: string
           user_agent?: string | null
           user_id?: string | null
-        }
-        Relationships: []
-      }
-      service_requests: {
-        Row: {
-          created_at: string
-          description: string | null
-          id: string
-          image_url: string | null
-          service_date: string
-          service_type: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          image_url?: string | null
-          service_date: string
-          service_type: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          image_url?: string | null
-          service_date?: string
-          service_type?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      services: {
-        Row: {
-          category: string
-          created_at: string
-          description: string | null
-          duration_hours: number | null
-          id: string
-          name: string
-          price_from: number | null
-          price_to: number | null
-          tags: string[] | null
-        }
-        Insert: {
-          category: string
-          created_at?: string
-          description?: string | null
-          duration_hours?: number | null
-          id?: string
-          name: string
-          price_from?: number | null
-          price_to?: number | null
-          tags?: string[] | null
-        }
-        Update: {
-          category?: string
-          created_at?: string
-          description?: string | null
-          duration_hours?: number | null
-          id?: string
-          name?: string
-          price_from?: number | null
-          price_to?: number | null
-          tags?: string[] | null
         }
         Relationships: []
       }

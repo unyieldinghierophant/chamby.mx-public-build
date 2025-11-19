@@ -33,7 +33,7 @@ import AccountDeletion from "./pages/AccountDeletion";
 import ProtectedRoute from "./components/ProtectedRoute";
 import BookingForm from "./pages/BookingForm";
 import BookingSummary from "./pages/BookingSummary";
-import ServiceDetail from "./pages/ServiceDetail";
+// ServiceDetail removed - all services are now jobs
 import NotFound from "./pages/NotFound";
 import MobileJobs from "./pages/MobileJobs";
 import MobileFavorites from "./pages/MobileFavorites";
@@ -131,7 +131,7 @@ const App = () => {
               <Route path="/dashboard/user" element={<Navigate to="/user-landing" replace />} />
               <Route path="/tasker-landing" element={<ProviderLanding />} />
               <Route path="/booking/datetime/:providerId" element={<BookingDateTime />} />
-              <Route path="/service/:serviceType" element={<ServiceDetail />} />
+              {/* /service/:serviceType route removed - all services are now jobs */}
               <Route path="/booking/:jobId" element={<BookingForm />} />
               <Route path="/booking/summary" element={<BookingSummary />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
