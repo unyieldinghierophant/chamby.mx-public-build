@@ -117,24 +117,8 @@ export const useAvailableJobs = (): UseAvailableJobsResult => {
 
       if (updateError) throw updateError;
 
-      // Create notification for client
-      const { data: jobData } = await supabase
-        .from('jobs')
-        .select('client_id, title')
-        .eq('id', jobId)
-        .single();
-
-      if (jobData?.client_id) {
-        await supabase
-          .from('notifications')
-          .insert({
-            user_id: jobData.client_id,
-            type: 'job_accepted',
-            title: 'Proveedor asignado',
-            message: `Un proveedor ha aceptado tu solicitud: ${jobData.title}`,
-            link: `/job/${jobId}`
-          });
-      }
+      // Notification system disabled
+      console.log('Would notify client of job acceptance');
 
       // Refetch jobs after accepting
       await fetchJobs();

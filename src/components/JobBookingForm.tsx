@@ -28,7 +28,10 @@ const jobRequestSchema = z.object({
   date: z.string().trim().max(50, "Máximo 50 caracteres"),
   location: z.string().trim().min(5, "Ubicación debe tener al menos 5 caracteres").max(500, "Máximo 500 caracteres"),
   details: z.string().trim().max(2000, "Máximo 2000 caracteres"),
-  photo_count: z.number().int().min(0).max(10, "Máximo 10 fotos")
+  photo_count: z.number().int().min(0).max(10, "Máximo 10 fotos"),
+  time_preference: z.string().optional(),
+  exact_time: z.string().optional(),
+  budget: z.string().optional()
 });
 
 interface UploadedFile {
@@ -467,17 +470,6 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
         return;
       }
 
-      // Save to Supabase - Create job_requests entry for records
-      const { data: savedJob, error: saveError } = await supabase
-        .from('job_requests')
-        .insert([jobData])
-        .select('id')
-        .single();
-
-      if (saveError) {
-        throw saveError;
-      }
-
       // Get client_id from clients table
       const { data: clientData, error: clientError } = await supabase
         .from('clients')
@@ -490,14 +482,14 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
         throw new Error('No se pudo obtener información del cliente');
       }
 
-      // Create job entry in jobs table for provider notifications and payment flow
+      // Create job entry in jobs table
       const scheduledDate = specificDate || new Date(Date.now() + 24 * 60 * 60 * 1000);
       
       const { data: newJob, error: jobError } = await supabase
         .from('jobs')
         .insert({
           client_id: clientData.id,
-          provider_id: null, // Not assigned yet
+          provider_id: null,
           title: taskDescription,
           description: details,
           category: category || 'General',
@@ -505,11 +497,15 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
           problem: details,
           location: location,
           photos: uploadedFiles.filter(f => f.uploaded).map(f => f.url),
-          rate: 250, // Base visit fee
-          status: 'pending', // Pending payment
+          rate: 1,
+          status: 'active',
           visit_fee_paid: false,
           payment_status: 'pending',
-          scheduled_at: scheduledDate.toISOString()
+          scheduled_at: scheduledDate.toISOString(),
+          time_preference: selectedTimeSlots.join(', '),
+          exact_time: needsSpecificTime ? selectedTimeSlots.join(', ') : '',
+          budget: '',
+          photo_count: uploadedFiles.filter(f => f.uploaded).length
         })
         .select('id')
         .single();
@@ -519,47 +515,35 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
         throw jobError;
       }
 
-      console.log('✅ [BOOKING-FORM] Job created successfully:', {
-        jobId: newJob.id,
-        status: 'pending',
-        visit_fee_paid: false
-      });
+      console.log('✅ Job created successfully:', newJob.id);
 
-      // Invoke create-visit-payment edge function directly
-      console.log('🔵 [BOOKING-FORM] Calling create-visit-payment...');
-      const { data: paymentData, error: paymentError } = await supabase.functions.invoke(
-        "create-visit-payment",
-        { body: { job_id: newJob.id } }
+      // Send WhatsApp notification
+      console.log('📱 Sending WhatsApp notification...');
+      const { error: whatsappError } = await supabase.functions.invoke(
+        "send-whatsapp-notification",
+        { 
+          body: { 
+            job_id: newJob.id,
+            type: 'new_job_request',
+            message: `Nueva solicitud: ${taskDescription} en ${location}`
+          } 
+        }
       );
 
-      if (paymentError) {
-        console.error('❌ [BOOKING-FORM] Payment error:', {
-          message: paymentError.message,
-          details: paymentError
-        });
-        throw new Error(paymentError.message || "No se pudo procesar el pago");
+      if (whatsappError) {
+        console.error('Error sending WhatsApp:', whatsappError);
       }
 
-      console.log('✅ [BOOKING-FORM] Payment response:', paymentData);
+      // Clear saved form data and show success
+      clearFormData();
+      
+      toast({
+        title: "✅ Solicitud enviada",
+        description: "Un proveedor se pondrá en contacto contigo pronto.",
+      });
 
-      if (paymentData?.url) {
-        // Clear saved form data
-        clearFormData();
-        
-        console.log('🔵 [BOOKING-FORM] Opening Stripe checkout:', paymentData.url);
-        // Open Stripe Checkout in new tab
-        window.open(paymentData.url, "_blank");
-        
-        toast({
-          title: "✅ Solicitud creada",
-          description: "Se abrió la página de pago en una nueva pestaña",
-        });
-      } else {
-        console.error('❌ [BOOKING-FORM] No payment URL received');
-        throw new Error("No se recibió la URL de pago");
-      }
-
-      return; // Exit early
+      // Navigate to success or jobs page
+      navigate('/jobs');
 
     } catch (error: any) {
       console.error('Error submitting task:', error);

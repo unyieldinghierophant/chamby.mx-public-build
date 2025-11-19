@@ -32,31 +32,8 @@ export const InvoicesTab = () => {
   }, [user]);
 
   const fetchInvoices = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from("provider_invoices")
-        .select(`
-          id,
-          job_id,
-          amount,
-          description,
-          invoice_photo_url,
-          status,
-          created_at,
-          job:jobs(title, category)
-        `)
-        .eq("provider_id", user.id)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setInvoices(data || []);
-    } catch (error: any) {
-      console.error("Error fetching invoices:", error);
-    } finally {
-      setLoading(false);
-    }
+    // Invoices feature disabled - provider_invoices table removed
+    setLoading(false);
   };
 
   const getStatusBadge = (status: string) => {
