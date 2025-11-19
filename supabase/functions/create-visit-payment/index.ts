@@ -21,7 +21,12 @@ serve(async (req) => {
 
   try {
     // Create Supabase client
-    const supabaseClient = createClient(
+    const supabaseAnon = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+    );
+
+    const supabaseService = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
       {
@@ -61,7 +66,7 @@ serve(async (req) => {
     }
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+    const { data: { user }, error: authError } = await supabaseAnon.auth.getUser(token);
     
     if (authError || !user) {
       throw new Error("No autorizado");
@@ -69,8 +74,8 @@ serve(async (req) => {
 
     console.log("🔵 [VISIT-PAYMENT] Starting payment for job:", job_id, "user:", user.email);
 
-    // First, get the client_id from the clients table
-    const { data: clientData, error: clientError } = await supabaseClient
+    // First, get the client_id from the clients table using service role client (bypass RLS)
+    const { data: clientData, error: clientError } = await supabaseService
       .from("clients")
       .select("id")
       .eq("email", user.email)
@@ -87,8 +92,8 @@ serve(async (req) => {
 
     console.log("✅ [VISIT-PAYMENT] Client found:", clientData.id);
 
-    // Fetch job details using the correct client_id
-    const { data: job, error: jobError } = await supabaseClient
+    // Fetch job details using the correct client_id with service role client
+    const { data: job, error: jobError } = await supabaseService
       .from("jobs")
       .select("*")
       .eq("id", job_id)
