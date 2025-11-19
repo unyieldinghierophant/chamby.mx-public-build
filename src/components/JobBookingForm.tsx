@@ -590,8 +590,9 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
     };
     saveFormData(formData);
     
-    // Store return path in sessionStorage for auth callback
+    // Store return path for auth callback (works for email + OAuth)
     sessionStorage.setItem('auth_return_to', '/book-job');
+    localStorage.setItem('auth_return_to', '/book-job');
     
     // Navigate to auth
     navigate('/auth/user');

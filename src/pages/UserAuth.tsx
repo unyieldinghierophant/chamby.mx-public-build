@@ -65,11 +65,14 @@ const UserAuth = () => {
   // Redirect to user landing if already authenticated
   useEffect(() => {
     if (user && !roleLoading) {
-      const storedReturnTo = sessionStorage.getItem('auth_return_to');
+      const storedReturnTo =
+        localStorage.getItem('auth_return_to') ||
+        sessionStorage.getItem('auth_return_to');
       const stateReturnTo = (location.state as { returnTo?: string })?.returnTo;
       const returnTo = storedReturnTo || stateReturnTo || '/user-landing';
 
       if (storedReturnTo) {
+        localStorage.removeItem('auth_return_to');
         sessionStorage.removeItem('auth_return_to');
       }
 
@@ -359,11 +362,14 @@ const UserAuth = () => {
         <AuthSuccessOverlay
           message={successMessage}
           onComplete={() => {
-            const storedReturnTo = sessionStorage.getItem('auth_return_to');
+            const storedReturnTo =
+              localStorage.getItem('auth_return_to') ||
+              sessionStorage.getItem('auth_return_to');
             const stateReturnTo = (location.state as { returnTo?: string })?.returnTo;
             const returnTo = storedReturnTo || stateReturnTo || '/user-landing';
 
             if (storedReturnTo) {
+              localStorage.removeItem('auth_return_to');
               sessionStorage.removeItem('auth_return_to');
             }
 
