@@ -11,6 +11,7 @@ interface AuthContextType {
   signInWithGoogle: (isProvider?: boolean, loginContext?: 'client' | 'tasker') => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: any }>;
+  updatePassword: (newPassword: string) => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -151,16 +152,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error };
   };
 
-  const value = {
-    user,
-    session,
-    loading,
-    signUp,
-    signIn,
-    signInWithGoogle,
-    signOut,
-    resetPassword
-  };
+  const updatePassword = async (newPassword: string) => {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+    return { error };
+  };
 };
