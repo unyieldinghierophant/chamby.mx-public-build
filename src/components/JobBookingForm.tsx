@@ -561,12 +561,12 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
 
       return; // Exit early
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting task:', error);
       toast({
-        title: "Error al enviar la solicitud",
-        description: "Intentalo nuevamente.",
-        variant: "destructive",
+        title: 'Error al enviar la solicitud',
+        description: error?.message || 'Inténtalo nuevamente.',
+        variant: 'destructive',
       });
     } finally {
       setIsSubmitting(false);
