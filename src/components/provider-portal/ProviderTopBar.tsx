@@ -13,7 +13,6 @@ import {
 import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { NotificationPanel } from "./NotificationPanel";
 
 export function ProviderTopBar() {
   const { profile } = useProfile();
@@ -52,8 +51,6 @@ export function ProviderTopBar() {
         >
           Ver solicitudes activas
         </Button>
-
-        <NotificationPanel />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

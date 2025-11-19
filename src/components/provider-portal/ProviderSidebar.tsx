@@ -30,7 +30,6 @@ const menuItems = [
   { title: "Trabajos", url: "/provider-portal/jobs", icon: Briefcase },
   { title: "Calendario", url: "/provider-portal/calendar", icon: Calendar },
   { title: "Mapa", url: "/provider-portal/map", icon: Map },
-  { title: "Pagos", url: "/provider-portal/payments", icon: CreditCard },
   { title: "Verificación", url: "/provider-portal/verification", icon: ShieldCheck },
   { title: "Perfil", url: "/provider-portal/profile", icon: User },
   { title: "Soporte", url: "/provider-portal/support", icon: HeadphonesIcon },

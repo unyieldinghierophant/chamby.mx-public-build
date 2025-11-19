@@ -37,12 +37,12 @@ const PaymentCanceled = () => {
             </div>
             
             <h2 className="text-2xl font-bold text-foreground mb-4">
-              Pago Cancelado
+              Solicitud Cancelada
             </h2>
             
             <p className="text-muted-foreground mb-8 leading-relaxed">
-              Tu pago fue cancelado y no se realizó ningún cargo a tu tarjeta. 
-              Puedes intentar reservar el servicio nuevamente cuando estés listo.
+              Tu solicitud fue cancelada. Puedes crear una nueva solicitud de servicio 
+              cuando estés listo.
             </p>
 
             <div className="space-y-3">

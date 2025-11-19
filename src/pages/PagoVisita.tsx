@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, CreditCard, Shield, Clock, MapPin, Calendar, AlertCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle, Shield, Clock, MapPin, Calendar, AlertCircle } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -46,7 +46,7 @@ const PagoVisita = () => {
     }
   };
 
-  const handlePayment = async () => {
+  const handleConfirmVisit = async () => {
     if (!user) {
       navigate("/auth/user", { state: { returnTo: window.location.pathname + window.location.search } });
       return;
@@ -55,20 +55,31 @@ const PagoVisita = () => {
     setIsProcessing(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("create-visit-payment", {
-        body: { job_id: jobId },
-      });
+      // Update job to mark visit request confirmed
+      const { error } = await supabase
+        .from('jobs')
+        .update({ 
+          visit_fee_paid: true,
+          status: 'pending_provider'
+        })
+        .eq('id', jobId);
 
       if (error) throw error;
 
-      if (data?.url) {
-        window.open(data.url, "_blank");
-      } else {
-        throw new Error("No se recibió la URL de pago");
-      }
+      // Send WhatsApp notification to provider
+      await supabase.functions.invoke('send-whatsapp-notification', {
+        body: {
+          job_id: jobId,
+          type: 'visit_confirmed',
+          message: `Visita confirmada para: ${job?.title}`
+        }
+      });
+
+      toast.success('Visita confirmada correctamente');
+      navigate('/esperando-proveedor', { state: { jobId } });
     } catch (error) {
-      console.error("Error creating payment:", error);
-      toast.error("Error al procesar el pago");
+      console.error('Error confirming visit:', error);
+      toast.error('Error al confirmar la visita');
     } finally {
       setIsProcessing(false);
     }
@@ -193,11 +204,11 @@ const PagoVisita = () => {
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <CreditCard className="h-5 w-5 text-primary mt-0.5" />
+                  <CheckCircle className="h-5 w-5 text-primary mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium">Múltiples métodos de pago</p>
+                    <p className="text-sm font-medium">Servicio verificado</p>
                     <p className="text-xs text-muted-foreground">
-                      Acepta tarjetas de crédito, débito y más
+                      Proveedores calificados y verificados
                     </p>
                   </div>
                 </div>
@@ -206,11 +217,11 @@ const PagoVisita = () => {
               <Button
                 className="w-full bg-gradient-button"
                 size="lg"
-                onClick={handlePayment}
+                onClick={handleConfirmVisit}
                 disabled={isProcessing}
               >
-                <CreditCard className="mr-2 h-5 w-5" />
-                {isProcessing ? "Procesando..." : "Pagar $250 MXN"}
+                <CheckCircle className="mr-2 h-5 w-5" />
+                {isProcessing ? "Confirmando..." : "Confirmar Visita"}
               </Button>
 
               <p className="text-xs text-center text-muted-foreground mt-4">
