@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-// @ts-ignore - prevent deep Supabase type recursion
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -21,10 +20,12 @@ export const useNotifications = () => {
   const fetchNotifications = async () => {
     if (!user) return;
 
+    // Plain query: NO joins, NO jobs(...)
+    // @ts-ignore – ignore Supabase generated types
     const { data, error } = await supabase
-      .from("job_notifications" as any)
-      .select("id, seen_at, sent_at, job_id")
-      .eq("provider_id", user.id as any)
+      .from("job_notifications")
+      .select("id, sent_at, seen_at")
+      .eq("provider_id", user.id)
       .order("sent_at", { ascending: false });
 
     if (error) {
@@ -33,25 +34,16 @@ export const useNotifications = () => {
       return;
     }
 
-    // Fetch job details separately to avoid forbidden auth.users join
-    const jobIds = data.map((n: any) => n.job_id);
-    const { data: jobs } = await supabase
-      .from("jobs" as any)
-      .select("id, title, description")
-      .in("id", jobIds as any);
+    const rows = (data ?? []) as any[];
 
-    // Merge the results
-    const formatted = data.map((n: any) => {
-      const job = (jobs as any)?.find((j: any) => j.id === n.job_id);
-      return {
-        id: n.id,
-        read: n.seen_at !== null,
-        type: "new_job",
-        title: (job as any)?.title ?? "Nuevo trabajo disponible",
-        message: (job as any)?.description ?? "Un cliente ha solicitado un servicio.",
-        created_at: n.sent_at,
-      };
-    });
+    const formatted: Notification[] = rows.map((n) => ({
+      id: n.id,
+      read: !!n.seen_at,
+      type: "new_job",
+      title: "Nuevo trabajo disponible",
+      message: "Un cliente ha solicitado un servicio.",
+      created_at: n.sent_at,
+    }));
 
     setNotifications(formatted);
     setUnreadCount(formatted.filter((n) => !n.read).length);
@@ -59,10 +51,8 @@ export const useNotifications = () => {
   };
 
   const markAsRead = async (notificationId: string) => {
-    await supabase
-      .from("job_notifications" as any)
-      .update({ seen_at: new Date().toISOString() } as any)
-      .eq("id", notificationId as any);
+    // @ts-ignore
+    await supabase.from("job_notifications").update({ seen_at: new Date().toISOString() }).eq("id", notificationId);
 
     setNotifications((prev) => prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n)));
 
@@ -72,10 +62,11 @@ export const useNotifications = () => {
   const markAllAsRead = async () => {
     if (!user) return;
 
+    // @ts-ignore
     await supabase
-      .from("job_notifications" as any)
-      .update({ seen_at: new Date().toISOString() } as any)
-      .eq("provider_id", user.id as any)
+      .from("job_notifications")
+      .update({ seen_at: new Date().toISOString() })
+      .eq("provider_id", user.id)
       .is("seen_at", null);
 
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
@@ -84,8 +75,10 @@ export const useNotifications = () => {
 
   useEffect(() => {
     if (!user) return;
+
     fetchNotifications();
 
+    // @ts-ignore
     const channel = supabase
       .channel("job_notifications_rt")
       .on(
@@ -105,7 +98,7 @@ export const useNotifications = () => {
             type: "new_job",
             title: "Nuevo trabajo disponible",
             message: "Un cliente ha solicitado un servicio.",
-            created_at: n.sent_at,
+            created_at: n.sent_at ?? new Date().toISOString(),
           };
 
           setNotifications((prev) => [newNotification, ...prev]);
