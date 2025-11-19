@@ -6,7 +6,7 @@ export interface ActiveJob {
   id: string;
   title: string;
   description: string | null;
-  service_id: string;
+  service_id: string; // References jobs.id (the job that was booked)
   customer_id: string;
   tasker_id: string;
   scheduled_date: string;
@@ -15,8 +15,8 @@ export interface ActiveJob {
   address: string | null;
   status: string;
   created_at: string;
-  service?: {
-    name: string;
+  job?: {
+    title: string;
     category: string;
   };
   customer?: {
@@ -53,7 +53,7 @@ export const useActiveJobs = (): UseActiveJobsResult => {
         .from('bookings')
         .select(`
           *,
-          service:services(name, category),
+          job:jobs!bookings_service_id_fkey(title, category),
           customer:profiles!bookings_customer_id_fkey(full_name, avatar_url, phone)
         `)
         .eq('tasker_id', user.id)

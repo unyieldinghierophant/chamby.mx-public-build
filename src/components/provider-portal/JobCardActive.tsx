@@ -52,9 +52,9 @@ export const JobCardActive = ({ job, onComplete }: JobCardActiveProps) => {
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <h3 className="font-semibold text-lg text-foreground">{job.title}</h3>
-            {job.service && (
+            {job.job && (
               <p className="text-sm text-muted-foreground mt-1">
-                {job.service.category} • {job.service.name}
+                {job.job.category} • {job.job.title}
               </p>
             )}
           </div>
