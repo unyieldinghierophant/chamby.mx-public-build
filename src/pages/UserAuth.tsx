@@ -65,7 +65,14 @@ const UserAuth = () => {
   // Redirect to user landing if already authenticated
   useEffect(() => {
     if (user && !roleLoading) {
-      const returnTo = (location.state as { returnTo?: string })?.returnTo || '/user-landing';
+      const storedReturnTo = sessionStorage.getItem('auth_return_to');
+      const stateReturnTo = (location.state as { returnTo?: string })?.returnTo;
+      const returnTo = storedReturnTo || stateReturnTo || '/user-landing';
+
+      if (storedReturnTo) {
+        sessionStorage.removeItem('auth_return_to');
+      }
+
       navigate(returnTo, { replace: true });
     }
   }, [user, roleLoading, navigate, location]);
@@ -352,7 +359,14 @@ const UserAuth = () => {
         <AuthSuccessOverlay
           message={successMessage}
           onComplete={() => {
-            const returnTo = (location.state as { returnTo?: string })?.returnTo || '/user-landing';
+            const storedReturnTo = sessionStorage.getItem('auth_return_to');
+            const stateReturnTo = (location.state as { returnTo?: string })?.returnTo;
+            const returnTo = storedReturnTo || stateReturnTo || '/user-landing';
+
+            if (storedReturnTo) {
+              sessionStorage.removeItem('auth_return_to');
+            }
+
             navigate(returnTo);
           }}
         />
