@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { getCurrentProfile } from '@/lib/profile';
 
 interface TaskerJob {
   id: string;
@@ -29,20 +30,16 @@ export const useTaskerJobs = () => {
     try {
       setLoading(true);
       
-      // First get the tasker's client ID
-      const { data: clientData, error: clientError } = await supabase
-        .from('clients')
-        .select('id')
-        .eq('email', user.email)
-        .single();
-
-      if (clientError) throw clientError;
-      if (!clientData) throw new Error('Client not found');
+      // Get the profile
+      const profile = await getCurrentProfile();
+      if (!profile) {
+        throw new Error('Profile not found');
+      }
 
       const { data, error } = await supabase
         .from('jobs')
         .select('*')
-        .eq('provider_id', clientData.id)
+        .eq('provider_id', profile.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -65,21 +62,17 @@ export const useTaskerJobs = () => {
     if (!user) return { error: 'No user found' };
 
     try {
-      // First get the tasker's client ID
-      const { data: clientData, error: clientError } = await supabase
-        .from('clients')
-        .select('id')
-        .eq('email', user.email)
-        .single();
-
-      if (clientError) throw clientError;
-      if (!clientData) throw new Error('Client not found');
+      // Get the profile
+      const profile = await getCurrentProfile();
+      if (!profile) {
+        throw new Error('Profile not found');
+      }
 
       const { data, error } = await supabase
         .from('jobs')
         .insert({
           ...jobData,
-          provider_id: clientData.id
+          provider_id: profile.id
         })
         .select()
         .single();

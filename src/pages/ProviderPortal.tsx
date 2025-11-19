@@ -8,19 +8,21 @@ import { Navigate } from "react-router-dom";
 import { useProfile } from "@/hooks/useProfile";
 
 const ProviderPortal = () => {
-  const { user } = useAuth();
-  const { profile, loading } = useProfile();
+  const { user, loading: authLoading } = useAuth();
+  const { profile, loading: profileLoading } = useProfile();
 
-  if (!user) {
-    return <Navigate to="/auth/tasker" replace />;
-  }
-
-  if (loading) {
+  // Show loading state while checking auth
+  if (authLoading || profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
       </div>
     );
+  }
+
+  // Redirect to login if not authenticated
+  if (!user) {
+    return <Navigate to="/auth/tasker" replace />;
   }
 
   // Allow access if login context was 'tasker' (new signups) or if already a tasker

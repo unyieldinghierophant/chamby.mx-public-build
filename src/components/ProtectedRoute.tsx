@@ -13,10 +13,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requireAuth = true, 
   requireTasker = false 
 }) => {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
 
-  if (loading || (requireTasker && profileLoading)) {
+  if (authLoading || (requireTasker && profileLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

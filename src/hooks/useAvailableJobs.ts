@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { getCurrentProfile } from '@/lib/profile';
 
 export interface AvailableJob {
   id: string;
@@ -97,14 +98,9 @@ export const useAvailableJobs = (): UseAvailableJobsResult => {
     }
 
     try {
-      // Get the client ID for this provider
-      const { data: clientData, error: clientError } = await supabase
-        .from('clients')
-        .select('id')
-        .eq('email', user.email)
-        .single();
-
-      if (clientError || !clientData) {
+      // Get the profile ID for this provider
+      const profile = await getCurrentProfile();
+      if (!profile) {
         throw new Error('No se pudo obtener la información del proveedor');
       }
 
@@ -112,7 +108,7 @@ export const useAvailableJobs = (): UseAvailableJobsResult => {
       const { error: updateError } = await supabase
         .from('jobs')
         .update({ 
-          provider_id: clientData.id,
+          provider_id: profile.id,
           status: 'assigned',
           updated_at: new Date().toISOString()
         })
