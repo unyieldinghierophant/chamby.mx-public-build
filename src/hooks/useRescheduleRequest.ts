@@ -103,14 +103,8 @@ export const useRescheduleRequest = (rescheduleId: string) => {
 
       if (bookingError) throw bookingError;
 
-      // Notify customer
-      await supabase.from('notifications').insert({
-        user_id: reschedule.requested_by,
-        type: 'reschedule_accepted',
-        title: 'Reprogramación aceptada',
-        message: `Tu profesional aceptó la nueva fecha para "${reschedule.booking.title}"`,
-        link: `/bookings/${reschedule.booking_id}`,
-      });
+      // Notification system disabled
+      console.log('Would notify customer of acceptance');
 
       toast({
         title: '¡Perfecto!',
@@ -157,14 +151,8 @@ export const useRescheduleRequest = (rescheduleId: string) => {
         })
         .eq('id', reschedule.booking_id);
 
-      // Notify customer
-      await supabase.from('notifications').insert({
-        user_id: reschedule.requested_by,
-        type: 'alternative_suggested',
-        title: 'Nueva fecha sugerida',
-        message: `Tu profesional sugirió otra fecha para "${reschedule.booking.title}"`,
-        link: `/bookings/${reschedule.booking_id}`,
-      });
+      // Notification system disabled
+      console.log('Would notify customer of alternative date');
 
       toast({
         title: 'Fecha sugerida',
@@ -214,14 +202,8 @@ export const useRescheduleRequest = (rescheduleId: string) => {
 
       if (bookingError) throw bookingError;
 
-      // Notify customer
-      await supabase.from('notifications').insert({
-        user_id: reschedule.requested_by,
-        type: 'booking_cancelled',
-        title: 'Trabajo cancelado',
-        message: `Tu profesional no puede realizar "${reschedule.booking.title}". Estamos buscando un reemplazo.`,
-        link: `/bookings/${reschedule.booking_id}`,
-      });
+      // Notification system disabled
+      console.log('Would notify customer of cancellation');
 
       toast({
         title: 'Trabajo cancelado',

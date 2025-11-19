@@ -286,74 +286,23 @@ export type Database = {
           },
         ]
       }
-      job_requests: {
-        Row: {
-          budget: string | null
-          created_at: string
-          date: string | null
-          details: string | null
-          exact_time: string | null
-          id: string
-          invoice_due_date: string | null
-          location: string | null
-          photo_count: number | null
-          service: string
-          stripe_invoice_id: string | null
-          stripe_invoice_pdf: string | null
-          stripe_invoice_url: string | null
-          time_preference: string | null
-          user_id: string | null
-        }
-        Insert: {
-          budget?: string | null
-          created_at?: string
-          date?: string | null
-          details?: string | null
-          exact_time?: string | null
-          id?: string
-          invoice_due_date?: string | null
-          location?: string | null
-          photo_count?: number | null
-          service: string
-          stripe_invoice_id?: string | null
-          stripe_invoice_pdf?: string | null
-          stripe_invoice_url?: string | null
-          time_preference?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          budget?: string | null
-          created_at?: string
-          date?: string | null
-          details?: string | null
-          exact_time?: string | null
-          id?: string
-          invoice_due_date?: string | null
-          location?: string | null
-          photo_count?: number | null
-          service?: string
-          stripe_invoice_id?: string | null
-          stripe_invoice_pdf?: string | null
-          stripe_invoice_url?: string | null
-          time_preference?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       jobs: {
         Row: {
           amount_booking_fee: number | null
           amount_service_total: number | null
+          budget: string | null
           category: string
           client_id: string | null
           created_at: string
           description: string | null
           escrow_captured: boolean | null
           escrow_refunded: boolean | null
+          exact_time: string | null
           id: string
           invoice_due_date: string | null
           location: string | null
           payment_status: string | null
+          photo_count: number | null
           photos: string[] | null
           problem: string | null
           provider_id: string | null
@@ -366,6 +315,7 @@ export type Database = {
           stripe_invoice_pdf: string | null
           stripe_invoice_url: string | null
           stripe_payment_intent_id: string | null
+          time_preference: string | null
           title: string
           updated_at: string
           urgent: boolean | null
@@ -374,16 +324,19 @@ export type Database = {
         Insert: {
           amount_booking_fee?: number | null
           amount_service_total?: number | null
+          budget?: string | null
           category: string
           client_id?: string | null
           created_at?: string
           description?: string | null
           escrow_captured?: boolean | null
           escrow_refunded?: boolean | null
+          exact_time?: string | null
           id?: string
           invoice_due_date?: string | null
           location?: string | null
           payment_status?: string | null
+          photo_count?: number | null
           photos?: string[] | null
           problem?: string | null
           provider_id?: string | null
@@ -396,6 +349,7 @@ export type Database = {
           stripe_invoice_pdf?: string | null
           stripe_invoice_url?: string | null
           stripe_payment_intent_id?: string | null
+          time_preference?: string | null
           title: string
           updated_at?: string
           urgent?: boolean | null
@@ -404,16 +358,19 @@ export type Database = {
         Update: {
           amount_booking_fee?: number | null
           amount_service_total?: number | null
+          budget?: string | null
           category?: string
           client_id?: string | null
           created_at?: string
           description?: string | null
           escrow_captured?: boolean | null
           escrow_refunded?: boolean | null
+          exact_time?: string | null
           id?: string
           invoice_due_date?: string | null
           location?: string | null
           payment_status?: string | null
+          photo_count?: number | null
           photos?: string[] | null
           problem?: string | null
           provider_id?: string | null
@@ -426,6 +383,7 @@ export type Database = {
           stripe_invoice_pdf?: string | null
           stripe_invoice_url?: string | null
           stripe_payment_intent_id?: string | null
+          time_preference?: string | null
           title?: string
           updated_at?: string
           urgent?: boolean | null
@@ -623,7 +581,6 @@ export type Database = {
           created_at: string | null
           full_url: string
           id: string
-          job_request_id: string | null
           short_code: string
         }
         Insert: {
@@ -631,7 +588,6 @@ export type Database = {
           created_at?: string | null
           full_url: string
           id?: string
-          job_request_id?: string | null
           short_code: string
         }
         Update: {
@@ -639,18 +595,9 @@ export type Database = {
           created_at?: string | null
           full_url?: string
           id?: string
-          job_request_id?: string | null
           short_code?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "photo_short_links_job_request_id_fkey"
-            columns: ["job_request_id"]
-            isOneToOne: false
-            referencedRelation: "job_requests"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       profiles: {
         Row: {
