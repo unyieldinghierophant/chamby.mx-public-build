@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { getCurrentProfile } from "@/lib/profile";
 
 export interface Notification {
   id: string;
@@ -18,14 +19,23 @@ export const useNotifications = () => {
   const [loading, setLoading] = useState(true);
 
   const fetchNotifications = async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
-    // Plain query: NO joins, NO jobs(...)
-    // @ts-ignore – ignore Supabase generated types
+    // Get profile first to get profiles.id
+    const profile = await getCurrentProfile();
+    if (!profile) {
+      console.error("No profile found for user");
+      setLoading(false);
+      return;
+    }
+
     const { data, error } = await supabase
       .from("job_notifications")
-      .select("id, sent_at, seen_at")
-      .eq("provider_id", user.id)
+      .select("id, sent_at, seen_at, job_id")
+      .eq("provider_id", profile.id)
       .order("sent_at", { ascending: false });
 
     if (error) {
@@ -62,11 +72,13 @@ export const useNotifications = () => {
   const markAllAsRead = async () => {
     if (!user) return;
 
-    // @ts-ignore
+    const profile = await getCurrentProfile();
+    if (!profile) return;
+
     await supabase
       .from("job_notifications")
       .update({ seen_at: new Date().toISOString() })
-      .eq("provider_id", user.id)
+      .eq("provider_id", profile.id)
       .is("seen_at", null);
 
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
@@ -76,18 +88,23 @@ export const useNotifications = () => {
   useEffect(() => {
     if (!user) return;
 
-    fetchNotifications();
+    let channel: any;
 
-    // @ts-ignore
-    const channel = supabase
-      .channel("job_notifications_rt")
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "job_notifications",
-          filter: `provider_id=eq.${user.id}`,
+    const setupRealtimeSubscription = async () => {
+      const profile = await getCurrentProfile();
+      if (!profile) return;
+
+      fetchNotifications();
+
+      channel = supabase
+        .channel("job_notifications_rt")
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "job_notifications",
+            filter: `provider_id=eq.${profile.id}`,
         },
         (payload) => {
           const n = payload.new as any;
@@ -106,9 +123,14 @@ export const useNotifications = () => {
         },
       )
       .subscribe();
+    };
+
+    setupRealtimeSubscription();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }, [user]);
 
