@@ -44,31 +44,29 @@ export const useProviderProfile = (userId?: string) => {
     }
 
     try {
-      // Fetch provider profile with base profile data
-      const { data: providerData, error: providerError } = await supabase
-        .from('provider_profiles')
-        .select(`
-          *,
-          profiles!inner(full_name, phone, avatar_url, bio)
-        `)
+      // Fetch base profile first
+      const { data: baseProfile, error: baseError } = await supabase
+        .from('profiles')
+        .select('full_name, phone, avatar_url, bio, created_at')
         .eq('user_id', userId)
         .single();
 
-      if (providerError) {
-        throw providerError;
-      }
+      if (baseError) throw baseError;
 
-      // Flatten the nested structure
-      const flatProfile = {
+      // Fetch provider profile
+      const { data: providerData, error: providerError } = await supabase
+        .from('provider_profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (providerError) throw providerError;
+
+      // Combine the data
+      setProfile({
         ...providerData,
-        full_name: providerData.profiles.full_name,
-        phone: providerData.profiles.phone,
-        avatar_url: providerData.profiles.avatar_url,
-        bio: providerData.profiles.bio,
-      };
-      delete flatProfile.profiles;
-
-      setProfile(flatProfile);
+        ...baseProfile,
+      });
 
       // Fetch booking stats
       const { data: jobsData, error: jobsError } = await supabase
@@ -77,13 +75,7 @@ export const useProviderProfile = (userId?: string) => {
         .eq('tasker_id', userId);
 
       if (!jobsError && jobsData) {
-        const { data: profileCreated } = await supabase
-          .from('profiles')
-          .select('created_at')
-          .eq('user_id', userId)
-          .single();
-
-        const memberSince = new Date(profileCreated?.created_at || '').getFullYear().toString();
+        const memberSince = new Date(baseProfile.created_at || '').getFullYear().toString();
         setStats({
           total_bookings: jobsData.length,
           member_since: memberSince
@@ -118,12 +110,10 @@ export const useProviderProfile = (userId?: string) => {
 
       // Update provider profile if there are provider-specific fields
       if (Object.keys(providerUpdates).length > 0) {
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from('provider_profiles')
           .update(providerUpdates)
-          .eq('user_id', userId)
-          .select()
-          .single();
+          .eq('user_id', userId);
 
         if (error) throw error;
       }

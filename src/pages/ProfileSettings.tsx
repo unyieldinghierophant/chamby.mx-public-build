@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
+import { useUserRole } from "@/hooks/useUserRole";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -273,7 +274,7 @@ const ProfileSettings = () => {
                   />
                 </div>
 
-                {profile?.is_tasker && (
+                {role === 'provider' && (
                   <div className="p-4 bg-muted/50 rounded-lg">
                     <div className="flex items-center justify-between">
                       <div>

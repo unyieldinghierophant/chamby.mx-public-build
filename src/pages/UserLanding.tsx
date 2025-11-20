@@ -47,14 +47,14 @@ const UserLanding = () => {
     }
   }, [user, authLoading, navigate]);
 
-  // Redirect providers to provider portal if they're taskers
+  // Redirect providers to provider portal
   useEffect(() => {
-    if (!roleLoading && role === "provider" && profile?.is_tasker) {
+    if (!roleLoading && role === "provider") {
       navigate("/provider-portal", {
         replace: true
       });
     }
-  }, [role, roleLoading, profile, navigate]);
+  }, [role, roleLoading, navigate]);
   if (authLoading || roleLoading) {
     return <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -138,7 +138,7 @@ const UserLanding = () => {
                   <Shield className="mr-2 h-4 w-4" />
                   <span>Seguridad</span>
                 </DropdownMenuItem>
-                {profile?.is_tasker && (
+                {role === 'provider' && (
                   <DropdownMenuItem onClick={() => navigate("/provider-portal")}>
                     <TrendingUp className="mr-2 h-4 w-4" />
                     <span>Portal de Proveedores</span>
@@ -194,7 +194,7 @@ const UserLanding = () => {
                   <Shield className="mr-2 h-4 w-4" />
                   <span>Seguridad</span>
                 </DropdownMenuItem>
-                {profile?.is_tasker && (
+                {role === 'provider' && (
                   <DropdownMenuItem onClick={() => navigate("/provider-portal")}>
                     <TrendingUp className="mr-2 h-4 w-4" />
                     <span>Portal de Proveedores</span>

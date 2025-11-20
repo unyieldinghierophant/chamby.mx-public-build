@@ -1,5 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
+import { useUserRole } from "@/hooks/useUserRole";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +18,7 @@ import { Link, Navigate } from "react-router-dom";
 const UserProfile = () => {
   const { user } = useAuth();
   const { profile, loading } = useProfile();
+  const { role } = useUserRole();
 
   if (loading) {
     return (
@@ -65,7 +67,7 @@ const UserProfile = () => {
                     {profile?.full_name || 'Usuario'}
                   </h2>
                   <p className="text-muted-foreground">{user?.email}</p>
-                  {profile?.is_tasker && (
+                  {role === 'provider' && (
                     <Badge 
                       variant={profile.verification_status === 'verified' ? 'default' : 'secondary'}
                       className="mt-2"
