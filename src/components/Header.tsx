@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AllCategoriesDialog } from "@/components/AllCategoriesDialog";
+import { ROUTES } from "@/constants/routes";
 
 interface HeaderProps {
   hideLogo?: boolean;
@@ -50,15 +51,15 @@ const Header = ({
   const isTasker = user?.user_metadata?.is_tasker;
   
   // Determine if we're on a tasker page based on current route
-  const isOnTaskerPage = location.pathname.startsWith('/provider-portal');
+  const isOnTaskerPage = location.pathname.startsWith(ROUTES.PROVIDER_PORTAL);
   
   // Determine where the logo should navigate based on current page context
   const getLogoDestination = () => {
-    return isOnTaskerPage ? '/tasker-landing' : '/user-landing';
+    return isOnTaskerPage ? ROUTES.TASKER_LANDING : ROUTES.USER_LANDING;
   };
 
   const handleHowItWorksClick = (e: React.MouseEvent) => {
-    if (location.pathname === '/' || location.pathname === '/user-landing') {
+    if (location.pathname === ROUTES.HOME || location.pathname === ROUTES.USER_LANDING) {
       e.preventDefault();
       const howItWorksSection = document.getElementById('how-it-works-section');
       if (howItWorksSection) {
@@ -68,7 +69,7 @@ const Header = ({
   };
 
   const handlePostJobClick = () => {
-    navigate('/book-job', {
+    navigate(ROUTES.BOOK_JOB, {
       state: {
         category: 'Handyman',
         service: 'Reparaciones generales',
@@ -113,7 +114,7 @@ const Header = ({
             >
               Categorías
             </button>
-            <Link to="/browse-tasks" className="text-foreground/70 hover:text-foreground transition-colors text-base font-normal">
+            <Link to={ROUTES.BROWSE_TASKS} className="text-foreground/70 hover:text-foreground transition-colors text-base font-normal">
               Explorar tareas
             </Link>
             <button 
@@ -147,16 +148,16 @@ const Header = ({
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate("/profile")}>
+                  <DropdownMenuItem onClick={() => navigate(ROUTES.PROFILE)}>
                     <User className="mr-2 h-4 w-4" />
                     <span>Perfil</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/profile/settings")}>
+                  <DropdownMenuItem onClick={() => navigate(ROUTES.PROFILE_SETTINGS)}>
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Configuración</span>
                   </DropdownMenuItem>
                   {isTasker && (
-                    <DropdownMenuItem onClick={() => navigate("/provider-portal")}>
+                    <DropdownMenuItem onClick={() => navigate(ROUTES.PROVIDER_PORTAL)}>
                       <Users className="mr-2 h-4 w-4" />
                       <span>Portal Proveedor</span>
                     </DropdownMenuItem>
@@ -170,13 +171,13 @@ const Header = ({
               </DropdownMenu>
             ) : (
               <>
-                <Link to="/auth/user" className="text-foreground/70 hover:text-foreground transition-colors text-base font-normal">
+                <Link to={ROUTES.USER_AUTH} className="text-foreground/70 hover:text-foreground transition-colors text-base font-normal">
                   Registrarse
                 </Link>
-                <Link to="/auth/user?mode=signin" className="text-foreground/70 hover:text-foreground transition-colors text-base font-normal">
+                <Link to={ROUTES.USER_AUTH_SIGNIN} className="text-foreground/70 hover:text-foreground transition-colors text-base font-normal">
                   Iniciar sesión
                 </Link>
-                <Link to="/auth/tasker" className="text-primary hover:text-primary/80 transition-colors text-base font-semibold">
+                <Link to={ROUTES.TASKER_AUTH} className="text-primary hover:text-primary/80 transition-colors text-base font-semibold">
                   Ser Chambynauta
                 </Link>
               </>
@@ -209,7 +210,7 @@ const Header = ({
               >
                 Categorías
               </button>
-              <Link to="/browse-tasks" className="block py-2 text-base font-normal text-foreground/70 hover:text-foreground">
+              <Link to={ROUTES.BROWSE_TASKS} className="block py-2 text-base font-normal text-foreground/70 hover:text-foreground">
                 Explorar tareas
               </Link>
               <button 
@@ -237,11 +238,11 @@ const Header = ({
                       </p>
                     </div>
                   </div>
-                  <Link to="/profile" className="block py-2 text-base font-normal text-foreground/70 hover:text-foreground">
+                  <Link to={ROUTES.PROFILE} className="block py-2 text-base font-normal text-foreground/70 hover:text-foreground">
                     Ver Perfil
                   </Link>
                   {isTasker && (
-                    <Link to="/provider-portal" className="block py-2 text-base font-normal text-foreground/70 hover:text-foreground">
+                    <Link to={ROUTES.PROVIDER_PORTAL} className="block py-2 text-base font-normal text-foreground/70 hover:text-foreground">
                       Portal Proveedor
                     </Link>
                   )}
@@ -255,13 +256,13 @@ const Header = ({
                 </>
               ) : (
                 <div className="pt-4 border-t border-border/40 space-y-2">
-                  <Link to="/auth/user" className="block py-2 text-base font-normal text-foreground/70 hover:text-foreground">
+                  <Link to={ROUTES.USER_AUTH} className="block py-2 text-base font-normal text-foreground/70 hover:text-foreground">
                     Registrarse
                   </Link>
-                  <Link to="/auth/user?mode=signin" className="block py-2 text-base font-normal text-foreground/70 hover:text-foreground">
+                  <Link to={ROUTES.USER_AUTH_SIGNIN} className="block py-2 text-base font-normal text-foreground/70 hover:text-foreground">
                     Iniciar sesión
                   </Link>
-                  <Link to="/auth/tasker" className="block py-2 text-base font-semibold text-primary hover:text-primary/80">
+                  <Link to={ROUTES.TASKER_AUTH} className="block py-2 text-base font-semibold text-primary hover:text-primary/80">
                     Ser Chambynauta
                   </Link>
                 </div>

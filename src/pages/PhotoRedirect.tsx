@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
+import { ROUTES } from '@/constants/routes';
 
 export default function PhotoRedirect() {
   const { shortCode } = useParams();
@@ -10,7 +11,7 @@ export default function PhotoRedirect() {
   useEffect(() => {
     const redirect = async () => {
       if (!shortCode) {
-        navigate('/');
+        navigate(ROUTES.HOME);
         return;
       }
 
@@ -24,7 +25,7 @@ export default function PhotoRedirect() {
 
         if (error || !data) {
           console.error('Short link not found:', shortCode);
-          navigate('/not-found');
+          navigate(ROUTES.NOT_FOUND);
           return;
         }
 
@@ -39,7 +40,7 @@ export default function PhotoRedirect() {
         window.location.href = data.full_url;
       } catch (err) {
         console.error('Redirect error:', err);
-        navigate('/not-found');
+        navigate(ROUTES.NOT_FOUND);
       }
     };
 

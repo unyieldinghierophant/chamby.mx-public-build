@@ -1,6 +1,7 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
+import { ROUTES } from '@/constants/routes';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -30,13 +31,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Redirect to login if auth is required and user is not logged in
   if (requireAuth && !user) {
-    return <Navigate to="/auth/user" replace />;
+    return <Navigate to={ROUTES.USER_AUTH} replace />;
   }
 
   // For tasker-only routes, verify user has provider or admin role in database
   if (requireTasker) {
     if (!user) {
-      return <Navigate to="/auth/tasker" replace />;
+      return <Navigate to={ROUTES.TASKER_AUTH} replace />;
     }
     
     // Check if user has provider or admin role in database
@@ -45,7 +46,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     
     if (!hasProviderRole && !hasAdminRole) {
       console.log('[ProtectedRoute] User lacks provider/admin role, redirecting to /become-provider');
-      return <Navigate to="/become-provider" replace />;
+      return <Navigate to={ROUTES.BECOME_PROVIDER} replace />;
     }
     
     console.log('[ProtectedRoute] User has required tasker role, allowing access');

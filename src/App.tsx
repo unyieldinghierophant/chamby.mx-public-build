@@ -12,6 +12,7 @@ import {
 } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { useEffect } from "react";
+import { ROUTES } from "@/constants/routes";
 import Index from "./pages/Index";
 import Home from "./pages/Home";
 import UserAuth from "./pages/UserAuth";
@@ -63,7 +64,7 @@ const queryClient = new QueryClient();
 // Component to conditionally render ChatBot
 const ConditionalChatBot = () => {
   const location = useRouterLocation();
-  const hideOnRoutes = ["/book-job", "/solicitar-servicio"];
+  const hideOnRoutes: string[] = [ROUTES.BOOK_JOB, ROUTES.SOLICITAR_SERVICIO];
 
   if (hideOnRoutes.includes(location.pathname)) {
     return null;
@@ -81,7 +82,7 @@ const RedirectHandler = () => {
     console.log("App mounted, current location:", location.pathname);
 
     // Don't interfere with auth callback - let it process OAuth first
-    if (location.pathname === "/auth/callback" || location.pathname === "/callback") {
+    if (location.pathname === ROUTES.AUTH_CALLBACK || location.pathname === ROUTES.CALLBACK) {
       console.log("Auth callback detected, skipping redirect handler");
       return;
     }
@@ -114,17 +115,17 @@ const App = () => {
             <ConditionalChatBot />
             <RedirectHandler />
             <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/user-landing" element={<UserLanding />} />
-              <Route path="/solicitar-servicio" element={<Navigate to="/book-job" replace />} />
-              <Route path="/book-job" element={<BookJob />} />
-              <Route path="/auth/user" element={<UserAuth />} />
-              <Route path="/auth/tasker" element={<TaskerAuth />} />
-              <Route path="/become-provider" element={<BecomeProvider />} />
-              <Route path="/choose-role" element={<RoleSelection />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
-              <Route path="/callback" element={<AuthCallback />} />
-              <Route path="/dashboard/user" element={<Navigate to="/user-landing" replace />} />
+              <Route path={ROUTES.HOME} element={<Index />} />
+              <Route path={ROUTES.USER_LANDING} element={<UserLanding />} />
+              <Route path={ROUTES.SOLICITAR_SERVICIO} element={<Navigate to={ROUTES.BOOK_JOB} replace />} />
+              <Route path={ROUTES.BOOK_JOB} element={<BookJob />} />
+              <Route path={ROUTES.USER_AUTH} element={<UserAuth />} />
+              <Route path={ROUTES.TASKER_AUTH} element={<TaskerAuth />} />
+              <Route path={ROUTES.BECOME_PROVIDER} element={<BecomeProvider />} />
+              <Route path={ROUTES.CHOOSE_ROLE} element={<RoleSelection />} />
+              <Route path={ROUTES.AUTH_CALLBACK} element={<AuthCallback />} />
+              <Route path={ROUTES.CALLBACK} element={<AuthCallback />} />
+              <Route path={ROUTES.DASHBOARD_USER} element={<Navigate to={ROUTES.USER_LANDING} replace />} />
               <Route path="/tasker-landing" element={<ProviderLanding />} />
               <Route path="/booking/datetime/:providerId" element={<BookingDateTime />} />
               {/* /service/:serviceType route removed - all services are now jobs */}

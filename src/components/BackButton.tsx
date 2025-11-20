@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { ROUTES } from "@/constants/routes";
 
 interface BackButtonProps {
   className?: string;
@@ -12,7 +13,7 @@ interface BackButtonProps {
 export const BackButton = ({ 
   className, 
   variant = "back",
-  fallbackPath = "/" 
+  fallbackPath = ROUTES.HOME
 }: BackButtonProps) => {
   const navigate = useNavigate();
 

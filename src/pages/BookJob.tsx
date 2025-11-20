@@ -2,6 +2,7 @@ import { JobBookingForm } from "@/components/JobBookingForm";
 import { X } from "lucide-react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import logo from "@/assets/chamby-logo-text.png";
+import { ROUTES } from "@/constants/routes";
 const BookJob = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -26,7 +27,7 @@ const BookJob = () => {
 
           </span>
           </div>
-          <button onClick={() => navigate('/user-landing')} className="p-2 hover:bg-accent rounded-lg transition-colors" aria-label="Close">
+          <button onClick={() => navigate(ROUTES.USER_LANDING)} className="p-2 hover:bg-accent rounded-lg transition-colors" aria-label="Close">
             <X className="w-6 h-6" />
           </button>
         </div>
