@@ -86,7 +86,7 @@ const Header = ({
       />
     <header className="absolute top-8 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-border/40">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-center h-16 md:h-20 relative">
+        <div className="flex items-center justify-center h-20 md:h-24 relative">
           {/* Logo - Absolute left */}
           <div className="absolute left-0 flex items-center">
             <button 
@@ -96,7 +96,7 @@ const Header = ({
               <img 
                 src={chambyLogo} 
                 alt="Chamby.mx" 
-                className="h-10 md:h-14 w-auto"
+                className="h-16 md:h-20 w-auto"
               />
             </button>
           </div>
