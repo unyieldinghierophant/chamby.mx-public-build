@@ -42,8 +42,7 @@ const EsperandoProveedor = () => {
       console.log('✅ [ESPERANDO] Job fetched:', {
         jobId: jobData.id,
         status: jobData.status,
-        visit_fee_paid: jobData.visit_fee_paid,
-        payment_status: jobData.payment_status
+        visit_fee_paid: jobData.visit_fee_paid
       });
 
       // If payment not yet marked as active, update it

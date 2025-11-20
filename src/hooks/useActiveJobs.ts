@@ -6,8 +6,8 @@ export interface ActiveJob {
   id: string;
   title: string;
   description: string | null;
-  customer_id: string | null;
-  tasker_id: string | null;
+  client_id: string | null;
+  provider_id: string | null;
   scheduled_at: string | null;
   duration_hours: number | null;
   total_amount: number | null;
@@ -15,14 +15,8 @@ export interface ActiveJob {
   status: string;
   category: string;
   created_at: string;
-  customer?: {
-    full_name: string | null;
-    avatar_url: string | null;
-    phone: string | null;
-  };
-  tasker?: {
-    full_name: string | null;
-    avatar_url: string | null;
+  client?: {
+    email: string | null;
     phone: string | null;
   };
 }
@@ -62,11 +56,11 @@ export const useActiveJobs = (): UseActiveJobsResult => {
         throw new Error("Profile not found");
       }
 
-      const { data, error: fetchError } = await supabase
+      const { data, error: fetchError} = await supabase
         .from('jobs')
         .select(`
           *,
-          customer:profiles!jobs_customer_id_fkey(full_name, avatar_url, phone)
+          client:clients!jobs_client_id_fkey(email, phone)
         `)
         .eq('provider_id', profile.id)
         .in('status', ['assigned', 'in_progress', 'scheduled'])

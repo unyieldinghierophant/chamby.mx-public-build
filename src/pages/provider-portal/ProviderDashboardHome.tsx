@@ -54,20 +54,21 @@ const ProviderDashboardHome = () => {
 
   const fetchDashboardData = async () => {
     try {
+      // Get provider profile
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("user_id", user?.id)
+        .single();
+
+      if (!profile) return;
+
       // Fetch upcoming jobs
       const { data: jobs } = await supabase
         .from("jobs")
-        .select(`
-          id,
-          title,
-          scheduled_at,
-          location,
-          status,
-          customer_id,
-          customer:profiles!jobs_customer_id_fkey(full_name)
-        `)
-        .eq("tasker_id", user?.id)
-        .in("status", ["pending", "confirmed"])
+        .select("id, title, scheduled_at, location, status, client_id")
+        .eq("provider_id", profile.id)
+        .in("status", ["pending", "confirmed", "assigned"])
         .gte("scheduled_at", new Date().toISOString())
         .order("scheduled_at", { ascending: true })
         .limit(5);
@@ -88,17 +89,13 @@ const ProviderDashboardHome = () => {
       // Fetch earnings
       const { data: payments } = await supabase
         .from("jobs")
-        .select("total_amount, payment_status")
-        .eq("tasker_id", user?.id);
+        .select("total_amount")
+        .eq("provider_id", profile.id)
+        .eq("status", "completed");
 
       if (payments) {
-        const total = payments
-          .filter((p) => p.payment_status === "paid")
-          .reduce((sum, p) => sum + Number(p.total_amount), 0);
-        const pending = payments
-          .filter((p) => p.payment_status === "pending")
-          .reduce((sum, p) => sum + Number(p.total_amount), 0);
-        setEarnings({ total, pending });
+        const total = payments.reduce((sum, p) => sum + Number(p.total_amount || 0), 0);
+        setEarnings({ total, pending: 0 });
       }
 
       // Stats from profile
@@ -106,14 +103,14 @@ const ProviderDashboardHome = () => {
         const { data: completedJobs } = await supabase
           .from("jobs")
           .select("id", { count: "exact" })
-          .eq("tasker_id", user?.id)
+          .eq("provider_id", profile.id)
           .eq("status", "completed");
 
         const { data: activeJobs } = await supabase
           .from("jobs")
           .select("id", { count: "exact" })
-          .eq("tasker_id", user?.id)
-          .in("status", ["pending", "confirmed", "in_progress"]);
+          .eq("provider_id", profile.id)
+          .in("status", ["pending", "confirmed", "in_progress", "assigned"]);
 
         // Fetch reviews
         const { data: reviews } = await supabase

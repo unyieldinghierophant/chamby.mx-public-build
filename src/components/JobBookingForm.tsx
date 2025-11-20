@@ -508,9 +508,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
           location: location,
           photos: uploadedFiles.filter(f => f.uploaded).map(f => f.url),
           rate: 1,
-          status: 'pending',
-          visit_fee_paid: false,
-          payment_status: 'pending',
+          status: 'active', // Set to active immediately
           scheduled_at: scheduledDate.toISOString(),
           time_preference: selectedTimeSlots.join(', '),
           exact_time: needsSpecificTime ? selectedTimeSlots.join(', ') : '',
@@ -527,29 +525,24 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
 
       console.log('✅ Job created successfully:', newJob.id);
 
-      // Call create-visit-payment edge function
-      console.log('💳 Creating payment session...');
-      const { data: paymentData, error: paymentError } = await supabase.functions.invoke(
-        'create-visit-payment',
-        { body: { job_id: newJob.id } }
-      );
-
-      if (paymentError) {
-        console.error('Error creating payment:', paymentError);
-        throw new Error('No se pudo crear la sesión de pago');
+      // Send WhatsApp notification
+      try {
+        await supabase.functions.invoke('send-whatsapp-notification', {
+          body: { 
+            jobId: newJob.id,
+            type: 'new_job_request' 
+          }
+        });
+      } catch (notifError) {
+        console.error('Failed to send notification:', notifError);
+        // Continue anyway - notification is not critical
       }
-
-      if (!paymentData?.url) {
-        throw new Error('No se recibió URL de pago');
-      }
-
-      console.log('✅ Payment session created, redirecting to Stripe...');
       
       // Clear saved form data
       clearFormData();
       
-      // Redirect to Stripe checkout
-      window.location.href = paymentData.url;
+      // Navigate to waiting page
+      navigate(`/esperando-proveedor?job_id=${newJob.id}`);
 
     } catch (error: any) {
       console.error('Error submitting task:', error);

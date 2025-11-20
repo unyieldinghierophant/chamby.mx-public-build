@@ -91,37 +91,30 @@ const ProviderCalendar = () => {
       const monthStart = startOfMonth(currentMonth);
       const monthEnd = endOfMonth(currentMonth);
 
+      // Get provider profile
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!profile) return;
+
       // Fetch assigned jobs
       const { data: assignedJobs, error: assignedError } = await supabase
         .from("jobs")
-        .select(`
-          id,
-          title,
-          scheduled_at,
-          location,
-          status,
-          total_amount,
-          customer:profiles!jobs_customer_id_fkey(full_name)
-        `)
-        .eq("tasker_id", user.id)
-        .in("status", ["pending", "confirmed", "in_progress"])
+        .select("id, title, scheduled_at, location, status, total_amount, client_id")
+        .eq("provider_id", profile.id)
+        .in("status", ["pending", "confirmed", "in_progress", "assigned"])
         .gte("scheduled_at", monthStart.toISOString())
         .lte("scheduled_at", monthEnd.toISOString());
 
       // Fetch available jobs (not assigned yet)
       const { data: availableJobs, error: availableError } = await supabase
         .from("jobs")
-        .select(`
-          id,
-          title,
-          scheduled_at,
-          location,
-          status,
-          total_amount,
-          customer:profiles!jobs_customer_id_fkey(full_name)
-        `)
-        .is("tasker_id", null)
-        .eq("status", "pending")
+        .select("id, title, scheduled_at, location, status, total_amount, client_id")
+        .is("provider_id", null)
+        .eq("status", "active")
         .gte("scheduled_at", monthStart.toISOString())
         .lte("scheduled_at", monthEnd.toISOString());
 

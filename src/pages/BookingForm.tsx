@@ -103,8 +103,8 @@ const BookingForm = () => {
       const { data: booking, error: bookingError } = await supabase
         .from('jobs')
         .insert({
-          customer_id: user.id,
-          tasker_id: job.provider_id,
+          client_id: clientData?.id,
+          provider_id: job.provider_id,
           title: job.title,
           description: specialInstructions || job.description,
           category: job.category,
@@ -113,8 +113,7 @@ const BookingForm = () => {
           total_amount: totalAmount,
           location: address,
           rate: job.rate,
-          status: 'pending',
-          payment_status: 'pending'
+          status: 'pending'
         })
         .select()
         .single();
