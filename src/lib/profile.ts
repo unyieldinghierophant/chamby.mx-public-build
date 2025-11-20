@@ -2,12 +2,10 @@ import { supabase } from "@/integrations/supabase/client";
 
 export interface Profile {
   id: string;
-  user_id: string;
   full_name: string | null;
   phone: string | null;
   avatar_url: string | null;
   bio: string | null;
-  verification_status: string;
   created_at: string;
   updated_at: string;
 }
@@ -35,9 +33,9 @@ export const getCurrentProfile = async (): Promise<Profile | null> => {
   if (!user) return null;
 
   const { data: profile } = await supabase
-    .from("profiles")
+    .from("users")
     .select("*")
-    .eq("user_id", user.id)
+    .eq("id", user.id)
     .single();
 
   return profile;
@@ -48,9 +46,9 @@ export const getCurrentProfile = async (): Promise<Profile | null> => {
  */
 export const getProfileByUserId = async (userId: string): Promise<Profile | null> => {
   const { data: profile } = await supabase
-    .from("profiles")
+    .from("users")
     .select("*")
-    .eq("user_id", userId)
+    .eq("id", userId)
     .single();
 
   return profile;

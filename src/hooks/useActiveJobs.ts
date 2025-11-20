@@ -16,7 +16,7 @@ export interface ActiveJob {
   category: string;
   created_at: string;
   client?: {
-    email: string | null;
+    full_name: string | null;
     phone: string | null;
   };
 }
@@ -44,25 +44,14 @@ export const useActiveJobs = (): UseActiveJobsResult => {
 
     try {
       setLoading(true);
-      
-      // Get provider's profile ID
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("user_id", user.id)
-        .single();
 
-      if (!profile) {
-        throw new Error("Profile not found");
-      }
-
-      const { data, error: fetchError} = await supabase
+      const { data, error: fetchError } = await supabase
         .from('jobs')
         .select(`
           *,
-          client:clients!jobs_client_id_fkey(email, phone)
+          client:users!jobs_client_id_fkey(full_name, phone)
         `)
-        .eq('provider_id', profile.id)
+        .eq('provider_id', user.id)
         .in('status', ['assigned', 'in_progress', 'scheduled'])
         .order('scheduled_at', { ascending: true });
 
@@ -80,22 +69,11 @@ export const useActiveJobs = (): UseActiveJobsResult => {
 
   const completeJob = async (jobId: string) => {
     try {
-      // Get provider's profile ID
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("user_id", user?.id)
-        .single();
-
-      if (!profile) {
-        throw new Error("Profile not found");
-      }
-
       const { error: updateError } = await supabase
         .from('jobs')
         .update({ status: 'completed' })
         .eq('id', jobId)
-        .eq('provider_id', profile.id);
+        .eq('provider_id', user?.id);
 
       if (updateError) throw updateError;
 
@@ -109,22 +87,11 @@ export const useActiveJobs = (): UseActiveJobsResult => {
 
   const cancelJob = async (jobId: string) => {
     try {
-      // Get provider's profile ID
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("user_id", user?.id)
-        .single();
-
-      if (!profile) {
-        throw new Error("Profile not found");
-      }
-
       const { error: updateError } = await supabase
         .from('jobs')
         .update({ status: 'cancelled' })
         .eq('id', jobId)
-        .eq('provider_id', profile.id);
+        .eq('provider_id', user?.id);
 
       if (updateError) throw updateError;
 
@@ -139,7 +106,6 @@ export const useActiveJobs = (): UseActiveJobsResult => {
   useEffect(() => {
     fetchJobs();
 
-    // Subscribe to real-time changes - listen for all job changes and filter client-side
     const subscription = supabase
       .channel('active-jobs')
       .on(

@@ -8,15 +8,11 @@ interface Job {
   description: string | null;
   category: string;
   rate: number;
-  provider_id: string;
+  provider_id: string | null;
+  client_id: string;
   status: string;
   created_at: string;
   updated_at: string;
-  provider?: {
-    id: string;
-    email: string;
-    phone: string | null;
-  };
 }
 
 interface JobFilters {
@@ -104,6 +100,7 @@ export const useProviderJobs = () => {
       const { data, error } = await supabase
         .from('jobs')
         .select('*')
+        .eq('provider_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -126,21 +123,13 @@ export const useProviderJobs = () => {
     if (!user) return { error: 'No user found' };
 
     try {
-      // First get the provider's client ID
-      const { data: clientData, error: clientError } = await supabase
-        .from('clients')
-        .select('id')
-        .eq('email', user.email)
-        .single();
-
-      if (clientError) throw clientError;
-      if (!clientData) throw new Error('Provider not found');
-
       const { data, error } = await supabase
         .from('jobs')
         .insert({
           ...jobData,
-          provider_id: clientData.id
+          client_id: user.id,
+          provider_id: user.id,
+          status: 'active'
         })
         .select()
         .single();

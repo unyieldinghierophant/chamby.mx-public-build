@@ -46,16 +46,16 @@ export const useProviderProfile = (userId?: string) => {
     try {
       // Fetch base profile first
       const { data: baseProfile, error: baseError } = await supabase
-        .from('profiles')
+        .from('users')
         .select('full_name, phone, avatar_url, bio, created_at')
-        .eq('user_id', userId)
+        .eq('id', userId)
         .single();
 
       if (baseError) throw baseError;
 
       // Fetch provider profile
       const { data: providerData, error: providerError } = await supabase
-        .from('provider_profiles')
+        .from('provider_details')
         .select('*')
         .eq('user_id', userId)
         .single();
@@ -70,9 +70,9 @@ export const useProviderProfile = (userId?: string) => {
 
       // Fetch booking stats
       const { data: jobsData, error: jobsError } = await supabase
-        .from('jobs' as any)
+        .from('jobs')
         .select('created_at')
-        .eq('tasker_id', userId);
+        .eq('provider_id', userId);
 
       if (!jobsError && jobsData) {
         const memberSince = new Date(baseProfile.created_at || '').getFullYear().toString();
@@ -101,9 +101,9 @@ export const useProviderProfile = (userId?: string) => {
       // Update base profile if there are base profile fields
       if (full_name !== undefined || phone !== undefined || avatar_url !== undefined || bio !== undefined) {
         const { error: profileError } = await supabase
-          .from('profiles')
+          .from('users')
           .update({ full_name, phone, avatar_url, bio })
-          .eq('user_id', userId);
+          .eq('id', userId);
 
         if (profileError) throw profileError;
       }
@@ -111,7 +111,7 @@ export const useProviderProfile = (userId?: string) => {
       // Update provider profile if there are provider-specific fields
       if (Object.keys(providerUpdates).length > 0) {
         const { error } = await supabase
-          .from('provider_profiles')
+          .from('provider_details')
           .update(providerUpdates)
           .eq('user_id', userId);
 

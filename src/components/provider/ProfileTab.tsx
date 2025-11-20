@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, CheckCircle2, AlertCircle, Upload, Loader2 } from "lucide-react";
+import { Camera, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 
 interface ProfileData {
   full_name: string;
@@ -53,18 +53,16 @@ export const ProfileTab = () => {
     try {
       setLoading(true);
       
-      // Fetch base profile
       const { data: baseProfile, error: baseError } = await supabase
-        .from('profiles')
+        .from('users')
         .select('full_name, phone, bio')
-        .eq('user_id', user.id)
+        .eq('id', user.id)
         .single();
 
       if (baseError) throw baseError;
 
-      // Fetch provider profile
       const { data: providerProfile, error: providerError } = await supabase
-        .from('provider_profiles')
+        .from('provider_details')
         .select('specialty, zone_served, rating, total_reviews, face_photo_url, verified')
         .eq('user_id', user.id)
         .single();
@@ -93,7 +91,6 @@ export const ProfileTab = () => {
     const file = event.target.files?.[0];
     if (!file || !user) return;
 
-    // Validate file type
     if (!file.type.startsWith("image/")) {
       toast({
         title: "Error",
@@ -103,7 +100,6 @@ export const ProfileTab = () => {
       return;
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast({
         title: "Error",
@@ -119,23 +115,20 @@ export const ProfileTab = () => {
       const fileExt = file.name.split(".").pop();
       const fileName = `${user.id}/face-photo.${fileExt}`;
 
-      // Upload to storage
       const { error: uploadError } = await supabase.storage
         .from("provider-photos")
         .upload(fileName, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
-      // Get signed URL (valid for 1 year)
       const { data: signedUrlData, error: urlError } = await supabase.storage
         .from("provider-photos")
         .createSignedUrl(fileName, 31536000);
 
       if (urlError) throw urlError;
 
-      // Update provider profile with photo URL and set verification to pending
       const { error: updateError } = await supabase
-        .from("provider_profiles")
+        .from("provider_details")
         .update({
           face_photo_url: signedUrlData.signedUrl,
           verification_status: 'pending',
@@ -172,21 +165,19 @@ export const ProfileTab = () => {
     setSaving(true);
 
     try {
-      // Update base profile
       const { error: baseError } = await supabase
-        .from('profiles')
+        .from('users')
         .update({
           full_name: profile.full_name,
           phone: profile.phone,
           bio: profile.bio,
         })
-        .eq('user_id', user.id);
+        .eq('id', user.id);
 
       if (baseError) throw baseError;
 
-      // Update provider profile
       const { error: providerError } = await supabase
-        .from('provider_profiles')
+        .from('provider_details')
         .update({
           specialty: profile.specialty,
           zone_served: profile.zone_served,
@@ -221,12 +212,11 @@ export const ProfileTab = () => {
 
   return (
     <div className="space-y-6">
-      {/* Verification Alert */}
       {!profile.verified && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            <strong>Verificación pendiente:</strong> Debes subir una foto de tu rostro para comenzar a recibir trabajos. Los proveedores verificados aparecen primero.
+            <strong>Verificación pendiente:</strong> Debes subir una foto de tu rostro para comenzar a recibir trabajos.
           </AlertDescription>
         </Alert>
       )}
@@ -254,7 +244,6 @@ export const ProfileTab = () => {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Profile Photo */}
           <div className="flex flex-col items-center gap-4">
             <div className="relative">
               <Avatar className="w-32 h-32">
@@ -304,7 +293,6 @@ export const ProfileTab = () => {
             </div>
           </div>
 
-          {/* Profile Form */}
           <div className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="full_name">Nombre completo</Label>
