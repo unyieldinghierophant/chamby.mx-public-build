@@ -63,22 +63,7 @@ const UserAuth = () => {
   const [signupErrors, setSignupErrors] = useState<Record<string, string>>({});
 
   // Redirect to user landing if already authenticated
-  useEffect(() => {
-    if (user && !roleLoading) {
-      const storedReturnTo =
-        localStorage.getItem('auth_return_to') ||
-        sessionStorage.getItem('auth_return_to');
-      const stateReturnTo = (location.state as { returnTo?: string })?.returnTo;
-      const returnTo = storedReturnTo || stateReturnTo || '/user-landing';
-
-      if (storedReturnTo) {
-        localStorage.removeItem('auth_return_to');
-        sessionStorage.removeItem('auth_return_to');
-      }
-
-      navigate(returnTo, { replace: true });
-    }
-  }, [user, roleLoading, navigate, location]);
+  // Removed immediate redirect - all redirects handled via AuthSuccessOverlay
 
   // Note: Navigation is handled by AuthSuccessOverlay, not by useEffect
   // This prevents race conditions between success screen and redirect
@@ -271,14 +256,11 @@ const UserAuth = () => {
     localStorage.removeItem('selected_role');
     localStorage.setItem('login_context', 'client');
     
-    // Clear any stale returnTo values
-    localStorage.removeItem('auth_return_to');
-    sessionStorage.removeItem('auth_return_to');
-    
     // Store return path before OAuth redirect
     const returnTo = (location.state as { returnTo?: string })?.returnTo;
     if (returnTo) {
       sessionStorage.setItem('auth_return_to', returnTo);
+      localStorage.setItem('auth_return_to', returnTo); // Backup for OAuth
     }
     
     const { error } = await signInWithGoogle(false, 'client'); // false = not provider, 'client' = login context

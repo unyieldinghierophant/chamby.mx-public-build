@@ -93,12 +93,7 @@ const TaskerAuth = () => {
   const passwordStrength = calculatePasswordStrength(signupData.password);
 
   // Redirect to provider portal if already authenticated  
-  useEffect(() => {
-    if (user && !roleLoading) {
-      const returnTo = (location.state as { returnTo?: string })?.returnTo || '/provider-portal';
-      navigate(returnTo, { replace: true });
-    }
-  }, [user, roleLoading, navigate, location]);
+  // Removed immediate redirect - all redirects handled via AuthSuccessOverlay
 
   // Note: Navigation is handled by AuthSuccessOverlay, not by useEffect
   // This prevents race conditions between success screen and redirect
@@ -238,14 +233,11 @@ const TaskerAuth = () => {
     localStorage.removeItem('selected_role');
     localStorage.setItem('login_context', 'provider');
     
-    // Clear any stale returnTo values
-    localStorage.removeItem('auth_return_to');
-    sessionStorage.removeItem('auth_return_to');
-    
     // Store return path before OAuth redirect
     const returnTo = (location.state as { returnTo?: string })?.returnTo;
     if (returnTo) {
       sessionStorage.setItem('auth_return_to', returnTo);
+      localStorage.setItem('auth_return_to', returnTo); // Backup for OAuth
     }
     
     const { error } = await signInWithGoogle(true, 'tasker'); // true = provider, 'tasker' = login context
