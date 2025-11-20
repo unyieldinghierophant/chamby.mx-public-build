@@ -196,7 +196,7 @@ const EsperandoProveedor = () => {
             <Button
               variant="outline"
               className="w-full"
-              onClick={() => navigate("/profile")}
+              onClick={() => navigate("/finding-provider?job_id=" + jobId)}
             >
               Ver mis solicitudes
             </Button>

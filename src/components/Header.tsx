@@ -96,7 +96,7 @@ const Header = ({
               <img 
                 src={chambyLogo} 
                 alt="Chamby.mx" 
-                className="h-8 md:h-10 w-auto"
+                className="h-10 md:h-14 w-auto"
               />
             </button>
           </div>
@@ -114,8 +114,8 @@ const Header = ({
             >
               Categorías
             </button>
-            <Link to={ROUTES.BROWSE_TASKS} className="text-foreground/70 hover:text-foreground transition-colors text-base font-normal">
-              Explorar tareas
+            <Link to={ROUTES.ACTIVE_JOBS} className="text-foreground/70 hover:text-foreground transition-colors text-base font-normal">
+              Trabajos activos
             </Link>
             <button 
               onClick={handleHowItWorksClick}
@@ -210,8 +210,8 @@ const Header = ({
               >
                 Categorías
               </button>
-              <Link to={ROUTES.BROWSE_TASKS} className="block py-2 text-base font-normal text-foreground/70 hover:text-foreground">
-                Explorar tareas
+              <Link to={ROUTES.ACTIVE_JOBS} className="block py-2 text-base font-normal text-foreground/70 hover:text-foreground">
+                Trabajos activos
               </Link>
               <button 
                 onClick={handleHowItWorksClick}
