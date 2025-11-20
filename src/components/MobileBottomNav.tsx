@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Home, Briefcase, Heart, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ROUTES } from "@/constants/routes";
 
 const MobileBottomNav = () => {
   const location = useLocation();
@@ -13,13 +14,13 @@ const MobileBottomNav = () => {
   // Update active tab based on current route
   useEffect(() => {
     const path = location.pathname;
-    if (path === "/user-landing" || path === "/search" || path === "/jobs" && location.search.includes("q=")) {
+    if (path === ROUTES.USER_LANDING || path === "/search" || path === "/jobs" && location.search.includes("q=")) {
       setActiveTab("home");
-    } else if (path === "/mobile-jobs") {
+    } else if (path === ROUTES.MOBILE_JOBS) {
       setActiveTab("jobs");
-    } else if (path === "/mobile-favorites") {
+    } else if (path === ROUTES.MOBILE_FAVORITES) {
       setActiveTab("favorites");
-    } else if (path.startsWith("/profile") || path === "/mobile-profile") {
+    } else if (path.startsWith(ROUTES.PROFILE) || path === ROUTES.MOBILE_PROFILE) {
       setActiveTab("profile");
     }
   }, [location]);
@@ -29,25 +30,25 @@ const MobileBottomNav = () => {
       id: "home",
       label: "Inicio",
       icon: Home,
-      path: user ? "/dashboard/user" : "/user-landing",
+      path: user ? ROUTES.DASHBOARD_USER : ROUTES.USER_LANDING,
     },
     {
       id: "jobs",
       label: "Trabajos",
       icon: Briefcase,
-      path: user ? "/mobile-jobs" : "/auth/user",
+      path: user ? ROUTES.MOBILE_JOBS : ROUTES.USER_AUTH,
     },
     {
       id: "favorites",
       label: "Favoritos",
       icon: Heart,
-      path: user ? "/mobile-favorites" : "/auth/user",
+      path: user ? ROUTES.MOBILE_FAVORITES : ROUTES.USER_AUTH,
     },
     {
       id: "profile",
       label: "Perfil",
       icon: User,
-      path: user ? "/mobile-profile" : "/auth/user",
+      path: user ? ROUTES.MOBILE_PROFILE : ROUTES.USER_AUTH,
     },
   ];
 

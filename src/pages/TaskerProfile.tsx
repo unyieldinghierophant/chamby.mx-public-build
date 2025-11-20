@@ -1,6 +1,7 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsProvider } from '@/hooks/useIsProvider';
+import { ROUTES } from '@/constants/routes';
 
 const TaskerProfile = () => {
   const { user, loading: authLoading } = useAuth();
@@ -16,13 +17,13 @@ const TaskerProfile = () => {
   }
   
   // Redirect to login if not authenticated
-  if (!user) return <Navigate to="/auth/tasker" replace />;
+  if (!user) return <Navigate to={ROUTES.TASKER_AUTH} replace />;
   
   // Redirect to user landing if not a provider
-  if (!isProvider) return <Navigate to="/user-landing" replace />;
+  if (!isProvider) return <Navigate to={ROUTES.USER_LANDING} replace />;
 
   // Redirect providers to the provider portal profile edit page
-  return <Navigate to="/provider-portal/profile" replace />;
+  return <Navigate to={ROUTES.PROVIDER_PROFILE} replace />;
 };
 
 export default TaskerProfile;

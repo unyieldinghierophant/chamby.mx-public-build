@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
+import { ROUTES } from "@/constants/routes";
 
 const ProviderPortal = () => {
   const { user, loading: authLoading } = useAuth();
@@ -23,7 +24,7 @@ const ProviderPortal = () => {
 
   // Redirect to login if not authenticated
   if (!user) {
-    return <Navigate to="/auth/tasker" replace />;
+    return <Navigate to={ROUTES.TASKER_AUTH} replace />;
   }
 
   // Check if user has provider role
@@ -43,7 +44,7 @@ const ProviderPortal = () => {
   if (loginContext !== 'tasker' && profile) {
     hasProviderRole().then(isProvider => {
       if (!isProvider) {
-        window.location.href = '/become-provider';
+        window.location.href = ROUTES.BECOME_PROVIDER;
       }
     });
   }
