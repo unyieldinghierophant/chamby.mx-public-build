@@ -91,39 +91,39 @@ const ProviderCalendar = () => {
       const monthStart = startOfMonth(currentMonth);
       const monthEnd = endOfMonth(currentMonth);
 
-      // Fetch assigned bookings
+      // Fetch assigned jobs
       const { data: assignedJobs, error: assignedError } = await supabase
-        .from("bookings")
+        .from("jobs")
         .select(`
           id,
           title,
-          scheduled_date,
-          address,
+          scheduled_at,
+          location,
           status,
           total_amount,
-          customer:profiles!bookings_customer_id_fkey(full_name)
+          customer:profiles!jobs_customer_id_fkey(full_name)
         `)
         .eq("tasker_id", user.id)
         .in("status", ["pending", "confirmed", "in_progress"])
-        .gte("scheduled_date", monthStart.toISOString())
-        .lte("scheduled_date", monthEnd.toISOString());
+        .gte("scheduled_at", monthStart.toISOString())
+        .lte("scheduled_at", monthEnd.toISOString());
 
-      // Fetch available bookings (not assigned yet)
+      // Fetch available jobs (not assigned yet)
       const { data: availableJobs, error: availableError } = await supabase
-        .from("bookings")
+        .from("jobs")
         .select(`
           id,
           title,
-          scheduled_date,
-          address,
+          scheduled_at,
+          location,
           status,
           total_amount,
-          customer:profiles!bookings_customer_id_fkey(full_name)
+          customer:profiles!jobs_customer_id_fkey(full_name)
         `)
         .is("tasker_id", null)
         .eq("status", "pending")
-        .gte("scheduled_date", monthStart.toISOString())
-        .lte("scheduled_date", monthEnd.toISOString());
+        .gte("scheduled_at", monthStart.toISOString())
+        .lte("scheduled_at", monthEnd.toISOString());
 
       // Fetch available job requests from jobs table
       const { data: jobRequests, error: jobRequestsError } = await supabase
@@ -143,6 +143,8 @@ const ProviderCalendar = () => {
       // Mark available jobs with a special status
       const markedAvailableJobs = (availableJobs || []).map(job => ({
         ...job,
+        scheduled_date: job.scheduled_at,
+        address: job.location || "Sin dirección",
         status: 'available'
       }));
 
@@ -163,7 +165,7 @@ const ProviderCalendar = () => {
             id: job.id,
             title: job.title,
             scheduled_date: job.scheduled_at,
-            address: job.location,
+            address: job.location || "Sin dirección",
             status: 'available',
             total_amount: job.rate,
             customer: { full_name: customerName }
@@ -171,7 +173,15 @@ const ProviderCalendar = () => {
         })
       );
 
-      setJobs([...(assignedJobs || []), ...markedAvailableJobs, ...formattedJobRequests]);
+      setJobs([
+        ...(assignedJobs || []).map((job: any) => ({
+          ...job,
+          scheduled_date: job.scheduled_at,
+          address: job.location || "Sin dirección"
+        })),
+        ...markedAvailableJobs,
+        ...formattedJobRequests
+      ]);
     } catch (error) {
       console.error("Error fetching jobs:", error);
     } finally {

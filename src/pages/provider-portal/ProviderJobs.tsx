@@ -59,18 +59,22 @@ const ProviderJobs = () => {
     setLoadingFuture(true);
     try {
       const { data, error } = await supabase
-        .from('bookings')
+        .from('jobs')
         .select(`
           *,
-          customer:profiles!bookings_customer_id_fkey(full_name)
+          customer:profiles!jobs_customer_id_fkey(full_name)
         `)
         .eq('tasker_id', user.id)
         .eq('status', 'confirmed')
-        .gt('scheduled_date', new Date().toISOString())
-        .order('scheduled_date', { ascending: true });
+        .gt('scheduled_at', new Date().toISOString())
+        .order('scheduled_at', { ascending: true });
 
       if (error) throw error;
-      setFutureJobs(data || []);
+      setFutureJobs((data || []).map((job: any) => ({
+        ...job,
+        scheduled_date: job.scheduled_at,
+        address: job.location || "Sin dirección"
+      })));
     } catch (error) {
       console.error('Error fetching future jobs:', error);
     } finally {
@@ -84,18 +88,21 @@ const ProviderJobs = () => {
     setLoadingHistory(true);
     try {
       const { data, error } = await supabase
-        .from('bookings')
+        .from('jobs')
         .select(`
           *,
-          customer:profiles!bookings_customer_id_fkey(full_name)
+          customer:profiles!jobs_customer_id_fkey(full_name)
         `)
         .eq('tasker_id', user.id)
         .in('status', ['completed', 'cancelled'])
-        .order('scheduled_date', { ascending: false })
+        .order('scheduled_at', { ascending: false })
         .limit(50);
 
       if (error) throw error;
-      setHistoricalJobs(data || []);
+      setHistoricalJobs((data || []).map((job: any) => ({
+        ...job,
+        scheduled_date: job.scheduled_at
+      })));
     } catch (error) {
       console.error('Error fetching historical jobs:', error);
     } finally {
