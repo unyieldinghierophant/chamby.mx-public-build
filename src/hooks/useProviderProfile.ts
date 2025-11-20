@@ -70,7 +70,7 @@ export const useProviderProfile = (userId?: string) => {
 
       // Fetch booking stats
       const { data: jobsData, error: jobsError } = await supabase
-        .from('jobs')
+        .from('jobs' as any)
         .select('created_at')
         .eq('tasker_id', userId);
 

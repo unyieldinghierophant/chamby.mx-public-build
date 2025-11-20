@@ -75,7 +75,7 @@ const ProviderMap = () => {
     try {
       // Fetch assigned jobs
       const { data: assignedJobs, error: assignedError } = await supabase
-        .from("jobs")
+        .from("jobs" as any)
         .select(`
           id,
           title,
