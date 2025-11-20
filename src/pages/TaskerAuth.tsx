@@ -188,10 +188,30 @@ const TaskerAuth = () => {
     );
     
     if (error) {
+      // Translate common error messages to Spanish
+      let errorMessage = error.message;
+      let errorField = 'email';
+      
+      // Check if it's a password-related error
+      if (error.message.toLowerCase().includes('password')) {
+        errorField = 'password';
+        if (error.message.includes('weak') || error.message.includes('easy to guess')) {
+          errorMessage = 'La contraseña es débil y fácil de adivinar, por favor elige una diferente.';
+        } else if (error.message.includes('short')) {
+          errorMessage = 'La contraseña es demasiado corta.';
+        } else {
+          errorMessage = 'La contraseña no cumple con los requisitos de seguridad.';
+        }
+      } else if (error.message.includes('already registered') || error.message.includes('already exists')) {
+        errorMessage = 'Este email ya está registrado.';
+      } else if (error.message.includes('invalid email')) {
+        errorMessage = 'El email no es válido.';
+      }
+      
       toast.error('Error en el registro', {
-        description: error.message
+        description: errorMessage
       });
-      setSignupErrors({ email: error.message });
+      setSignupErrors({ [errorField]: errorMessage });
     } else {
       // Show email verification modal instead of success overlay
       setVerificationEmail(signupData.email);

@@ -47,7 +47,7 @@ const UserProfile = () => {
     <div className="min-h-screen bg-gradient-main bg-gradient-mesh">
       <Header />
       
-      <main className="pt-24 pb-16">
+      <main className="pt-40 pb-16">
         <div className="container mx-auto px-4 max-w-4xl">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-foreground mb-2">Mi Cuenta</h1>
