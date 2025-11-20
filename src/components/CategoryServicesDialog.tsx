@@ -24,6 +24,9 @@ export const CategoryServicesDialog = ({
   const navigate = useNavigate();
 
   const handleServiceClick = (service: ServiceOption) => {
+    // Clear any saved form data to start fresh
+    localStorage.removeItem('job_booking_form');
+    
     navigate('/book-job', {
       state: {
         category,
