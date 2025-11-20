@@ -6,6 +6,7 @@ import heroImage from "@/assets/hero-services.jpg";
 import { AISearchBar } from "@/components/AISearchBar";
 import { useAuth } from "@/contexts/AuthContext";
 import { CategoryTabs } from "@/components/CategoryTabs";
+import { SavedJobBanner } from "@/components/SavedJobBanner";
 import chatbotAstronaut from "@/assets/chatbot-astronaut.png";
 import moneyBagIcon from "@/assets/money-bag-icon.png";
 import medchargeLogo from "@/assets/medcharge-logo.webp";
@@ -17,6 +18,9 @@ const Hero = () => {
     user
   } = useAuth();
   return <section className="relative min-h-screen bg-background flex items-start justify-center pt-4 md:pt-6 overflow-hidden">
+      {/* Saved Job Banner */}
+      <SavedJobBanner />
+      
       <div className="w-[96%] md:w-[98%] mx-auto relative z-10 mt-0">
         <div className="text-center space-y-6">
           {/* Floating Blue Card Container */}

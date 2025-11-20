@@ -30,6 +30,9 @@ export const CategoryTabs = () => {
   const services = currentCategory ? categoryServicesMap[currentCategory.dataKey] || [] : [];
 
   const handleServiceClick = (serviceName: string, description: string) => {
+    // Clear any saved form data to start fresh
+    localStorage.removeItem('job_booking_form');
+    
     // Navigate to booking with pre-selected service and description
     navigate(`/book-job?service=${encodeURIComponent(serviceName)}&description=${encodeURIComponent(description)}`);
   };
