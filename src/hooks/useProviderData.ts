@@ -39,29 +39,40 @@ export const useProviderData = () => {
     try {
       setLoading(true);
 
-      // Fetch completed jobs
+      // Get provider's profile ID
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!profile) {
+        throw new Error("Profile not found");
+      }
+
+      // Fetch completed jobs using provider_id (profiles.id)
       const { data: completedBookings, error: completedError } = await supabase
         .from("jobs")
         .select("id", { count: "exact" })
-        .eq("tasker_id", user.id)
+        .eq("provider_id", profile.id)
         .eq("status", "completed");
 
       if (completedError) throw completedError;
 
-      // Fetch active jobs
+      // Fetch active jobs using provider_id
       const { data: activeBookings, error: activeError } = await supabase
         .from("jobs")
         .select("id", { count: "exact" })
-        .eq("tasker_id", user.id)
-        .in("status", ["pending", "confirmed", "in_progress"]);
+        .eq("provider_id", profile.id)
+        .in("status", ["assigned", "in_progress", "scheduled"]);
 
       if (activeError) throw activeError;
 
-      // Fetch earnings
+      // Fetch earnings using provider_id
       const { data: payments, error: paymentsError } = await supabase
         .from("jobs")
         .select("total_amount, payment_status")
-        .eq("tasker_id", user.id);
+        .eq("provider_id", profile.id);
 
       if (paymentsError) throw paymentsError;
 
@@ -73,7 +84,7 @@ export const useProviderData = () => {
         ?.filter((p) => p.payment_status === "pending")
         .reduce((sum, p) => sum + Number(p.total_amount), 0) || 0;
 
-      // Fetch reviews
+      // Fetch reviews using auth user_id (reviews.provider_id references auth.users.id)
       const { data: reviews, error: reviewsError } = await supabase
         .from("reviews")
         .select("rating")
