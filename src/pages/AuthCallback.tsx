@@ -188,17 +188,17 @@ const AuthCallback = () => {
       
       if (returnTo) {
         console.log('[AuthCallback] Redirecting to stored path:', returnTo);
-        navigate(returnTo);
+        navigate(returnTo, { replace: true });
         return;
       }
 
       // Redirect based on selected role
       if (selectedRole === 'provider' || selectedRole === 'admin') {
         console.log('[AuthCallback] Redirecting to provider portal');
-        navigate('/provider-portal');
+        navigate('/provider-portal', { replace: true });
       } else {
         console.log('[AuthCallback] Redirecting to user landing');
-        navigate('/user-landing');
+        navigate('/user-landing', { replace: true });
       }
     } catch (error) {
       console.error('[AuthCallback] Error during redirect:', error);

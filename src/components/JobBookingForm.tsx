@@ -190,7 +190,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
   // Get category from route state
   const category = locationState?.category;
 
-  // Load saved form data on mount and check for post-auth return
+  // Load saved form data on mount
   useEffect(() => {
     const savedData = loadFormData();
     if (savedData) {
@@ -216,11 +216,8 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
         setUploadedFiles(restoredFiles);
       }
       
-      // If user just authenticated and should see confirmation
-      if (savedData.showConfirmationOnReturn && user) {
-        // Auto-submit to generate WhatsApp link and show confirmation
-        handleSubmit();
-      } else {
+      // Show toast if not auto-submitting
+      if (!savedData.showConfirmationOnReturn) {
         toast({
           title: "Progreso restaurado",
           description: "Hemos recuperado tu trabajo anterior",
@@ -228,6 +225,19 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
       }
     }
     setIsLoadingForm(false);
+  }, []);
+
+  // Auto-submit form after successful authentication
+  useEffect(() => {
+    const savedData = loadFormData();
+    if (savedData?.showConfirmationOnReturn && user && !isSubmitting) {
+      console.log('User returned from auth, auto-submitting form...');
+      // Clear the flag to prevent re-submission
+      const updatedData = { ...savedData, showConfirmationOnReturn: false };
+      saveFormData(updatedData);
+      // Auto-submit
+      handleSubmit();
+    }
   }, [user]);
 
   // Update form when initialService or initialDescription changes
@@ -498,7 +508,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
           location: location,
           photos: uploadedFiles.filter(f => f.uploaded).map(f => f.url),
           rate: 1,
-          status: 'active',
+          status: 'pending',
           visit_fee_paid: false,
           payment_status: 'pending',
           scheduled_at: scheduledDate.toISOString(),
@@ -517,33 +527,29 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
 
       console.log('✅ Job created successfully:', newJob.id);
 
-      // Send WhatsApp notification
-      console.log('📱 Sending WhatsApp notification...');
-      const { error: whatsappError } = await supabase.functions.invoke(
-        "send-whatsapp-notification",
-        { 
-          body: { 
-            job_id: newJob.id,
-            type: 'new_job_request',
-            message: `Nueva solicitud: ${taskDescription} en ${location}`
-          } 
-        }
+      // Call create-visit-payment edge function
+      console.log('💳 Creating payment session...');
+      const { data: paymentData, error: paymentError } = await supabase.functions.invoke(
+        'create-visit-payment',
+        { body: { job_id: newJob.id } }
       );
 
-      if (whatsappError) {
-        console.error('Error sending WhatsApp:', whatsappError);
+      if (paymentError) {
+        console.error('Error creating payment:', paymentError);
+        throw new Error('No se pudo crear la sesión de pago');
       }
 
-      // Clear saved form data and show success
+      if (!paymentData?.url) {
+        throw new Error('No se recibió URL de pago');
+      }
+
+      console.log('✅ Payment session created, redirecting to Stripe...');
+      
+      // Clear saved form data
       clearFormData();
       
-      toast({
-        title: "✅ Solicitud enviada",
-        description: "Un proveedor se pondrá en contacto contigo pronto.",
-      });
-
-      // Navigate to success or jobs page
-      navigate('/jobs');
+      // Redirect to Stripe checkout
+      window.location.href = paymentData.url;
 
     } catch (error: any) {
       console.error('Error submitting task:', error);
