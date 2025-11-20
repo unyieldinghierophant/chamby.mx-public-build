@@ -5,12 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useProfile } from "@/hooks/useProfile";
+import { useAuth } from "@/contexts/AuthContext";
+import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { useToast } from "@/hooks/use-toast";
 import { Camera } from "lucide-react";
 
 const ProviderProfileEdit = () => {
-  const { profile, updateProfile } = useProfile();
+  const { user } = useAuth();
+  const { profile, updateProfile } = useProviderProfile(user?.id);
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     full_name: profile?.full_name || "",
@@ -18,6 +20,17 @@ const ProviderProfileEdit = () => {
     bio: profile?.bio || "",
   });
   const [saving, setSaving] = useState(false);
+
+  // Update form data when profile loads
+  useState(() => {
+    if (profile) {
+      setFormData({
+        full_name: profile.full_name || "",
+        phone: profile.phone || "",
+        bio: profile.bio || "",
+      });
+    }
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

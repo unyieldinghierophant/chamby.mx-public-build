@@ -80,6 +80,36 @@ export type Database = {
         }
         Relationships: []
       }
+      client_profiles: {
+        Row: {
+          address: string | null
+          age: number | null
+          created_at: string | null
+          id: string
+          phone_verified: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          age?: number | null
+          created_at?: string | null
+          id?: string
+          phone_verified?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          age?: number | null
+          created_at?: string | null
+          id?: string
+          phone_verified?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           address: string | null
@@ -501,67 +531,34 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           created_at: string
-          face_photo_url: string | null
-          fcm_token: string | null
           full_name: string | null
-          hourly_rate: number | null
           id: string
-          is_tasker: boolean | null
-          payment_schedule: string | null
           phone: string | null
-          rating: number | null
-          skills: string[] | null
-          specialty: string | null
-          total_reviews: number | null
           updated_at: string
           user_id: string
           verification_status: string | null
-          verified: boolean | null
-          zone_served: string | null
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
-          face_photo_url?: string | null
-          fcm_token?: string | null
           full_name?: string | null
-          hourly_rate?: number | null
           id?: string
-          is_tasker?: boolean | null
-          payment_schedule?: string | null
           phone?: string | null
-          rating?: number | null
-          skills?: string[] | null
-          specialty?: string | null
-          total_reviews?: number | null
           updated_at?: string
           user_id: string
           verification_status?: string | null
-          verified?: boolean | null
-          zone_served?: string | null
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
-          face_photo_url?: string | null
-          fcm_token?: string | null
           full_name?: string | null
-          hourly_rate?: number | null
           id?: string
-          is_tasker?: boolean | null
-          payment_schedule?: string | null
           phone?: string | null
-          rating?: number | null
-          skills?: string[] | null
-          specialty?: string | null
-          total_reviews?: number | null
           updated_at?: string
           user_id?: string
           verification_status?: string | null
-          verified?: boolean | null
-          zone_served?: string | null
         }
         Relationships: []
       }
@@ -608,6 +605,60 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
         ]
+      }
+      provider_profiles: {
+        Row: {
+          created_at: string | null
+          face_photo_url: string | null
+          fcm_token: string | null
+          hourly_rate: number | null
+          id: string
+          payment_schedule: string | null
+          rating: number | null
+          skills: string[] | null
+          specialty: string | null
+          total_reviews: number | null
+          updated_at: string | null
+          user_id: string
+          verification_status: string | null
+          verified: boolean | null
+          zone_served: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          face_photo_url?: string | null
+          fcm_token?: string | null
+          hourly_rate?: number | null
+          id?: string
+          payment_schedule?: string | null
+          rating?: number | null
+          skills?: string[] | null
+          specialty?: string | null
+          total_reviews?: number | null
+          updated_at?: string | null
+          user_id: string
+          verification_status?: string | null
+          verified?: boolean | null
+          zone_served?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          face_photo_url?: string | null
+          fcm_token?: string | null
+          hourly_rate?: number | null
+          id?: string
+          payment_schedule?: string | null
+          rating?: number | null
+          skills?: string[] | null
+          specialty?: string | null
+          total_reviews?: number | null
+          updated_at?: string | null
+          user_id?: string
+          verification_status?: string | null
+          verified?: boolean | null
+          zone_served?: string | null
+        }
+        Relationships: []
       }
       reviews: {
         Row: {

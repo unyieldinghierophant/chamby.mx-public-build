@@ -25,10 +25,26 @@ const ProviderPortal = () => {
     return <Navigate to="/auth/tasker" replace />;
   }
 
-  // Allow access if login context was 'tasker' (new signups) or if already a tasker
+  // Check if user has provider role
   const loginContext = localStorage.getItem('login_context');
-  if (!profile?.is_tasker && loginContext !== 'tasker') {
-    return <Navigate to="/become-provider" replace />;
+  const hasProviderRole = async () => {
+    const { data } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'provider')
+      .single();
+    
+    return !!data;
+  };
+
+  // If not a provider and not in tasker login context, redirect
+  if (loginContext !== 'tasker' && profile) {
+    hasProviderRole().then(isProvider => {
+      if (!isProvider) {
+        window.location.href = '/become-provider';
+      }
+    });
   }
 
   return (

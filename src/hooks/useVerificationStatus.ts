@@ -15,34 +15,20 @@ export const useVerificationStatus = () => {
       }
 
       try {
-        // Get client data first
-        const { data: clientData } = await supabase
-          .from('clients')
-          .select('id')
-          .eq('email', user.email)
+        // Check provider verification status
+        const { data: providerData } = await supabase
+          .from('provider_profiles')
+          .select('verified, verification_status')
+          .eq('user_id', user.id)
           .single();
 
-        if (!clientData) {
+        if (!providerData) {
           setIsVerified(false);
           setLoading(false);
           return;
         }
 
-        // Check if all required documents are verified
-        const { data: documents } = await supabase
-          .from('documents')
-          .select('doc_type, verification_status')
-          .eq('client_id', clientData.id);
-
-        const requiredDocs = ['id_card', 'proof_of_address', 'criminal_record'];
-        const verifiedDocs = documents?.filter(doc => doc.verification_status === 'verified') || [];
-        const verifiedDocTypes = verifiedDocs.map(doc => doc.doc_type);
-
-        const allRequiredVerified = requiredDocs.every(docType => 
-          verifiedDocTypes.includes(docType)
-        );
-
-        setIsVerified(allRequiredVerified);
+        setIsVerified(providerData.verified && providerData.verification_status === 'verified');
       } catch (error) {
         console.error('Error checking verification status:', error);
         setIsVerified(false);
