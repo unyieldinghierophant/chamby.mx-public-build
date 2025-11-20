@@ -54,12 +54,12 @@ export const useRescheduleRequest = (rescheduleId: string) => {
       let clientInfo = { full_name: 'Cliente', phone: '' };
       if (data.client_id) {
         const { data: clientData } = await supabase
-          .from('clients')
-          .select('email, phone')
+          .from('users')
+          .select('full_name, phone')
           .eq('id', data.client_id)
           .single();
         if (clientData) {
-          clientInfo = { full_name: clientData.email || 'Cliente', phone: clientData.phone || '' };
+          clientInfo = { full_name: clientData.full_name || 'Cliente', phone: clientData.phone || '' };
         }
       }
       

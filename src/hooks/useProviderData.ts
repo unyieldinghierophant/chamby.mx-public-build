@@ -39,22 +39,18 @@ export const useProviderData = () => {
     try {
       setLoading(true);
 
-      // Get provider's profile ID
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("id")
+      // Fetch provider details
+      const { data: providerDetails } = await supabase
+        .from("provider_details")
+        .select("rating, total_reviews")
         .eq("user_id", user.id)
         .single();
 
-      if (!profile) {
-        throw new Error("Profile not found");
-      }
-
-      // Fetch completed jobs using provider_id (profiles.id)
+      // Fetch completed jobs using provider_id (user.id)
       const { data: completedBookings, error: completedError } = await supabase
         .from("jobs")
         .select("id", { count: "exact" })
-        .eq("provider_id", profile.id)
+        .eq("provider_id", user.id)
         .eq("status", "completed");
 
       if (completedError) throw completedError;
@@ -63,7 +59,7 @@ export const useProviderData = () => {
       const { data: activeBookings, error: activeError } = await supabase
         .from("jobs")
         .select("id", { count: "exact" })
-        .eq("provider_id", profile.id)
+        .eq("provider_id", user.id)
         .in("status", ["assigned", "in_progress", "scheduled"]);
 
       if (activeError) throw activeError;
@@ -72,7 +68,7 @@ export const useProviderData = () => {
       const { data: payments, error: paymentsError } = await supabase
         .from("jobs")
         .select("total_amount")
-        .eq("provider_id", profile.id)
+        .eq("provider_id", user.id)
         .eq("status", "completed");
 
       if (paymentsError) throw paymentsError;

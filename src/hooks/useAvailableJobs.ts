@@ -64,14 +64,14 @@ export const useAvailableJobs = (): UseAvailableJobsResult => {
         (jobsData || []).map(async (job) => {
           if (job.client_id) {
             const { data: clientData } = await supabase
-              .from('clients')
-              .select('email, phone')
+              .from('users')
+              .select('full_name, phone')
               .eq('id', job.client_id)
               .single();
             
             return {
               ...job,
-              clients: clientData || { email: null, phone: null }
+              clients: clientData || { full_name: null, phone: null }
             };
           }
           return {

@@ -373,6 +373,30 @@ export type Database = {
         }
         Relationships: []
       }
+      photo_short_links: {
+        Row: {
+          clicks: number | null
+          created_at: string | null
+          full_url: string
+          id: string
+          short_code: string
+        }
+        Insert: {
+          clicks?: number | null
+          created_at?: string | null
+          full_url: string
+          id?: string
+          short_code: string
+        }
+        Update: {
+          clicks?: number | null
+          created_at?: string | null
+          full_url?: string
+          id?: string
+          short_code?: string
+        }
+        Relationships: []
+      }
       provider_details: {
         Row: {
           created_at: string | null

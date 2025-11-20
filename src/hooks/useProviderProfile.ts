@@ -10,7 +10,6 @@ interface ProviderProfile {
   skills: string[] | null;
   specialty: string | null;
   zone_served: string | null;
-  payment_schedule: string;
   verification_status: string;
   face_photo_url: string | null;
   verified: boolean;
