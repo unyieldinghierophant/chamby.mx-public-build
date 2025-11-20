@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useProviderProfile } from "@/hooks/useProviderProfile";
 import {
   Calendar,
   MapPin,
@@ -32,6 +33,7 @@ interface UpcomingJob {
 const ProviderDashboardHome = () => {
   const { user } = useAuth();
   const { profile } = useProfile();
+  const { profile: providerProfile } = useProviderProfile(user?.id);
   const navigate = useNavigate();
   
   // TODO: Re-enable FCM after fixing build issues
@@ -54,20 +56,11 @@ const ProviderDashboardHome = () => {
 
   const fetchDashboardData = async () => {
     try {
-      // Get provider profile
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("user_id", user?.id)
-        .single();
-
-      if (!profile) return;
-
-      // Fetch upcoming jobs
+      // Fetch upcoming jobs using user.id directly
       const { data: jobs } = await supabase
         .from("jobs")
         .select("id, title, scheduled_at, location, status, client_id")
-        .eq("provider_id", profile.id)
+        .eq("provider_id", user?.id)
         .in("status", ["pending", "confirmed", "assigned"])
         .gte("scheduled_at", new Date().toISOString())
         .order("scheduled_at", { ascending: true })
@@ -86,11 +79,11 @@ const ProviderDashboardHome = () => {
         );
       }
 
-      // Fetch earnings
+      // Fetch earnings using user.id
       const { data: payments } = await supabase
         .from("jobs")
         .select("total_amount")
-        .eq("provider_id", profile.id)
+        .eq("provider_id", user?.id)
         .eq("status", "completed");
 
       if (payments) {
@@ -98,37 +91,35 @@ const ProviderDashboardHome = () => {
         setEarnings({ total, pending: 0 });
       }
 
-      // Stats from profile
-      if (profile) {
-        const { data: completedJobs } = await supabase
-          .from("jobs")
-          .select("id", { count: "exact" })
-          .eq("provider_id", profile.id)
-          .eq("status", "completed");
+      // Fetch stats using user.id
+      const { data: completedJobs } = await supabase
+        .from("jobs")
+        .select("id", { count: "exact" })
+        .eq("provider_id", user?.id)
+        .eq("status", "completed");
 
-        const { data: activeJobs } = await supabase
-          .from("jobs")
-          .select("id", { count: "exact" })
-          .eq("provider_id", profile.id)
-          .in("status", ["pending", "confirmed", "in_progress", "assigned"]);
+      const { data: activeJobs } = await supabase
+        .from("jobs")
+        .select("id", { count: "exact" })
+        .eq("provider_id", user?.id)
+        .in("status", ["pending", "confirmed", "in_progress", "assigned"]);
 
-        // Fetch reviews
-        const { data: reviews } = await supabase
-          .from("reviews")
-          .select("rating")
-          .eq("provider_id", user?.id);
+      // Fetch reviews
+      const { data: reviews } = await supabase
+        .from("reviews")
+        .select("rating")
+        .eq("provider_id", user?.id);
 
-        const avgRating = reviews?.length
-          ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-          : 0;
+      const avgRating = reviews?.length
+        ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+        : 0;
 
-        setStats({
-          completedJobs: completedJobs?.length || 0,
-          activeJobs: activeJobs?.length || 0,
-          rating: avgRating,
-          totalReviews: reviews?.length || 0,
-        });
-      }
+      setStats({
+        completedJobs: completedJobs?.length || 0,
+        activeJobs: activeJobs?.length || 0,
+        rating: avgRating,
+        totalReviews: reviews?.length || 0,
+      });
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
     } finally {
@@ -251,7 +242,7 @@ const ProviderDashboardHome = () => {
       </div>
 
       {/* Verification Status */}
-      {profile?.verification_status !== "verified" && (
+      {providerProfile && providerProfile.verification_status !== "verified" && (
         <Card className="border-yellow-500/50 bg-yellow-500/5">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

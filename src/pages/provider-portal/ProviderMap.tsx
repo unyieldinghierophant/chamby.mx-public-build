@@ -131,12 +131,12 @@ const ProviderMap = () => {
         (jobRequests || []).map(async (job) => {
           let customerName = null;
           if (job.client_id) {
-            const { data: clientData } = await supabase
-              .from("clients")
-              .select("email")
+            const { data: userData } = await supabase
+              .from("users")
+              .select("full_name")
               .eq("id", job.client_id)
               .single();
-            customerName = clientData?.email || null;
+            customerName = userData?.full_name || null;
           }
 
           return {

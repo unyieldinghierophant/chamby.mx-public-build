@@ -88,22 +88,10 @@ const BookingForm = () => {
 
       const totalAmount = job.rate * duration;
 
-      // First get the customer's client ID
-      const { data: clientData, error: clientError } = await supabase
-        .from('clients')
-        .select('id')
-        .eq('email', user.email)
-        .single();
-
-      if (clientError) {
-        // If client doesn't exist, we'll use the user.id directly
-        console.warn('Client not found, using user.id directly');
-      }
-
       const { data: booking, error: bookingError } = await supabase
         .from('jobs')
         .insert({
-          client_id: clientData?.id,
+          client_id: user.id,
           provider_id: job.provider_id,
           title: job.title,
           description: specialInstructions || job.description,

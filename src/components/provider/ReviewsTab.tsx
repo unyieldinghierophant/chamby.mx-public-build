@@ -46,9 +46,9 @@ export const ReviewsTab = () => {
       const reviewsWithClients = await Promise.all(
         (reviewsData || []).map(async (review) => {
           const { data: clientData } = await supabase
-            .from("profiles")
+            .from("users")
             .select("full_name, avatar_url")
-            .eq("user_id", review.client_id)
+            .eq("id", review.client_id)
             .single();
 
           return {

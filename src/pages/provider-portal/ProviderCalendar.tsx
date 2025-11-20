@@ -91,20 +91,11 @@ const ProviderCalendar = () => {
       const monthStart = startOfMonth(currentMonth);
       const monthEnd = endOfMonth(currentMonth);
 
-      // Get provider profile
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("user_id", user.id)
-        .single();
-
-      if (!profile) return;
-
-      // Fetch assigned jobs
+      // Fetch assigned jobs using user.id directly
       const { data: assignedJobs, error: assignedError } = await supabase
         .from("jobs")
         .select("id, title, scheduled_at, location, status, total_amount, client_id")
-        .eq("provider_id", profile.id)
+        .eq("provider_id", user.id)
         .in("status", ["pending", "confirmed", "in_progress", "assigned"])
         .gte("scheduled_at", monthStart.toISOString())
         .lte("scheduled_at", monthEnd.toISOString());
@@ -146,12 +137,12 @@ const ProviderCalendar = () => {
         (jobRequests || []).map(async (job) => {
           let customerName = null;
           if (job.client_id) {
-            const { data: clientData } = await supabase
-              .from("clients")
-              .select("email")
+            const { data: userData } = await supabase
+              .from("users")
+              .select("full_name")
               .eq("id", job.client_id)
               .single();
-            customerName = clientData?.email || null;
+            customerName = userData?.full_name || null;
           }
 
           return {
