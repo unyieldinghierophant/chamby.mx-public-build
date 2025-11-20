@@ -58,6 +58,8 @@ import BecomeProvider from "./pages/BecomeProvider";
 import RoleSelection from "./pages/RoleSelection";
 import Blog from "./pages/Blog";
 import HelpCenter from "./pages/HelpCenter";
+import ActiveJobs from "./pages/ActiveJobs";
+import FindingProvider from "./pages/FindingProvider";
 
 const queryClient = new QueryClient();
 
@@ -131,6 +133,8 @@ const App = () => {
               {/* /service/:serviceType route removed - all services are now jobs */}
               <Route path="/booking/:jobId" element={<BookingForm />} />
               <Route path="/esperando-proveedor" element={<EsperandoProveedor />} />
+              <Route path="/active-jobs" element={<ActiveJobs />} />
+              <Route path="/finding-provider" element={<FindingProvider />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/help-center" element={<HelpCenter />} />
               <Route path="/provider-landing" element={<ProviderLanding />} />

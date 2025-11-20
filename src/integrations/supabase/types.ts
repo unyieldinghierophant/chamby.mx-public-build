@@ -400,10 +400,13 @@ export type Database = {
       provider_details: {
         Row: {
           created_at: string | null
+          current_latitude: number | null
+          current_longitude: number | null
           face_photo_url: string | null
           fcm_token: string | null
           hourly_rate: number | null
           id: string
+          last_location_update: string | null
           rating: number | null
           skills: string[] | null
           specialty: string | null
@@ -416,10 +419,13 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          current_latitude?: number | null
+          current_longitude?: number | null
           face_photo_url?: string | null
           fcm_token?: string | null
           hourly_rate?: number | null
           id?: string
+          last_location_update?: string | null
           rating?: number | null
           skills?: string[] | null
           specialty?: string | null
@@ -432,10 +438,13 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          current_latitude?: number | null
+          current_longitude?: number | null
           face_photo_url?: string | null
           fcm_token?: string | null
           hourly_rate?: number | null
           id?: string
+          last_location_update?: string | null
           rating?: number | null
           skills?: string[] | null
           specialty?: string | null
