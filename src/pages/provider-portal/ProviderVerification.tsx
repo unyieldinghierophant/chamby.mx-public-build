@@ -80,7 +80,7 @@ const ProviderVerification = () => {
 
       // Fetch completed jobs count
       const { data: jobs } = await supabase
-        .from("jobs")
+        .from("jobs" as any)
         .select("id", { count: "exact" })
         .eq("tasker_id", user.id)
         .eq("status", "completed");

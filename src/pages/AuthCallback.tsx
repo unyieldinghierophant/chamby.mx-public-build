@@ -47,11 +47,11 @@ const AuthCallback = () => {
     }
   }, []);
 
-  // Check roles and handle multi-role scenario
+  // Check roles and automatically select based on login context
   useEffect(() => {
     const checkUserRoles = async () => {
       if (!authLoading && user && !rolesChecked) {
-        console.log('[AuthCallback] Checking user roles for multi-role handling...');
+        console.log('[AuthCallback] Checking user roles for automatic selection...');
         
         try {
           const { data: userRoles, error } = await supabase
@@ -88,33 +88,42 @@ const AuthCallback = () => {
             if (insertError && insertError.code !== '23505') { // Ignore duplicate error
               console.error('[AuthCallback] Error creating provider role:', insertError);
             } else {
-            // Don't update is_tasker, it's no longer in profiles table
-
               // Add to roles array
               roles.push('provider');
               console.log('[AuthCallback] Provider role created successfully');
             }
           }
 
-          console.log('[AuthCallback] Role check:', {
-            roles,
-            hasMultiple: roles.length > 1
-          });
+          // ✨ AUTOMATIC ROLE SELECTION - No more /choose-role redirect
+          let selectedRole: string;
 
-          // If user has multiple roles, always clear stored role and redirect to picker
-          // This ensures users explicitly choose their role each time they log in
-          if (roles.length > 1) {
-            localStorage.removeItem('selected_role');
-            console.log('[AuthCallback] Multiple roles detected - clearing stored role and showing picker');
-            navigate('/choose-role', { replace: true });
-            return;
+          // If login_context is set, use it to determine role preference
+          if (loginContext === 'provider' || loginContext === 'tasker') {
+            // User came from tasker login - prefer provider role
+            if (roles.includes('provider')) {
+              selectedRole = 'provider';
+            } else if (roles.includes('admin')) {
+              selectedRole = 'admin';
+            } else if (roles.includes('client')) {
+              selectedRole = 'client';
+            } else {
+              selectedRole = 'client'; // Default fallback
+            }
+          } else {
+            // User came from client login (or no context) - prefer client role
+            if (roles.includes('client')) {
+              selectedRole = 'client';
+            } else if (roles.includes('provider')) {
+              selectedRole = 'provider';
+            } else if (roles.includes('admin')) {
+              selectedRole = 'admin';
+            } else {
+              selectedRole = 'client'; // Default fallback
+            }
           }
 
-          // If single role, set it automatically
-          if (roles.length === 1) {
-            console.log('[AuthCallback] Single role detected, setting:', roles[0]);
-            localStorage.setItem('selected_role', roles[0]);
-          }
+          console.log('[AuthCallback] Auto-selected role based on context:', selectedRole);
+          localStorage.setItem('selected_role', selectedRole);
 
           // Show success overlay and continue
           setRolesChecked(true);
@@ -130,7 +139,7 @@ const AuthCallback = () => {
     };
 
     checkUserRoles();
-  }, [authLoading, user, rolesChecked, navigate]);
+  }, [authLoading, user, rolesChecked]);
 
   // Safari ITP handling effect
   useEffect(() => {

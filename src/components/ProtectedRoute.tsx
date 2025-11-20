@@ -1,6 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useProfile } from '@/hooks/useProfile';
+import { useUserRole } from '@/hooks/useUserRole';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -14,9 +14,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requireTasker = false 
 }) => {
   const { user, loading: authLoading } = useAuth();
-  const { profile, loading: profileLoading } = useProfile();
+  const { roles, loading: roleLoading } = useUserRole();
 
-  if (authLoading || (requireTasker && profileLoading)) {
+  // Show loading while checking auth and roles
+  if (authLoading || (requireTasker && roleLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -27,32 +28,27 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
+  // Redirect to login if auth is required and user is not logged in
   if (requireAuth && !user) {
     return <Navigate to="/auth/user" replace />;
   }
 
-  // For tasker routes, check if user is actually a tasker
-  if (requireTasker && !user) {
-    return <Navigate to="/auth/tasker" replace />;
-  }
-
-  // For tasker routes, verify selected_role is provider or admin
-  if (requireTasker && user) {
-    const selectedRole = localStorage.getItem('selected_role');
-    
-    // If no role selected or role is client, redirect to role picker
-    if (!selectedRole || selectedRole === 'client') {
-      console.log('No provider/admin role selected, redirecting to role picker');
-      return <Navigate to="/choose-role" replace />;
+  // For tasker-only routes, verify user has provider or admin role in database
+  if (requireTasker) {
+    if (!user) {
+      return <Navigate to="/auth/tasker" replace />;
     }
     
-    // Additional check: if role is provider but user doesn't have provider role
-    const loginContext = localStorage.getItem('login_context');
-    if (profile && selectedRole === 'provider' && loginContext !== 'tasker') {
-      // Check if user has provider role in database
-      console.log('Checking provider role status');
-      // Role check will be handled by RLS policies
+    // Check if user has provider or admin role in database
+    const hasProviderRole = roles.includes('provider');
+    const hasAdminRole = roles.includes('admin');
+    
+    if (!hasProviderRole && !hasAdminRole) {
+      console.log('[ProtectedRoute] User lacks provider/admin role, redirecting to /become-provider');
+      return <Navigate to="/become-provider" replace />;
     }
+    
+    console.log('[ProtectedRoute] User has required tasker role, allowing access');
   }
 
   return <>{children}</>;
