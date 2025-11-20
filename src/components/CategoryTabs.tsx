@@ -35,24 +35,24 @@ export const CategoryTabs = () => {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4">
+    <div className="w-[96%] md:w-[98%] mx-auto">
       <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
         {/* Category Tabs */}
-        <TabsList className="w-full h-auto bg-background/50 backdrop-blur-sm p-3 rounded-2xl grid grid-cols-4 gap-3">
+        <TabsList className="w-full h-auto bg-background/50 backdrop-blur-sm p-4 rounded-2xl grid grid-cols-4 gap-4">
           {categories.map((category) => (
             <TabsTrigger
               key={category.id}
               value={category.id}
-              className="flex flex-col items-center gap-3 p-4 data-[state=active]:bg-primary/10 data-[state=active]:text-primary rounded-xl transition-all h-auto"
+              className="flex flex-col items-center gap-4 p-5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary rounded-xl transition-all h-auto"
             >
-              <div className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center">
+              <div className="w-20 h-20 md:w-24 md:h-24 flex items-center justify-center">
                 <img 
                   src={category.icon} 
                   alt={category.name} 
                   className="w-full h-full object-contain"
                 />
               </div>
-              <span className="text-sm md:text-base font-medium whitespace-nowrap">
+              <span className="text-base md:text-lg font-medium whitespace-nowrap">
                 {category.name}
               </span>
             </TabsTrigger>
@@ -64,15 +64,15 @@ export const CategoryTabs = () => {
           <TabsContent 
             key={category.id} 
             value={category.id}
-            className="mt-8 animate-in fade-in-50 duration-300"
+            className="mt-10 animate-in fade-in-50 duration-300"
           >
-            <div className="flex flex-wrap gap-3 justify-center pb-6">
+            <div className="flex flex-wrap gap-4 justify-center pb-7">
               {services.map((service) => (
                 <Button
                   key={service.name}
                   onClick={() => handleServiceClick(service.name, service.description)}
                   variant="outline"
-                  className="rounded-full px-6 py-3 h-auto text-sm md:text-base bg-background/50 backdrop-blur-sm hover:bg-primary/10 hover:text-primary hover:border-primary transition-all"
+                  className="rounded-full px-7 py-4 h-auto text-base md:text-lg bg-background/50 backdrop-blur-sm hover:bg-primary/10 hover:text-primary hover:border-primary transition-all"
                 >
                   {service.name}
                 </Button>
