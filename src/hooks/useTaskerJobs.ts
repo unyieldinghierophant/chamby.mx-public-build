@@ -62,17 +62,13 @@ export const useTaskerJobs = () => {
     if (!user) return { error: 'No user found' };
 
     try {
-      // Get the profile
-      const profile = await getCurrentProfile();
-      if (!profile) {
-        throw new Error('Profile not found');
-      }
-
       const { data, error } = await supabase
         .from('jobs')
         .insert({
           ...jobData,
-          provider_id: profile.id
+          client_id: user.id,
+          provider_id: user.id,
+          status: 'active'
         })
         .select()
         .single();

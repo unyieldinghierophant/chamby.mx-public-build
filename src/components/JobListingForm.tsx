@@ -43,17 +43,6 @@ const JobListingForm = ({ onClose, onSuccess }: JobListingFormProps) => {
 
     setIsLoading(true);
     try {
-      // First get the client ID from the clients table
-      const { data: clientData, error: clientError } = await supabase
-        .from('clients')
-        .select('id')
-        .eq('email', user.email)
-        .single();
-
-      if (clientError) {
-        throw new Error('Error finding user profile');
-      }
-
       const { error } = await supabase
         .from('jobs')
         .insert({
@@ -61,7 +50,9 @@ const JobListingForm = ({ onClose, onSuccess }: JobListingFormProps) => {
           description: formData.description,
           category: formData.category,
           rate: parseFloat(formData.rate),
-          provider_id: clientData.id
+          client_id: user.id,
+          provider_id: user.id,
+          status: 'active'
         });
 
       if (error) throw error;

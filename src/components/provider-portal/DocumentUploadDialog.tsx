@@ -46,17 +46,8 @@ export const DocumentUploadDialog = ({
 
     setUploading(true);
     try {
-      // Get client_id
-      const { data: clientData } = await supabase
-        .from("clients")
-        .select("id")
-        .eq("email", user.email)
-        .single();
-
-      if (!clientData) {
-        toast.error("Usuario no encontrado");
-        return;
-      }
+      // Use user.id directly as client_id
+      const clientId = user.id;
 
       // Upload file to storage
       const fileExt = file.name.split(".").pop();

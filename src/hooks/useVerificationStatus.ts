@@ -17,7 +17,7 @@ export const useVerificationStatus = () => {
       try {
         // Check provider verification status
         const { data: providerData } = await supabase
-          .from('provider_profiles')
+          .from('provider_details')
           .select('verified, verification_status')
           .eq('user_id', user.id)
           .single();

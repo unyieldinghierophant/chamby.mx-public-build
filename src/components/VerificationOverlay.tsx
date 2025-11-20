@@ -27,20 +27,12 @@ const VerificationOverlay = ({ onClose }: VerificationOverlayProps) => {
       if (!user) return;
 
       try {
-        const { data: clientData } = await supabase
-          .from('clients')
-          .select('id')
-          .eq('email', user.email)
-          .single();
+        const { data: docs } = await supabase
+          .from('documents')
+          .select('doc_type, verification_status')
+          .eq('client_id', user.id);
 
-        if (clientData) {
-          const { data: docs } = await supabase
-            .from('documents')
-            .select('doc_type, verification_status')
-            .eq('client_id', clientData.id);
-
-          setDocuments(docs || []);
-        }
+        setDocuments(docs || []);
       } catch (error) {
         console.error('Error fetching documents:', error);
       } finally {

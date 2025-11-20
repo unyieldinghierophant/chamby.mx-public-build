@@ -71,7 +71,7 @@ export const JobCardActive = ({ job, onComplete }: JobCardActiveProps) => {
                 </AvatarFallback>
               </Avatar>
               <span className="text-sm text-foreground">
-                {job.client.email || 'Cliente'}
+                {job.client.full_name || 'Cliente'}
               </span>
             </div>
             {job.client.phone && (
