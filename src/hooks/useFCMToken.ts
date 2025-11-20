@@ -44,8 +44,8 @@ export const useFCMToken = () => {
         if (token) {
           console.log("FCM token obtained");
 
-          // Store token in Supabase provider_profiles
-          const { error } = await supabase.from("provider_profiles").update({ fcm_token: token }).eq("user_id", user.id);
+          // Store token in Supabase provider_details
+          const { error } = await supabase.from("provider_details").update({ fcm_token: token }).eq("user_id", user.id);
 
           if (error) {
             console.error("Error storing FCM token:", error);

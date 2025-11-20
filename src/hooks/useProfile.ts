@@ -4,12 +4,10 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface Profile {
   id: string;
-  user_id: string;
   full_name: string | null;
   phone: string | null;
   avatar_url: string | null;
   bio: string | null;
-  verification_status: string;
   created_at: string;
   updated_at: string;
 }
@@ -28,12 +26,12 @@ export const useProfile = () => {
 
     try {
       const { data, error } = await supabase
-        .from('profiles')
+        .from('users')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('id', user.id)
         .single();
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
+      if (error && error.code !== 'PGRST116') {
         throw error;
       }
 
@@ -52,9 +50,9 @@ export const useProfile = () => {
 
     try {
       const { data, error } = await supabase
-        .from('profiles')
+        .from('users')
         .update(updates)
-        .eq('user_id', user.id)
+        .eq('id', user.id)
         .select()
         .single();
 

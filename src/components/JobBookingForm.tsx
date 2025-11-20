@@ -491,25 +491,13 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
         return;
       }
 
-      // Get client_id from clients table
-      const { data: clientData, error: clientError } = await supabase
-        .from('clients')
-        .select('id')
-        .eq('email', user.email)
-        .single();
-
-      if (clientError || !clientData) {
-        console.error('Error fetching client:', clientError);
-        throw new Error('No se pudo obtener información del cliente');
-      }
-
-      // Create job entry in jobs table
+      // Create job entry in jobs table using auth.user.id directly
       const scheduledDate = specificDate || new Date(Date.now() + 24 * 60 * 60 * 1000);
       
       const { data: newJob, error: jobError } = await supabase
         .from('jobs')
         .insert({
-          client_id: clientData.id,
+          client_id: user.id,
           provider_id: null,
           title: taskDescription,
           description: details,
@@ -519,7 +507,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
           location: location,
           photos: uploadedFiles.filter(f => f.uploaded).map(f => f.url),
           rate: 1,
-          status: 'active', // Set to active to match database constraint
+          status: 'pending',
           scheduled_at: scheduledDate.toISOString(),
           time_preference: selectedTimeSlots.join(', '),
           exact_time: needsSpecificTime ? selectedTimeSlots.join(', ') : '',
