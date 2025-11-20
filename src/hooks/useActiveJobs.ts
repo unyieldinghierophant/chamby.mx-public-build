@@ -45,19 +45,32 @@ export const useActiveJobs = (): UseActiveJobsResult => {
     try {
       setLoading(true);
 
-      const { data, error: fetchError } = await supabase
+      const { data: jobsData, error: fetchError } = await supabase
         .from('jobs')
-        .select(`
-          *,
-          client:users!jobs_client_id_fkey(full_name, phone)
-        `)
+        .select('*')
         .eq('provider_id', user.id)
         .in('status', ['assigned', 'in_progress', 'scheduled'])
         .order('scheduled_at', { ascending: true });
 
       if (fetchError) throw fetchError;
 
-      setJobs((data || []) as ActiveJob[]);
+      // Fetch client details for each job
+      const jobsWithClients = await Promise.all(
+        (jobsData || []).map(async (job) => {
+          const { data: clientData } = await supabase
+            .from('users')
+            .select('full_name, phone')
+            .eq('id', job.client_id)
+            .single();
+
+          return {
+            ...job,
+            client: clientData || { full_name: 'Cliente', phone: '' }
+          };
+        })
+      );
+
+      setJobs(jobsWithClients as ActiveJob[]);
       setError(null);
     } catch (err: any) {
       console.error('Error fetching active jobs:', err);

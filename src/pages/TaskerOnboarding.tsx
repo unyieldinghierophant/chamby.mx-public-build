@@ -87,9 +87,9 @@ const TaskerOnboarding = () => {
     if (!user) return;
     
     const { data } = await supabase
-      .from('profiles')
+      .from('users')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('id', user.id)
       .single();
       
     setProfile(data);
@@ -98,24 +98,16 @@ const TaskerOnboarding = () => {
   const checkExistingDocuments = async () => {
     if (!user) return;
     
-    const { data: clientData } = await supabase
-      .from('clients')
-      .select('id')
-      .eq('email', user.email)
-      .single();
+    const { data: docs } = await supabase
+      .from('documents')
+      .select('doc_type')
+      .eq('client_id', user.id);
       
-    if (clientData) {
-      const { data: docs } = await supabase
-        .from('documents')
-        .select('doc_type')
-        .eq('client_id', clientData.id);
-        
-      if (docs) {
-        setDocuments(prev => prev.map(doc => ({
-          ...doc,
-          uploaded: docs.some(d => d.doc_type === doc.type)
-        })));
-      }
+    if (docs) {
+      setDocuments(prev => prev.map(doc => ({
+        ...doc,
+        uploaded: docs.some(d => d.doc_type === doc.type)
+      })));
     }
   };
 
@@ -143,27 +135,6 @@ const TaskerOnboarding = () => {
     setUploading(true);
 
     try {
-      // First, ensure client record exists
-      let { data: clientData } = await supabase
-        .from('clients')
-        .select('id')
-        .eq('email', user.email)
-        .single();
-
-      if (!clientData) {
-        const { data: newClient, error: clientError } = await supabase
-          .from('clients')
-          .insert({
-            email: user.email,
-            phone: profile?.phone || '',
-          })
-          .select('id')
-          .single();
-
-        if (clientError) throw clientError;
-        clientData = newClient;
-      }
-
       // Upload file to storage
       const fileName = `${user.id}/${document.type}_${Date.now()}.${document.file.name.split('.').pop()}`;
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -183,7 +154,7 @@ const TaskerOnboarding = () => {
       const { error: docError } = await supabase
         .from('documents')
         .insert({
-          client_id: clientData.id,
+          client_id: user.id,
           doc_type: document.type,
           file_url: signedUrlData.signedUrl
         });
@@ -208,15 +179,21 @@ const TaskerOnboarding = () => {
     if (!user || !bankAccount.trim()) return;
 
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ 
-          bio: bankAccount, // We'll use bio field to store bank account for now
-          verification_status: 'pending'
-        })
+      // Update user bio with bank account info
+      const { error: userError } = await supabase
+        .from('users')
+        .update({ bio: bankAccount })
+        .eq('id', user.id);
+
+      if (userError) throw userError;
+
+      // Update provider verification status
+      const { error: providerError } = await supabase
+        .from('provider_details')
+        .update({ verification_status: 'pending' })
         .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (providerError) throw providerError;
 
       toast.success('Información bancaria guardada. Tu perfil está siendo revisado.');
       setCurrentStep(3);

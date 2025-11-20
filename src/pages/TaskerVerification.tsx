@@ -38,33 +38,37 @@ const TaskerVerification = () => {
   const fetchProfile = async () => {
     if (!user) return;
     
-    const { data } = await supabase
-      .from('profiles')
+    // Get user data
+    const { data: userData } = await supabase
+      .from('users')
       .select('*')
+      .eq('id', user.id)
+      .single();
+
+    // Get provider verification status
+    const { data: providerData } = await supabase
+      .from('provider_details')
+      .select('verification_status')
       .eq('user_id', user.id)
       .single();
       
-    setProfile(data);
+    if (userData && providerData) {
+      setProfile({
+        ...userData,
+        verification_status: providerData.verification_status || 'pending'
+      });
+    }
   };
 
   const fetchDocuments = async () => {
     if (!user) return;
     
-    const { data: clientData } = await supabase
-      .from('clients')
-      .select('id')
-      .eq('email', user.email)
-      .single();
+    const { data: docs } = await supabase
+      .from('documents')
+      .select('*')
+      .eq('client_id', user.id);
       
-    if (clientData) {
-      const { data: docs } = await supabase
-        .from('documents')
-        .select('*')
-        .eq('client_id', clientData.id);
-        
-      setDocuments(docs || []);
-    }
-    
+    setDocuments(docs || []);
     setLoading(false);
   };
 

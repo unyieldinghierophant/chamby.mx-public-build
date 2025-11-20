@@ -68,7 +68,7 @@ export const DocumentUploadDialog = ({
       const { error: dbError } = await supabase
         .from("documents")
         .insert({
-          client_id: clientData.id,
+          client_id: clientId,
           doc_type: docType,
           file_url: publicUrl,
           verification_status: "pending",

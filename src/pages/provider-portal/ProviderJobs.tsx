@@ -58,19 +58,10 @@ const ProviderJobs = () => {
     
     setLoadingFuture(true);
     try {
-      // Get provider profile
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("user_id", user.id)
-        .single();
-
-      if (!profile) return;
-
       const { data, error } = await supabase
         .from('jobs')
         .select('*')
-        .eq('provider_id', profile.id)
+        .eq('provider_id', user.id)
         .eq('status', 'confirmed')
         .gt('scheduled_at', new Date().toISOString())
         .order('scheduled_at', { ascending: true });
@@ -93,19 +84,10 @@ const ProviderJobs = () => {
     
     setLoadingHistory(true);
     try {
-      // Get provider profile
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("user_id", user.id)
-        .single();
-
-      if (!profile) return;
-
       const { data, error } = await supabase
         .from('jobs')
         .select('*')
-        .eq('provider_id', profile.id)
+        .eq('provider_id', user.id)
         .in('status', ['completed', 'cancelled'])
         .order('scheduled_at', { ascending: false })
         .limit(50);

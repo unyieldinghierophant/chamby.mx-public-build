@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, Circle, Upload, UserCheck, Award } from "lucide-react";
-import { useProfile } from "@/hooks/useProfile";
+import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { DocumentUploadDialog } from "@/components/provider-portal/DocumentUploadDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -38,7 +38,7 @@ const verificationSteps = [
 
 const ProviderVerification = () => {
   const { user } = useAuth();
-  const { profile } = useProfile();
+  const { profile: providerProfile } = useProviderProfile(user?.id);
   const [uploadDialog, setUploadDialog] = useState<{
     open: boolean;
     docType: string;
@@ -49,7 +49,7 @@ const ProviderVerification = () => {
   const [completedJobs, setCompletedJobs] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  const isVerified = profile?.verification_status === "verified";
+  const isVerified = providerProfile?.verification_status === "verified";
 
   useEffect(() => {
     if (user) {
@@ -61,28 +61,19 @@ const ProviderVerification = () => {
     if (!user) return;
 
     try {
-      // Get client data
-      const { data: clientData } = await supabase
-        .from("clients")
-        .select("id")
-        .eq("email", user.email)
-        .single();
+      // Fetch documents using user.id
+      const { data: docs } = await supabase
+        .from("documents")
+        .select("*")
+        .eq("client_id", user.id);
 
-      if (clientData) {
-        // Fetch documents
-        const { data: docs } = await supabase
-          .from("documents")
-          .select("*")
-          .eq("client_id", clientData.id);
-
-        setDocuments(docs || []);
-      }
+      setDocuments(docs || []);
 
       // Fetch completed jobs count
       const { data: jobs } = await supabase
-        .from("jobs" as any)
+        .from("jobs")
         .select("id", { count: "exact" })
-        .eq("tasker_id", user.id)
+        .eq("provider_id", user.id)
         .eq("status", "completed");
 
       setCompletedJobs(jobs?.length || 0);

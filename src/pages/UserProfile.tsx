@@ -1,6 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +20,7 @@ const UserProfile = () => {
   const { user } = useAuth();
   const { profile, loading } = useProfile();
   const { role } = useUserRole();
+  const { profile: providerProfile } = useProviderProfile(user?.id);
 
   if (loading) {
     return (
@@ -67,12 +69,12 @@ const UserProfile = () => {
                     {profile?.full_name || 'Usuario'}
                   </h2>
                   <p className="text-muted-foreground">{user?.email}</p>
-                  {role === 'provider' && (
+                  {role === 'provider' && providerProfile && (
                     <Badge 
-                      variant={profile.verification_status === 'verified' ? 'default' : 'secondary'}
+                      variant={providerProfile.verification_status === 'verified' ? 'default' : 'secondary'}
                       className="mt-2"
                     >
-                      {profile.verification_status === 'verified' ? 'Verificado' : 'Pendiente verificación'}
+                      {providerProfile.verification_status === 'verified' ? 'Verificado' : 'Pendiente verificación'}
                     </Badge>
                   )}
                 </div>

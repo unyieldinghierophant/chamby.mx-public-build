@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { useIsProvider } from "@/hooks/useIsProvider";
+import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ const ProfileSettings = () => {
   const { user } = useAuth();
   const { profile, loading, updateProfile } = useProfile();
   const { isProvider } = useIsProvider();
+  const { profile: providerProfile } = useProviderProfile(user?.id);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [isEditing, setIsEditing] = useState(false);
@@ -275,23 +277,23 @@ const ProfileSettings = () => {
                   />
                 </div>
 
-                {isProvider && (
+                {isProvider && providerProfile && (
                   <div className="p-4 bg-muted/50 rounded-lg">
                     <div className="flex items-center justify-between">
                       <div>
                         <Label>Estado de Verificación</Label>
                         <p className="text-sm text-muted-foreground">
-                          {profile.verification_status === 'verified' 
+                          {providerProfile.verification_status === 'verified' 
                             ? 'Tu cuenta está verificada' 
                             : 'Verificación pendiente'
                           }
                         </p>
                       </div>
                       <Badge 
-                        variant={profile.verification_status === 'verified' ? 'default' : 'secondary'}
+                        variant={providerProfile.verification_status === 'verified' ? 'default' : 'secondary'}
                         className="ml-2"
                       >
-                        {profile.verification_status === 'verified' ? 'Verificado' : 'Pendiente'}
+                        {providerProfile.verification_status === 'verified' ? 'Verificado' : 'Pendiente'}
                       </Badge>
                     </div>
                   </div>
