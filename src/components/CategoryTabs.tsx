@@ -31,10 +31,18 @@ export const CategoryTabs = () => {
 
   const handleServiceClick = (serviceName: string, description: string) => {
     // Clear any saved form data to start fresh
-    localStorage.removeItem('job_booking_form');
+    localStorage.removeItem('chamby_form_job-booking');
+    sessionStorage.removeItem('chamby_form_job-booking');
     
-    // Navigate to booking with pre-selected service and description
-    navigate(`/book-job?service=${encodeURIComponent(serviceName)}&description=${encodeURIComponent(description)}`);
+    // Navigate to booking with force-new flag to ensure fresh form
+    navigate(`/book-job?new=${Date.now()}`, {
+      state: {
+        category: currentCategory?.dataKey || 'General',
+        service: serviceName,
+        description: description,
+        forceNew: true // Flag to force fresh form
+      }
+    });
   };
 
   return (

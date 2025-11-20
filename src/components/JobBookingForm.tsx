@@ -164,7 +164,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
   const { user } = useAuth();
   const routeLocation = useLocation();
   const navigate = useNavigate();
-  const locationState = routeLocation.state as { category?: string; service?: string; description?: string } | null;
+  const locationState = routeLocation.state as { category?: string; service?: string; description?: string; forceNew?: boolean } | null;
   const [currentStep, setCurrentStep] = useState(1);
   const [taskDescription, setTaskDescription] = useState(initialService || "");
   const [datePreference, setDatePreference] = useState<DatePreference>('specific');
@@ -192,6 +192,17 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
 
   // Load saved form data on mount
   useEffect(() => {
+    // Check if this is a forced new form (from service button click)
+    const isForceNew = locationState?.forceNew === true;
+    
+    if (isForceNew) {
+      // Clear any saved data for force-new requests
+      clearFormData();
+      console.log('🆕 Force new form - cleared saved data');
+      setIsLoadingForm(false);
+      return;
+    }
+    
     const savedData = loadFormData();
     if (savedData) {
       setTaskDescription(savedData.taskDescription || "");
