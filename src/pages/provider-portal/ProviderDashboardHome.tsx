@@ -56,20 +56,20 @@ const ProviderDashboardHome = () => {
     try {
       // Fetch upcoming jobs
       const { data: jobs } = await supabase
-        .from("bookings")
+        .from("jobs")
         .select(`
           id,
           title,
-          scheduled_date,
-          address,
+          scheduled_at,
+          location,
           status,
           customer_id,
-          profiles!bookings_customer_id_fkey(full_name)
+          customer:profiles!jobs_customer_id_fkey(full_name)
         `)
         .eq("tasker_id", user?.id)
         .in("status", ["pending", "confirmed"])
-        .gte("scheduled_date", new Date().toISOString())
-        .order("scheduled_date", { ascending: true })
+        .gte("scheduled_at", new Date().toISOString())
+        .order("scheduled_at", { ascending: true })
         .limit(5);
 
       if (jobs) {
@@ -77,17 +77,17 @@ const ProviderDashboardHome = () => {
           jobs.map((job: any) => ({
             id: job.id,
             title: job.title,
-            scheduled_at: job.scheduled_date,
-            address: job.address || "Sin dirección",
+            scheduled_at: job.scheduled_at,
+            address: job.location || "Sin dirección",
             status: job.status,
-            customer_name: job.profiles?.full_name || "Cliente",
+            customer_name: job.customer?.full_name || "Cliente",
           }))
         );
       }
 
       // Fetch earnings
       const { data: payments } = await supabase
-        .from("bookings")
+        .from("jobs")
         .select("total_amount, payment_status")
         .eq("tasker_id", user?.id);
 
@@ -103,14 +103,14 @@ const ProviderDashboardHome = () => {
 
       // Stats from profile
       if (profile) {
-        const { data: completedBookings } = await supabase
-          .from("bookings")
+        const { data: completedJobs } = await supabase
+          .from("jobs")
           .select("id", { count: "exact" })
           .eq("tasker_id", user?.id)
           .eq("status", "completed");
 
-        const { data: activeBookings } = await supabase
-          .from("bookings")
+        const { data: activeJobs } = await supabase
+          .from("jobs")
           .select("id", { count: "exact" })
           .eq("tasker_id", user?.id)
           .in("status", ["pending", "confirmed", "in_progress"]);
@@ -126,8 +126,8 @@ const ProviderDashboardHome = () => {
           : 0;
 
         setStats({
-          completedJobs: completedBookings?.length || 0,
-          activeJobs: activeBookings?.length || 0,
+          completedJobs: completedJobs?.length || 0,
+          activeJobs: activeJobs?.length || 0,
           rating: avgRating,
           totalReviews: reviews?.length || 0,
         });

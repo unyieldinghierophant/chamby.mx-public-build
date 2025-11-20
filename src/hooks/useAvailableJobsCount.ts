@@ -8,7 +8,7 @@ export const useAvailableJobsCount = () => {
   const fetchCount = async () => {
     try {
       const { count: jobCount, error } = await supabase
-        .from('bookings')
+        .from('jobs')
         .select('*', { count: 'exact', head: true })
         .is('tasker_id', null)
         .eq('status', 'pending');
@@ -33,7 +33,7 @@ export const useAvailableJobsCount = () => {
         {
           event: '*',
           schema: 'public',
-          table: 'bookings',
+          table: 'jobs',
           filter: 'tasker_id=is.null'
         },
         () => {

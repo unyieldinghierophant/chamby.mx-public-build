@@ -73,37 +73,37 @@ const ProviderMap = () => {
     if (!user) return;
 
     try {
-      // Fetch assigned bookings
+      // Fetch assigned jobs
       const { data: assignedJobs, error: assignedError } = await supabase
-        .from("bookings")
+        .from("jobs")
         .select(`
           id,
           title,
-          address,
+          location,
           status,
-          scheduled_date,
+          scheduled_at,
           total_amount,
-          customer:profiles!bookings_customer_id_fkey(full_name)
+          customer:profiles!jobs_customer_id_fkey(full_name)
         `)
         .eq("tasker_id", user.id)
         .in("status", ["pending", "confirmed", "in_progress"])
-        .not("address", "is", null);
+        .not("location", "is", null);
 
-      // Fetch available bookings (not assigned yet)
+      // Fetch available jobs (not assigned yet)
       const { data: availableJobs, error: availableError } = await supabase
-        .from("bookings")
+        .from("jobs")
         .select(`
           id,
           title,
-          address,
+          location,
           status,
-          scheduled_date,
+          scheduled_at,
           total_amount,
-          customer:profiles!bookings_customer_id_fkey(full_name)
+          customer:profiles!jobs_customer_id_fkey(full_name)
         `)
         .is("tasker_id", null)
         .eq("status", "pending")
-        .not("address", "is", null);
+        .not("location", "is", null);
 
       // Fetch available job requests from jobs table
       const { data: jobRequests, error: jobRequestsError } = await supabase
@@ -118,10 +118,12 @@ const ProviderMap = () => {
       if (availableError) throw availableError;
       if (jobRequestsError) throw jobRequestsError;
 
-      // Mark available bookings with a special status
+      // Mark available jobs with a special status
       const markedAvailableJobs = (availableJobs || []).map(job => ({
         ...job,
-        status: 'available'
+        status: 'available',
+        scheduled_date: job.scheduled_at,
+        address: job.location || "Sin dirección"
       }));
 
       // Convert job requests to map format
@@ -149,7 +151,15 @@ const ProviderMap = () => {
         })
       );
 
-      const allJobs = [...(assignedJobs || []), ...markedAvailableJobs, ...formattedJobRequests];
+      const allJobs = [
+        ...(assignedJobs || []).map((job: any) => ({
+          ...job,
+          scheduled_date: job.scheduled_at,
+          address: job.location || "Sin dirección"
+        })),
+        ...markedAvailableJobs,
+        ...formattedJobRequests
+      ];
 
       // For demo purposes, assign random coordinates near Guadalajara
       const jobsWithCoords = allJobs.map((job, index) => ({

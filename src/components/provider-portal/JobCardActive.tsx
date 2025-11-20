@@ -118,7 +118,7 @@ export const JobCardActive = ({ job, onComplete }: JobCardActiveProps) => {
         {/* Price */}
         <div className="flex items-center gap-2 text-lg font-semibold text-primary mt-4">
           <DollarSign className="w-5 h-5" />
-          <span>${(job.total_amount || job.rate || 0).toFixed(2)} MXN</span>
+          <span>${(job.total_amount || 0).toFixed(2)} MXN</span>
         </div>
       </CardContent>
 

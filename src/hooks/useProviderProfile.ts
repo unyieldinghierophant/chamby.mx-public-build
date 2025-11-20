@@ -46,15 +46,15 @@ export const useProviderProfile = (providerId: string) => {
       setProfile(profileData);
 
       // Fetch booking stats
-      const { data: bookingsData, error: bookingsError } = await supabase
-        .from('bookings')
+      const { data: jobsData, error: jobsError } = await supabase
+        .from('jobs')
         .select('created_at')
         .eq('tasker_id', profileData?.user_id || '');
 
-      if (!bookingsError && bookingsData) {
+      if (!jobsError && jobsData) {
         const memberSince = new Date(profileData?.created_at || '').getFullYear().toString();
         setStats({
-          total_bookings: bookingsData.length,
+          total_bookings: jobsData.length,
           member_since: memberSince
         });
       }

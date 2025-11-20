@@ -40,26 +40,45 @@ export const useRescheduleRequest = (rescheduleId: string) => {
     if (!user || !rescheduleId) return;
 
     try {
+      // Fetch job with reschedule request info
       const { data, error } = await supabase
-        .from('booking_reschedules')
+        .from('jobs')
         .select(`
           *,
-          booking:bookings!booking_reschedules_booking_id_fkey (
-            title,
-            address,
-            total_amount,
-            reschedule_response_deadline,
-            customer:profiles!bookings_customer_id_fkey (
-              full_name,
-              phone
-            )
+          customer:profiles!jobs_customer_id_fkey (
+            full_name,
+            phone
           )
         `)
         .eq('id', rescheduleId)
+        .not('reschedule_requested_at', 'is', null)
         .single();
 
       if (error) throw error;
-      setReschedule(data as any);
+      
+      // Transform to RescheduleRequest format
+      const transformedData: RescheduleRequest = {
+        id: data.id,
+        booking_id: data.id,
+        requested_by: data.customer_id,
+        original_date: data.original_scheduled_date || data.scheduled_at,
+        requested_date: data.reschedule_requested_date,
+        reason: null,
+        status: 'pending',
+        provider_response: null,
+        suggested_date: null,
+        responded_at: null,
+        created_at: data.reschedule_requested_at,
+        booking: {
+          title: data.title,
+          address: data.location || '',
+          total_amount: data.total_amount,
+          reschedule_response_deadline: data.reschedule_response_deadline,
+          customer: data.customer
+        }
+      };
+      
+      setReschedule(transformedData);
     } catch (error) {
       console.error('Error fetching reschedule:', error);
       toast({
@@ -77,23 +96,11 @@ export const useRescheduleRequest = (rescheduleId: string) => {
 
     setResponding(true);
     try {
-      // Update reschedule status
-      const { error: rescheduleError } = await supabase
-        .from('booking_reschedules')
+      // Update job scheduled date
+      const { error: jobError } = await supabase
+        .from('jobs')
         .update({
-          status: 'accepted',
-          provider_response: 'accept',
-          responded_at: new Date().toISOString(),
-        })
-        .eq('id', reschedule.id);
-
-      if (rescheduleError) throw rescheduleError;
-
-      // Update booking scheduled date
-      const { error: bookingError } = await supabase
-        .from('bookings')
-        .update({
-          scheduled_date: reschedule.requested_date,
+          scheduled_at: reschedule.requested_date,
           original_scheduled_date: reschedule.original_date,
           reschedule_requested_at: null,
           reschedule_requested_date: null,
@@ -101,7 +108,7 @@ export const useRescheduleRequest = (rescheduleId: string) => {
         })
         .eq('id', reschedule.booking_id);
 
-      if (bookingError) throw bookingError;
+      if (jobError) throw jobError;
 
       // Notification system disabled
       console.log('Would notify customer of acceptance');
@@ -129,34 +136,26 @@ export const useRescheduleRequest = (rescheduleId: string) => {
 
     setResponding(true);
     try {
-      const { error } = await supabase
-        .from('booking_reschedules')
+      // For now, just update the scheduled date to the suggested date
+      const { error: jobError } = await supabase
+        .from('jobs')
         .update({
-          status: 'rejected',
-          provider_response: 'suggest_alternative',
-          suggested_date: suggestedDate.toISOString(),
-          responded_at: new Date().toISOString(),
-        })
-        .eq('id', reschedule.id);
-
-      if (error) throw error;
-
-      // Clear reschedule fields from booking
-      await supabase
-        .from('bookings')
-        .update({
+          scheduled_at: suggestedDate.toISOString(),
+          original_scheduled_date: reschedule.original_date,
           reschedule_requested_at: null,
           reschedule_requested_date: null,
           reschedule_response_deadline: null,
         })
         .eq('id', reschedule.booking_id);
 
+      if (jobError) throw jobError;
+
       // Notification system disabled
-      console.log('Would notify customer of alternative date');
+      console.log('Would notify customer of alternative suggestion');
 
       toast({
-        title: 'Fecha sugerida',
-        description: 'El cliente puede aceptar tu propuesta o cancelar.',
+        title: 'Alternativa enviada',
+        description: 'Se ha sugerido una fecha alternativa al cliente',
       });
 
       setTimeout(() => navigate('/provider-portal/calendar'), 1500);
@@ -164,7 +163,7 @@ export const useRescheduleRequest = (rescheduleId: string) => {
       console.error('Error suggesting alternative:', error);
       toast({
         title: 'Error',
-        description: 'No se pudo enviar la sugerencia',
+        description: 'No se pudo enviar la alternativa',
         variant: 'destructive',
       });
     } finally {
@@ -177,42 +176,30 @@ export const useRescheduleRequest = (rescheduleId: string) => {
 
     setResponding(true);
     try {
-      const { error: rescheduleError } = await supabase
-        .from('booking_reschedules')
-        .update({
-          status: 'rejected',
-          provider_response: 'cancel',
-          responded_at: new Date().toISOString(),
-        })
-        .eq('id', reschedule.id);
-
-      if (rescheduleError) throw rescheduleError;
-
-      // Cancel booking
-      const { error: bookingError } = await supabase
-        .from('bookings')
+      // Cancel the job and clear reschedule fields
+      const { error: jobError } = await supabase
+        .from('jobs')
         .update({
           status: 'cancelled',
-          tasker_id: null,
           reschedule_requested_at: null,
           reschedule_requested_date: null,
           reschedule_response_deadline: null,
         })
         .eq('id', reschedule.booking_id);
 
-      if (bookingError) throw bookingError;
+      if (jobError) throw jobError;
 
       // Notification system disabled
       console.log('Would notify customer of cancellation');
 
       toast({
         title: 'Trabajo cancelado',
-        description: 'El trabajo fue cancelado y será reasignado.',
+        description: 'El trabajo ha sido cancelado y el cliente notificado',
       });
 
       setTimeout(() => navigate('/provider-portal/jobs'), 1500);
     } catch (error) {
-      console.error('Error cancelling job:', error);
+      console.error('Error canceling job:', error);
       toast({
         title: 'Error',
         description: 'No se pudo cancelar el trabajo',

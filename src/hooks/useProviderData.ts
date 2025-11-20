@@ -41,7 +41,7 @@ export const useProviderData = () => {
 
       // Fetch completed jobs
       const { data: completedBookings, error: completedError } = await supabase
-        .from("bookings")
+        .from("jobs")
         .select("id", { count: "exact" })
         .eq("tasker_id", user.id)
         .eq("status", "completed");
@@ -50,7 +50,7 @@ export const useProviderData = () => {
 
       // Fetch active jobs
       const { data: activeBookings, error: activeError } = await supabase
-        .from("bookings")
+        .from("jobs")
         .select("id", { count: "exact" })
         .eq("tasker_id", user.id)
         .in("status", ["pending", "confirmed", "in_progress"]);
@@ -59,7 +59,7 @@ export const useProviderData = () => {
 
       // Fetch earnings
       const { data: payments, error: paymentsError } = await supabase
-        .from("bookings")
+        .from("jobs")
         .select("total_amount, payment_status")
         .eq("tasker_id", user.id);
 
