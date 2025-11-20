@@ -41,17 +41,17 @@ const ProviderPayments = () => {
 
   const isVerified = profile?.verification_status === "verified";
 
-  // Load payment schedule from profile
+  // Load payment schedule from provider profile
   useEffect(() => {
     if (profile?.user_id) {
       supabase
-        .from("profiles")
+        .from("provider_profiles")
         .select("payment_schedule")
         .eq("user_id", profile.user_id)
         .single()
         .then(({ data }) => {
-          if (data && (data as any).payment_schedule) {
-            setPaymentSchedule((data as any).payment_schedule);
+          if (data?.payment_schedule) {
+            setPaymentSchedule(data.payment_schedule);
           }
         });
     }
@@ -67,7 +67,7 @@ const ProviderPayments = () => {
     
     try {
       const { error } = await supabase
-        .from("profiles")
+        .from("provider_profiles")
         .update({ payment_schedule: value })
         .eq("user_id", profile?.user_id);
 
