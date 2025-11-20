@@ -508,7 +508,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
           location: location,
           photos: uploadedFiles.filter(f => f.uploaded).map(f => f.url),
           rate: 1,
-          status: 'pending', // Set to pending for RLS policy
+          status: 'active', // Set to active to match database constraint
           scheduled_at: scheduledDate.toISOString(),
           time_preference: selectedTimeSlots.join(', '),
           exact_time: needsSpecificTime ? selectedTimeSlots.join(', ') : '',
@@ -1069,7 +1069,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
                 disabled={!canProceedToNextStep() || isSubmitting}
                 className="h-16 px-12 text-lg rounded-full transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-xl shadow-lg"
               >
-                {isSubmitting ? "Procesando..." : "Continuar al pago"}
+                {isSubmitting ? "Procesando..." : "Confirmar servicio"}
               </ModernButton>
             )}
           </div>
