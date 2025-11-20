@@ -227,16 +227,16 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
     setIsLoadingForm(false);
   }, []);
 
-  // Auto-submit form after successful authentication
+  // Show toast when user returns after authentication
   useEffect(() => {
     const savedData = loadFormData();
-    if (savedData?.showConfirmationOnReturn && user && !isSubmitting) {
-      console.log('User returned from auth, auto-submitting form...');
-      // Clear the flag to prevent re-submission
-      const updatedData = { ...savedData, showConfirmationOnReturn: false };
-      saveFormData(updatedData);
-      // Auto-submit
-      handleSubmit();
+    if (user && savedData && !isSubmitting) {
+      console.log('✅ User authenticated, form data restored to step:', savedData.currentStep);
+      // Just show a toast, don't auto-submit
+      toast({
+        title: "Sesión iniciada",
+        description: "Puedes continuar con tu solicitud",
+      });
     }
   }, [user]);
 
@@ -564,7 +564,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
   };
 
   const handleAuthModalLogin = () => {
-    // Save form data before redirect
+    // Save form data before redirect - DON'T auto-submit, let user continue
     const formData = {
       taskDescription,
       datePreference,
@@ -573,16 +573,18 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
       selectedTimeSlots,
       location,
       details,
-      currentStep: 4, // Set to step 4 so they return to final step
+      currentStep, // Save current step (usually 4 - photo upload)
       coordinates,
       uploadedFileUrls: uploadedFiles.filter(f => f.uploaded).map(f => f.url),
-      showConfirmationOnReturn: true // Flag to show confirmation after auth
+      showConfirmationOnReturn: false // DON'T auto-submit
     };
     saveFormData(formData);
     
     // Store return path for auth callback (works for email + OAuth)
     sessionStorage.setItem('auth_return_to', '/book-job');
     localStorage.setItem('auth_return_to', '/book-job');
+    
+    console.log('💾 Saved form data with step:', currentStep);
     
     // Navigate to auth
     navigate('/auth/user');
