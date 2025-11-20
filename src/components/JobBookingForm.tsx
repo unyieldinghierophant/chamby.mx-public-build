@@ -508,7 +508,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
           location: location,
           photos: uploadedFiles.filter(f => f.uploaded).map(f => f.url),
           rate: 1,
-          status: 'active', // Set to active immediately
+          status: 'pending', // Set to pending for RLS policy
           scheduled_at: scheduledDate.toISOString(),
           time_preference: selectedTimeSlots.join(', '),
           exact_time: needsSpecificTime ? selectedTimeSlots.join(', ') : '',
