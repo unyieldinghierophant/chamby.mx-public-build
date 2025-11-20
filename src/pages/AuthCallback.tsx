@@ -88,11 +88,7 @@ const AuthCallback = () => {
             if (insertError && insertError.code !== '23505') { // Ignore duplicate error
               console.error('[AuthCallback] Error creating provider role:', insertError);
             } else {
-              // Update profile to is_tasker = true
-              await supabase
-                .from('profiles')
-                .update({ is_tasker: true })
-                .eq('user_id', user.id);
+            // Don't update is_tasker, it's no longer in profiles table
 
               // Add to roles array
               roles.push('provider');

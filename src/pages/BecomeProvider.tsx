@@ -2,8 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, ArrowRight } from "lucide-react";
-import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/contexts/AuthContext";
+import { useIsProvider } from "@/hooks/useIsProvider";
 
 const benefits = [
   "Trabaja cuando quieras y establece tus propios horarios",
@@ -16,11 +16,11 @@ const benefits = [
 
 const BecomeProvider = () => {
   const navigate = useNavigate();
-  const { profile } = useProfile();
   const { user } = useAuth();
+  const { isProvider } = useIsProvider();
 
   // If already a provider, redirect to portal
-  if (profile?.is_tasker) {
+  if (isProvider) {
     setTimeout(() => navigate("/provider-portal", { replace: true }), 0);
     return null;
   }

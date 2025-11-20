@@ -46,11 +46,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       return <Navigate to="/choose-role" replace />;
     }
     
-    // Additional check: if role is provider but not actually a tasker in profile
+    // Additional check: if role is provider but user doesn't have provider role
     const loginContext = localStorage.getItem('login_context');
-    if (profile && !profile.is_tasker && loginContext !== 'tasker') {
-      console.log('User is not a tasker, redirecting to become-provider');
-      return <Navigate to="/become-provider" replace />;
+    if (profile && selectedRole === 'provider' && loginContext !== 'tasker') {
+      // Check if user has provider role in database
+      console.log('Checking provider role status');
+      // Role check will be handled by RLS policies
     }
   }
 

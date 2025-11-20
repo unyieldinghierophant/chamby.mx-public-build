@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
+import { useUserRole } from "@/hooks/useUserRole";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -550,7 +551,7 @@ const PaymentSettings = () => {
               </CardContent>
             </Card>
 
-            {profile?.is_tasker && (
+            {role === 'provider' && (
               <Card className="bg-card/95 backdrop-blur-sm shadow-raised">
                 <CardHeader>
                   <CardTitle>Información de Facturación</CardTitle>

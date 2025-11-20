@@ -51,8 +51,8 @@ const ProviderLanding = () => {
 
   const handleGetStarted = () => {
     if (user) {
-      // Usuario logueado - verificar si es tasker
-      if (profile?.is_tasker) {
+      // Usuario logueado - verificar si es proveedor
+      if (role === 'provider') {
         navigate('/provider-portal');
       } else {
         navigate('/become-provider');
@@ -67,8 +67,8 @@ const ProviderLanding = () => {
     if (!user) {
       // No logueado - llevar a registro
       navigate('/auth/tasker?tab=signup');
-    } else if (!profile?.is_tasker) {
-      // Logueado pero no es tasker - llevar a onboarding
+    } else if (role !== 'provider') {
+      // Logueado pero no es proveedor - llevar a onboarding
       navigate('/become-provider');
     } else if (!isVerified) {
       // Es tasker pero no verificado - llevar a verificación
@@ -185,7 +185,7 @@ const ProviderLanding = () => {
                     <CreditCard className="mr-2 h-4 w-4" />
                     <span>Pagos</span>
                   </DropdownMenuItem>
-                  {profile?.is_tasker && (
+                  {role === 'provider' && (
                     <DropdownMenuItem onClick={() => navigate("/provider-portal")}>
                       <TrendingUp className="mr-2 h-4 w-4" />
                       <span>Portal de Proveedores</span>
