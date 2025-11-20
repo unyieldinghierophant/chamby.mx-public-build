@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useIsProvider } from "@/hooks/useIsProvider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -34,6 +34,7 @@ interface CardValidation {
 const PaymentSettings = () => {
   const { user } = useAuth();
   const { profile, loading } = useProfile();
+  const { isProvider } = useIsProvider();
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [isAddingCard, setIsAddingCard] = useState(false);
   const [cardForm, setCardForm] = useState({
@@ -551,7 +552,7 @@ const PaymentSettings = () => {
               </CardContent>
             </Card>
 
-            {role === 'provider' && (
+            {isProvider && (
               <Card className="bg-card/95 backdrop-blur-sm shadow-raised">
                 <CardHeader>
                   <CardTitle>Información de Facturación</CardTitle>

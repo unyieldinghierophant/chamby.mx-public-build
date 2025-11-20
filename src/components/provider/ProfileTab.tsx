@@ -51,15 +51,31 @@ export const ProfileTab = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("full_name, specialty, zone_served, phone, bio, face_photo_url, verified, rating, total_reviews")
-        .eq("user_id", user.id)
+      setLoading(true);
+      
+      // Fetch base profile
+      const { data: baseProfile, error: baseError } = await supabase
+        .from('profiles')
+        .select('full_name, phone, bio')
+        .eq('user_id', user.id)
         .single();
 
-      if (error) throw error;
-      if (data) {
-        setProfile(data);
+      if (baseError) throw baseError;
+
+      // Fetch provider profile
+      const { data: providerProfile, error: providerError } = await supabase
+        .from('provider_profiles')
+        .select('specialty, zone_served, rating, total_reviews, face_photo_url, verified')
+        .eq('user_id', user.id)
+        .single();
+
+      if (providerError) throw providerError;
+
+      if (baseProfile && providerProfile) {
+        setProfile({
+          ...baseProfile,
+          ...providerProfile,
+        });
       }
     } catch (error: any) {
       console.error("Error fetching profile:", error);
@@ -117,12 +133,12 @@ export const ProfileTab = () => {
 
       if (urlError) throw urlError;
 
-      // Update profile with photo URL and set verified to true
+      // Update provider profile with photo URL and set verification to pending
       const { error: updateError } = await supabase
-        .from("profiles")
+        .from("provider_profiles")
         .update({
           face_photo_url: signedUrlData.signedUrl,
-          verified: true,
+          verification_status: 'pending',
         })
         .eq("user_id", user.id);
 
@@ -156,17 +172,28 @@ export const ProfileTab = () => {
     setSaving(true);
 
     try {
-      const { error } = await supabase
-        .from("profiles")
+      // Update base profile
+      const { error: baseError } = await supabase
+        .from('profiles')
         .update({
           full_name: profile.full_name,
-          specialty: profile.specialty,
-          zone_served: profile.zone_served,
+          phone: profile.phone,
           bio: profile.bio,
         })
-        .eq("user_id", user.id);
+        .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (baseError) throw baseError;
+
+      // Update provider profile
+      const { error: providerError } = await supabase
+        .from('provider_profiles')
+        .update({
+          specialty: profile.specialty,
+          zone_served: profile.zone_served,
+        })
+        .eq('user_id', user.id);
+
+      if (providerError) throw providerError;
 
       toast({
         title: "Perfil actualizado",
