@@ -17,6 +17,8 @@ import categoryAuto from "@/assets/category-auto.png";
 import categoryPlumbing from "@/assets/category-plumbing.png";
 import categoryElectrician from "@/assets/category-electrician.png";
 import categoryHandyman from "@/assets/category-handyman.png";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { categoryServicesMap } from "@/data/categoryServices";
 const UserLanding = () => {
   const {
     user,
@@ -32,6 +34,7 @@ const UserLanding = () => {
   } = useProfile();
   const navigate = useNavigate();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>('handyman');
   const handleSignOut = async () => {
     setIsLoggingOut(true);
     await signOut();
@@ -66,27 +69,29 @@ const UserLanding = () => {
   if (!user) {
     return null;
   }
-  const categories = [{
-    image: categoryAuto,
-    category: "Auto y Lavado",
-    description: "Lavado, aspirado, encerado, batería",
-    services: ["Lavado exterior completo", "Aspirado interior", "Encerado y pulido", "Cambio de batería", "Mantenimiento básico"]
-  }, {
-    image: categoryPlumbing,
-    category: "Fontanería",
-    description: "Fugas, WC, bombas",
-    services: ["Reparación de fugas", "Reparación de WC", "Instalación de bombas", "Destapado de cañerías", "Cambio de llaves"]
-  }, {
-    image: categoryElectrician,
-    category: "Electricidad",
-    description: "Apagadores, cortos, lámparas",
-    services: ["Instalación de apagadores", "Reparación de cortos circuitos", "Instalación de lámparas", "Revisión de tablero eléctrico", "Cableado eléctrico"]
-  }, {
-    image: categoryHandyman,
-    category: "Handyman",
-    description: "Arreglos, pintura, colgar TV, mover muebles",
-    services: ["Arreglos generales", "Pintura de interiores", "Colgar TV en pared", "Mover muebles", "Montaje de muebles", "Reparaciones menores"]
-  }];
+
+  const categoryTabsData = [
+    { id: 'handyman', name: 'Handyman', icon: categoryHandyman, dataKey: 'Handyman' },
+    { id: 'electrician', name: 'Electricidad', icon: categoryElectrician, dataKey: 'Electricidad' },
+    { id: 'plumbing', name: 'Fontanería', icon: categoryPlumbing, dataKey: 'Fontanería' },
+    { id: 'auto', name: 'Auto y Lavado', icon: categoryAuto, dataKey: 'Auto y Lavado' },
+  ];
+
+  const currentCategory = categoryTabsData.find(cat => cat.id === selectedCategory);
+  const services = currentCategory ? categoryServicesMap[currentCategory.dataKey] || [] : [];
+
+  const handleServiceClick = (serviceName: string, description: string) => {
+    localStorage.removeItem('chamby_form_job-booking');
+    sessionStorage.removeItem('chamby_form_job-booking');
+    navigate(`/book-job?new=${Date.now()}`, {
+      state: {
+        category: currentCategory?.dataKey || 'General',
+        service: serviceName,
+        description: description,
+        forceNew: true
+      }
+    });
+  };
   return <div className="min-h-screen bg-gradient-subtle">
       {/* Simple Header matching home page */}
       <header className="fixed top-0 left-0 right-0 bg-background border-b border-border z-50">
@@ -251,81 +256,53 @@ const UserLanding = () => {
           </div>
         </div>
 
-        {/* Category Buttons with Rubber Hose Characters - Same as Landing Page */}
+        {/* Category Tabs with Service Pills - Same as Landing Page */}
         <div className="mb-12 w-[96%] md:w-[98%] mx-auto">
-          <div className="grid grid-cols-4 gap-4 bg-background/50 backdrop-blur-sm p-4 rounded-2xl">
-            {categories.map((category) => (
-              <button
-                key={category.category}
-                onClick={() => {
-                  localStorage.removeItem('chamby_form_job-booking');
-                  sessionStorage.removeItem('chamby_form_job-booking');
-                  navigate(`/book-job?new=${Date.now()}`, {
-                    state: {
-                      category: category.category,
-                      service: category.services[0],
-                      description: category.description,
-                      forceNew: true
-                    }
-                  });
-                }}
-                className="flex flex-col items-center gap-4 p-5 hover:bg-primary/10 hover:text-primary rounded-xl transition-all"
-              >
-                <div className="w-20 h-20 md:w-24 md:h-24 flex items-center justify-center">
-                  <img 
-                    src={category.image} 
-                    alt={category.category} 
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <span className="text-base md:text-lg font-medium whitespace-nowrap">
-                  {category.category}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
+          <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
+            {/* Category Tabs */}
+            <TabsList className="w-full h-auto bg-background/50 backdrop-blur-sm p-4 rounded-2xl grid grid-cols-4 gap-4">
+              {categoryTabsData.map((category) => (
+                <TabsTrigger
+                  key={category.id}
+                  value={category.id}
+                  className="flex flex-col items-center gap-4 p-5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary rounded-xl transition-all h-auto"
+                >
+                  <div className="w-20 h-20 md:w-24 md:h-24 flex items-center justify-center">
+                    <img 
+                      src={category.icon} 
+                      alt={category.name} 
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <span className="text-base md:text-lg font-medium whitespace-nowrap">
+                    {category.name}
+                  </span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
 
-        {/* Service Buttons Grid - Matching Landing Page Style */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-semibold text-foreground mb-6 text-center">
-            Servicios Populares
-          </h2>
-          <div className="flex flex-wrap gap-4 justify-center max-w-6xl mx-auto">
-            {[
-              { name: "Instalación de muebles", category: "Handyman" },
-              { name: "Colgar cuadros y TV", category: "Handyman" },
-              { name: "Reparación de puertas", category: "Handyman" },
-              { name: "Reparación de ventanas", category: "Handyman" },
-              { name: "Instalación de repisas", category: "Handyman" },
-              { name: "Instalación de cortinas", category: "Handyman" },
-              { name: "Reparación de cerraduras", category: "Handyman" },
-              { name: "Mantenimiento general", category: "Handyman" },
-              { name: "Pintura menor", category: "Handyman" },
-              { name: "Sellado de grietas", category: "Handyman" },
-            ].map((service, index) => (
-              <Button
-                key={index}
-                onClick={() => {
-                  // Clear form data to start fresh
-                  localStorage.removeItem('chamby_form_job-booking');
-                  sessionStorage.removeItem('chamby_form_job-booking');
-                  navigate(`/book-job?new=${Date.now()}`, {
-                    state: {
-                      category: service.category,
-                      service: service.name,
-                      description: `Servicio de ${service.name}`,
-                      forceNew: true
-                    }
-                  });
-                }}
-                variant="outline"
-                className="rounded-full px-7 py-4 h-auto text-base md:text-lg bg-background/50 backdrop-blur-sm hover:bg-primary/10 hover:text-primary hover:border-primary transition-all"
+            {/* Service Pills for Each Category */}
+            {categoryTabsData.map((category) => (
+              <TabsContent 
+                key={category.id} 
+                value={category.id}
+                className="mt-10 animate-in fade-in-50 duration-300"
               >
-                {service.name}
-              </Button>
+                <div className="flex flex-wrap gap-4 justify-center pb-7">
+                  {services.map((service) => (
+                    <Button
+                      key={service.name}
+                      onClick={() => handleServiceClick(service.name, service.description)}
+                      variant="outline"
+                      className="rounded-full px-7 py-4 h-auto text-base md:text-lg bg-background/50 backdrop-blur-sm hover:bg-primary/10 hover:text-primary hover:border-primary transition-all"
+                    >
+                      {service.name}
+                    </Button>
+                  ))}
+                </div>
+              </TabsContent>
             ))}
-          </div>
+          </Tabs>
         </div>
 
         {/* Recent Activity Section */}
