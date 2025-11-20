@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useIsProvider } from "@/hooks/useIsProvider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 const ProfileSettings = () => {
   const { user } = useAuth();
   const { profile, loading, updateProfile } = useProfile();
+  const { isProvider } = useIsProvider();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [isEditing, setIsEditing] = useState(false);
@@ -274,7 +275,7 @@ const ProfileSettings = () => {
                   />
                 </div>
 
-                {role === 'provider' && (
+                {isProvider && (
                   <div className="p-4 bg-muted/50 rounded-lg">
                     <div className="flex items-center justify-between">
                       <div>
