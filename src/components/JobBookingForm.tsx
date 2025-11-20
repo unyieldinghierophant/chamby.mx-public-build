@@ -574,8 +574,10 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
     saveFormData(formData);
     
     // Store return path for auth callback (works for email + OAuth)
-    sessionStorage.setItem('auth_return_to', '/book-job');
-    localStorage.setItem('auth_return_to', '/book-job');
+    const RETURN_PATH = '/book-job';
+    sessionStorage.setItem('auth_return_to', RETURN_PATH);
+    localStorage.setItem('auth_return_to', RETURN_PATH); // Backup for OAuth
+    localStorage.setItem('auth_source', 'book_job_form'); // Flag for debugging
     
     console.log('💾 Saved form data with step:', currentStep);
     

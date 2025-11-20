@@ -179,9 +179,10 @@ const AuthCallback = () => {
       // Check for stored return path AFTER role is determined
       const returnTo = sessionStorage.getItem('auth_return_to') || localStorage.getItem('auth_return_to');
       
-      // Clear stored values
+      // Clear stored values (after reading them)
       sessionStorage.removeItem('auth_return_to');
       localStorage.removeItem('auth_return_to');
+      localStorage.removeItem('auth_source'); // Clean up debug flag
       sessionStorage.removeItem('pending_oauth');
       sessionStorage.removeItem('oauth_retry_count');
       localStorage.removeItem('login_context');
