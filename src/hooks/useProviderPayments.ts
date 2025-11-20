@@ -49,7 +49,7 @@ export const useProviderPayments = () => {
     try {
       setLoading(true);
 
-      // Fetch payments
+      // Fetch payments - now linked to jobs
       const { data: payments, error: paymentsError } = await supabase
         .from("payments")
         .select("*")
@@ -58,17 +58,18 @@ export const useProviderPayments = () => {
 
       if (paymentsError) throw paymentsError;
 
-      // Calculate balances
+      // Calculate balances - only positive amounts (earnings)
       const availableBalance = payments
-        ?.filter((p) => p.status === "released" && !p.withdrawn_at)
+        ?.filter((p) => p.status === "released" && !p.withdrawn_at && p.amount > 0)
         .reduce((sum, p) => sum + Number(p.amount), 0) || 0;
 
       const pendingBalance = payments
-        ?.filter((p) => p.status === "pending")
+        ?.filter((p) => p.status === "pending" && p.amount > 0)
         .reduce((sum, p) => sum + Number(p.amount), 0) || 0;
 
       const totalEarnings = payments
-        ?.reduce((sum, p) => sum + Number(p.amount), 0) || 0;
+        ?.filter((p) => p.amount > 0)
+        .reduce((sum, p) => sum + Number(p.amount), 0) || 0;
 
       setStats({
         availableBalance,
