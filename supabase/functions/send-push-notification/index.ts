@@ -8,7 +8,7 @@ const corsHeaders = {
 interface PushNotificationRequest {
   job_id?: string;
   user_ids?: string[];
-  type: 'new_job_available' | 'job_reminder' | 'job_update';
+  type: 'new_job_available' | 'job_reminder' | 'job_update' | 'payment_received' | 'job_assigned';
   title: string;
   body: string;
   data?: Record<string, string>;
@@ -26,44 +26,85 @@ Deno.serve(async (req) => {
     );
 
     const { job_id, user_ids, type, title, body, data } = await req.json() as PushNotificationRequest;
+    console.log('📲 [PUSH-NOTIFICATION] Request:', { type, job_id, user_ids, title });
 
     let targetTokens: string[] = [];
+    let targetUserIds: string[] = [];
 
     if (job_id && type === 'new_job_available') {
-      // Get all verified providers with FCM tokens
-      const { data: providers } = await supabase
-        .from('profiles')
-        .select('fcm_token, user_id, full_name')
-        .eq('is_tasker', true)
+      // Get all verified providers with FCM tokens from provider_profiles
+      const { data: providers, error: providersError } = await supabase
+        .from('provider_profiles')
+        .select('fcm_token, user_id')
+        .eq('verified', true)
         .eq('verification_status', 'verified')
         .not('fcm_token', 'is', null);
 
+      if (providersError) {
+        console.error('Error fetching providers:', providersError);
+      }
+
       targetTokens = providers?.map(p => p.fcm_token).filter(Boolean) || [];
-      console.log(`Found ${targetTokens.length} providers with FCM tokens`);
+      targetUserIds = providers?.map(p => p.user_id).filter(Boolean) || [];
+      console.log(`Found ${targetTokens.length} verified providers with FCM tokens`);
     } else if (user_ids) {
-      // Get specific users' FCM tokens
-      const { data: users } = await supabase
-        .from('profiles')
-        .select('fcm_token')
+      // Get specific users' FCM tokens from provider_profiles
+      const { data: providers, error: providersError } = await supabase
+        .from('provider_profiles')
+        .select('fcm_token, user_id')
         .in('user_id', user_ids)
         .not('fcm_token', 'is', null);
 
-      targetTokens = users?.map(u => u.fcm_token).filter(Boolean) || [];
-      console.log(`Found ${targetTokens.length} specific user tokens`);
+      if (providersError) {
+        console.error('Error fetching user tokens:', providersError);
+      }
+
+      targetTokens = providers?.map(p => p.fcm_token).filter(Boolean) || [];
+      targetUserIds = providers?.map(p => p.user_id).filter(Boolean) || [];
+      console.log(`Found ${targetTokens.length} specific provider tokens`);
     }
 
     if (targetTokens.length === 0) {
-      console.log('No FCM tokens found for notification');
+      console.log('⚠️ No FCM tokens found for notification');
       return new Response(
         JSON.stringify({ success: true, message: 'No FCM tokens found' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    // Create in-app notifications for each user
+    if (targetUserIds.length > 0) {
+      const notifications = targetUserIds.map(userId => ({
+        user_id: userId,
+        type,
+        title,
+        message: body,
+        link: data?.link || '/provider-portal/jobs',
+        data: {
+          job_id,
+          ...data
+        }
+      }));
+
+      const { error: notifError } = await supabase
+        .from('notifications')
+        .insert(notifications);
+
+      if (notifError) {
+        console.error('Error creating notifications:', notifError);
+      } else {
+        console.log(`✅ Created ${notifications.length} in-app notifications`);
+      }
+    }
+
     // Send push notifications using FCM REST API
     const fcmServerKey = Deno.env.get('FCM_SERVER_KEY');
     if (!fcmServerKey) {
-      throw new Error('FCM_SERVER_KEY not configured');
+      console.warn('⚠️ FCM_SERVER_KEY not configured, skipping push notifications');
+      return new Response(
+        JSON.stringify({ success: true, message: 'In-app notifications created, push notifications skipped' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const results = await Promise.all(
@@ -86,6 +127,7 @@ Deno.serve(async (req) => {
               },
               data: {
                 type,
+                job_id,
                 ...data,
               },
               priority: 'high',
@@ -102,7 +144,7 @@ Deno.serve(async (req) => {
       })
     );
 
-    console.log('Push notifications sent:', results.filter(r => r.success).length, '/', results.length);
+    console.log('✅ Push notifications sent:', results.filter(r => r.success).length, '/', results.length);
 
     return new Response(
       JSON.stringify({ success: true, results }),
@@ -110,7 +152,7 @@ Deno.serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error sending push notifications:', error);
+    console.error('❌ Error sending push notifications:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
