@@ -9,7 +9,6 @@ interface Profile {
   phone: string | null;
   avatar_url: string | null;
   bio: string | null;
-  is_tasker: boolean;
   verification_status: string;
   created_at: string;
   updated_at: string;

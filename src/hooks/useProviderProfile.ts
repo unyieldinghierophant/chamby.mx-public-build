@@ -4,18 +4,26 @@ import { supabase } from '@/integrations/supabase/client';
 interface ProviderProfile {
   id: string;
   user_id: string;
-  full_name: string | null;
-  phone: string | null;
-  avatar_url: string | null;
-  bio: string | null;
-  is_tasker: boolean;
-  verification_status: string;
-  created_at: string;
-  updated_at: string;
   hourly_rate: number | null;
   rating: number | null;
   total_reviews: number | null;
   skills: string[] | null;
+  specialty: string | null;
+  zone_served: string | null;
+  payment_schedule: string;
+  verification_status: string;
+  face_photo_url: string | null;
+  verified: boolean;
+  fcm_token: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface BaseProfile {
+  full_name: string | null;
+  phone: string | null;
+  avatar_url: string | null;
+  bio: string | null;
 }
 
 interface BookingStats {
@@ -23,36 +31,59 @@ interface BookingStats {
   member_since: string;
 }
 
-export const useProviderProfile = (providerId: string) => {
-  const [profile, setProfile] = useState<ProviderProfile | null>(null);
+export const useProviderProfile = (userId?: string) => {
+  const [profile, setProfile] = useState<(ProviderProfile & BaseProfile) | null>(null);
   const [stats, setStats] = useState<BookingStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchProviderProfile = async () => {
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+
     try {
-      // Fetch provider profile
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', providerId)
-        .eq('is_tasker', true)
+      // Fetch provider profile with base profile data
+      const { data: providerData, error: providerError } = await supabase
+        .from('provider_profiles')
+        .select(`
+          *,
+          profiles!inner(full_name, phone, avatar_url, bio)
+        `)
+        .eq('user_id', userId)
         .single();
 
-      if (profileError) {
-        throw profileError;
+      if (providerError) {
+        throw providerError;
       }
 
-      setProfile(profileData);
+      // Flatten the nested structure
+      const flatProfile = {
+        ...providerData,
+        full_name: providerData.profiles.full_name,
+        phone: providerData.profiles.phone,
+        avatar_url: providerData.profiles.avatar_url,
+        bio: providerData.profiles.bio,
+      };
+      delete flatProfile.profiles;
+
+      setProfile(flatProfile);
 
       // Fetch booking stats
       const { data: jobsData, error: jobsError } = await supabase
         .from('jobs')
         .select('created_at')
-        .eq('tasker_id', profileData?.user_id || '');
+        .eq('tasker_id', userId);
 
       if (!jobsError && jobsData) {
-        const memberSince = new Date(profileData?.created_at || '').getFullYear().toString();
+        const { data: profileCreated } = await supabase
+          .from('profiles')
+          .select('created_at')
+          .eq('user_id', userId)
+          .single();
+
+        const memberSince = new Date(profileCreated?.created_at || '').getFullYear().toString();
         setStats({
           total_bookings: jobsData.length,
           member_since: memberSince
@@ -68,17 +99,53 @@ export const useProviderProfile = (providerId: string) => {
     }
   };
 
-  useEffect(() => {
-    if (providerId) {
-      fetchProviderProfile();
+  const updateProviderProfile = async (updates: Partial<ProviderProfile & BaseProfile>) => {
+    if (!userId) return;
+
+    try {
+      // Separate provider-specific and base profile updates
+      const { full_name, phone, avatar_url, bio, ...providerUpdates } = updates;
+      
+      // Update base profile if there are base profile fields
+      if (full_name !== undefined || phone !== undefined || avatar_url !== undefined || bio !== undefined) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ full_name, phone, avatar_url, bio })
+          .eq('user_id', userId);
+
+        if (profileError) throw profileError;
+      }
+
+      // Update provider profile if there are provider-specific fields
+      if (Object.keys(providerUpdates).length > 0) {
+        const { data, error } = await supabase
+          .from('provider_profiles')
+          .update(providerUpdates)
+          .eq('user_id', userId)
+          .select()
+          .single();
+
+        if (error) throw error;
+      }
+
+      await fetchProviderProfile();
+      return { error: null };
+    } catch (err: any) {
+      setError(err.message);
+      return { error: err };
     }
-  }, [providerId]);
+  };
+
+  useEffect(() => {
+    fetchProviderProfile();
+  }, [userId]);
 
   return {
     profile,
     stats,
     loading,
     error,
-    refetch: fetchProviderProfile
+    refetch: fetchProviderProfile,
+    updateProfile: updateProviderProfile
   };
 };
