@@ -7,10 +7,23 @@ export interface Profile {
   phone: string | null;
   avatar_url: string | null;
   bio: string | null;
-  is_tasker: boolean;
   verification_status: string;
   created_at: string;
   updated_at: string;
+}
+
+/**
+ * Check if user has a specific role
+ */
+export const hasRole = async (userId: string, role: 'admin' | 'client' | 'provider'): Promise<boolean> => {
+  const { data } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("role", role)
+    .single();
+  
+  return !!data;
 }
 
 /**

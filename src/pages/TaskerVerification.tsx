@@ -11,7 +11,6 @@ interface Profile {
   id: string;
   full_name: string | null;
   phone: string | null;
-  is_tasker: boolean;
   verification_status: string;
   created_at: string;
 }
@@ -141,7 +140,7 @@ const TaskerVerification = () => {
                 <p><strong>Nombre:</strong> {profile?.full_name || 'No especificado'}</p>
                 <p><strong>Email:</strong> {user?.email}</p>
                 <p><strong>Teléfono:</strong> {profile?.phone || 'No especificado'}</p>
-                <p><strong>Tipo:</strong> {profile?.is_tasker ? 'Tasker' : 'Usuario'}</p>
+                <p><strong>Tipo:</strong> Proveedor de servicios</p>
               </div>
 
               {profile?.verification_status === 'rejected' && (

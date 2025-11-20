@@ -32,13 +32,19 @@ export const useClientProfile = () => {
     }
 
     try {
-      // Fetch client profile with base profile data
+      // Fetch base profile first
+      const { data: baseProfile, error: baseError } = await supabase
+        .from('profiles')
+        .select('full_name, phone, avatar_url, bio')
+        .eq('user_id', user.id)
+        .single();
+
+      if (baseError) throw baseError;
+
+      // Fetch client profile
       const { data: clientData, error: clientError } = await supabase
         .from('client_profiles')
-        .select(`
-          *,
-          profiles!inner(full_name, phone, avatar_url, bio)
-        `)
+        .select('*')
         .eq('user_id', user.id)
         .single();
 
@@ -46,17 +52,15 @@ export const useClientProfile = () => {
         throw clientError;
       }
 
-      if (clientData) {
-        // Flatten the nested structure
-        const flatProfile = {
+      if (clientData && baseProfile) {
+        // Combine the data
+        setProfile({
           ...clientData,
-          full_name: clientData.profiles.full_name,
-          phone: clientData.profiles.phone,
-          avatar_url: clientData.profiles.avatar_url,
-          bio: clientData.profiles.bio,
-        };
-        delete flatProfile.profiles;
-        setProfile(flatProfile);
+          full_name: baseProfile.full_name,
+          phone: baseProfile.phone,
+          avatar_url: baseProfile.avatar_url,
+          bio: baseProfile.bio,
+        });
       }
 
       setError(null);
