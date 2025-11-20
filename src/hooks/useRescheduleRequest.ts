@@ -43,24 +43,31 @@ export const useRescheduleRequest = (rescheduleId: string) => {
       // Fetch job with reschedule request info
       const { data, error } = await supabase
         .from('jobs')
-        .select(`
-          *,
-          customer:profiles!jobs_customer_id_fkey (
-            full_name,
-            phone
-          )
-        `)
+        .select('*')
         .eq('id', rescheduleId)
         .not('reschedule_requested_at', 'is', null)
         .single();
 
       if (error) throw error;
+
+      // Fetch client details separately
+      let clientInfo = { full_name: 'Cliente', phone: '' };
+      if (data.client_id) {
+        const { data: clientData } = await supabase
+          .from('clients')
+          .select('email, phone')
+          .eq('id', data.client_id)
+          .single();
+        if (clientData) {
+          clientInfo = { full_name: clientData.email || 'Cliente', phone: clientData.phone || '' };
+        }
+      }
       
       // Transform to RescheduleRequest format
       const transformedData: RescheduleRequest = {
         id: data.id,
         booking_id: data.id,
-        requested_by: data.customer_id,
+        requested_by: data.client_id,
         original_date: data.original_scheduled_date || data.scheduled_at,
         requested_date: data.reschedule_requested_date,
         reason: null,
@@ -74,7 +81,7 @@ export const useRescheduleRequest = (rescheduleId: string) => {
           address: data.location || '',
           total_amount: data.total_amount,
           reschedule_response_deadline: data.reschedule_response_deadline,
-          customer: data.customer
+          customer: clientInfo
         }
       };
       

@@ -183,17 +183,12 @@ export type Database = {
           category: string
           client_id: string | null
           created_at: string
-          customer_id: string | null
           description: string | null
           duration_hours: number | null
-          escrow_captured: boolean | null
-          escrow_refunded: boolean | null
           exact_time: string | null
           id: string
-          invoice_due_date: string | null
           location: string | null
           original_scheduled_date: string | null
-          payment_status: string | null
           photo_count: number | null
           photos: string[] | null
           problem: string | null
@@ -206,17 +201,12 @@ export type Database = {
           scheduled_at: string | null
           service_type: string | null
           status: string
-          stripe_invoice_id: string | null
-          stripe_invoice_pdf: string | null
-          stripe_invoice_url: string | null
-          stripe_payment_intent_id: string | null
-          tasker_id: string | null
           time_preference: string | null
           title: string
           total_amount: number | null
           updated_at: string
           urgent: boolean | null
-          visit_fee_paid: boolean | null
+          visit_fee_paid: boolean
         }
         Insert: {
           amount_booking_fee?: number | null
@@ -225,17 +215,12 @@ export type Database = {
           category: string
           client_id?: string | null
           created_at?: string
-          customer_id?: string | null
           description?: string | null
           duration_hours?: number | null
-          escrow_captured?: boolean | null
-          escrow_refunded?: boolean | null
           exact_time?: string | null
           id?: string
-          invoice_due_date?: string | null
           location?: string | null
           original_scheduled_date?: string | null
-          payment_status?: string | null
           photo_count?: number | null
           photos?: string[] | null
           problem?: string | null
@@ -248,17 +233,12 @@ export type Database = {
           scheduled_at?: string | null
           service_type?: string | null
           status?: string
-          stripe_invoice_id?: string | null
-          stripe_invoice_pdf?: string | null
-          stripe_invoice_url?: string | null
-          stripe_payment_intent_id?: string | null
-          tasker_id?: string | null
           time_preference?: string | null
           title: string
           total_amount?: number | null
           updated_at?: string
           urgent?: boolean | null
-          visit_fee_paid?: boolean | null
+          visit_fee_paid?: boolean
         }
         Update: {
           amount_booking_fee?: number | null
@@ -267,17 +247,12 @@ export type Database = {
           category?: string
           client_id?: string | null
           created_at?: string
-          customer_id?: string | null
           description?: string | null
           duration_hours?: number | null
-          escrow_captured?: boolean | null
-          escrow_refunded?: boolean | null
           exact_time?: string | null
           id?: string
-          invoice_due_date?: string | null
           location?: string | null
           original_scheduled_date?: string | null
-          payment_status?: string | null
           photo_count?: number | null
           photos?: string[] | null
           problem?: string | null
@@ -290,17 +265,12 @@ export type Database = {
           scheduled_at?: string | null
           service_type?: string | null
           status?: string
-          stripe_invoice_id?: string | null
-          stripe_invoice_pdf?: string | null
-          stripe_invoice_url?: string | null
-          stripe_payment_intent_id?: string | null
-          tasker_id?: string | null
           time_preference?: string | null
           title?: string
           total_amount?: number | null
           updated_at?: string
           urgent?: boolean | null
-          visit_fee_paid?: boolean | null
+          visit_fee_paid?: boolean
         }
         Relationships: [
           {
@@ -311,25 +281,11 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "jobs_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-          {
             foreignKeyName: "jobs_provider_id_fkey"
             columns: ["provider_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "jobs_tasker_id_fkey"
-            columns: ["tasker_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
           },
         ]
       }

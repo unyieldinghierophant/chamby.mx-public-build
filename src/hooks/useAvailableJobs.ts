@@ -16,7 +16,6 @@ export interface AvailableJob {
   status: string;
   created_at: string;
   visit_fee_paid: boolean;
-  payment_status: string;
   problem: string | null;
   urgent: boolean;
   photos: string[] | null;

@@ -32,17 +32,13 @@ import DataExport from "./pages/DataExport";
 import AccountDeletion from "./pages/AccountDeletion";
 import ProtectedRoute from "./components/ProtectedRoute";
 import BookingForm from "./pages/BookingForm";
-import BookingSummary from "./pages/BookingSummary";
 // ServiceDetail removed - all services are now jobs
 import NotFound from "./pages/NotFound";
 import MobileJobs from "./pages/MobileJobs";
 import MobileFavorites from "./pages/MobileFavorites";
 import MobileProfile from "./pages/MobileProfile";
 import BookingDateTime from "./pages/BookingDateTime";
-import PaymentSuccess from "./pages/PaymentSuccess";
-import PaymentCanceled from "./pages/PaymentCanceled";
 import BookJob from "./pages/BookJob";
-import PagoVisita from "./pages/PagoVisita";
 import EsperandoProveedor from "./pages/EsperandoProveedor";
 import PhotoRedirect from "./pages/PhotoRedirect";
 import ChatBot from "./components/ChatBot";
@@ -133,11 +129,6 @@ const App = () => {
               <Route path="/booking/datetime/:providerId" element={<BookingDateTime />} />
               {/* /service/:serviceType route removed - all services are now jobs */}
               <Route path="/booking/:jobId" element={<BookingForm />} />
-              <Route path="/booking/summary" element={<BookingSummary />} />
-              <Route path="/payment-success" element={<PaymentSuccess />} />
-              <Route path="/payment-canceled" element={<PaymentCanceled />} />
-
-              <Route path="/pago-visita" element={<PagoVisita />} />
               <Route path="/esperando-proveedor" element={<EsperandoProveedor />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/help-center" element={<HelpCenter />} />

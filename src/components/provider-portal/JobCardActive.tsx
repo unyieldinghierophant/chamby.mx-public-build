@@ -37,8 +37,8 @@ export const JobCardActive = ({ job, onComplete }: JobCardActiveProps) => {
   };
 
   const handleCallCustomer = () => {
-    if (job.customer?.phone) {
-      window.location.href = `tel:${job.customer.phone}`;
+    if (job.client?.phone) {
+      window.location.href = `tel:${job.client.phone}`;
     } else {
       toast.error('No hay número de teléfono disponible');
     }
@@ -62,20 +62,19 @@ export const JobCardActive = ({ job, onComplete }: JobCardActiveProps) => {
 
       <CardContent className="space-y-3">
         {/* Customer Info */}
-        {job.customer && (
+        {job.client && (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Avatar className="w-8 h-8">
-                <AvatarImage src={job.customer.avatar_url || undefined} />
                 <AvatarFallback>
                   <User className="w-4 h-4" />
                 </AvatarFallback>
               </Avatar>
               <span className="text-sm text-foreground">
-                {job.customer.full_name || 'Cliente'}
+                {job.client.email || 'Cliente'}
               </span>
             </div>
-            {job.customer.phone && (
+            {job.client.phone && (
               <Button
                 size="sm"
                 variant="outline"

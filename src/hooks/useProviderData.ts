@@ -71,18 +71,16 @@ export const useProviderData = () => {
       // Fetch earnings using provider_id
       const { data: payments, error: paymentsError } = await supabase
         .from("jobs")
-        .select("total_amount, payment_status")
-        .eq("provider_id", profile.id);
+        .select("total_amount")
+        .eq("provider_id", profile.id)
+        .eq("status", "completed");
 
       if (paymentsError) throw paymentsError;
 
       const totalEarnings = payments
-        ?.filter((p) => p.payment_status === "paid")
-        .reduce((sum, p) => sum + Number(p.total_amount), 0) || 0;
+        ?.reduce((sum, p) => sum + Number(p.total_amount || 0), 0) || 0;
 
-      const pendingEarnings = payments
-        ?.filter((p) => p.payment_status === "pending")
-        .reduce((sum, p) => sum + Number(p.total_amount), 0) || 0;
+      const pendingEarnings = 0; // No payment status anymore
 
       // Fetch reviews using auth user_id (reviews.provider_id references auth.users.id)
       const { data: reviews, error: reviewsError } = await supabase
