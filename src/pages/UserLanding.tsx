@@ -214,7 +214,7 @@ const UserLanding = () => {
       <main className="container mx-auto px-4 pt-24 pb-24">
         {/* Welcome Section with Blue Card */}
         <div className="mb-8 text-center pt-[10%] md:pt-[5%]">
-          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
+          <h1 className="text-3xl md:text-4xl font-['Made_Dillan'] text-foreground mb-6">
             ¡Bienvenido de vuelta{profile?.full_name ? `, ${profile.full_name.split(' ')[0]}` : ''}!
           </h1>
           
@@ -248,6 +248,41 @@ const UserLanding = () => {
               {/* AI Search Bar */}
               <AISearchBar className="max-w-2xl mx-auto" />
             </div>
+          </div>
+        </div>
+
+        {/* Category Buttons with Rubber Hose Characters - Same as Landing Page */}
+        <div className="mb-12 w-[96%] md:w-[98%] mx-auto">
+          <div className="grid grid-cols-4 gap-4 bg-background/50 backdrop-blur-sm p-4 rounded-2xl">
+            {categories.map((category) => (
+              <button
+                key={category.category}
+                onClick={() => {
+                  localStorage.removeItem('chamby_form_job-booking');
+                  sessionStorage.removeItem('chamby_form_job-booking');
+                  navigate(`/book-job?new=${Date.now()}`, {
+                    state: {
+                      category: category.category,
+                      service: category.services[0],
+                      description: category.description,
+                      forceNew: true
+                    }
+                  });
+                }}
+                className="flex flex-col items-center gap-4 p-5 hover:bg-primary/10 hover:text-primary rounded-xl transition-all"
+              >
+                <div className="w-20 h-20 md:w-24 md:h-24 flex items-center justify-center">
+                  <img 
+                    src={category.image} 
+                    alt={category.category} 
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <span className="text-base md:text-lg font-medium whitespace-nowrap">
+                  {category.category}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
 
