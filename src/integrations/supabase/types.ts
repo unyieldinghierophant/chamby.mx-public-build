@@ -858,6 +858,14 @@ export type Database = {
         }[]
       }
       get_client_id_from_auth: { Args: never; Returns: string }
+      get_client_id_from_user_id: {
+        Args: { auth_user_id: string }
+        Returns: string
+      }
+      get_provider_profile_id: {
+        Args: { auth_user_id: string }
+        Returns: string
+      }
       get_public_provider_profiles: {
         Args: never
         Returns: {
