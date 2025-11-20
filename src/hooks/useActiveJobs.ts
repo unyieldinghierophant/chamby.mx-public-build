@@ -6,20 +6,21 @@ export interface ActiveJob {
   id: string;
   title: string;
   description: string | null;
-  service_id: string; // References jobs.id (the job that was booked)
-  customer_id: string;
-  tasker_id: string;
-  scheduled_date: string;
-  duration_hours: number;
-  total_amount: number;
-  address: string | null;
+  customer_id: string | null;
+  tasker_id: string | null;
+  scheduled_at: string | null;
+  duration_hours: number | null;
+  total_amount: number | null;
+  location: string | null;
   status: string;
+  category: string;
   created_at: string;
-  job?: {
-    title: string;
-    category: string;
-  };
   customer?: {
+    full_name: string | null;
+    avatar_url: string | null;
+    phone: string | null;
+  };
+  tasker?: {
     full_name: string | null;
     avatar_url: string | null;
     phone: string | null;
@@ -50,15 +51,15 @@ export const useActiveJobs = (): UseActiveJobsResult => {
     try {
       setLoading(true);
       const { data, error: fetchError } = await supabase
-        .from('bookings')
+        .from('jobs')
         .select(`
           *,
-          job:jobs!bookings_service_id_fkey(title, category),
-          customer:profiles!bookings_customer_id_fkey(full_name, avatar_url, phone)
+          customer:profiles!jobs_customer_id_fkey(full_name, avatar_url, phone),
+          tasker:profiles!jobs_tasker_id_fkey(full_name, avatar_url, phone)
         `)
         .eq('tasker_id', user.id)
         .in('status', ['confirmed', 'in_progress'])
-        .order('scheduled_date', { ascending: true });
+        .order('scheduled_at', { ascending: true });
 
       if (fetchError) throw fetchError;
 
@@ -75,7 +76,7 @@ export const useActiveJobs = (): UseActiveJobsResult => {
   const completeJob = async (jobId: string) => {
     try {
       const { error: updateError } = await supabase
-        .from('bookings')
+        .from('jobs')
         .update({ status: 'completed' })
         .eq('id', jobId)
         .eq('tasker_id', user?.id);
@@ -93,7 +94,7 @@ export const useActiveJobs = (): UseActiveJobsResult => {
   const cancelJob = async (jobId: string) => {
     try {
       const { error: updateError } = await supabase
-        .from('bookings')
+        .from('jobs')
         .update({ status: 'cancelled' })
         .eq('id', jobId)
         .eq('tasker_id', user?.id);
@@ -119,7 +120,7 @@ export const useActiveJobs = (): UseActiveJobsResult => {
         {
           event: '*',
           schema: 'public',
-          table: 'bookings',
+          table: 'jobs',
           filter: `tasker_id=eq.${user?.id}`
         },
         () => {

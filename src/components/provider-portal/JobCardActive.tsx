@@ -28,8 +28,8 @@ export const JobCardActive = ({ job, onComplete }: JobCardActiveProps) => {
   };
 
   const handleStartRoute = () => {
-    if (job.address) {
-      const encodedAddress = encodeURIComponent(job.address);
+    if (job.location) {
+      const encodedAddress = encodeURIComponent(job.location);
       window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`, '_blank');
     } else {
       toast.error('No hay dirección disponible');
@@ -44,7 +44,7 @@ export const JobCardActive = ({ job, onComplete }: JobCardActiveProps) => {
     }
   };
 
-  const scheduledDate = new Date(job.scheduled_date);
+  const scheduledDate = job.scheduled_at ? new Date(job.scheduled_at) : new Date();
 
   return (
     <Card className="bg-gradient-card border-border/50 hover:shadow-raised transition-shadow">
@@ -52,11 +52,9 @@ export const JobCardActive = ({ job, onComplete }: JobCardActiveProps) => {
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <h3 className="font-semibold text-lg text-foreground">{job.title}</h3>
-            {job.job && (
-              <p className="text-sm text-muted-foreground mt-1">
-                {job.job.category} • {job.job.title}
-              </p>
-            )}
+            <p className="text-sm text-muted-foreground mt-1">
+              {job.category}
+            </p>
           </div>
           <StatusBadge status={job.status} size="sm" />
         </div>
@@ -99,14 +97,14 @@ export const JobCardActive = ({ job, onComplete }: JobCardActiveProps) => {
 
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Clock className="w-4 h-4" />
-          <span>{format(scheduledDate, "HH:mm", { locale: es })} • {job.duration_hours}h</span>
+          <span>{format(scheduledDate, "HH:mm", { locale: es })} • {job.duration_hours || 1}h</span>
         </div>
 
         {/* Location */}
-        {job.address && (
+        {job.location && (
           <div className="flex items-start gap-2 text-sm text-muted-foreground">
             <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-            <span className="line-clamp-2">{job.address}</span>
+            <span className="line-clamp-2">{job.location}</span>
           </div>
         )}
 
@@ -120,7 +118,7 @@ export const JobCardActive = ({ job, onComplete }: JobCardActiveProps) => {
         {/* Price */}
         <div className="flex items-center gap-2 text-lg font-semibold text-primary mt-4">
           <DollarSign className="w-5 h-5" />
-          <span>${job.total_amount.toFixed(2)} MXN</span>
+          <span>${(job.total_amount || job.rate || 0).toFixed(2)} MXN</span>
         </div>
       </CardContent>
 

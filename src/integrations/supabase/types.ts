@@ -80,147 +80,6 @@ export type Database = {
         }
         Relationships: []
       }
-      booking_reschedules: {
-        Row: {
-          booking_id: string
-          created_at: string | null
-          id: string
-          original_date: string
-          provider_response: string | null
-          reason: string | null
-          requested_by: string
-          requested_date: string
-          responded_at: string | null
-          status: string | null
-          suggested_date: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          booking_id: string
-          created_at?: string | null
-          id?: string
-          original_date: string
-          provider_response?: string | null
-          reason?: string | null
-          requested_by: string
-          requested_date: string
-          responded_at?: string | null
-          status?: string | null
-          suggested_date?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          booking_id?: string
-          created_at?: string | null
-          id?: string
-          original_date?: string
-          provider_response?: string | null
-          reason?: string | null
-          requested_by?: string
-          requested_date?: string
-          responded_at?: string | null
-          status?: string | null
-          suggested_date?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "booking_reschedules_booking_id_fkey"
-            columns: ["booking_id"]
-            isOneToOne: false
-            referencedRelation: "bookings"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      bookings: {
-        Row: {
-          address: string | null
-          created_at: string
-          customer_id: string
-          description: string | null
-          duration_hours: number | null
-          id: string
-          original_scheduled_date: string | null
-          payment_status: string | null
-          reschedule_requested_at: string | null
-          reschedule_requested_date: string | null
-          reschedule_response_deadline: string | null
-          scheduled_date: string
-          service_id: string
-          status: string | null
-          stripe_payment_intent_id: string | null
-          tasker_id: string
-          title: string
-          total_amount: number
-          updated_at: string
-        }
-        Insert: {
-          address?: string | null
-          created_at?: string
-          customer_id: string
-          description?: string | null
-          duration_hours?: number | null
-          id?: string
-          original_scheduled_date?: string | null
-          payment_status?: string | null
-          reschedule_requested_at?: string | null
-          reschedule_requested_date?: string | null
-          reschedule_response_deadline?: string | null
-          scheduled_date: string
-          service_id: string
-          status?: string | null
-          stripe_payment_intent_id?: string | null
-          tasker_id: string
-          title: string
-          total_amount: number
-          updated_at?: string
-        }
-        Update: {
-          address?: string | null
-          created_at?: string
-          customer_id?: string
-          description?: string | null
-          duration_hours?: number | null
-          id?: string
-          original_scheduled_date?: string | null
-          payment_status?: string | null
-          reschedule_requested_at?: string | null
-          reschedule_requested_date?: string | null
-          reschedule_response_deadline?: string | null
-          scheduled_date?: string
-          service_id?: string
-          status?: string | null
-          stripe_payment_intent_id?: string | null
-          tasker_id?: string
-          title?: string
-          total_amount?: number
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "bookings_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "bookings_service_id_fkey"
-            columns: ["service_id"]
-            isOneToOne: false
-            referencedRelation: "jobs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "bookings_tasker_id_fkey"
-            columns: ["tasker_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-        ]
-      }
       clients: {
         Row: {
           address: string | null
@@ -294,13 +153,16 @@ export type Database = {
           category: string
           client_id: string | null
           created_at: string
+          customer_id: string | null
           description: string | null
+          duration_hours: number | null
           escrow_captured: boolean | null
           escrow_refunded: boolean | null
           exact_time: string | null
           id: string
           invoice_due_date: string | null
           location: string | null
+          original_scheduled_date: string | null
           payment_status: string | null
           photo_count: number | null
           photos: string[] | null
@@ -308,6 +170,9 @@ export type Database = {
           provider_id: string | null
           provider_visited: boolean | null
           rate: number
+          reschedule_requested_at: string | null
+          reschedule_requested_date: string | null
+          reschedule_response_deadline: string | null
           scheduled_at: string | null
           service_type: string | null
           status: string
@@ -315,8 +180,10 @@ export type Database = {
           stripe_invoice_pdf: string | null
           stripe_invoice_url: string | null
           stripe_payment_intent_id: string | null
+          tasker_id: string | null
           time_preference: string | null
           title: string
+          total_amount: number | null
           updated_at: string
           urgent: boolean | null
           visit_fee_paid: boolean | null
@@ -328,13 +195,16 @@ export type Database = {
           category: string
           client_id?: string | null
           created_at?: string
+          customer_id?: string | null
           description?: string | null
+          duration_hours?: number | null
           escrow_captured?: boolean | null
           escrow_refunded?: boolean | null
           exact_time?: string | null
           id?: string
           invoice_due_date?: string | null
           location?: string | null
+          original_scheduled_date?: string | null
           payment_status?: string | null
           photo_count?: number | null
           photos?: string[] | null
@@ -342,6 +212,9 @@ export type Database = {
           provider_id?: string | null
           provider_visited?: boolean | null
           rate: number
+          reschedule_requested_at?: string | null
+          reschedule_requested_date?: string | null
+          reschedule_response_deadline?: string | null
           scheduled_at?: string | null
           service_type?: string | null
           status?: string
@@ -349,8 +222,10 @@ export type Database = {
           stripe_invoice_pdf?: string | null
           stripe_invoice_url?: string | null
           stripe_payment_intent_id?: string | null
+          tasker_id?: string | null
           time_preference?: string | null
           title: string
+          total_amount?: number | null
           updated_at?: string
           urgent?: boolean | null
           visit_fee_paid?: boolean | null
@@ -362,13 +237,16 @@ export type Database = {
           category?: string
           client_id?: string | null
           created_at?: string
+          customer_id?: string | null
           description?: string | null
+          duration_hours?: number | null
           escrow_captured?: boolean | null
           escrow_refunded?: boolean | null
           exact_time?: string | null
           id?: string
           invoice_due_date?: string | null
           location?: string | null
+          original_scheduled_date?: string | null
           payment_status?: string | null
           photo_count?: number | null
           photos?: string[] | null
@@ -376,6 +254,9 @@ export type Database = {
           provider_id?: string | null
           provider_visited?: boolean | null
           rate?: number
+          reschedule_requested_at?: string | null
+          reschedule_requested_date?: string | null
+          reschedule_response_deadline?: string | null
           scheduled_at?: string | null
           service_type?: string | null
           status?: string
@@ -383,8 +264,10 @@ export type Database = {
           stripe_invoice_pdf?: string | null
           stripe_invoice_url?: string | null
           stripe_payment_intent_id?: string | null
+          tasker_id?: string | null
           time_preference?: string | null
           title?: string
+          total_amount?: number | null
           updated_at?: string
           urgent?: boolean | null
           visit_fee_paid?: boolean | null
@@ -398,11 +281,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "jobs_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "jobs_provider_id_fkey"
             columns: ["provider_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jobs_tasker_id_fkey"
+            columns: ["tasker_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -442,7 +339,7 @@ export type Database = {
             foreignKeyName: "messages_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
-            referencedRelation: "bookings"
+            referencedRelation: "jobs"
             referencedColumns: ["id"]
           },
           {
@@ -533,7 +430,7 @@ export type Database = {
             foreignKeyName: "payments_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
-            referencedRelation: "bookings"
+            referencedRelation: "jobs"
             referencedColumns: ["id"]
           },
           {
@@ -743,15 +640,7 @@ export type Database = {
           rating?: number
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "reviews_booking_id_fkey"
-            columns: ["booking_id"]
-            isOneToOne: false
-            referencedRelation: "bookings"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       saved_locations: {
         Row: {
@@ -851,19 +740,7 @@ export type Database = {
       }
     }
     Views: {
-      admin_dashboard_stats: {
-        Row: {
-          active_providers: number | null
-          active_users: number | null
-          bookings_today: number | null
-          cancelled_jobs: number | null
-          completed_jobs: number | null
-          jobs_today: number | null
-          total_jobs: number | null
-          total_payments: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       can_view_admin_stats: { Args: never; Returns: boolean }
