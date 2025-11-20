@@ -212,28 +212,84 @@ const UserLanding = () => {
       </header>
       
       <main className="container mx-auto px-4 pt-24 pb-24">
-        {/* Welcome Section */}
+        {/* Welcome Section with Blue Card */}
         <div className="mb-8 text-center pt-[10%] md:pt-[5%]">
-          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
+          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
             ¡Bienvenido de vuelta{profile?.full_name ? `, ${profile.full_name.split(' ')[0]}` : ''}!
           </h1>
-          <p className="text-muted-foreground text-lg mb-6">
-            ¿Qué necesitas hoy?
-          </p>
           
-          {/* AI Search Bar */}
-          <div className="mb-10">
-            <AISearchBar />
+          {/* Blue Card with Stars - matching landing page */}
+          <div className="relative bg-gradient-to-br from-[#1e3a8a] to-[#1e40af] rounded-[1.5rem] md:rounded-[2.5rem] p-6 md:p-8 lg:p-10 shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] border border-white/10 max-w-4xl mx-auto">
+            {/* Shiny Stars Background - SVG Stars */}
+            <div className="absolute inset-0 pointer-events-none">
+              <svg className="absolute top-[8%] left-[12%] w-6 h-6 text-white animate-[pulse_2s_ease-in-out_infinite]" style={{ animationDelay: '0s', filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.8))' }} viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+              </svg>
+              <svg className="absolute top-[15%] right-[18%] w-5 h-5 text-white animate-[pulse_2.5s_ease-in-out_infinite]" style={{ animationDelay: '0.5s', filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.9))' }} viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+              </svg>
+              <svg className="absolute bottom-[12%] left-[8%] w-4 h-4 text-white animate-[pulse_3s_ease-in-out_infinite]" style={{ animationDelay: '1s', filter: 'drop-shadow(0 0 5px rgba(255,255,255,0.7))' }} viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+              </svg>
+              <svg className="absolute top-[55%] right-[12%] w-6 h-6 text-white animate-[pulse_2s_ease-in-out_infinite]" style={{ animationDelay: '1.5s', filter: 'drop-shadow(0 0 7px rgba(255,255,255,0.85))' }} viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+              </svg>
+              <svg className="absolute bottom-[22%] right-[22%] w-5 h-5 text-white animate-[pulse_2.5s_ease-in-out_infinite]" style={{ animationDelay: '2s', filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.8))' }} viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+              </svg>
+            </div>
+            
+            {/* Content */}
+            <div className="relative z-10 space-y-4">
+              <p className="text-white text-lg md:text-xl mb-4">
+                ¿Qué necesitas hoy?
+              </p>
+              
+              {/* AI Search Bar */}
+              <AISearchBar className="max-w-2xl mx-auto" />
+            </div>
           </div>
         </div>
 
-        {/* Category Cards Grid */}
+        {/* Service Buttons Grid - Matching Landing Page Style */}
         <div className="mb-12">
-          <h2 className="text-2xl font-semibold text-foreground mb-6">
-            Categorías de Servicios
+          <h2 className="text-2xl font-semibold text-foreground mb-6 text-center">
+            Servicios Populares
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {categories.map((category, index) => <CategoryCard key={index} image={category.image} category={category.category} description={category.description} services={category.services} />)}
+          <div className="flex flex-wrap gap-4 justify-center max-w-6xl mx-auto">
+            {[
+              { name: "Instalación de muebles", category: "Handyman" },
+              { name: "Colgar cuadros y TV", category: "Handyman" },
+              { name: "Reparación de puertas", category: "Handyman" },
+              { name: "Reparación de ventanas", category: "Handyman" },
+              { name: "Instalación de repisas", category: "Handyman" },
+              { name: "Instalación de cortinas", category: "Handyman" },
+              { name: "Reparación de cerraduras", category: "Handyman" },
+              { name: "Mantenimiento general", category: "Handyman" },
+              { name: "Pintura menor", category: "Handyman" },
+              { name: "Sellado de grietas", category: "Handyman" },
+            ].map((service, index) => (
+              <Button
+                key={index}
+                onClick={() => {
+                  // Clear form data to start fresh
+                  localStorage.removeItem('chamby_form_job-booking');
+                  sessionStorage.removeItem('chamby_form_job-booking');
+                  navigate(`/book-job?new=${Date.now()}`, {
+                    state: {
+                      category: service.category,
+                      service: service.name,
+                      description: `Servicio de ${service.name}`,
+                      forceNew: true
+                    }
+                  });
+                }}
+                variant="outline"
+                className="rounded-full px-7 py-4 h-auto text-base md:text-lg bg-background/50 backdrop-blur-sm hover:bg-primary/10 hover:text-primary hover:border-primary transition-all"
+              >
+                {service.name}
+              </Button>
+            ))}
           </div>
         </div>
 
