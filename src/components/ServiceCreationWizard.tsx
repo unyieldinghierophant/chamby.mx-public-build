@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTaskerJobs } from '@/hooks/useTaskerJobs';
+import { useProviderJobs } from '@/hooks/useProviderJobs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -95,7 +95,7 @@ interface ServiceData {
 
 const ServiceCreationWizard = ({ onSuccess, onClose }: ServiceCreationWizardProps) => {
   const { user } = useAuth();
-  const { createJob } = useTaskerJobs();
+  const { createJob } = useProviderJobs();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newSkill, setNewSkill] = useState('');

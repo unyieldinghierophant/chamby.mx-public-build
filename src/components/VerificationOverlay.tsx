@@ -132,7 +132,7 @@ const VerificationOverlay = ({ onClose }: VerificationOverlayProps) => {
               Cerrar
             </ModernButton>
             <ModernButton 
-              onClick={() => navigate('/tasker-onboarding')}
+              onClick={() => navigate('/provider-onboarding')}
               className="flex-1"
             >
               Completar Verificación

@@ -93,9 +93,9 @@ const BecomeProvider = () => {
               size="lg" 
               className="gap-2"
               onClick={() => {
-                // Set context so callback knows this is tasker signup
-                sessionStorage.setItem('login_context', 'tasker');
-                navigate("/auth/tasker?tab=signup");
+                // Set context so callback knows this is provider signup
+                sessionStorage.setItem('login_context', 'provider');
+                navigate("/auth/provider?tab=signup");
               }}
             >
               Comenzar Registro
@@ -103,8 +103,8 @@ const BecomeProvider = () => {
             </Button>
             <p className="text-sm text-muted-foreground">
               ¿Ya eres proveedor? <button onClick={() => {
-                sessionStorage.setItem('login_context', 'tasker');
-                navigate("/auth/tasker?tab=login");
+                sessionStorage.setItem('login_context', 'provider');
+                navigate("/auth/provider?tab=login");
               }} className="text-primary hover:underline">Inicia sesión aquí</button>
             </p>
           </div>

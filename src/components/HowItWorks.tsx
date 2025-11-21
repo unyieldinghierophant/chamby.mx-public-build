@@ -111,7 +111,7 @@ const HowItWorks = () => {
               <ModernButton 
                 variant="outline" 
                 size="xl"
-                onClick={() => navigate('/tasker-landing')}
+                onClick={() => navigate('/provider-landing')}
               >
                 Ser profesional
               </ModernButton>

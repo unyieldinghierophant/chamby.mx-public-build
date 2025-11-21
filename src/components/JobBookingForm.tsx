@@ -949,7 +949,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
                 <Textarea
                   value={details}
                   onChange={(e) => setDetails(e.target.value)}
-                  placeholder="Sé lo más específico posible sobre lo que necesitas. ¡Los taskers aman los detalles!"
+                  placeholder="Sé lo más específico posible sobre lo que necesitas. ¡Los proveedores aman los detalles!"
                   className="min-h-[200px] text-base resize-none"
                 />
                 <p className="text-sm text-muted-foreground">
