@@ -6,9 +6,9 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string, phone?: string, isTasker?: boolean, role?: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string, loginContext?: 'client' | 'tasker') => Promise<{ error: any }>;
-  signInWithGoogle: (isProvider?: boolean, loginContext?: 'client' | 'tasker') => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName: string, phone?: string, isProvider?: boolean, role?: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string, loginContext?: 'client' | 'provider') => Promise<{ error: any }>;
+  signInWithGoogle: (isProvider?: boolean, loginContext?: 'client' | 'provider') => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: any }>;
   updatePassword: (newPassword: string) => Promise<{ error: any }>;
@@ -61,11 +61,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => clearInterval(refreshInterval);
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string, phone?: string, isTasker?: boolean, role?: string) => {
+  const signUp = async (email: string, password: string, fullName: string, phone?: string, isProvider?: boolean, role?: string) => {
     const redirectUrl = `${window.location.origin}/auth/callback`;
     
     // Store login context for post-verification routing
-    const loginContext = isTasker ? 'tasker' : 'client';
+    const loginContext = isProvider ? 'provider' : 'client';
     localStorage.setItem('login_context', loginContext);
     
     const { data, error } = await supabase.auth.signUp({
@@ -76,7 +76,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         data: {
           full_name: fullName,
           phone: phone,
-          is_tasker: isTasker || false,
+          is_provider: isProvider || false,
           role: role || 'client',
           login_context: loginContext // Store in user metadata as backup
         }
@@ -91,7 +91,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error };
   };
 
-  const signIn = async (email: string, password: string, loginContext?: 'client' | 'tasker') => {
+  const signIn = async (email: string, password: string, loginContext?: 'client' | 'provider') => {
     // Store login context before authentication
     if (loginContext) {
       localStorage.setItem('login_context', loginContext);
@@ -104,7 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error };
   };
 
-  const signInWithGoogle = async (isProvider: boolean = false, loginContext?: 'client' | 'tasker') => {
+  const signInWithGoogle = async (isProvider: boolean = false, loginContext?: 'client' | 'provider') => {
     // Store login context before OAuth redirect
     if (loginContext) {
       localStorage.setItem('login_context', loginContext);

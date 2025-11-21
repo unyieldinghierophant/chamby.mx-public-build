@@ -24,7 +24,7 @@ const ProviderPortal = () => {
 
   // Redirect to login if not authenticated
   if (!user) {
-    return <Navigate to={ROUTES.TASKER_AUTH} replace />;
+    return <Navigate to={ROUTES.PROVIDER_AUTH} replace />;
   }
 
   // Check if user has provider role
@@ -40,8 +40,8 @@ const ProviderPortal = () => {
     return !!data;
   };
 
-  // If not a provider and not in tasker login context, redirect
-  if (loginContext !== 'tasker' && profile) {
+  // If not a provider and not in provider login context, redirect
+  if (loginContext !== 'provider' && profile) {
     hasProviderRole().then(isProvider => {
       if (!isProvider) {
         window.location.href = ROUTES.BECOME_PROVIDER;
