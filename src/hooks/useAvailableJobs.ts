@@ -30,7 +30,7 @@ interface UseAvailableJobsResult {
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
-  acceptJob: (jobId: string) => Promise<{ error: any }>;
+  acceptJob: (jobId: string) => Promise<void>;
 }
 
 export const useAvailableJobs = (): UseAvailableJobsResult => {
@@ -93,21 +93,15 @@ export const useAvailableJobs = (): UseAvailableJobsResult => {
 
   const acceptJob = async (jobId: string) => {
     if (!user) {
-      return { error: new Error('User not authenticated') };
+      throw new Error('User not authenticated');
     }
 
     try {
-      // Get the profile ID for this provider
-      const profile = await getCurrentProfile();
-      if (!profile) {
-        throw new Error('No se pudo obtener la información del proveedor');
-      }
-
-      // Update job with provider_id
+      // Update job with provider_id and change status to assigned
       const { error: updateError } = await supabase
         .from('jobs')
         .update({ 
-          provider_id: profile.id,
+          provider_id: user.id,
           status: 'assigned',
           updated_at: new Date().toISOString()
         })
@@ -116,16 +110,19 @@ export const useAvailableJobs = (): UseAvailableJobsResult => {
 
       if (updateError) throw updateError;
 
-      // Notification system disabled
-      console.log('Would notify client of job acceptance');
+      // Mark related notifications as read
+      await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('user_id', user.id)
+        .eq('type', 'new_job_available')
+        .contains('data', { job_id: jobId });
 
       // Refetch jobs after accepting
       await fetchJobs();
-
-      return { error: null };
     } catch (err: any) {
       console.error('Error accepting job:', err);
-      return { error: err };
+      throw err;
     }
   };
 

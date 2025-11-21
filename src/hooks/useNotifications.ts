@@ -10,6 +10,8 @@ export interface Notification {
   title: string;
   message: string;
   created_at: string;
+  data?: any;
+  link?: string;
 }
 
 export const useNotifications = () => {
