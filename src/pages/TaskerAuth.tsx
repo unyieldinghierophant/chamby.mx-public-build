@@ -251,7 +251,6 @@ const TaskerAuth = () => {
   const handleGoogleLogin = async () => {
     // Clear any previous role selection to force fresh role picker
     localStorage.removeItem('selected_role');
-    localStorage.setItem('login_context', 'provider');
     
     // Store return path before OAuth redirect
     const returnTo = (location.state as { returnTo?: string })?.returnTo;
