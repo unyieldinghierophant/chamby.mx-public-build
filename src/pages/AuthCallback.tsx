@@ -74,7 +74,7 @@ const AuthCallback = () => {
           console.log('[AuthCallback] Login context:', loginContext);
 
           // 🔥 AUTO-CREATE PROVIDER ROLE if coming from /auth/tasker
-          if (loginContext === 'provider' && !roles.includes('provider')) {
+          if (loginContext === 'tasker' && !roles.includes('provider')) {
             console.log('[AuthCallback] Auto-creating provider role for tasker signup');
             
             // Insert provider role
@@ -98,7 +98,7 @@ const AuthCallback = () => {
           let selectedRole: string;
 
           // If login_context is set, use it to determine role preference
-          if (loginContext === 'provider' || loginContext === 'tasker') {
+          if (loginContext === 'tasker') {
             // User came from tasker login - prefer provider role
             if (roles.includes('provider')) {
               selectedRole = 'provider';
