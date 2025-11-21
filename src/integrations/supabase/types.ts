@@ -143,105 +143,6 @@ export type Database = {
         }
         Relationships: []
       }
-      jobs_old_backup: {
-        Row: {
-          amount_booking_fee: number | null
-          amount_service_total: number | null
-          budget: string | null
-          category: string
-          client_id: string | null
-          created_at: string
-          description: string | null
-          duration_hours: number | null
-          exact_time: string | null
-          id: string
-          location: string | null
-          original_scheduled_date: string | null
-          photo_count: number | null
-          photos: string[] | null
-          problem: string | null
-          provider_id: string | null
-          provider_visited: boolean | null
-          rate: number
-          reschedule_requested_at: string | null
-          reschedule_requested_date: string | null
-          reschedule_response_deadline: string | null
-          scheduled_at: string | null
-          service_type: string | null
-          status: string
-          time_preference: string | null
-          title: string
-          total_amount: number | null
-          updated_at: string
-          urgent: boolean | null
-          visit_fee_paid: boolean
-        }
-        Insert: {
-          amount_booking_fee?: number | null
-          amount_service_total?: number | null
-          budget?: string | null
-          category: string
-          client_id?: string | null
-          created_at?: string
-          description?: string | null
-          duration_hours?: number | null
-          exact_time?: string | null
-          id?: string
-          location?: string | null
-          original_scheduled_date?: string | null
-          photo_count?: number | null
-          photos?: string[] | null
-          problem?: string | null
-          provider_id?: string | null
-          provider_visited?: boolean | null
-          rate: number
-          reschedule_requested_at?: string | null
-          reschedule_requested_date?: string | null
-          reschedule_response_deadline?: string | null
-          scheduled_at?: string | null
-          service_type?: string | null
-          status?: string
-          time_preference?: string | null
-          title: string
-          total_amount?: number | null
-          updated_at?: string
-          urgent?: boolean | null
-          visit_fee_paid?: boolean
-        }
-        Update: {
-          amount_booking_fee?: number | null
-          amount_service_total?: number | null
-          budget?: string | null
-          category?: string
-          client_id?: string | null
-          created_at?: string
-          description?: string | null
-          duration_hours?: number | null
-          exact_time?: string | null
-          id?: string
-          location?: string | null
-          original_scheduled_date?: string | null
-          photo_count?: number | null
-          photos?: string[] | null
-          problem?: string | null
-          provider_id?: string | null
-          provider_visited?: boolean | null
-          rate?: number
-          reschedule_requested_at?: string | null
-          reschedule_requested_date?: string | null
-          reschedule_response_deadline?: string | null
-          scheduled_at?: string | null
-          service_type?: string | null
-          status?: string
-          time_preference?: string | null
-          title?: string
-          total_amount?: number | null
-          updated_at?: string
-          urgent?: boolean | null
-          visit_fee_paid?: boolean
-        }
-        Relationships: []
-      }
       messages: {
         Row: {
           attachment_url: string | null
@@ -278,7 +179,7 @@ export type Database = {
             foreignKeyName: "messages_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
-            referencedRelation: "jobs_old_backup"
+            referencedRelation: "jobs"
             referencedColumns: ["id"]
           },
         ]
