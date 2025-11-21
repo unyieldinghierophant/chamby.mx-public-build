@@ -168,9 +168,9 @@ const AuthCallback = () => {
   useEffect(() => {
     if (emailConfirmed && !user) {
       const timer = setTimeout(() => {
-        // Check if they were signing up as tasker or client
+        // Check if they were signing up as provider or client
         const loginContext = sessionStorage.getItem('login_context');
-        const targetAuth = loginContext === 'tasker' ? '/auth/tasker?tab=login' : '/auth/user?tab=login';
+        const targetAuth = loginContext === 'provider' ? '/auth/provider?tab=login' : '/auth/user?tab=login';
         navigate(targetAuth, { replace: true });
       }, 5000);
       return () => clearTimeout(timer);
@@ -248,7 +248,7 @@ const AuthCallback = () => {
             <Button
               onClick={() => {
                 const loginContext = sessionStorage.getItem('login_context');
-                const targetAuth = loginContext === 'tasker' ? '/auth/tasker?tab=login' : '/auth/user?tab=login';
+                const targetAuth = loginContext === 'provider' ? '/auth/provider?tab=login' : '/auth/user?tab=login';
                 navigate(targetAuth, { replace: true });
               }}
               className="w-full"

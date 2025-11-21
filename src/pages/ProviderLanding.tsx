@@ -59,22 +59,22 @@ const ProviderLanding = () => {
       }
     } else {
       // Usuario no logueado - llevar a registro con tab de signup
-      navigate('/auth/tasker?tab=signup');
+      navigate('/auth/provider?tab=signup');
     }
   };
 
   const handleListServices = () => {
     if (!user) {
       // No logueado - llevar a registro
-      navigate('/auth/tasker?tab=signup');
+      navigate('/auth/provider?tab=signup');
     } else if (role !== 'provider') {
       // Logueado pero no es proveedor - llevar a onboarding
       navigate('/become-provider');
     } else if (!isVerified) {
-      // Es tasker pero no verificado - llevar a verificación
-      navigate('/tasker-verification');
+      // Es provider pero no verificado - llevar a verificación
+      navigate('/provider-verification');
     } else {
-      // Es tasker y verificado - llevar a portal
+      // Es provider y verificado - llevar a portal
       navigate('/provider-portal');
     }
   };
@@ -202,7 +202,7 @@ const ProviderLanding = () => {
           )}
 
           {!user && (
-            <Button onClick={() => navigate('/auth/tasker')} className="bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant">
+            <Button onClick={() => navigate('/auth/provider')} className="bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant">
               Iniciar Sesión
             </Button>
           )}

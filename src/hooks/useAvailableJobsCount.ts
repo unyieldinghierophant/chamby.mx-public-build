@@ -10,7 +10,7 @@ export const useAvailableJobsCount = () => {
       const { count: jobCount, error } = await supabase
         .from('jobs')
         .select('*', { count: 'exact', head: true })
-        .is('tasker_id', null)
+        .is('provider_id', null)
         .eq('status', 'pending');
 
       if (error) throw error;
@@ -34,7 +34,7 @@ export const useAvailableJobsCount = () => {
           event: '*',
           schema: 'public',
           table: 'jobs',
-          filter: 'tasker_id=is.null'
+          filter: 'provider_id=is.null'
         },
         () => {
           fetchCount();

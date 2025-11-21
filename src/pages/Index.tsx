@@ -95,7 +95,7 @@ const Index = () => {
                 <Link to="/auth/user" className="text-foreground hover:text-primary transition-colors font-medium">
                   Iniciar sesión
                 </Link>
-                <Link to="/auth/tasker" className="text-primary hover:text-primary/80 transition-colors font-medium">
+                <Link to="/auth/provider" className="text-primary hover:text-primary/80 transition-colors font-medium">
                   Ser Chambynauta
                 </Link>
               </div>
@@ -144,7 +144,7 @@ const Index = () => {
                   <Link to="/auth/user?mode=signin" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2 text-foreground hover:text-primary transition-colors font-medium text-left">
                     Iniciar sesión
                   </Link>
-                  <Link to="/auth/tasker" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2 text-primary hover:text-primary/80 transition-colors font-semibold text-left">
+                  <Link to="/auth/provider" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2 text-primary hover:text-primary/80 transition-colors font-semibold text-left">
                     Ser Chambynauta
                   </Link>
                 </div>

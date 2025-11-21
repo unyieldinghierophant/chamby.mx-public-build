@@ -20,9 +20,9 @@ import ProviderAuth from "./pages/ProviderAuth";
 import ProviderLanding from "./pages/ProviderLanding";
 import UserLanding from "./pages/UserLanding";
 import AuthCallback from "./pages/AuthCallback";
-import TaskerOnboarding from "./pages/TaskerOnboarding";
-import TaskerVerification from "./pages/TaskerVerification";
-import TaskerProfile from "./pages/TaskerProfile";
+import ProviderOnboarding from "./pages/ProviderOnboarding";
+import ProviderVerificationPage from "./pages/ProviderVerification";
+import ProviderProfile from "./pages/ProviderProfile";
 import UserProfile from "./pages/UserProfile";
 import ProfileSettings from "./pages/ProfileSettings";
 import SecuritySettings from "./pages/SecuritySettings";
@@ -129,7 +129,7 @@ const App = () => {
               <Route path={ROUTES.AUTH_CALLBACK} element={<AuthCallback />} />
               <Route path={ROUTES.CALLBACK} element={<AuthCallback />} />
               <Route path={ROUTES.DASHBOARD_USER} element={<Navigate to={ROUTES.USER_LANDING} replace />} />
-              <Route path="/tasker-landing" element={<ProviderLanding />} />
+              <Route path="/provider-landing-legacy" element={<ProviderLanding />} />
               <Route path="/booking/datetime/:providerId" element={<BookingDateTime />} />
               {/* /service/:serviceType route removed - all services are now jobs */}
               <Route path="/booking/:jobId" element={<BookingForm />} />
@@ -144,7 +144,7 @@ const App = () => {
                 path="/provider-profile"
                 element={
                   <ProtectedRoute requireProvider>
-                    <TaskerProfile />
+                    <ProviderProfile />
                   </ProtectedRoute>
                 }
               />

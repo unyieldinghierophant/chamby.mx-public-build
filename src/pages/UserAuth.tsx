@@ -209,7 +209,7 @@ const UserAuth = () => {
       signupData.password,
       signupData.fullName,
       signupData.phone,
-      false, // is not a tasker
+      false, // is not a provider
       'client' // role
     );
     
@@ -605,10 +605,10 @@ const UserAuth = () => {
                 ¿Eres proveedor de servicios?
               </p>
               <Link 
-                to="/auth/tasker" 
+                to="/auth/provider" 
                 className="inline-flex items-center text-primary hover:text-primary-dark transition-colors font-medium text-sm"
               >
-                Regístrate como tasker
+                Regístrate como proveedor
                 <Users className="w-4 h-4 ml-1" />
               </Link>
             </div>

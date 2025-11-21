@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useIsProvider } from '@/hooks/useIsProvider';
 import { ROUTES } from '@/constants/routes';
 
-const TaskerProfile = () => {
+const ProviderProfile = () => {
   const { user, loading: authLoading } = useAuth();
   const { isProvider, loading: roleLoading } = useIsProvider();
 
@@ -26,4 +26,4 @@ const TaskerProfile = () => {
   return <Navigate to={ROUTES.PROVIDER_PROFILE} replace />;
 };
 
-export default TaskerProfile;
+export default ProviderProfile;

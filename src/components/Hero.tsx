@@ -213,7 +213,7 @@ const Hero = () => {
                 
                 {/* Gana dinero CTA */}
                 <div className="mt-4">
-                  <Link to="/tasker-landing">
+                  <Link to="/provider-landing">
                     <ModernButton variant="outline" className="w-full bg-white/10 text-white border-white/20 hover:bg-white/20 flex items-center justify-center gap-2">
                       <img src={moneyBagIcon} alt="Money bag" className="w-10 h-10" />
                       Gana dinero como Chambynauta

@@ -85,7 +85,7 @@ const ProviderMap = () => {
           total_amount,
           customer:profiles!jobs_customer_id_fkey(full_name)
         `)
-        .eq("tasker_id", user.id)
+        .eq("provider_id", user.id)
         .in("status", ["pending", "confirmed", "in_progress"])
         .not("location", "is", null);
 
@@ -101,7 +101,7 @@ const ProviderMap = () => {
           total_amount,
           customer:profiles!jobs_customer_id_fkey(full_name)
         `)
-        .is("tasker_id", null)
+        .is("provider_id", null)
         .eq("status", "pending")
         .not("location", "is", null);
 
