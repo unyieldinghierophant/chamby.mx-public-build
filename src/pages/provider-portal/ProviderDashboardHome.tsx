@@ -321,7 +321,7 @@ const ProviderDashboardHome = () => {
       {/* Quick Actions */}
       <div className="grid gap-4 md:grid-cols-2">
         <Card className="cursor-pointer hover:border-primary transition-colors"
-          onClick={() => navigate("/provider-portal/jobs?tab=disponibles")}>
+          onClick={() => navigate("/provider-portal/available-jobs")}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-primary" />

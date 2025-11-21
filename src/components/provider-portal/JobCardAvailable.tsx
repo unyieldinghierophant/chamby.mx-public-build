@@ -9,19 +9,19 @@ import { toast } from "sonner";
 
 interface JobCardAvailableProps {
   job: AvailableJob;
-  onAccept: (jobId: string) => Promise<{ error: any }>;
+  onAccept: (jobId: string) => Promise<void>;
 }
 
 export const JobCardAvailable = ({ job, onAccept }: JobCardAvailableProps) => {
   const handleAccept = async () => {
-    const { error } = await onAccept(job.id);
-    if (error) {
-      toast.error('Error al aceptar el trabajo', {
-        description: error.message
-      });
-    } else {
+    try {
+      await onAccept(job.id);
       toast.success('¡Trabajo aceptado!', {
         description: 'El trabajo ha sido asignado a tu cuenta'
+      });
+    } catch (error: any) {
+      toast.error('Error al aceptar el trabajo', {
+        description: error.message
       });
     }
   };
