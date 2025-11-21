@@ -53,7 +53,7 @@ const calculatePasswordStrength = (password: string): { strength: number; label:
   return { strength, label: 'Fuerte', color: 'bg-green-500' };
 };
 
-const TaskerAuth = () => {
+const ProviderAuth = () => {
   const { user, signUp, signIn, signInWithGoogle, resetPassword } = useAuth();
   const { role, loading: roleLoading } = useUserRole();
   const navigate = useNavigate();
@@ -91,12 +91,6 @@ const TaskerAuth = () => {
   
   // Password strength
   const passwordStrength = calculatePasswordStrength(signupData.password);
-
-  // Redirect to provider portal if already authenticated  
-  // Removed immediate redirect - all redirects handled via AuthSuccessOverlay
-
-  // Note: Navigation is handled by AuthSuccessOverlay, not by useEffect
-  // This prevents race conditions between success screen and redirect
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -183,7 +177,7 @@ const TaskerAuth = () => {
       signupData.password,
       signupData.fullName,
       signupData.phone,
-      true, // is a tasker
+      true, // is a provider
       'provider' // role
     );
     
@@ -290,7 +284,7 @@ const TaskerAuth = () => {
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold text-foreground flex items-center justify-center gap-2">
               <Briefcase className="w-6 h-6 text-primary" />
-              Tasker - Chamby
+              Chambynauta - Chamby
             </CardTitle>
             <p className="text-muted-foreground">Para ofrecer servicios profesionales</p>
           </CardHeader>
@@ -421,11 +415,13 @@ const TaskerAuth = () => {
                     <div className="mt-4 p-4 border border-border rounded-lg bg-muted/50">
                       <div className="flex items-center gap-2 mb-3">
                         <Mail className="w-4 h-4 text-primary" />
-                        <h3 className="font-medium">Recuperar Contraseña</h3>
+                        <h4 className="font-medium">Recuperar Contraseña</h4>
                       </div>
                       <form onSubmit={handleResetPassword} className="space-y-3">
-                        <div className="space-y-2">
-                          <Label htmlFor="reset-email">Email</Label>
+                        <div>
+                          <Label htmlFor="reset-email" className="text-sm">
+                            Email
+                          </Label>
                           <Input
                             id="reset-email"
                             type="email"
@@ -461,17 +457,18 @@ const TaskerAuth = () => {
                   <div className="mb-4">
                     <Badge variant="secondary" className="w-full justify-center py-2">
                       <Briefcase className="w-4 h-4 mr-2" />
-                      Registro de Tasker Profesional
+                      Registro de Chambynauta Profesional
                     </Badge>
                   </div>
                   
                   <form onSubmit={handleSignup} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="signup-name" className={getLabelClassName('fullName', signupErrors)}>
+                      <Label htmlFor="signup-fullName" className={getLabelClassName('fullName', signupErrors)}>
                         Nombre Completo
                       </Label>
                       <Input
-                        id="signup-name"
+                        id="signup-fullName"
+                        type="text"
                         value={signupData.fullName}
                         onChange={(e) => setSignupData({ ...signupData, fullName: e.target.value })}
                         className={getInputClassName('fullName', signupErrors)}
@@ -486,7 +483,7 @@ const TaskerAuth = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="signup-email" className={getLabelClassName('email', signupErrors)}>
-                        Email Profesional
+                        Email
                       </Label>
                       <Input
                         id="signup-email"
@@ -505,7 +502,7 @@ const TaskerAuth = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="signup-phone" className={getLabelClassName('phone', signupErrors)}>
-                        Teléfono de Contacto
+                        Teléfono
                       </Label>
                       <Input
                         id="signup-phone"
@@ -513,7 +510,6 @@ const TaskerAuth = () => {
                         value={signupData.phone}
                         onChange={(e) => setSignupData({ ...signupData, phone: e.target.value })}
                         className={getInputClassName('phone', signupErrors)}
-                        placeholder="+52 55 1234 5678"
                         required
                       />
                       {signupErrors.phone && (
@@ -525,7 +521,7 @@ const TaskerAuth = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="signup-password" className={getLabelClassName('password', signupErrors)}>
-                        Contraseña Segura
+                        Contraseña
                       </Label>
                       <div className="relative">
                         <Input
@@ -544,70 +540,26 @@ const TaskerAuth = () => {
                           {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                       </div>
-                      
-                      {/* Password strength bar */}
-                      {signupData.password && (
-                        <div className="space-y-1">
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="text-muted-foreground">Seguridad:</span>
-                            <span className={`font-medium ${
-                              passwordStrength.label === 'Débil' ? 'text-red-600' :
-                              passwordStrength.label === 'Regular' ? 'text-yellow-600' :
-                              'text-green-600'
-                            }`}>
-                              {passwordStrength.label}
-                            </span>
-                          </div>
-                          <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-                            <div
-                              className={`h-full transition-all duration-300 ${passwordStrength.color}`}
-                              style={{ width: `${(passwordStrength.strength / 6) * 100}%` }}
-                            />
-                          </div>
-                        </div>
-                      )}
-                      
-                      {/* Password requirements checklist */}
-                      {signupData.password && (
-                        <div className="space-y-1 text-xs">
-                          <div className={`flex items-center gap-1 ${signupData.password.length >= 8 ? 'text-green-600' : 'text-muted-foreground'}`}>
-                            {signupData.password.length >= 8 ? <CheckCircle2 className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
-                            Al menos 8 caracteres
-                          </div>
-                          <div className={`flex items-center gap-1 ${/[A-Z]/.test(signupData.password) ? 'text-green-600' : 'text-muted-foreground'}`}>
-                            {/[A-Z]/.test(signupData.password) ? <CheckCircle2 className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
-                            Una letra mayúscula
-                          </div>
-                          <div className={`flex items-center gap-1 ${/[a-z]/.test(signupData.password) ? 'text-green-600' : 'text-muted-foreground'}`}>
-                            {/[a-z]/.test(signupData.password) ? <CheckCircle2 className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
-                            Una letra minúscula
-                          </div>
-                          <div className={`flex items-center gap-1 ${/[0-9]/.test(signupData.password) ? 'text-green-600' : 'text-muted-foreground'}`}>
-                            {/[0-9]/.test(signupData.password) ? <CheckCircle2 className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
-                            Un número
-                          </div>
-                          <div className={`flex items-center gap-1 ${/[^A-Za-z0-9]/.test(signupData.password) ? 'text-green-600' : 'text-muted-foreground'}`}>
-                            {/[^A-Za-z0-9]/.test(signupData.password) ? <CheckCircle2 className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
-                            Un carácter especial (!@#$%^&*)
-                          </div>
-                        </div>
-                      )}
-                      
                       {signupErrors.password && (
                         <p className="text-red-600 text-sm flex items-center gap-1">
                           <AlertCircle className="w-3 h-3" />
                           {signupErrors.password}
                         </p>
                       )}
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: passwordStrength.color }}></div>
+                        <p className="text-xs text-muted-foreground">
+                          Fuerza: <span className="font-medium">{passwordStrength.label}</span>
+                        </p>
+                      </div>
                     </div>
-                    
                     <div className="space-y-2">
-                      <Label htmlFor="signup-confirm-password" className={getLabelClassName('confirmPassword', signupErrors)}>
+                      <Label htmlFor="signup-confirmPassword" className={getLabelClassName('confirmPassword', signupErrors)}>
                         Confirmar Contraseña
                       </Label>
                       <div className="relative">
                         <Input
-                          id="signup-confirm-password"
+                          id="signup-confirmPassword"
                           type={showConfirmPassword ? "text" : "password"}
                           value={signupData.confirmPassword}
                           onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
@@ -631,7 +583,7 @@ const TaskerAuth = () => {
                     </div>
                     
                     <Button type="submit" className="w-full" disabled={loading}>
-                      {loading ? 'Creando cuenta...' : 'Crear Cuenta de Tasker'}
+                      {loading ? 'Creando cuenta...' : 'Crear Cuenta de Chambynauta'}
                     </Button>
                     <p className="text-xs text-muted-foreground text-center">
                       Al registrarte, aceptas completar el proceso de verificación con documentos oficiales
@@ -700,4 +652,4 @@ const TaskerAuth = () => {
   );
 };
 
-export default TaskerAuth;
+export default ProviderAuth;

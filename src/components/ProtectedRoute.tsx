@@ -6,19 +6,19 @@ import { ROUTES } from '@/constants/routes';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requireAuth?: boolean;
-  requireTasker?: boolean;
+  requireProvider?: boolean;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
   requireAuth = true, 
-  requireTasker = false 
+  requireProvider = false 
 }) => {
   const { user, loading: authLoading } = useAuth();
   const { roles, loading: roleLoading } = useUserRole();
 
   // Show loading while checking auth and roles
-  if (authLoading || (requireTasker && roleLoading)) {
+  if (authLoading || (requireProvider && roleLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -34,10 +34,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to={ROUTES.USER_AUTH} replace />;
   }
 
-  // For tasker-only routes, verify user has provider or admin role in database
-  if (requireTasker) {
+  // For provider-only routes, verify user has provider or admin role in database
+  if (requireProvider) {
     if (!user) {
-      return <Navigate to={ROUTES.TASKER_AUTH} replace />;
+      return <Navigate to={ROUTES.PROVIDER_AUTH} replace />;
     }
     
     // Check if user has provider or admin role in database
@@ -49,7 +49,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       return <Navigate to={ROUTES.BECOME_PROVIDER} replace />;
     }
     
-    console.log('[ProtectedRoute] User has required tasker role, allowing access');
+    console.log('[ProtectedRoute] User has required provider role, allowing access');
   }
 
   return <>{children}</>;

@@ -48,14 +48,14 @@ const Header = ({
     setIsLoggingOut(false);
   };
 
-  const isTasker = user?.user_metadata?.is_tasker;
+  const isProvider = user?.user_metadata?.is_provider;
   
-  // Determine if we're on a tasker page based on current route
-  const isOnTaskerPage = location.pathname.startsWith(ROUTES.PROVIDER_PORTAL);
+  // Determine if we're on a provider page based on current route
+  const isOnProviderPage = location.pathname.startsWith(ROUTES.PROVIDER_PORTAL);
   
   // Determine where the logo should navigate based on current page context
   const getLogoDestination = () => {
-    return isOnTaskerPage ? ROUTES.TASKER_LANDING : ROUTES.USER_LANDING;
+    return isOnProviderPage ? ROUTES.PROVIDER_LANDING : ROUTES.USER_LANDING;
   };
 
   const handleHowItWorksClick = (e: React.MouseEvent) => {
@@ -156,7 +156,7 @@ const Header = ({
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Configuración</span>
                   </DropdownMenuItem>
-                  {isTasker && (
+              {isProvider && (
                     <DropdownMenuItem onClick={() => navigate(ROUTES.PROVIDER_PORTAL)}>
                       <Users className="mr-2 h-4 w-4" />
                       <span>Portal Proveedor</span>
@@ -177,7 +177,7 @@ const Header = ({
                 <Link to={ROUTES.USER_AUTH_SIGNIN} className="text-foreground/70 hover:text-foreground transition-colors text-base font-normal">
                   Iniciar sesión
                 </Link>
-                <Link to={ROUTES.TASKER_AUTH} className="text-primary hover:text-primary/80 transition-colors text-base font-semibold">
+                <Link to={ROUTES.PROVIDER_AUTH} className="text-primary hover:text-primary/80 transition-colors text-base font-semibold">
                   Ser Chambynauta
                 </Link>
               </>
@@ -241,7 +241,7 @@ const Header = ({
                   <Link to={ROUTES.PROFILE} className="block py-2 text-base font-normal text-foreground/70 hover:text-foreground">
                     Ver Perfil
                   </Link>
-                  {isTasker && (
+                  {isProvider && (
                     <Link to={ROUTES.PROVIDER_PORTAL} className="block py-2 text-base font-normal text-foreground/70 hover:text-foreground">
                       Portal Proveedor
                     </Link>
@@ -262,7 +262,7 @@ const Header = ({
                   <Link to={ROUTES.USER_AUTH_SIGNIN} className="block py-2 text-base font-normal text-foreground/70 hover:text-foreground">
                     Iniciar sesión
                   </Link>
-                  <Link to={ROUTES.TASKER_AUTH} className="block py-2 text-base font-semibold text-primary hover:text-primary/80">
+                  <Link to={ROUTES.PROVIDER_AUTH} className="block py-2 text-base font-semibold text-primary hover:text-primary/80">
                     Ser Chambynauta
                   </Link>
                 </div>

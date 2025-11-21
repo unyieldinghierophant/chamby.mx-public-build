@@ -73,9 +73,9 @@ const AuthCallback = () => {
           console.log('[AuthCallback] User roles:', roles);
           console.log('[AuthCallback] Login context:', loginContext);
 
-          // 🔥 AUTO-CREATE PROVIDER ROLE if coming from /auth/tasker
-          if (loginContext === 'tasker' && !roles.includes('provider')) {
-            console.log('[AuthCallback] Auto-creating provider role for tasker signup');
+          // 🔥 AUTO-CREATE PROVIDER ROLE if coming from /auth/provider
+          if (loginContext === 'provider' && !roles.includes('provider')) {
+            console.log('[AuthCallback] Auto-creating provider role for provider signup');
             
             // Insert provider role
             const { error: insertError } = await supabase
@@ -98,8 +98,8 @@ const AuthCallback = () => {
           let selectedRole: string;
 
           // If login_context is set, use it to determine role preference
-          if (loginContext === 'tasker') {
-            // User came from tasker login - prefer provider role
+          if (loginContext === 'provider') {
+            // User came from provider login - prefer provider role
             if (roles.includes('provider')) {
               selectedRole = 'provider';
             } else if (roles.includes('admin')) {

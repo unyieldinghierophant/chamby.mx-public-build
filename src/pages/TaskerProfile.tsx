@@ -17,7 +17,7 @@ const TaskerProfile = () => {
   }
   
   // Redirect to login if not authenticated
-  if (!user) return <Navigate to={ROUTES.TASKER_AUTH} replace />;
+  if (!user) return <Navigate to={ROUTES.PROVIDER_AUTH} replace />;
   
   // Redirect to user landing if not a provider
   if (!isProvider) return <Navigate to={ROUTES.USER_LANDING} replace />;

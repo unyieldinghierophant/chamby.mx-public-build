@@ -16,7 +16,7 @@ import { ROUTES } from "@/constants/routes";
 import Index from "./pages/Index";
 import Home from "./pages/Home";
 import UserAuth from "./pages/UserAuth";
-import TaskerAuth from "./pages/TaskerAuth";
+import ProviderAuth from "./pages/ProviderAuth";
 import ProviderLanding from "./pages/ProviderLanding";
 import UserLanding from "./pages/UserLanding";
 import AuthCallback from "./pages/AuthCallback";
@@ -123,7 +123,7 @@ const App = () => {
               <Route path={ROUTES.SOLICITAR_SERVICIO} element={<Navigate to={ROUTES.BOOK_JOB} replace />} />
               <Route path={ROUTES.BOOK_JOB} element={<BookJob />} />
               <Route path={ROUTES.USER_AUTH} element={<UserAuth />} />
-              <Route path={ROUTES.TASKER_AUTH} element={<TaskerAuth />} />
+              <Route path={ROUTES.PROVIDER_AUTH} element={<ProviderAuth />} />
               <Route path={ROUTES.BECOME_PROVIDER} element={<BecomeProvider />} />
               <Route path={ROUTES.CHOOSE_ROLE} element={<RoleSelection />} />
               <Route path={ROUTES.AUTH_CALLBACK} element={<AuthCallback />} />
@@ -141,9 +141,9 @@ const App = () => {
               <Route path="/provider-landing" element={<ProviderLanding />} />
 
               <Route
-                path="/tasker-profile"
+                path="/provider-profile"
                 element={
-                  <ProtectedRoute requireTasker>
+                  <ProtectedRoute requireProvider>
                     <TaskerProfile />
                   </ProtectedRoute>
                 }
@@ -152,7 +152,7 @@ const App = () => {
               <Route
                 path="/provider-portal"
                 element={
-                  <ProtectedRoute requireTasker>
+                  <ProtectedRoute requireProvider>
                     <ProviderPortal />
                   </ProtectedRoute>
                 }
