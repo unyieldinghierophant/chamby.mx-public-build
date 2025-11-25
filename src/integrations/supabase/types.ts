@@ -16,26 +16,26 @@ export type Database = {
     Tables: {
       documents: {
         Row: {
-          client_id: string | null
           doc_type: string | null
           file_url: string | null
           id: string
+          provider_id: string | null
           uploaded_at: string | null
           verification_status: string | null
         }
         Insert: {
-          client_id?: string | null
           doc_type?: string | null
           file_url?: string | null
           id?: string
+          provider_id?: string | null
           uploaded_at?: string | null
           verification_status?: string | null
         }
         Update: {
-          client_id?: string | null
           doc_type?: string | null
           file_url?: string | null
           id?: string
+          provider_id?: string | null
           uploaded_at?: string | null
           verification_status?: string | null
         }
@@ -524,27 +524,6 @@ export type Database = {
           table_name?: string
           user_agent?: string | null
           user_id?: string | null
-        }
-        Relationships: []
-      }
-      user_roles: {
-        Row: {
-          created_at: string | null
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
         }
         Relationships: []
       }

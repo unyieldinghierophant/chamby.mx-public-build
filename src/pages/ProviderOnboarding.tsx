@@ -101,7 +101,7 @@ const ProviderOnboarding = () => {
     const { data } = await supabase
       .from('documents')
       .select('doc_type')
-      .eq('client_id', user.id);
+      .eq('provider_id', user.id);
     
     if (data) {
       setDocuments(prev => prev.map(doc => ({
@@ -153,7 +153,7 @@ const ProviderOnboarding = () => {
       const { error: dbError } = await supabase
         .from('documents')
         .insert({
-          client_id: user.id,
+          provider_id: user.id,
           doc_type: doc.type,
           file_url: urlData.publicUrl,
           verification_status: 'pending'
@@ -333,9 +333,9 @@ const ProviderOnboarding = () => {
                 <p className="text-muted-foreground">
                   Tu información ha sido enviada para verificación. Te notificaremos cuando esté aprobada.
                 </p>
-                <Link to="/user-landing">
+                <Link to="/provider-portal">
                   <Button className="w-full">
-                    Ir al Inicio
+                    Ir al Portal de Chambynautas
                   </Button>
                 </Link>
               </div>
