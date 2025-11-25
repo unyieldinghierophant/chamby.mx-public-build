@@ -186,34 +186,34 @@ export type Database = {
       }
       notifications: {
         Row: {
-          created_at: string
+          created_at: string | null
           data: Json | null
           id: string
           link: string | null
           message: string
-          read: boolean
+          read: boolean | null
           title: string
           type: string
           user_id: string
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
           data?: Json | null
           id?: string
           link?: string | null
           message: string
-          read?: boolean
+          read?: boolean | null
           title: string
           type: string
           user_id: string
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           data?: Json | null
           id?: string
           link?: string | null
           message?: string
-          read?: boolean
+          read?: boolean | null
           title?: string
           type?: string
           user_id?: string
@@ -656,6 +656,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_provider: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "client" | "provider"

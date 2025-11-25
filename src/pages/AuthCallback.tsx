@@ -73,9 +73,54 @@ const AuthCallback = () => {
           console.log('[AuthCallback] User roles:', roles);
           console.log('[AuthCallback] Login context:', loginContext);
 
-          // 🔥 AUTO-CREATE PROVIDER ROLE if coming from /auth/provider
+          // 🔥 AUTO-CREATE PROVIDER ROLE AND RECORDS if coming from /auth/provider
           if (loginContext === 'provider' && !roles.includes('provider')) {
             console.log('[AuthCallback] Auto-creating provider role for provider signup');
+            
+            // Check if provider record exists
+            const { data: existingProvider } = await supabase
+              .from('providers')
+              .select('id')
+              .eq('user_id', user.id)
+              .maybeSingle();
+            
+            let providerId = existingProvider?.id;
+            
+            // Create provider record if doesn't exist
+            if (!existingProvider) {
+              const { data: newProvider, error: providerError } = await supabase
+                .from('providers')
+                .insert({
+                  user_id: user.id,
+                  display_name: user.user_metadata?.full_name,
+                  business_email: user.email,
+                  business_phone: user.user_metadata?.phone,
+                })
+                .select()
+                .single();
+              
+              if (providerError) {
+                console.error('[AuthCallback] Error creating provider record:', providerError);
+              } else {
+                providerId = newProvider.id;
+                console.log('[AuthCallback] Provider record created successfully');
+              }
+            }
+            
+            // Create provider_details if we have a provider ID
+            if (providerId) {
+              const { error: detailsError } = await supabase
+                .from('provider_details')
+                .insert({
+                  provider_id: providerId,
+                  user_id: user.id,
+                  verification_status: 'pending'
+                });
+              
+              if (detailsError && detailsError.code !== '23505') {
+                console.error('[AuthCallback] Error creating provider_details:', detailsError);
+              }
+            }
             
             // Insert provider role
             const { error: insertError } = await supabase

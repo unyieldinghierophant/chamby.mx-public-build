@@ -24,7 +24,7 @@ export const useUserRole = (): UserRole => {
       }
 
       try {
-        // Fetch all roles from user_roles table (users may have multiple roles)
+        // Fetch all roles from user_roles table
         const { data, error } = await supabase
           .from('user_roles')
           .select('role')
@@ -39,35 +39,27 @@ export const useUserRole = (): UserRole => {
           setRoles(userRoles);
 
           // Check if user has selected a role in this session
-          const selectedRole = localStorage.getItem('selected_role') as 'client' | 'provider' | 'admin' | null;
+          const selectedRole = localStorage.getItem('selected_role') as 'client' | 'provider' | null;
           
           if (selectedRole && userRoles.includes(selectedRole)) {
             // Use the previously selected role
-            setRole(selectedRole === 'provider' ? 'provider' : 'client');
+            setRole(selectedRole);
           } else {
-            // Priority: provider > client > admin
-            const providerRole = data.find(r => r.role === 'provider');
-            const clientRole = data.find(r => r.role === 'client');
-            
-            if (providerRole) {
-              setRole('provider');
-            } else if (clientRole) {
-              setRole('client');
-            } else {
-              // If only admin or other roles, default to client
-              setRole('client');
-            }
+            // Priority: provider > client
+            const hasProvider = userRoles.includes('provider');
+            setRole(hasProvider ? 'provider' : 'client');
           }
         } else {
           // Default to client if no role found
           setRole('client');
+          setRoles(['client']);
         }
         setError(null);
       } catch (err: any) {
         console.error('Error fetching user role:', err);
         setError(err.message);
-        // Default to client on error
         setRole('client');
+        setRoles(['client']);
       } finally {
         setLoading(false);
       }
