@@ -208,7 +208,8 @@ const ProviderAuth = () => {
       setSignupErrors({ [errorField]: errorMessage });
     } else {
       // Mark this as a new provider signup so AuthCallback knows to redirect to skills selection
-      sessionStorage.setItem('new_provider_signup', 'true');
+      localStorage.setItem('new_provider_signup', 'true');
+      localStorage.setItem('login_context', 'provider');
       // Show email verification modal instead of success overlay
       setVerificationEmail(signupData.email);
       setShowEmailVerificationModal(true);
