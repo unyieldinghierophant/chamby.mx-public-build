@@ -13,17 +13,18 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Camera, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 
-interface ProfileData {
-  full_name: string;
-  specialty: string;
-  zone_served: string;
-  phone: string;
-  bio: string;
-  face_photo_url: string | null;
-  verified: boolean;
-  rating: number;
-  total_reviews: number;
-}
+  interface ProfileData {
+    full_name: string;
+    phone: string;
+    bio: string;
+    display_name: string;
+    specialty: string;
+    zone_served: string;
+    avatar_url: string;
+    verified: boolean;
+    rating: number;
+    total_reviews: number;
+  }
 
 export const ProfileTab = () => {
   const { user } = useAuth();
@@ -33,11 +34,12 @@ export const ProfileTab = () => {
   const [uploading, setUploading] = useState(false);
   const [profile, setProfile] = useState<ProfileData>({
     full_name: "",
-    specialty: "",
-    zone_served: "",
     phone: "",
     bio: "",
-    face_photo_url: null,
+    display_name: "",
+    specialty: "",
+    zone_served: "",
+    avatar_url: "",
     verified: false,
     rating: 0,
     total_reviews: 0,
@@ -61,9 +63,9 @@ export const ProfileTab = () => {
 
       if (baseError) throw baseError;
 
-      const { data: providerProfile, error: providerError } = await supabase
-        .from('provider_details')
-        .select('specialty, zone_served, rating, total_reviews, face_photo_url, verified')
+      const { data: providerProfile, error: providerError} = await supabase
+        .from('providers')
+        .select('display_name, specialty, zone_served, rating, total_reviews, avatar_url, verified')
         .eq('user_id', user.id)
         .single();
 
@@ -72,7 +74,13 @@ export const ProfileTab = () => {
       if (baseProfile && providerProfile) {
         setProfile({
           ...baseProfile,
-          ...providerProfile,
+          display_name: providerProfile.display_name || baseProfile.full_name || '',
+          specialty: providerProfile.specialty || '',
+          zone_served: providerProfile.zone_served || '',
+          avatar_url: providerProfile.avatar_url || '',
+          verified: providerProfile.verified || false,
+          rating: providerProfile.rating || 0,
+          total_reviews: providerProfile.total_reviews || 0,
         });
       }
     } catch (error: any) {
@@ -128,19 +136,25 @@ export const ProfileTab = () => {
       if (urlError) throw urlError;
 
       const { error: updateError } = await supabase
-        .from("provider_details")
+        .from("providers")
         .update({
-          face_photo_url: signedUrlData.signedUrl,
-          verification_status: 'pending',
+          avatar_url: signedUrlData.signedUrl,
+          verified: false,
         })
         .eq("user_id", user.id);
 
       if (updateError) throw updateError;
 
+      // Also update verification status in provider_details
+      await supabase
+        .from('provider_details')
+        .update({ verification_status: 'pending' })
+        .eq('user_id', user.id);
+
       setProfile((prev) => ({
         ...prev,
-        face_photo_url: signedUrlData.signedUrl,
-        verified: true,
+        avatar_url: signedUrlData.signedUrl,
+        verified: false,
       }));
 
       toast({
@@ -177,8 +191,9 @@ export const ProfileTab = () => {
       if (baseError) throw baseError;
 
       const { error: providerError } = await supabase
-        .from('provider_details')
+        .from('providers')
         .update({
+          display_name: profile.display_name,
           specialty: profile.specialty,
           zone_served: profile.zone_served,
         })
@@ -247,7 +262,7 @@ export const ProfileTab = () => {
           <div className="flex flex-col items-center gap-4">
             <div className="relative">
               <Avatar className="w-32 h-32">
-                <AvatarImage src={profile.face_photo_url || undefined} />
+                <AvatarImage src={profile.avatar_url || undefined} />
                 <AvatarFallback className="text-2xl">
                   {profile.full_name?.charAt(0) || "P"}
                 </AvatarFallback>
@@ -261,24 +276,24 @@ export const ProfileTab = () => {
 
             <div className="flex flex-col items-center gap-2">
               <Label htmlFor="photo-upload" className="cursor-pointer">
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={uploading}
-                  onClick={() => document.getElementById("photo-upload")?.click()}
-                >
-                  {uploading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Subiendo...
-                    </>
-                  ) : (
-                    <>
-                      <Camera className="w-4 h-4 mr-2" />
-                      {profile.face_photo_url ? "Cambiar foto" : "Subir foto de verificación"}
-                    </>
-                  )}
-                </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={uploading}
+                    onClick={() => document.getElementById("photo-upload")?.click()}
+                  >
+                    {uploading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Subiendo...
+                      </>
+                    ) : (
+                      <>
+                        <Camera className="w-4 h-4 mr-2" />
+                        {profile.avatar_url ? "Cambiar foto" : "Subir foto de verificación"}
+                      </>
+                    )}
+                  </Button>
               </Label>
               <input
                 id="photo-upload"

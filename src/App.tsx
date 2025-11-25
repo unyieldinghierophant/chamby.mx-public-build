@@ -52,6 +52,7 @@ import ProviderMap from "./pages/provider-portal/ProviderMap";
 import ProviderVerification from "./pages/provider-portal/ProviderVerification";
 import ProviderProfileEdit from "./pages/provider-portal/ProviderProfileEdit";
 import ProviderSupport from "./pages/provider-portal/ProviderSupport";
+import ProviderSkillsSelection from "./pages/provider-portal/ProviderSkillsSelection";
 // Provider notifications disabled during cleanup
 import RescheduleRequest from "./pages/provider-portal/RescheduleRequest";
 import AvailableJobs from "./pages/provider-portal/AvailableJobs";
@@ -167,6 +168,7 @@ const App = () => {
                 <Route path="support" element={<ProviderSupport />} />
                 <Route path="reschedule/:id" element={<RescheduleRequest />} />
               </Route>
+              <Route path={ROUTES.PROVIDER_SKILLS_SELECTION} element={<ProtectedRoute requireProvider><ProviderSkillsSelection /></ProtectedRoute>} />
               <Route
                 path="/profile"
                 element={

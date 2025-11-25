@@ -70,7 +70,7 @@ const ActiveJobs = () => {
               .single();
 
             const { data: providerData } = await supabase
-              .from("provider_details")
+              .from("providers")
               .select("current_latitude, current_longitude, rating, total_reviews")
               .eq("user_id", job.provider_id)
               .single();

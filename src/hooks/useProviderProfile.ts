@@ -4,18 +4,24 @@ import { supabase } from '@/integrations/supabase/client';
 interface ProviderProfile {
   id: string;
   user_id: string;
+  display_name: string | null;
+  business_email: string | null;
+  business_phone: string | null;
+  avatar_url: string | null;
   hourly_rate: number | null;
   rating: number | null;
   total_reviews: number | null;
   skills: string[] | null;
   specialty: string | null;
   zone_served: string | null;
-  verification_status: string;
-  face_photo_url: string | null;
   verified: boolean;
   fcm_token: string | null;
+  current_latitude: number | null;
+  current_longitude: number | null;
+  last_location_update: string | null;
   created_at: string;
   updated_at: string;
+  verification_status?: string; // For display from provider_details
 }
 
 interface BaseProfile {
@@ -43,29 +49,39 @@ export const useProviderProfile = (userId?: string) => {
     }
 
     try {
-      // Fetch base profile first
+      // Fetch base profile
       const { data: baseProfile, error: baseError } = await supabase
         .from('users')
-        .select('full_name, phone, avatar_url, bio, created_at')
+        .select('full_name, phone, bio, email, created_at')
         .eq('id', userId)
         .single();
 
       if (baseError) throw baseError;
 
-      // Fetch provider profile
+      // Fetch provider profile from providers table
       const { data: providerData, error: providerError } = await supabase
-        .from('provider_details')
+        .from('providers')
         .select('*')
         .eq('user_id', userId)
         .single();
 
       if (providerError) throw providerError;
 
+      // Optionally fetch verification_status from provider_details for display
+      const { data: detailsData } = await supabase
+        .from('provider_details')
+        .select('verification_status')
+        .eq('user_id', userId)
+        .single();
+
       // Combine the data
       setProfile({
         ...providerData,
-        ...baseProfile,
-      });
+        full_name: baseProfile.full_name,
+        phone: baseProfile.phone,
+        bio: baseProfile.bio,
+        verification_status: detailsData?.verification_status,
+      } as ProviderProfile & BaseProfile);
 
       // Fetch booking stats
       const { data: jobsData, error: jobsError } = await supabase
@@ -95,13 +111,13 @@ export const useProviderProfile = (userId?: string) => {
 
     try {
       // Separate provider-specific and base profile updates
-      const { full_name, phone, avatar_url, bio, ...providerUpdates } = updates;
+      const { full_name, phone, bio, ...providerUpdates } = updates;
       
       // Update base profile if there are base profile fields
-      if (full_name !== undefined || phone !== undefined || avatar_url !== undefined || bio !== undefined) {
+      if (full_name !== undefined || phone !== undefined || bio !== undefined) {
         const { error: profileError } = await supabase
           .from('users')
-          .update({ full_name, phone, avatar_url, bio })
+          .update({ full_name, phone, bio })
           .eq('id', userId);
 
         if (profileError) throw profileError;
@@ -110,7 +126,7 @@ export const useProviderProfile = (userId?: string) => {
       // Update provider profile if there are provider-specific fields
       if (Object.keys(providerUpdates).length > 0) {
         const { error } = await supabase
-          .from('provider_details')
+          .from('providers')
           .update(providerUpdates)
           .eq('user_id', userId);
 

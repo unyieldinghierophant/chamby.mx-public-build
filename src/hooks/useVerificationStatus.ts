@@ -15,10 +15,10 @@ export const useVerificationStatus = () => {
       }
 
       try {
-        // Check provider verification status
+        // Check provider verification from providers table
         const { data: providerData } = await supabase
-          .from('provider_details')
-          .select('verified, verification_status')
+          .from('providers')
+          .select('verified')
           .eq('user_id', user.id)
           .single();
 
@@ -28,7 +28,7 @@ export const useVerificationStatus = () => {
           return;
         }
 
-        setIsVerified(providerData.verified && providerData.verification_status === 'verified');
+        setIsVerified(providerData.verified);
       } catch (error) {
         console.error('Error checking verification status:', error);
         setIsVerified(false);
