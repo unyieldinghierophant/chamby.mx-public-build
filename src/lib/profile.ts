@@ -19,7 +19,7 @@ export const hasRole = async (userId: string, role: 'admin' | 'client' | 'provid
     .select("role")
     .eq("user_id", userId)
     .eq("role", role)
-    .single();
+    .maybeSingle();
   
   return !!data;
 }
