@@ -50,9 +50,9 @@ serve(async (req) => {
       );
     }
 
-    // Update provider location
+    // Update provider location in providers table
     const { data, error } = await supabaseClient
-      .from('provider_details')
+      .from('providers')
       .update({
         current_latitude: latitude,
         current_longitude: longitude,

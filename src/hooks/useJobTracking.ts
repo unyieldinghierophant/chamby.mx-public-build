@@ -80,12 +80,12 @@ export const useJobTracking = (jobId: string | null) => {
           .single();
 
         const { data: providerData, error: providerError } = await supabase
-          .from("provider_details")
+          .from("providers")
           .select("current_latitude, current_longitude, rating, total_reviews")
           .eq("user_id", jobData.provider_id)
           .single();
 
-        if (!userError && !providerError) {
+        if (!userError && !providerError && userData && providerData) {
           setJob({
             ...jobData,
             provider: {

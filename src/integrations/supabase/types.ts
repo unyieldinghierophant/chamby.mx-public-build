@@ -300,10 +300,60 @@ export type Database = {
       }
       provider_details: {
         Row: {
+          admin_notes: string | null
+          background_check_status: string | null
+          created_at: string | null
+          face_photo_url: string | null
+          id: string
+          id_document_url: string | null
+          provider_id: string | null
+          updated_at: string | null
+          user_id: string
+          verification_status: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          background_check_status?: string | null
+          created_at?: string | null
+          face_photo_url?: string | null
+          id?: string
+          id_document_url?: string | null
+          provider_id?: string | null
+          updated_at?: string | null
+          user_id: string
+          verification_status?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          background_check_status?: string | null
+          created_at?: string | null
+          face_photo_url?: string | null
+          id?: string
+          id_document_url?: string | null
+          provider_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+          verification_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_details_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      providers: {
+        Row: {
+          avatar_url: string | null
+          business_email: string | null
+          business_phone: string | null
           created_at: string | null
           current_latitude: number | null
           current_longitude: number | null
-          face_photo_url: string | null
+          display_name: string | null
           fcm_token: string | null
           hourly_rate: number | null
           id: string
@@ -314,15 +364,17 @@ export type Database = {
           total_reviews: number | null
           updated_at: string | null
           user_id: string
-          verification_status: string | null
           verified: boolean | null
           zone_served: string | null
         }
         Insert: {
+          avatar_url?: string | null
+          business_email?: string | null
+          business_phone?: string | null
           created_at?: string | null
           current_latitude?: number | null
           current_longitude?: number | null
-          face_photo_url?: string | null
+          display_name?: string | null
           fcm_token?: string | null
           hourly_rate?: number | null
           id?: string
@@ -333,15 +385,17 @@ export type Database = {
           total_reviews?: number | null
           updated_at?: string | null
           user_id: string
-          verification_status?: string | null
           verified?: boolean | null
           zone_served?: string | null
         }
         Update: {
+          avatar_url?: string | null
+          business_email?: string | null
+          business_phone?: string | null
           created_at?: string | null
           current_latitude?: number | null
           current_longitude?: number | null
-          face_photo_url?: string | null
+          display_name?: string | null
           fcm_token?: string | null
           hourly_rate?: number | null
           id?: string
@@ -352,11 +406,18 @@ export type Database = {
           total_reviews?: number | null
           updated_at?: string | null
           user_id?: string
-          verification_status?: string | null
           verified?: boolean | null
           zone_served?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "providers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reviews: {
         Row: {
@@ -492,6 +553,7 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           created_at: string | null
+          email: string | null
           full_name: string | null
           id: string
           phone: string | null
@@ -501,6 +563,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string | null
+          email?: string | null
           full_name?: string | null
           id: string
           phone?: string | null
@@ -510,6 +573,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string | null
+          email?: string | null
           full_name?: string | null
           id?: string
           phone?: string | null
