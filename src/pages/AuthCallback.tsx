@@ -215,7 +215,7 @@ const AuthCallback = () => {
     if (emailConfirmed && !user) {
       const timer = setTimeout(() => {
         // Check if they were signing up as provider or client
-        const loginContext = sessionStorage.getItem('login_context');
+        const loginContext = localStorage.getItem('login_context');
         const targetAuth = loginContext === 'provider' ? '/auth/provider?tab=login' : '/auth/user?tab=login';
         navigate(targetAuth, { replace: true });
       }, 5000);
@@ -229,7 +229,7 @@ const AuthCallback = () => {
       
       // Get selected role (should be set by now)
       const selectedRole = localStorage.getItem('selected_role');
-      const isNewProviderSignup = sessionStorage.getItem('new_provider_signup') === 'true';
+      const isNewProviderSignup = localStorage.getItem('new_provider_signup') === 'true';
       console.log('[AuthCallback] Selected role:', selectedRole);
       console.log('[AuthCallback] New provider signup:', isNewProviderSignup);
       
@@ -246,7 +246,7 @@ const AuthCallback = () => {
       
       if (returnTo) {
         console.log('[AuthCallback] Redirecting to stored path:', returnTo);
-        sessionStorage.removeItem('new_provider_signup');
+        localStorage.removeItem('new_provider_signup');
         navigate(returnTo, { replace: true });
         return;
       }
@@ -265,14 +265,14 @@ const AuthCallback = () => {
         // If no skills yet, go to skills selection
         if (!providerData?.skills || providerData.skills.length === 0) {
           console.log('[AuthCallback] Redirecting to skills selection');
-          sessionStorage.removeItem('new_provider_signup');
+          localStorage.removeItem('new_provider_signup');
           navigate(ROUTES.PROVIDER_SKILLS_SELECTION, { replace: true });
           return;
         }
       }
       
       // Clear the flag
-      sessionStorage.removeItem('new_provider_signup');
+      localStorage.removeItem('new_provider_signup');
 
       // Redirect based on selected role
       if (selectedRole === 'provider' || selectedRole === 'admin') {
@@ -284,7 +284,7 @@ const AuthCallback = () => {
       }
     } catch (error) {
       console.error('[AuthCallback] Error during redirect:', error);
-      sessionStorage.removeItem('new_provider_signup');
+      localStorage.removeItem('new_provider_signup');
       navigate('/');
     }
   };
@@ -320,7 +320,7 @@ const AuthCallback = () => {
             </p>
             <Button
               onClick={() => {
-                const loginContext = sessionStorage.getItem('login_context');
+                const loginContext = localStorage.getItem('login_context');
                 const targetAuth = loginContext === 'provider' ? '/auth/provider?tab=login' : '/auth/user?tab=login';
                 navigate(targetAuth, { replace: true });
               }}
