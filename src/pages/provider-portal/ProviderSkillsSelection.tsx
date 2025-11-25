@@ -73,11 +73,12 @@ const ProviderSkillsSelection = () => {
       if (error) throw error;
 
       toast({
-        title: "Habilidades guardadas",
-        description: "Tus habilidades se guardaron exitosamente",
+        title: "¡Habilidades guardadas!",
+        description: "Ahora puedes comenzar a recibir trabajos",
       });
 
-      navigate(ROUTES.PROVIDER_PORTAL);
+      // Redirect to provider onboarding for document verification
+      navigate("/provider-onboarding");
     } catch (error: any) {
       console.error("Error saving skills:", error);
       toast({
@@ -91,7 +92,8 @@ const ProviderSkillsSelection = () => {
   };
 
   const handleSkip = () => {
-    navigate(ROUTES.PROVIDER_PORTAL);
+    // Even if skipping, go to onboarding for document verification
+    navigate("/provider-onboarding");
   };
 
   return (

@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2 } from "lucide-react";
+import { ROUTES } from "@/constants/routes";
 
 const AuthCallback = () => {
   const navigate = useNavigate();
@@ -222,13 +223,15 @@ const AuthCallback = () => {
     }
   }, [emailConfirmed, user, navigate]);
 
-  const handleSuccessComplete = () => {
+  const handleSuccessComplete = async () => {
     try {
       console.log('[AuthCallback] Success complete, cleaning up and redirecting');
       
       // Get selected role (should be set by now)
       const selectedRole = localStorage.getItem('selected_role');
+      const isNewProviderSignup = sessionStorage.getItem('new_provider_signup') === 'true';
       console.log('[AuthCallback] Selected role:', selectedRole);
+      console.log('[AuthCallback] New provider signup:', isNewProviderSignup);
       
       // Check for stored return path AFTER role is determined
       const returnTo = sessionStorage.getItem('auth_return_to') || localStorage.getItem('auth_return_to');
@@ -243,9 +246,33 @@ const AuthCallback = () => {
       
       if (returnTo) {
         console.log('[AuthCallback] Redirecting to stored path:', returnTo);
+        sessionStorage.removeItem('new_provider_signup');
         navigate(returnTo, { replace: true });
         return;
       }
+
+      // For NEW provider signups, redirect to skills selection first
+      if ((selectedRole === 'provider' || selectedRole === 'admin') && isNewProviderSignup && user) {
+        console.log('[AuthCallback] New provider signup - checking if skills selection needed');
+        
+        // Check if provider already has skills
+        const { data: providerData } = await supabase
+          .from('providers')
+          .select('skills')
+          .eq('user_id', user.id)
+          .single();
+        
+        // If no skills yet, go to skills selection
+        if (!providerData?.skills || providerData.skills.length === 0) {
+          console.log('[AuthCallback] Redirecting to skills selection');
+          sessionStorage.removeItem('new_provider_signup');
+          navigate(ROUTES.PROVIDER_SKILLS_SELECTION, { replace: true });
+          return;
+        }
+      }
+      
+      // Clear the flag
+      sessionStorage.removeItem('new_provider_signup');
 
       // Redirect based on selected role
       if (selectedRole === 'provider' || selectedRole === 'admin') {
@@ -257,6 +284,7 @@ const AuthCallback = () => {
       }
     } catch (error) {
       console.error('[AuthCallback] Error during redirect:', error);
+      sessionStorage.removeItem('new_provider_signup');
       navigate('/');
     }
   };

@@ -43,7 +43,7 @@ export const ROUTES = {
   CHOOSE_ROLE: '/choose-role',
   NOT_FOUND: '/not-found',
   PROVIDER_PROFILE_EDIT: '/provider-portal/profile/edit',
-  PROVIDER_SKILLS_SELECTION: '/provider/skills-selection',
+  PROVIDER_SKILLS_SELECTION: '/provider-portal/skills-selection',
   PROVIDER_SUPPORT: '/provider-portal/support',
 } as const;
 
