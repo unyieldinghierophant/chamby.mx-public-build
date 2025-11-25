@@ -65,7 +65,7 @@ const ProviderVerification = () => {
       const { data: docs } = await supabase
         .from("documents")
         .select("*")
-        .eq("client_id", user.id);
+        .eq("provider_id", user.id);
 
       setDocuments(docs || []);
 
