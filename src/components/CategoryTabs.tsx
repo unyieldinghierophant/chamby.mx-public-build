@@ -101,7 +101,7 @@ export const CategoryTabs = () => {
             {/* Text benefits and image container */}
             <div className="max-w-2xl">
               {/* Text benefits above image */}
-              <div className="mb-4 space-y-2">
+              <div className="mb-4 space-y-2 text-left">
                 {category.id === 'handyman' && (
                   <>
                     <p className="text-sm md:text-base flex items-start gap-2">
