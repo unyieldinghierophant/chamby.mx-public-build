@@ -60,13 +60,13 @@ export const CategoryTabs = () => {
               <TabsTrigger
                 key={category.id}
                 value={category.id}
-                className="flex flex-col items-center gap-2 md:gap-4 p-3 md:p-5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary rounded-xl transition-all h-auto min-w-[90px] md:min-w-0"
+                className="flex flex-col items-center gap-2 md:gap-4 p-3 md:p-5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary rounded-xl transition-all duration-300 h-auto min-w-[90px] md:min-w-0 hover:scale-105"
               >
-                <div className="w-14 h-14 md:w-24 md:h-24 flex items-center justify-center">
+                <div className="w-14 h-14 md:w-24 md:h-24 flex items-center justify-center transition-transform duration-300">
                   <img 
                     src={category.icon} 
                     alt={category.name} 
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-contain transition-transform duration-300 group-data-[state=active]:scale-110"
                   />
                 </div>
                 <span className="text-sm md:text-lg font-medium whitespace-nowrap">
@@ -82,16 +82,16 @@ export const CategoryTabs = () => {
           <TabsContent 
             key={category.id} 
             value={category.id}
-            className="mt-8 animate-in fade-in-50 duration-300"
+            className="mt-8 animate-fade-in"
           >
             {/* Service pills - wrapping layout */}
-            <div className="flex flex-wrap gap-2 md:gap-3 mb-6">
+            <div className="flex flex-wrap gap-2 md:gap-3 mb-6 animate-fade-in" style={{ animationDelay: '100ms' }}>
               {services.map((service) => (
                 <Button
                   key={service.name}
                   onClick={() => handleServiceClick(service.name, service.description)}
                   variant="outline"
-                  className="rounded-full px-4 py-2 md:px-5 md:py-2.5 h-auto text-sm md:text-base bg-background/50 backdrop-blur-sm hover:bg-primary/10 hover:text-primary hover:border-primary transition-all"
+                  className="rounded-full px-4 py-2 md:px-5 md:py-2.5 h-auto text-sm md:text-base bg-background/50 backdrop-blur-sm hover:bg-primary/10 hover:text-primary hover:border-primary transition-all duration-300 hover:scale-105"
                 >
                   {service.name}
                 </Button>
@@ -99,7 +99,7 @@ export const CategoryTabs = () => {
             </div>
             
             {/* Text benefits and image container */}
-            <div className="max-w-2xl">
+            <div className="max-w-2xl animate-fade-in" style={{ animationDelay: '200ms' }}>
               {/* Text benefits above image */}
               <div className="mb-4 space-y-2 text-left">
                 {category.id === 'handyman' && (
@@ -153,7 +153,7 @@ export const CategoryTabs = () => {
               </div>
               
               {/* Hero Image */}
-              <div className="rounded-2xl overflow-hidden w-full">
+              <div className="rounded-2xl overflow-hidden w-full transition-transform duration-500 hover:scale-[1.02]">
                 <img 
                   src={category.heroImage} 
                   alt={category.name}
