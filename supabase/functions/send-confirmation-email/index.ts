@@ -71,7 +71,7 @@ serve(async (req) => {
 
     // Send email via Resend
     const { data: emailData, error } = await resend.emails.send({
-      from: "Chamby <onboarding@resend.dev>",
+      from: "Chamby <notificaciones@chamby.mx>",
       to: [user.email],
       subject: "¡Bienvenido a Chamby! Confirma tu correo",
       html,
