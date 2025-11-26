@@ -6,7 +6,7 @@ import { renderAsync } from "npm:@react-email/components@0.0.22";
 import { ConfirmationEmail } from "./_templates/confirmation.tsx";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY") as string);
-const hookSecret = Deno.env.get("SEND_EMAIL_HOOK_SECRET") as string;
+const hookSecret = (Deno.env.get("SEND_EMAIL_HOOK_SECRET") as string).replace("v1,whsec_", "");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
