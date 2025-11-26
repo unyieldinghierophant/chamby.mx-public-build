@@ -27,12 +27,14 @@ const VerificationOverlay = ({ onClose }: VerificationOverlayProps) => {
       if (!user) return;
 
       try {
-        const { data: docs } = await supabase
+        const { data: docs, error } = await supabase
           .from('documents')
           .select('doc_type, verification_status')
-          .eq('client_id', user.id);
+          .eq('provider_id', user.id);
 
-        setDocuments(docs || []);
+        if (!error && docs) {
+          setDocuments(docs as Document[]);
+        }
       } catch (error) {
         console.error('Error fetching documents:', error);
       } finally {
