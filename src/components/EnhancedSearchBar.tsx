@@ -243,7 +243,14 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
 
   return (
     <div ref={searchRef} className={cn("relative w-full", className)}>
-      <div className="relative">
+      {/* Pill-shaped container with border */}
+      <div className={cn("relative flex items-center bg-background border border-border rounded-full overflow-hidden", sizeClasses[size])}>
+        {/* Search icon on left */}
+        <div className="absolute left-4 flex items-center">
+          <Search className="h-5 w-5 text-muted-foreground" />
+        </div>
+
+        {/* Input field */}
         <Input
           ref={inputRef}
           type="text"
@@ -254,15 +261,20 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
           onBlur={handleInputBlur}
           onKeyDown={handleKeyPress}
           className={cn(
-            "pl-12 pr-4 bg-white/90 border-gray-300 rounded-2xl focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm placeholder:text-[#999] text-gray-900",
+            "h-full w-full pl-12 pr-16 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0",
             sizeClasses[size]
           )}
           style={{ fontSize: '16px', lineHeight: 'normal', WebkitAppearance: 'none', transform: 'none' }}
         />
-        <Search 
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 cursor-pointer" 
+
+        {/* Search button - integrated on right */}
+        <button
+          type="button"
           onClick={handleSearchSubmit}
-        />
+          className="absolute right-0 top-0 h-full rounded-l-none rounded-r-full bg-primary hover:bg-primary/90 text-primary-foreground px-5 transition-colors"
+        >
+          <Search className="h-5 w-5" />
+        </button>
       </div>
 
       {/* Dropdown */}
