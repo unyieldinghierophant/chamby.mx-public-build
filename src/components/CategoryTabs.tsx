@@ -46,29 +46,31 @@ export const CategoryTabs = () => {
   };
 
   return (
-    <div className="w-[96%] md:w-[98%] mx-auto">
+    <div className="w-full mx-auto">
       <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
-        {/* Category Tabs */}
-        <TabsList className="w-full h-auto bg-background/50 backdrop-blur-sm p-4 rounded-2xl grid grid-cols-4 gap-4">
-          {categories.map((category) => (
-            <TabsTrigger
-              key={category.id}
-              value={category.id}
-              className="flex flex-col items-center gap-4 p-5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary rounded-xl transition-all h-auto"
-            >
-              <div className="w-20 h-20 md:w-24 md:h-24 flex items-center justify-center">
-                <img 
-                  src={category.icon} 
-                  alt={category.name} 
-                  className="w-full h-full object-contain"
-                />
-              </div>
-              <span className="text-base md:text-lg font-medium whitespace-nowrap">
-                {category.name}
-              </span>
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        {/* Category Tabs - Horizontal scroll on mobile, grid on desktop */}
+        <div className="w-full overflow-x-auto md:overflow-visible scrollbar-hide">
+          <TabsList className="w-max md:w-full h-auto bg-background/50 backdrop-blur-sm p-3 md:p-4 rounded-2xl flex md:grid md:grid-cols-4 gap-3 md:gap-4">
+            {categories.map((category) => (
+              <TabsTrigger
+                key={category.id}
+                value={category.id}
+                className="flex flex-col items-center gap-2 md:gap-4 p-3 md:p-5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary rounded-xl transition-all h-auto min-w-[90px] md:min-w-0"
+              >
+                <div className="w-14 h-14 md:w-24 md:h-24 flex items-center justify-center">
+                  <img 
+                    src={category.icon} 
+                    alt={category.name} 
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <span className="text-sm md:text-lg font-medium whitespace-nowrap">
+                  {category.name}
+                </span>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
 
         {/* Service Pills for Each Category */}
         {categories.map((category) => (

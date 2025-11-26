@@ -198,31 +198,10 @@ const Header = ({
         {/* Mobile Navigation */}
         {isMenuOpen && (
           <div className="lg:hidden border-t border-border/40 bg-background">
-            <div className="px-4 pt-4 pb-6 space-y-4">
-              <button onClick={handlePostJobClick} className="block w-full">
-                <span className="w-full bg-primary hover:bg-primary/90 text-white rounded-full px-6 py-3 text-base font-semibold inline-block text-center">
-                  Publicar tarea
-                </span>
-              </button>
-              <button 
-                onClick={() => setCategoriesDialogOpen(true)}
-                className="block w-full text-left py-2 text-base font-normal text-foreground/70 hover:text-foreground"
-              >
-                Categorías
-              </button>
-              <Link to={ROUTES.ACTIVE_JOBS} className="block py-2 text-base font-normal text-foreground/70 hover:text-foreground">
-                Trabajos activos
-              </Link>
-              <button 
-                onClick={handleHowItWorksClick}
-                className="block w-full text-left py-2 text-base font-normal text-foreground/70 hover:text-foreground"
-              >
-                Cómo funciona
-              </button>
-              
+            <div className="px-4 pt-4 pb-6 space-y-3">
               {user ? (
                 <>
-                  <div className="flex items-center gap-3 pt-4 pb-2 border-t border-border/40">
+                  <div className="flex items-center gap-3 pb-3 border-b border-border/40">
                     <Avatar className="h-10 w-10">
                       <AvatarImage src={user.user_metadata?.avatar_url} />
                       <AvatarFallback>
@@ -238,16 +217,16 @@ const Header = ({
                       </p>
                     </div>
                   </div>
-                  <Link to={ROUTES.PROFILE} className="block py-2 text-base font-normal text-foreground/70 hover:text-foreground">
+                  <Link to={ROUTES.PROFILE} className="block py-3 text-base font-normal text-foreground/70 hover:text-foreground">
                     Ver Perfil
                   </Link>
                   {isProvider && (
-                    <Link to={ROUTES.PROVIDER_PORTAL} className="block py-2 text-base font-normal text-foreground/70 hover:text-foreground">
+                    <Link to={ROUTES.PROVIDER_PORTAL} className="block py-3 text-base font-normal text-foreground/70 hover:text-foreground">
                       Portal Proveedor
                     </Link>
                   )}
                   <button 
-                    className="block w-full text-left py-2 text-base font-normal text-foreground/70 hover:text-foreground"
+                    className="block w-full text-left py-3 text-base font-normal text-foreground/70 hover:text-foreground"
                     onClick={handleSignOut}
                     disabled={isLoggingOut}
                   >
@@ -255,16 +234,19 @@ const Header = ({
                   </button>
                 </>
               ) : (
-                <div className="pt-4 border-t border-border/40 space-y-2">
-                  <Link to={ROUTES.USER_AUTH} className="block py-2 text-base font-normal text-foreground/70 hover:text-foreground">
-                    Registrarse
+                <div className="space-y-3">
+                  <Link to={ROUTES.USER_AUTH} className="block py-3 text-lg font-medium text-foreground hover:text-primary transition-colors">
+                    Iniciar sesión / Registrarse
                   </Link>
-                  <Link to={ROUTES.USER_AUTH_SIGNIN} className="block py-2 text-base font-normal text-foreground/70 hover:text-foreground">
-                    Iniciar sesión
-                  </Link>
-                  <Link to={ROUTES.PROVIDER_AUTH} className="block py-2 text-base font-semibold text-primary hover:text-primary/80">
+                  <Link to={ROUTES.PROVIDER_AUTH} className="block py-3 text-lg font-medium text-foreground hover:text-primary transition-colors">
                     Ser Chambynauta
                   </Link>
+                  <button 
+                    onClick={() => setCategoriesDialogOpen(true)}
+                    className="block w-full text-left py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
+                  >
+                    Servicios
+                  </button>
                 </div>
               )}
             </div>
