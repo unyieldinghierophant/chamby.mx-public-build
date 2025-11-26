@@ -84,29 +84,27 @@ export const CategoryTabs = () => {
             value={category.id}
             className="mt-8 animate-in fade-in-50 duration-300"
           >
-            {/* Hero Image */}
-            <div className="mb-6 rounded-2xl overflow-hidden">
+            {/* Service pills - wrapping layout */}
+            <div className="flex flex-wrap gap-2 md:gap-3 mb-6">
+              {services.map((service) => (
+                <Button
+                  key={service.name}
+                  onClick={() => handleServiceClick(service.name, service.description)}
+                  variant="outline"
+                  className="rounded-full px-4 py-2 md:px-5 md:py-2.5 h-auto text-sm md:text-base bg-background/50 backdrop-blur-sm hover:bg-primary/10 hover:text-primary hover:border-primary transition-all"
+                >
+                  {service.name}
+                </Button>
+              ))}
+            </div>
+            
+            {/* Hero Image below pills */}
+            <div className="rounded-2xl overflow-hidden">
               <img 
                 src={category.heroImage} 
                 alt={category.name}
                 className="w-full h-48 md:h-64 object-cover"
               />
-            </div>
-            
-            {/* Horizontal scrolling service pills */}
-            <div className="w-full overflow-x-auto scrollbar-hide pb-7">
-              <div className="flex gap-2 md:gap-3 min-w-max px-1">
-                {services.map((service) => (
-                  <Button
-                    key={service.name}
-                    onClick={() => handleServiceClick(service.name, service.description)}
-                    variant="outline"
-                    className="rounded-full px-4 py-2 md:px-5 md:py-2.5 h-auto text-sm md:text-base bg-background/50 backdrop-blur-sm hover:bg-primary/10 hover:text-primary hover:border-primary transition-all whitespace-nowrap flex-shrink-0"
-                  >
-                    {service.name}
-                  </Button>
-                ))}
-              </div>
             </div>
           </TabsContent>
         ))}
