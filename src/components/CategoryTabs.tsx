@@ -98,65 +98,68 @@ export const CategoryTabs = () => {
               ))}
             </div>
             
-            {/* Text benefits above image */}
-            <div className="mb-4 space-y-2">
-              {category.id === 'handyman' && (
-                <>
-                  <p className="text-sm md:text-base flex items-start gap-2">
-                    <span className="text-primary text-lg">✓</span>
-                    <span>Monta de forma segura tu TV, estantes, arte, espejos, y más.</span>
-                  </p>
-                  <p className="text-sm md:text-base flex items-start gap-2">
-                    <span className="text-primary text-lg">✓</span>
-                    <span>Ahora en tendencia: Paredes galería, TVs artísticos, y estanterías envolventes.</span>
-                  </p>
-                </>
-              )}
-              {category.id === 'electrician' && (
-                <>
-                  <p className="text-sm md:text-base flex items-start gap-2">
-                    <span className="text-primary text-lg">✓</span>
-                    <span>Instalaciones eléctricas seguras y certificadas por profesionales.</span>
-                  </p>
-                  <p className="text-sm md:text-base flex items-start gap-2">
-                    <span className="text-primary text-lg">✓</span>
-                    <span>Ahora en tendencia: Iluminación LED inteligente y paneles solares.</span>
-                  </p>
-                </>
-              )}
-              {category.id === 'plumbing' && (
-                <>
-                  <p className="text-sm md:text-base flex items-start gap-2">
-                    <span className="text-primary text-lg">✓</span>
-                    <span>Reparaciones rápidas de fugas, tuberías, y sistemas de agua.</span>
-                  </p>
-                  <p className="text-sm md:text-base flex items-start gap-2">
-                    <span className="text-primary text-lg">✓</span>
-                    <span>Ahora en tendencia: Grifería moderna y sistemas de ahorro de agua.</span>
-                  </p>
-                </>
-              )}
-              {category.id === 'auto' && (
-                <>
-                  <p className="text-sm md:text-base flex items-start gap-2">
-                    <span className="text-primary text-lg">✓</span>
-                    <span>Lavado profesional de auto a domicilio, sin complicaciones.</span>
-                  </p>
-                  <p className="text-sm md:text-base flex items-start gap-2">
-                    <span className="text-primary text-lg">✓</span>
-                    <span>Ahora en tendencia: Detallado ecológico y protección cerámica.</span>
-                  </p>
-                </>
-              )}
-            </div>
-            
-            {/* Hero Image */}
-            <div className="rounded-2xl overflow-hidden w-fit mx-auto">
-              <img 
-                src={category.heroImage} 
-                alt={category.name}
-                className="w-auto h-48 md:h-64 object-contain"
-              />
+            {/* Text benefits and image container */}
+            <div className="max-w-2xl">
+              {/* Text benefits above image */}
+              <div className="mb-4 space-y-2">
+                {category.id === 'handyman' && (
+                  <>
+                    <p className="text-sm md:text-base flex items-start gap-2">
+                      <span className="text-primary text-lg">✓</span>
+                      <span>Monta de forma segura tu TV, estantes, arte, espejos, y más.</span>
+                    </p>
+                    <p className="text-sm md:text-base flex items-start gap-2">
+                      <span className="text-primary text-lg">✓</span>
+                      <span>Ahora en tendencia: Paredes galería, TVs artísticos, y estanterías envolventes.</span>
+                    </p>
+                  </>
+                )}
+                {category.id === 'electrician' && (
+                  <>
+                    <p className="text-sm md:text-base flex items-start gap-2">
+                      <span className="text-primary text-lg">✓</span>
+                      <span>Instalaciones eléctricas seguras y certificadas por profesionales.</span>
+                    </p>
+                    <p className="text-sm md:text-base flex items-start gap-2">
+                      <span className="text-primary text-lg">✓</span>
+                      <span>Ahora en tendencia: Iluminación LED inteligente y paneles solares.</span>
+                    </p>
+                  </>
+                )}
+                {category.id === 'plumbing' && (
+                  <>
+                    <p className="text-sm md:text-base flex items-start gap-2">
+                      <span className="text-primary text-lg">✓</span>
+                      <span>Reparaciones rápidas de fugas, tuberías, y sistemas de agua.</span>
+                    </p>
+                    <p className="text-sm md:text-base flex items-start gap-2">
+                      <span className="text-primary text-lg">✓</span>
+                      <span>Ahora en tendencia: Grifería moderna y sistemas de ahorro de agua.</span>
+                    </p>
+                  </>
+                )}
+                {category.id === 'auto' && (
+                  <>
+                    <p className="text-sm md:text-base flex items-start gap-2">
+                      <span className="text-primary text-lg">✓</span>
+                      <span>Lavado profesional de auto a domicilio, sin complicaciones.</span>
+                    </p>
+                    <p className="text-sm md:text-base flex items-start gap-2">
+                      <span className="text-primary text-lg">✓</span>
+                      <span>Ahora en tendencia: Detallado ecológico y protección cerámica.</span>
+                    </p>
+                  </>
+                )}
+              </div>
+              
+              {/* Hero Image */}
+              <div className="rounded-2xl overflow-hidden w-full">
+                <img 
+                  src={category.heroImage} 
+                  alt={category.name}
+                  className="w-full h-auto object-cover"
+                />
+              </div>
             </div>
           </TabsContent>
         ))}
