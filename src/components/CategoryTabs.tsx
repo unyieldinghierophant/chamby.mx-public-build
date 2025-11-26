@@ -7,19 +7,24 @@ import categoryHandyman from '@/assets/category-handyman.png';
 import categoryElectrician from '@/assets/category-electrician.png';
 import categoryPlumbing from '@/assets/category-plumbing.png';
 import categoryAuto from '@/assets/category-auto.png';
+import handymanHero from '@/assets/category-handyman-hero.jpg';
+import electricianHero from '@/assets/category-electrician-hero.jpg';
+import plumbingHero from '@/assets/category-plumbing-hero.jpg';
+import autoHero from '@/assets/category-auto-hero.jpg';
 
 interface Category {
   id: string;
   name: string;
   icon: string;
   dataKey: string;
+  heroImage: string;
 }
 
 const categories: Category[] = [
-  { id: 'handyman', name: 'Handyman', icon: categoryHandyman, dataKey: 'Handyman' },
-  { id: 'electrician', name: 'Electricidad', icon: categoryElectrician, dataKey: 'Electricidad' },
-  { id: 'plumbing', name: 'Fontanería', icon: categoryPlumbing, dataKey: 'Fontanería' },
-  { id: 'auto', name: 'Auto y Lavado', icon: categoryAuto, dataKey: 'Auto y Lavado' },
+  { id: 'handyman', name: 'Handyman', icon: categoryHandyman, dataKey: 'Handyman', heroImage: handymanHero },
+  { id: 'electrician', name: 'Electricidad', icon: categoryElectrician, dataKey: 'Electricidad', heroImage: electricianHero },
+  { id: 'plumbing', name: 'Fontanería', icon: categoryPlumbing, dataKey: 'Fontanería', heroImage: plumbingHero },
+  { id: 'auto', name: 'Auto y Lavado', icon: categoryAuto, dataKey: 'Auto y Lavado', heroImage: autoHero },
 ];
 
 export const CategoryTabs = () => {
@@ -77,19 +82,31 @@ export const CategoryTabs = () => {
           <TabsContent 
             key={category.id} 
             value={category.id}
-            className="mt-10 animate-in fade-in-50 duration-300"
+            className="mt-8 animate-in fade-in-50 duration-300"
           >
-            <div className="flex flex-wrap gap-4 justify-center pb-7">
-              {services.map((service) => (
-                <Button
-                  key={service.name}
-                  onClick={() => handleServiceClick(service.name, service.description)}
-                  variant="outline"
-                  className="rounded-full px-7 py-4 h-auto text-base md:text-lg bg-background/50 backdrop-blur-sm hover:bg-primary/10 hover:text-primary hover:border-primary transition-all"
-                >
-                  {service.name}
-                </Button>
-              ))}
+            {/* Hero Image */}
+            <div className="mb-6 rounded-2xl overflow-hidden">
+              <img 
+                src={category.heroImage} 
+                alt={category.name}
+                className="w-full h-48 md:h-64 object-cover"
+              />
+            </div>
+            
+            {/* Horizontal scrolling service pills */}
+            <div className="w-full overflow-x-auto scrollbar-hide pb-7">
+              <div className="flex gap-2 md:gap-3 min-w-max px-1">
+                {services.map((service) => (
+                  <Button
+                    key={service.name}
+                    onClick={() => handleServiceClick(service.name, service.description)}
+                    variant="outline"
+                    className="rounded-full px-4 py-2 md:px-5 md:py-2.5 h-auto text-sm md:text-base bg-background/50 backdrop-blur-sm hover:bg-primary/10 hover:text-primary hover:border-primary transition-all whitespace-nowrap flex-shrink-0"
+                  >
+                    {service.name}
+                  </Button>
+                ))}
+              </div>
             </div>
           </TabsContent>
         ))}
