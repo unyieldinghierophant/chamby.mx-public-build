@@ -213,49 +213,46 @@ export const AISearchBar = ({ className }: { className?: string }) => {
     <div ref={searchRef} className={className || "w-full max-w-none mx-auto"}>
       <form onSubmit={handleSearch}>
         <div className="relative">
-          {/* Icons container */}
-          <div className="absolute left-2.5 sm:left-3 md:left-4 top-1/2 -translate-y-1/2 flex items-center gap-1">
-            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-primary" />
-            {!isMobile && <Search className="w-5 h-5 text-muted-foreground" />}
+          {/* Pill-shaped container with border */}
+          <div className="relative flex items-center h-11 sm:h-12 md:h-14 bg-background border border-border rounded-full overflow-hidden">
+            {/* Search icon on left */}
+            <div className="absolute left-3 sm:left-4 flex items-center">
+              <Search className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
+            </div>
+
+            {/* Input field */}
+            <Input
+              type="text"
+              placeholder={
+                isMobile 
+                  ? EXAMPLE_QUERIES[placeholderIndex].substring(0, 30) + "..." 
+                  : EXAMPLE_QUERIES[placeholderIndex]
+              }
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onFocus={() => setIsOpen(true)}
+              disabled={isLoading}
+              className={cn(
+                "h-full w-full pl-10 sm:pl-12 pr-16 sm:pr-20 text-base border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0",
+                fade ? "placeholder:opacity-100" : "placeholder:opacity-0",
+                "placeholder:transition-opacity placeholder:duration-300"
+              )}
+              style={{ fontSize: '16px', lineHeight: 'normal', WebkitAppearance: 'none', transform: 'none' }}
+            />
+
+            {/* Submit button - integrated on right */}
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="absolute right-0 top-0 h-full rounded-l-none rounded-r-full bg-primary hover:bg-primary/90 text-primary-foreground px-4 sm:px-6"
+            >
+              {isLoading ? (
+                <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+              ) : (
+                <Search className="w-4 h-4 sm:w-5 sm:h-5" />
+              )}
+            </Button>
           </div>
-
-          {/* Input field */}
-          <Input
-            type="text"
-            placeholder={
-              isMobile 
-                ? EXAMPLE_QUERIES[placeholderIndex].substring(0, 30) + "..." 
-                : EXAMPLE_QUERIES[placeholderIndex]
-            }
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onFocus={() => setIsOpen(true)}
-            disabled={isLoading}
-            className={`pl-9 sm:pl-10 md:pl-12 pr-20 sm:pr-28 md:pr-36 h-11 sm:h-12 md:h-14 text-base sm:text-base md:text-base bg-card/95 backdrop-blur-sm border-white/20 shadow-soft hover:shadow-raised transition-all focus:shadow-glow rounded-full ${
-              fade ? "placeholder:opacity-100" : "placeholder:opacity-0"
-            } placeholder:transition-opacity placeholder:duration-300`}
-            style={{ fontSize: '16px', lineHeight: 'normal', WebkitAppearance: 'none', transform: 'none' }}
-          />
-
-          {/* Submit button */}
-          <Button
-            type="submit"
-            disabled={isLoading}
-            size={isMobile ? "sm" : "default"}
-            className="absolute right-1 sm:right-1.5 md:right-2 top-1/2 -translate-y-1/2 bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant rounded-full px-3 sm:px-4"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
-                {!isMobile && <span className="ml-2">Buscando...</span>}
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                {!isMobile && <span className="ml-2">Buscar con IA</span>}
-              </>
-            )}
-          </Button>
 
           {/* Autofill Dropdown - Positioned directly under input */}
           {isOpen && !isLoading && (
