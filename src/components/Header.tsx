@@ -199,56 +199,31 @@ const Header = ({
         {isMenuOpen && (
           <div className="lg:hidden border-t border-border/40 bg-background">
             <div className="px-4 pt-4 pb-6 space-y-3">
-              {user ? (
-                <>
-                  <div className="flex items-center gap-3 pb-3 border-b border-border/40">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={user.user_metadata?.avatar_url} />
-                      <AvatarFallback>
-                        {(user.user_metadata?.full_name || user.email || "U").charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="text-sm font-medium">
-                        {user.user_metadata?.full_name || "Usuario"}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {user.email}
-                      </p>
-                    </div>
-                  </div>
-                  <Link to={ROUTES.PROFILE} className="block py-3 text-base font-normal text-foreground/70 hover:text-foreground">
-                    Ver Perfil
-                  </Link>
-                  {isProvider && (
-                    <Link to={ROUTES.PROVIDER_PORTAL} className="block py-3 text-base font-normal text-foreground/70 hover:text-foreground">
-                      Portal Proveedor
-                    </Link>
-                  )}
-                  <button 
-                    className="block w-full text-left py-3 text-base font-normal text-foreground/70 hover:text-foreground"
-                    onClick={handleSignOut}
-                    disabled={isLoggingOut}
-                  >
-                    {isLoggingOut ? 'Saliendo...' : 'Cerrar Sesión'}
-                  </button>
-                </>
-              ) : (
-                <div className="space-y-3">
-                  <Link to={ROUTES.USER_AUTH} className="block py-3 text-lg font-medium text-foreground hover:text-primary transition-colors">
-                    Iniciar sesión / Registrarse
-                  </Link>
-                  <Link to={ROUTES.PROVIDER_AUTH} className="block py-3 text-lg font-medium text-foreground hover:text-primary transition-colors">
-                    Ser Chambynauta
-                  </Link>
-                  <button 
-                    onClick={() => setCategoriesDialogOpen(true)}
-                    className="block w-full text-left py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
-                  >
-                    Servicios
-                  </button>
-                </div>
-              )}
+              <button 
+                onClick={() => {
+                  setCategoriesDialogOpen(true);
+                  setIsMenuOpen(false);
+                }}
+                className="block w-full text-left py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
+              >
+                Servicios
+              </button>
+              
+              <Link 
+                to={ROUTES.USER_AUTH} 
+                className="block py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Iniciar sesión / Registrarse
+              </Link>
+              
+              <Link 
+                to={ROUTES.PROVIDER_AUTH} 
+                className="block py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Ser Chambynauta
+              </Link>
             </div>
           </div>
         )}
