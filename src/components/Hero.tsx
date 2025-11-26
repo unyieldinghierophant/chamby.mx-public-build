@@ -25,12 +25,6 @@ const Hero = () => {
         <div className="text-center space-y-6">
           {/* Floating Blue Card Container */}
           <div className="relative bg-gradient-to-br from-[#1e3a8a] to-[#1e40af] rounded-[1.5rem] md:rounded-[2.5rem] p-6 md:p-8 lg:p-10 xl:p-12 shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] border border-white/10">
-            {/* Astronaut Absolute Positioned */}
-            <div className="hidden md:block absolute top-[15%] right-[5%] lg:right-[8%] w-32 md:w-40 lg:w-48 xl:w-56 z-30 pointer-events-none">
-              <img src={chatbotAstronaut} alt="Chamby Astronaut" className="w-full h-auto animate-[float_3s_ease-in-out_infinite]" style={{
-              filter: 'drop-shadow(0 10px 30px rgba(30, 58, 138, 0.4))'
-            }} />
-            </div>
             {/* Shiny Stars Background - SVG Stars */}
             <div className="absolute inset-0 pointer-events-none">
               {/* Large stars */}
