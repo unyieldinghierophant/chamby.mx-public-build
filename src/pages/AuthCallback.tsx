@@ -251,29 +251,10 @@ const AuthCallback = () => {
         return;
       }
 
-      // For NEW provider signups, redirect to skills selection first
+      // For NEW provider signups, redirect to onboarding wizard
       if ((selectedRole === 'provider' || selectedRole === 'admin') && isNewProviderSignup && user) {
-        console.log('[AuthCallback] New provider signup - checking if skills selection needed');
-        
-        // Check if provider already has skills
-        const { data: providerData } = await supabase
-          .from('providers')
-          .select('skills')
-          .eq('user_id', user.id)
-          .single();
-        
-        // If no skills yet, go to skills selection
-        if (!providerData?.skills || providerData.skills.length === 0) {
-          console.log('[AuthCallback] Redirecting to skills selection');
-          localStorage.removeItem('new_provider_signup');
-          navigate(ROUTES.PROVIDER_SKILLS_SELECTION, { replace: true });
-          return;
-        }
-        
-        // Has skills but is new provider - still go to provider portal (not user landing)
-        console.log('[AuthCallback] New provider has skills - redirecting to provider portal');
-        localStorage.removeItem('new_provider_signup');
-        navigate('/provider-portal', { replace: true });
+        console.log('[AuthCallback] New provider signup - redirecting to onboarding wizard');
+        navigate(ROUTES.PROVIDER_ONBOARDING_WIZARD, { replace: true });
         return;
       }
       
