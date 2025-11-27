@@ -62,9 +62,17 @@ const ProviderAuth = () => {
   const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   
-  // Check for tab parameter in URL
+  // Check for tab parameter in URL and redirect signup to wizard
   const tabParam = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState(tabParam === 'login' ? 'login' : 'signup');
+
+  useEffect(() => {
+    if (tabParam === 'signup') {
+      // Redirect signup flow to the beautiful onboarding wizard
+      localStorage.setItem('new_provider_signup', 'true');
+      navigate(ROUTES.PROVIDER_ONBOARDING_WIZARD);
+    }
+  }, [tabParam, navigate]);
   
   // Form states
   const [loginData, setLoginData] = useState({ email: '', password: '' });
@@ -264,8 +272,9 @@ const ProviderAuth = () => {
   };
 
   const handleGoogleLogin = async () => {
-    // Clear any previous role selection to force fresh role picker
-    localStorage.removeItem('selected_role');
+    // Set flag for provider signup/login
+    localStorage.setItem('new_provider_signup', 'true');
+    localStorage.setItem('login_context', 'provider');
     
     // Store return path before OAuth redirect
     const returnTo = (location.state as { returnTo?: string })?.returnTo;
@@ -341,7 +350,15 @@ const ProviderAuth = () => {
                   type="button"
                   variant="outline"
                   className="w-full h-11 text-base"
-                  onClick={() => setShowEmailAuth(true)}
+                  onClick={() => {
+                    // Redirect to wizard for signup
+                    if (activeTab === 'signup') {
+                      localStorage.setItem('new_provider_signup', 'true');
+                      navigate(ROUTES.PROVIDER_ONBOARDING_WIZARD);
+                    } else {
+                      setShowEmailAuth(true);
+                    }
+                  }}
                 >
                   <Mail className="w-5 h-5 mr-2" />
                   Continuar con Email

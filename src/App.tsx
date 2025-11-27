@@ -170,7 +170,7 @@ const App = () => {
                 <Route path="reschedule/:id" element={<RescheduleRequest />} />
               </Route>
               <Route path={ROUTES.PROVIDER_SKILLS_SELECTION} element={<ProtectedRoute requireProvider><ProviderSkillsSelection /></ProtectedRoute>} />
-              <Route path={ROUTES.PROVIDER_ONBOARDING_WIZARD} element={<ProtectedRoute requireProvider><ProviderOnboardingWizard /></ProtectedRoute>} />
+              <Route path={ROUTES.PROVIDER_ONBOARDING_WIZARD} element={<ProviderOnboardingWizard />} />
               <Route
                 path="/profile"
                 element={
