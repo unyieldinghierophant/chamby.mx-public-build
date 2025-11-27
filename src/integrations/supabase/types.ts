@@ -599,6 +599,7 @@ export type Database = {
       }
       cleanup_expired_otps: { Args: never; Returns: undefined }
       create_job_reminders: { Args: never; Returns: undefined }
+      delete_user_account: { Args: { user_id: string }; Returns: undefined }
       generate_short_code: { Args: never; Returns: string }
       get_admin_dashboard_stats: {
         Args: never
