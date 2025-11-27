@@ -16,6 +16,7 @@ import { z } from 'zod';
 import { AuthSuccessOverlay } from '@/components/AuthSuccessOverlay';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
+import { ROUTES } from '@/constants/routes';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -132,6 +133,23 @@ const ProviderAuth = () => {
         setLoginErrors({ email: 'Email o contraseña incorrectos' });
       }
     } else {
+      // After successful login, check if provider has completed onboarding
+      if (user) {
+        const { data: providerData } = await supabase
+          .from('providers')
+          .select('skills, zone_served')
+          .eq('user_id', user.id)
+          .single();
+
+        // If no skills or zone, redirect to onboarding wizard
+        if (!providerData?.skills || providerData.skills.length === 0 || !providerData.zone_served) {
+          console.log('[ProviderAuth] Provider needs onboarding - redirecting to wizard');
+          localStorage.setItem('new_provider_signup', 'true');
+          navigate(ROUTES.PROVIDER_ONBOARDING_WIZARD);
+          return;
+        }
+      }
+
       setSuccessMessage('¡Inicio de sesión exitoso!');
       setShowSuccess(true);
     }

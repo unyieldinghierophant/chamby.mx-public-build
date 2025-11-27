@@ -45,6 +45,7 @@ export const ROUTES = {
   PROVIDER_PROFILE_EDIT: '/provider-portal/profile/edit',
   PROVIDER_SKILLS_SELECTION: '/provider-portal/skills-selection',
   PROVIDER_SUPPORT: '/provider-portal/support',
+  PROVIDER_ONBOARDING_WIZARD: '/provider-portal/onboarding',
 } as const;
 
 export type AppRoute = typeof ROUTES[keyof typeof ROUTES];
