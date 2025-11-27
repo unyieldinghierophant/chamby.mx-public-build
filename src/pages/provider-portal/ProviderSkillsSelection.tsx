@@ -77,8 +77,8 @@ const ProviderSkillsSelection = () => {
         description: "Ahora puedes comenzar a recibir trabajos",
       });
 
-      // Redirect to provider onboarding for document verification
-      navigate("/provider-onboarding");
+      // Redirect to provider portal (onboarding can be done from settings)
+      navigate("/provider-portal");
     } catch (error: any) {
       console.error("Error saving skills:", error);
       toast({
@@ -92,8 +92,8 @@ const ProviderSkillsSelection = () => {
   };
 
   const handleSkip = () => {
-    // Even if skipping, go to onboarding for document verification
-    navigate("/provider-onboarding");
+    // Skip for now, go directly to provider portal
+    navigate("/provider-portal");
   };
 
   return (

@@ -269,12 +269,18 @@ const AuthCallback = () => {
           navigate(ROUTES.PROVIDER_SKILLS_SELECTION, { replace: true });
           return;
         }
+        
+        // Has skills but is new provider - still go to provider portal (not user landing)
+        console.log('[AuthCallback] New provider has skills - redirecting to provider portal');
+        localStorage.removeItem('new_provider_signup');
+        navigate('/provider-portal', { replace: true });
+        return;
       }
       
       // Clear the flag
       localStorage.removeItem('new_provider_signup');
 
-      // Redirect based on selected role
+      // Redirect based on selected role - ALWAYS provider portal for providers
       if (selectedRole === 'provider' || selectedRole === 'admin') {
         console.log('[AuthCallback] Redirecting to provider portal');
         navigate('/provider-portal', { replace: true });
