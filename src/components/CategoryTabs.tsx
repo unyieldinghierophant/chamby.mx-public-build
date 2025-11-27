@@ -7,10 +7,12 @@ import categoryHandyman from '@/assets/category-handyman.png';
 import categoryElectrician from '@/assets/category-electrician.png';
 import categoryPlumbing from '@/assets/category-plumbing.png';
 import categoryAuto from '@/assets/category-auto.png';
+import medchargeIcon from '@/assets/medcharge-icon.png';
 import handymanHero from '@/assets/category-handyman-hero.jpg';
 import electricianHero from '@/assets/category-electrician-hero.jpg';
 import plumbingHero from '@/assets/category-plumbing-hero.jpg';
 import autoHero from '@/assets/category-auto-hero.jpg';
+import medchargeHero from '@/assets/medcharge-logo.webp';
 
 interface Category {
   id: string;
@@ -25,6 +27,7 @@ const categories: Category[] = [
   { id: 'electrician', name: 'Electricidad', icon: categoryElectrician, dataKey: 'Electricidad', heroImage: electricianHero },
   { id: 'plumbing', name: 'Fontanería', icon: categoryPlumbing, dataKey: 'Fontanería', heroImage: plumbingHero },
   { id: 'auto', name: 'Auto y Lavado', icon: categoryAuto, dataKey: 'Auto y Lavado', heroImage: autoHero },
+  { id: 'medusa', name: 'Medusa Energy', icon: medchargeIcon, dataKey: 'Medusa Energy', heroImage: medchargeHero },
 ];
 
 export const CategoryTabs = () => {
@@ -55,7 +58,7 @@ export const CategoryTabs = () => {
       <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
         {/* Category Tabs - Horizontal scroll on mobile, grid on desktop */}
         <div className="w-full overflow-x-auto md:overflow-visible scrollbar-hide">
-          <TabsList className="w-max md:w-full h-auto bg-background/50 backdrop-blur-sm p-3 md:p-4 rounded-2xl flex md:grid md:grid-cols-4 gap-3 md:gap-4">
+          <TabsList className="w-max md:w-full h-auto bg-background/50 backdrop-blur-sm p-3 md:p-4 rounded-2xl flex md:grid md:grid-cols-5 gap-3 md:gap-4">
             {categories.map((category) => (
               <TabsTrigger
                 key={category.id}
@@ -147,6 +150,18 @@ export const CategoryTabs = () => {
                     <p className="text-sm md:text-base flex items-start gap-2">
                       <span className="text-primary text-lg">✓</span>
                       <span>Ahora en tendencia: Detallado ecológico y protección cerámica.</span>
+                    </p>
+                  </>
+                )}
+                {category.id === 'medusa' && (
+                  <>
+                    <p className="text-sm md:text-base flex items-start gap-2">
+                      <span className="text-primary text-lg">✓</span>
+                      <span>Instalación profesional de cargadores para vehículos eléctricos.</span>
+                    </p>
+                    <p className="text-sm md:text-base flex items-start gap-2">
+                      <span className="text-primary text-lg">✓</span>
+                      <span>Ahora en tendencia: Energía solar residencial y sistemas de almacenamiento.</span>
                     </p>
                   </>
                 )}
