@@ -12,7 +12,7 @@ import handymanHero from '@/assets/category-handyman-hero.jpg';
 import electricianHero from '@/assets/category-electrician-hero.jpg';
 import plumbingHero from '@/assets/category-plumbing-hero.jpg';
 import autoHero from '@/assets/category-auto-hero.jpg';
-import medchargeHero from '@/assets/medcharge-logo.webp';
+import medusaHero from '@/assets/category-medusa-hero.png';
 
 interface Category {
   id: string;
@@ -27,7 +27,7 @@ const categories: Category[] = [
   { id: 'electrician', name: 'Electricidad', icon: categoryElectrician, dataKey: 'Electricidad', heroImage: electricianHero },
   { id: 'plumbing', name: 'Fontanería', icon: categoryPlumbing, dataKey: 'Fontanería', heroImage: plumbingHero },
   { id: 'auto', name: 'Auto y Lavado', icon: categoryAuto, dataKey: 'Auto y Lavado', heroImage: autoHero },
-  { id: 'medusa', name: 'Medusa Energy', icon: medchargeIcon, dataKey: 'Medusa Energy', heroImage: medchargeHero },
+  { id: 'medusa', name: 'Medusa Energy', icon: medchargeIcon, dataKey: 'Medusa Energy', heroImage: medusaHero },
 ];
 
 export const CategoryTabs = () => {
