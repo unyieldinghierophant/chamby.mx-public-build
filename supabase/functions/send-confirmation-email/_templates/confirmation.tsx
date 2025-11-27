@@ -36,7 +36,7 @@ export const ConfirmationEmail = ({
       <Container style={container}>
         <Section style={logoSection}>
           <Img
-            src="https://uiyjmjibshnkhwewtkoz.supabase.co/storage/v1/object/public/avatars/chamby-logo.png"
+            src="https://chamby.mx/chamby-logo.png"
             alt="Chamby"
             style={logo}
           />
@@ -94,8 +94,8 @@ export const ConfirmationEmail = ({
         
         <Text style={footer}>
           © 2025 Chamby - Conectando profesionales con clientes<br />
-          <Link href="https://chamby.app" style={footerLink}>
-            chamby.app
+          <Link href="https://chamby.mx" style={footerLink}>
+            chamby.mx
           </Link>
         </Text>
       </Container>
