@@ -18,11 +18,33 @@ import {
   CheckCircle2, 
   ArrowRight,
   Plus,
-  X
+  X,
+  Mail,
+  Lock,
+  Phone,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { ROUTES } from '@/constants/routes';
+import { z } from 'zod';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+
+const signupSchema = z.object({
+  fullName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+  email: z.string().email('Email inválido'),
+  phone: z.string().min(10, 'El teléfono debe tener al menos 10 dígitos'),
+  password: z.string()
+    .min(8, 'La contraseña debe tener al menos 8 caracteres')
+    .regex(/[A-Z]/, 'Debe contener al menos una mayúscula')
+    .regex(/[a-z]/, 'Debe contener al menos una minúscula')
+    .regex(/[0-9]/, 'Debe contener al menos un número'),
+  confirmPassword: z.string()
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Las contraseñas no coinciden",
+  path: ["confirmPassword"]
+});
 
 const SUGGESTED_SKILLS = [
   'Plomería', 'Electricidad', 'Carpintería', 'Pintura', 
@@ -32,21 +54,34 @@ const SUGGESTED_SKILLS = [
 
 const STEP_CONFIG = [
   { id: 1, icon: Sparkles, title: '¡Bienvenido!' },
-  { id: 2, icon: User, title: 'Perfil Básico' },
-  { id: 3, icon: Wrench, title: 'Habilidades' },
-  { id: 4, icon: MapPin, title: 'Zona de Trabajo' },
-  { id: 5, icon: Calendar, title: 'Disponibilidad' },
-  { id: 6, icon: CheckCircle2, title: '¡Listo!' }
+  { id: 2, icon: Mail, title: 'Crear Cuenta' },
+  { id: 3, icon: User, title: 'Perfil' },
+  { id: 4, icon: Wrench, title: 'Habilidades' },
+  { id: 5, icon: MapPin, title: 'Zona de Trabajo' },
+  { id: 6, icon: Calendar, title: 'Disponibilidad' },
+  { id: 7, icon: CheckCircle2, title: '¡Listo!' }
 ];
 
 export default function ProviderOnboardingWizard() {
-  const { user } = useAuth();
+  const { user, signUp } = useAuth();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [saving, setSaving] = useState(false);
   const [slideDirection, setSlideDirection] = useState<'left' | 'right'>('right');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Form data
+  // Signup data
+  const [signupData, setSignupData] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirmPassword: ''
+  });
+  const [signupErrors, setSignupErrors] = useState<Record<string, string>>({});
+
+  // Profile data
   const [profileData, setProfileData] = useState({
     displayName: '',
     phone: '',
@@ -58,33 +93,92 @@ export default function ProviderOnboardingWizard() {
   const [availability, setAvailability] = useState('weekdays-9-5');
 
   useEffect(() => {
-    if (!user) {
-      navigate(ROUTES.PROVIDER_AUTH);
-      return;
+    // If user is already logged in, skip signup step
+    if (user) {
+      setCurrentStep(3); // Skip to profile step
+      
+      // Load existing user data
+      const loadUserData = async () => {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('full_name, phone')
+          .eq('id', user.id)
+          .single();
+
+        if (userData) {
+          setProfileData({
+            displayName: userData.full_name || '',
+            phone: userData.phone || '',
+            bio: ''
+          });
+          setSignupData(prev => ({
+            ...prev,
+            fullName: userData.full_name || '',
+            phone: userData.phone || ''
+          }));
+        }
+      };
+
+      loadUserData();
     }
-
-    // Load existing user data
-    const loadUserData = async () => {
-      const { data: userData } = await supabase
-        .from('users')
-        .select('full_name, phone')
-        .eq('id', user.id)
-        .single();
-
-      if (userData) {
-        setProfileData({
-          displayName: userData.full_name || '',
-          phone: userData.phone || '',
-          bio: ''
-        });
-      }
-    };
-
-    loadUserData();
-  }, [user, navigate]);
+  }, [user]);
 
   const totalSteps = STEP_CONFIG.length;
   const progress = (currentStep / totalSteps) * 100;
+
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState('');
+
+  const handleSignup = async () => {
+    setSignupErrors({});
+    
+    try {
+      signupSchema.parse(signupData);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errors: Record<string, string> = {};
+        error.issues.forEach((err) => {
+          if (err.path[0]) {
+            errors[err.path[0] as string] = err.message;
+          }
+        });
+        setSignupErrors(errors);
+        toast.error('Por favor completa todos los campos correctamente');
+        return;
+      }
+    }
+
+    setSaving(true);
+    const { error } = await signUp(
+      signupData.email,
+      signupData.password,
+      signupData.fullName,
+      signupData.phone,
+      true, // is a provider
+      'provider' // role
+    );
+
+    if (error) {
+      let errorMessage = error.message;
+      if (error.message.includes('already registered') || error.message.includes('already exists')) {
+        errorMessage = 'Este email ya está registrado.';
+      }
+      toast.error('Error en el registro', { description: errorMessage });
+      setSignupErrors({ email: errorMessage });
+      setSaving(false);
+      return;
+    }
+
+    // Mark as new provider signup
+    localStorage.setItem('new_provider_signup', 'true');
+    localStorage.setItem('login_context', 'provider');
+    
+    // Show email verification message
+    setVerificationEmail(signupData.email);
+    setShowEmailVerification(true);
+    
+    setSaving(false);
+  };
 
   const goToNext = () => {
     if (currentStep < totalSteps) {
@@ -95,6 +189,12 @@ export default function ProviderOnboardingWizard() {
 
   const goToPrevious = () => {
     if (currentStep > 1) {
+      // Skip back to signup if not authenticated
+      if (currentStep === 3 && !user) {
+        setSlideDirection('left');
+        setCurrentStep(2);
+        return;
+      }
       setSlideDirection('left');
       setCurrentStep(currentStep - 1);
     }
@@ -173,10 +273,20 @@ export default function ProviderOnboardingWizard() {
   const canGoNext = () => {
     switch (currentStep) {
       case 2:
-        return profileData.displayName.trim().length > 0;
+        // Signup step - check if form is valid
+        if (!user) {
+          return signupData.fullName.trim().length > 0 &&
+                 signupData.email.trim().length > 0 &&
+                 signupData.phone.trim().length > 0 &&
+                 signupData.password.length >= 8 &&
+                 signupData.password === signupData.confirmPassword;
+        }
+        return true;
       case 3:
-        return selectedSkills.length > 0;
+        return profileData.displayName.trim().length > 0;
       case 4:
+        return selectedSkills.length > 0;
+      case 5:
         return workZone.trim().length > 0;
       default:
         return true;
@@ -260,8 +370,129 @@ export default function ProviderOnboardingWizard() {
               </div>
             )}
 
-            {/* Step 2: Basic Profile */}
-            {currentStep === 2 && (
+            {/* Step 2: Signup (only if not authenticated) */}
+            {currentStep === 2 && !user && (
+              <div className="space-y-6">
+                <div className="text-center mb-8">
+                  <h2 className="text-3xl font-bold text-foreground mb-2">Crear Cuenta</h2>
+                  <p className="text-muted-foreground">Empecemos creando tu cuenta de Chambynauta</p>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName" className={signupErrors.fullName ? 'text-destructive' : ''}>
+                      Nombre Completo *
+                    </Label>
+                    <Input
+                      id="fullName"
+                      placeholder="Ej: Juan Pérez"
+                      value={signupData.fullName}
+                      onChange={(e) => setSignupData({ ...signupData, fullName: e.target.value })}
+                      className={signupErrors.fullName ? 'border-destructive' : ''}
+                    />
+                    {signupErrors.fullName && (
+                      <p className="text-destructive text-sm">{signupErrors.fullName}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className={signupErrors.email ? 'text-destructive' : ''}>
+                      Email *
+                    </Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="tu@email.com"
+                        value={signupData.email}
+                        onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
+                        className={cn("pl-10", signupErrors.email && 'border-destructive')}
+                      />
+                    </div>
+                    {signupErrors.email && (
+                      <p className="text-destructive text-sm">{signupErrors.email}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="phone" className={signupErrors.phone ? 'text-destructive' : ''}>
+                      Teléfono *
+                    </Label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <Input
+                        id="phone"
+                        placeholder="+52 1 234 567 8900"
+                        value={signupData.phone}
+                        onChange={(e) => setSignupData({ ...signupData, phone: e.target.value })}
+                        className={cn("pl-10", signupErrors.phone && 'border-destructive')}
+                      />
+                    </div>
+                    {signupErrors.phone && (
+                      <p className="text-destructive text-sm">{signupErrors.phone}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className={signupErrors.password ? 'text-destructive' : ''}>
+                      Contraseña *
+                    </Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Mínimo 8 caracteres"
+                        value={signupData.password}
+                        onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
+                        className={cn("pl-10 pr-10", signupErrors.password && 'border-destructive')}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    {signupErrors.password && (
+                      <p className="text-destructive text-sm">{signupErrors.password}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword" className={signupErrors.confirmPassword ? 'text-destructive' : ''}>
+                      Confirmar Contraseña *
+                    </Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <Input
+                        id="confirmPassword"
+                        type={showConfirmPassword ? "text" : "password"}
+                        placeholder="Repite tu contraseña"
+                        value={signupData.confirmPassword}
+                        onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
+                        className={cn("pl-10 pr-10", signupErrors.confirmPassword && 'border-destructive')}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    {signupErrors.confirmPassword && (
+                      <p className="text-destructive text-sm">{signupErrors.confirmPassword}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Basic Profile (was Step 2) */}
+            {currentStep === 3 && (
               <div className="space-y-6">
                 <div className="text-center mb-8">
                   <h2 className="text-3xl font-bold text-foreground mb-2">Perfil Básico</h2>
@@ -306,8 +537,8 @@ export default function ProviderOnboardingWizard() {
               </div>
             )}
 
-            {/* Step 3: Skills Selection */}
-            {currentStep === 3 && (
+            {/* Step 4: Skills Selection */}
+            {currentStep === 4 && (
               <div className="space-y-6">
                 <div className="text-center mb-8">
                   <h2 className="text-3xl font-bold text-foreground mb-2">Tus Habilidades</h2>
@@ -384,8 +615,8 @@ export default function ProviderOnboardingWizard() {
               </div>
             )}
 
-            {/* Step 4: Work Zone */}
-            {currentStep === 4 && (
+            {/* Step 5: Work Zone */}
+            {currentStep === 5 && (
               <div className="space-y-6">
                 <div className="text-center mb-8">
                   <h2 className="text-3xl font-bold text-foreground mb-2">Zona de Trabajo</h2>
@@ -416,8 +647,8 @@ export default function ProviderOnboardingWizard() {
               </div>
             )}
 
-            {/* Step 5: Availability */}
-            {currentStep === 5 && (
+            {/* Step 6: Availability */}
+            {currentStep === 6 && (
               <div className="space-y-6">
                 <div className="text-center mb-8">
                   <h2 className="text-3xl font-bold text-foreground mb-2">Disponibilidad</h2>
@@ -507,8 +738,8 @@ export default function ProviderOnboardingWizard() {
               </div>
             )}
 
-            {/* Step 6: Completion */}
-            {currentStep === 6 && (
+            {/* Step 7: Completion */}
+            {currentStep === 7 && (
               <div className="text-center space-y-6 py-8">
                 <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-success to-success/70 animate-bounce-subtle">
                   <CheckCircle2 className="w-12 h-12 text-success-foreground" />
@@ -554,11 +785,18 @@ export default function ProviderOnboardingWizard() {
 
           {currentStep < totalSteps ? (
             <Button
-              onClick={goToNext}
-              disabled={!canGoNext()}
+              onClick={() => {
+                // If on signup step and not authenticated, handle signup
+                if (currentStep === 2 && !user) {
+                  handleSignup();
+                } else {
+                  goToNext();
+                }
+              }}
+              disabled={!canGoNext() || saving}
               className="group"
             >
-              Siguiente
+              {saving ? 'Creando cuenta...' : currentStep === 2 && !user ? 'Crear Cuenta' : 'Siguiente'}
               <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
             </Button>
           ) : (
@@ -572,6 +810,41 @@ export default function ProviderOnboardingWizard() {
           )}
         </div>
       </Card>
+
+      {/* Email Verification Modal */}
+      <Dialog open={showEmailVerification} onOpenChange={setShowEmailVerification}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="w-5 h-5 text-primary" />
+              Verifica tu correo
+            </DialogTitle>
+            <DialogDescription className="space-y-3 pt-2">
+              <p>
+                Hemos enviado un correo de verificación a:
+              </p>
+              <p className="font-semibold text-foreground">{verificationEmail}</p>
+              <p>
+                Por favor revisa tu bandeja de entrada y haz clic en el enlace de verificación para activar tu cuenta.
+              </p>
+              <div className="bg-accent/20 border border-accent rounded-lg p-3 text-sm">
+                <p className="font-medium text-foreground mb-1">💡 Consejo:</p>
+                <p>Si no ves el correo, revisa tu carpeta de spam o correo no deseado.</p>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end">
+            <Button
+              onClick={() => {
+                setShowEmailVerification(false);
+                navigate(ROUTES.PROVIDER_AUTH + '?tab=login');
+              }}
+            >
+              Entendido
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
