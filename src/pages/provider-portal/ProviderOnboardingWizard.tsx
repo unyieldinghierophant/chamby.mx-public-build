@@ -25,6 +25,7 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
+import authSecurityImage from '@/assets/auth-security.png';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { ROUTES } from '@/constants/routes';
@@ -348,8 +349,12 @@ export default function ProviderOnboardingWizard() {
             {/* Step 1: Welcome */}
             {currentStep === 1 && (
               <div className="text-center space-y-6 py-8">
-                <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-hero animate-bounce-subtle">
-                  <Sparkles className="w-12 h-12 text-primary-foreground" />
+                <div className="flex justify-center mb-6">
+                  <img 
+                    src={authSecurityImage} 
+                    alt="Seguridad" 
+                    className="w-48 h-48 object-contain"
+                  />
                 </div>
                 <h1 className="text-4xl font-bold bg-gradient-hero bg-clip-text text-transparent">
                   ¡Bienvenido a Chamby!
@@ -357,15 +362,15 @@ export default function ProviderOnboardingWizard() {
                 <p className="text-muted-foreground text-lg max-w-md mx-auto">
                   Estás a unos pasos de comenzar a recibir trabajos. Vamos a configurar tu perfil profesional.
                 </p>
-                <div className="flex flex-wrap gap-3 justify-center pt-4">
-                  <Badge variant="secondary" className="px-4 py-2">
-                    <CheckCircle2 className="w-4 h-4 mr-2" />
-                    Rápido y fácil
-                  </Badge>
-                  <Badge variant="secondary" className="px-4 py-2">
-                    <CheckCircle2 className="w-4 h-4 mr-2" />
-                    Solo 5 pasos
-                  </Badge>
+                <div className="flex justify-center pt-6">
+                  <Button
+                    size="lg"
+                    onClick={goToNext}
+                    className="group px-8"
+                  >
+                    Siguiente
+                    <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" />
+                  </Button>
                 </div>
               </div>
             )}
