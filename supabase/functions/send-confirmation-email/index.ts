@@ -69,12 +69,47 @@ serve(async (req) => {
       })
     );
 
-    // Send email via Resend
+    // Create plain text version for better deliverability
+    const confirmationUrl = `${Deno.env.get("SUPABASE_URL")}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${redirect_to}`;
+    const text = `¡Bienvenido a Chamby!
+
+Gracias por registrarte en Chamby, tu plataforma de confianza para conectar con profesionales verificados.
+
+Para completar tu registro y comenzar a disfrutar de nuestros servicios, confirma tu correo electrónico haciendo clic en el siguiente enlace:
+
+${confirmationUrl}
+
+O copia y pega este código de confirmación: ${token}
+
+Este enlace y código son válidos por 24 horas.
+
+¿Qué puedes hacer en Chamby?
+- Encuentra profesionales verificados cerca de ti
+- Agenda servicios de forma rápida y segura
+- Paga de manera protegida
+- Califica y comparte tu experiencia
+
+Si no solicitaste esta cuenta, puedes ignorar este correo de forma segura.
+
+© 2025 Chamby - Conectando profesionales con clientes
+chamby.mx`;
+
+    // Send email via Resend with both HTML and plain text
     const { data: emailData, error } = await resend.emails.send({
       from: "Chamby <notificaciones@chamby.mx>",
       to: [user.email],
-      subject: "¡Bienvenido a Chamby! Confirma tu correo",
+      subject: "Confirma tu correo - Chamby",
       html,
+      text,
+      headers: {
+        'X-Entity-Ref-ID': `user-${user.email}`,
+      },
+      tags: [
+        {
+          name: 'category',
+          value: 'email_confirmation',
+        },
+      ],
     });
 
     if (error) {
