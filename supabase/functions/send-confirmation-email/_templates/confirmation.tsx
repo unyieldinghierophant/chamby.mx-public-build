@@ -30,26 +30,35 @@ export const ConfirmationEmail = ({
   user_email,
 }: ConfirmationEmailProps) => (
   <Html>
-    <Head />
-    <Preview>¡Bienvenido a Chamby! Confirma tu correo electrónico</Preview>
+    <Head>
+      <meta name="color-scheme" content="light" />
+      <meta name="supported-color-schemes" content="light" />
+    </Head>
+    <Preview>Confirma tu correo electrónico para activar tu cuenta de Chamby</Preview>
     <Body style={main}>
       <Container style={container}>
         <Section style={logoSection}>
           <Img
             src="https://chamby.mx/chamby-logo.png"
             alt="Chamby"
+            width="120"
+            height="auto"
             style={logo}
           />
         </Section>
         
-        <Heading style={h1}>¡Bienvenido a Chamby! 👋</Heading>
+        <Heading style={h1}>Confirma tu correo electrónico</Heading>
         
         <Text style={text}>
-          Gracias por registrarte en Chamby, tu plataforma de confianza para conectar con profesionales verificados.
+          Hola,
         </Text>
         
         <Text style={text}>
-          Para completar tu registro y comenzar a disfrutar de nuestros servicios, confirma tu correo electrónico:
+          Recibimos una solicitud para crear una cuenta en Chamby con este correo electrónico.
+        </Text>
+        
+        <Text style={text}>
+          Para activar tu cuenta, haz clic en el siguiente botón:
         </Text>
         
         <Section style={buttonSection}>
@@ -57,46 +66,33 @@ export const ConfirmationEmail = ({
             href={`${supabase_url}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${redirect_to}`}
             style={button}
           >
-            Confirmar mi correo
+            Confirmar correo electrónico
           </Link>
         </Section>
         
         <Text style={text}>
-          O copia y pega este código de confirmación:
+          O usa este código de verificación:
         </Text>
         
         <Section style={codeSection}>
-          <code style={code}>{token}</code>
+          <Text style={code}>{token}</Text>
         </Section>
         
         <Text style={smallText}>
-          Este enlace y código son válidos por 24 horas.
+          Este código expira en 24 horas.
         </Text>
         
         <Section style={divider} />
         
-        <Text style={text}>
-          <strong>¿Qué puedes hacer en Chamby?</strong>
-        </Text>
-        
-        <Text style={text}>
-          ✅ Encuentra profesionales verificados cerca de ti<br />
-          ✅ Agenda servicios de forma rápida y segura<br />
-          ✅ Paga de manera protegida<br />
-          ✅ Califica y comparte tu experiencia
-        </Text>
-        
         <Text style={smallText}>
-          Si no solicitaste esta cuenta, puedes ignorar este correo de forma segura.
+          Si no creaste una cuenta en Chamby, puedes ignorar este mensaje.
         </Text>
         
         <Section style={divider} />
         
         <Text style={footer}>
-          © 2025 Chamby - Conectando profesionales con clientes<br />
-          <Link href="https://chamby.mx" style={footerLink}>
-            chamby.mx
-          </Link>
+          Este es un correo automático de verificación.<br />
+          Chamby - chamby.mx
         </Text>
       </Container>
     </Body>
@@ -176,16 +172,18 @@ const codeSection = {
 }
 
 const code = {
-  display: 'inline-block',
+  display: 'block',
+  textAlign: 'center' as const,
   padding: '16px 24px',
   backgroundColor: '#f4f4f4',
   borderRadius: '6px',
   border: '1px solid #e1e1e1',
   color: '#1a1a1a',
-  fontSize: '20px',
-  fontWeight: 'bold',
-  letterSpacing: '2px',
-  fontFamily: 'monospace',
+  fontSize: '24px',
+  fontWeight: 'bold' as const,
+  letterSpacing: '4px',
+  fontFamily: 'Monaco, Courier, monospace',
+  margin: '0',
 }
 
 const divider = {
@@ -199,9 +197,4 @@ const footer = {
   lineHeight: '1.5',
   textAlign: 'center' as const,
   marginTop: '32px',
-}
-
-const footerLink = {
-  color: '#6366f1',
-  textDecoration: 'none',
 }
