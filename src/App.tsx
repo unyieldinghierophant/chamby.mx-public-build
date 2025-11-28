@@ -69,7 +69,12 @@ const queryClient = new QueryClient();
 // Component to conditionally render ChatBot
 const ConditionalChatBot = () => {
   const location = useRouterLocation();
-  const hideOnRoutes: string[] = [ROUTES.BOOK_JOB, ROUTES.SOLICITAR_SERVICIO];
+  const hideOnRoutes: string[] = [
+    ROUTES.BOOK_JOB, 
+    ROUTES.SOLICITAR_SERVICIO,
+    ROUTES.PROVIDER_AUTH,
+    ROUTES.PROVIDER_ONBOARDING_WIZARD
+  ];
 
   if (hideOnRoutes.includes(location.pathname)) {
     return null;
