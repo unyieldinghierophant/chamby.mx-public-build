@@ -365,8 +365,9 @@ export default function ProviderOnboardingWizard() {
                 <div className="flex justify-center pt-6">
                   <Button
                     size="lg"
+                    variant="outline"
                     onClick={goToNext}
-                    className="group px-8"
+                    className="group px-8 border-2 border-primary bg-white hover:bg-primary hover:text-white transition-all"
                   >
                     Siguiente
                     <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" />
@@ -771,7 +772,10 @@ export default function ProviderOnboardingWizard() {
         </div>
 
         {/* Navigation Buttons */}
-        <div className="px-8 py-6 border-t bg-muted/30 flex justify-between items-center">
+        <div className={cn(
+          "px-8 py-6 border-t bg-muted/30 justify-between items-center",
+          currentStep === 1 ? "hidden md:flex" : "flex"
+        )}>
           <Button
             variant="ghost"
             onClick={goToPrevious}
