@@ -69,10 +69,16 @@ const AuthCallback = () => {
           }
 
           let roles = userRoles?.map(r => r.role) || [];
-          const loginContext = localStorage.getItem('login_context');
+          
+          // Get login_context from multiple sources (priority: query params > localStorage > user metadata)
+          const contextFromUrl = searchParams.get('login_context');
+          const contextFromStorage = localStorage.getItem('login_context');
+          const contextFromMetadata = user?.user_metadata?.login_context;
+          const loginContext = contextFromUrl || contextFromStorage || contextFromMetadata || 'client';
 
           console.log('[AuthCallback] User roles:', roles);
-          console.log('[AuthCallback] Login context:', loginContext);
+          console.log('[AuthCallback] Login context sources:', { contextFromUrl, contextFromStorage, contextFromMetadata });
+          console.log('[AuthCallback] Final login context:', loginContext);
 
           // 🔥 AUTO-CREATE PROVIDER ROLE AND RECORDS if coming from /auth/provider
           if (loginContext === 'provider' && !roles.includes('provider')) {
@@ -214,14 +220,16 @@ const AuthCallback = () => {
   useEffect(() => {
     if (emailConfirmed && !user) {
       const timer = setTimeout(() => {
-        // Check if they were signing up as provider or client
-        const loginContext = localStorage.getItem('login_context');
+        // Check login_context from multiple sources (query params > localStorage)
+        const contextFromUrl = searchParams.get('login_context');
+        const contextFromStorage = localStorage.getItem('login_context');
+        const loginContext = contextFromUrl || contextFromStorage || 'client';
         const targetAuth = loginContext === 'provider' ? '/auth/provider?tab=login' : '/auth/user?tab=login';
         navigate(targetAuth, { replace: true });
       }, 5000);
       return () => clearTimeout(timer);
     }
-  }, [emailConfirmed, user, navigate]);
+  }, [emailConfirmed, user, navigate, searchParams]);
 
   const handleSuccessComplete = async () => {
     try {
@@ -307,7 +315,10 @@ const AuthCallback = () => {
             </p>
             <Button
               onClick={() => {
-                const loginContext = localStorage.getItem('login_context');
+                // Check login_context from multiple sources (query params > localStorage)
+                const contextFromUrl = searchParams.get('login_context');
+                const contextFromStorage = localStorage.getItem('login_context');
+                const loginContext = contextFromUrl || contextFromStorage || 'client';
                 const targetAuth = loginContext === 'provider' ? '/auth/provider?tab=login' : '/auth/user?tab=login';
                 navigate(targetAuth, { replace: true });
               }}
