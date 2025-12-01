@@ -87,6 +87,7 @@ const ProviderAuth = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [showEmailVerificationModal, setShowEmailVerificationModal] = useState(false);
+  const [showVerificationPending, setShowVerificationPending] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState('');
   
   // Error states
@@ -676,7 +677,7 @@ const ProviderAuth = () => {
             <Button
               onClick={() => {
                 setShowEmailVerificationModal(false);
-                setActiveTab('login');
+                setShowVerificationPending(true);
               }}
               className="w-full"
             >
@@ -685,6 +686,48 @@ const ProviderAuth = () => {
           </div>
         </DialogContent>
       </Dialog>
+      
+      {/* Verification Pending Full Screen */}
+      {showVerificationPending && (
+        <div className="fixed inset-0 bg-gradient-main bg-gradient-mesh flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md bg-card/95 backdrop-blur-sm shadow-raised border-border/20">
+            <CardHeader className="text-center">
+              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <Mail className="w-8 h-8 text-primary" />
+              </div>
+              <CardTitle className="text-2xl">Revisa tu correo 📧</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-center">
+              <p className="text-muted-foreground">
+                Te enviamos un enlace de verificación a{' '}
+                <span className="font-semibold text-foreground">{verificationEmail}</span>
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Haz clic en el enlace del correo para activar tu cuenta y luego regresa aquí para iniciar sesión.
+              </p>
+              <div className="pt-4 space-y-2">
+                <Button
+                  onClick={() => handleResendVerification(verificationEmail)}
+                  variant="outline"
+                  className="w-full"
+                >
+                  Reenviar correo de verificación
+                </Button>
+                <Button
+                  onClick={() => {
+                    setShowVerificationPending(false);
+                    setActiveTab('login');
+                    setShowEmailAuth(true);
+                  }}
+                  className="w-full"
+                >
+                  Ya verifiqué, ir a iniciar sesión
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
     </>
   );
