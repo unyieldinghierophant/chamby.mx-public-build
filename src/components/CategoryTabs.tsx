@@ -101,32 +101,100 @@ export const CategoryTabs = () => {
               ))}
             </div>
             
-            {/* Hero Image Container with Overlay Card */}
-            <div className="relative rounded-2xl overflow-hidden bg-blue-50 p-4 md:p-6 animate-fade-in" style={{ animationDelay: '200ms' }}>
+            {/* Hero Image Container with Responsive Text */}
+            <div className="rounded-2xl overflow-hidden bg-blue-50 p-4 md:p-6 animate-fade-in" style={{ animationDelay: '200ms' }}>
+              
+              {/* Mobile: Text ABOVE image (hidden on desktop) */}
+              <div className="md:hidden mb-4 text-left">
+                <h3 className="text-xl font-bold text-foreground mb-3">
+                  {category.name}
+                </h3>
+                <div className="space-y-2">
+                  {category.id === 'handyman' && (
+                    <>
+                      <p className="text-sm flex items-start gap-2 text-muted-foreground">
+                        <span className="text-primary text-lg">✓</span>
+                        <span>Monta de forma segura tu TV, estantes, arte, espejos, y más.</span>
+                      </p>
+                      <p className="text-sm flex items-start gap-2 text-muted-foreground">
+                        <span className="text-primary text-lg">✓</span>
+                        <span><strong className="text-foreground">Ahora en tendencia:</strong> Paredes galería, TVs artísticos, y estanterías envolventes.</span>
+                      </p>
+                    </>
+                  )}
+                  {category.id === 'electrician' && (
+                    <>
+                      <p className="text-sm flex items-start gap-2 text-muted-foreground">
+                        <span className="text-primary text-lg">✓</span>
+                        <span>Instalaciones eléctricas seguras y certificadas por profesionales.</span>
+                      </p>
+                      <p className="text-sm flex items-start gap-2 text-muted-foreground">
+                        <span className="text-primary text-lg">✓</span>
+                        <span><strong className="text-foreground">Ahora en tendencia:</strong> Iluminación LED inteligente y paneles solares.</span>
+                      </p>
+                    </>
+                  )}
+                  {category.id === 'plumbing' && (
+                    <>
+                      <p className="text-sm flex items-start gap-2 text-muted-foreground">
+                        <span className="text-primary text-lg">✓</span>
+                        <span>Reparaciones rápidas de fugas, tuberías, y sistemas de agua.</span>
+                      </p>
+                      <p className="text-sm flex items-start gap-2 text-muted-foreground">
+                        <span className="text-primary text-lg">✓</span>
+                        <span><strong className="text-foreground">Ahora en tendencia:</strong> Grifería moderna y sistemas de ahorro de agua.</span>
+                      </p>
+                    </>
+                  )}
+                  {category.id === 'auto' && (
+                    <>
+                      <p className="text-sm flex items-start gap-2 text-muted-foreground">
+                        <span className="text-primary text-lg">✓</span>
+                        <span>Lavado profesional de auto a domicilio, sin complicaciones.</span>
+                      </p>
+                      <p className="text-sm flex items-start gap-2 text-muted-foreground">
+                        <span className="text-primary text-lg">✓</span>
+                        <span><strong className="text-foreground">Ahora en tendencia:</strong> Detallado ecológico y protección cerámica.</span>
+                      </p>
+                    </>
+                  )}
+                  {category.id === 'medusa' && (
+                    <>
+                      <p className="text-sm flex items-start gap-2 text-muted-foreground">
+                        <span className="text-primary text-lg">✓</span>
+                        <span>Instalación profesional de cargadores para vehículos eléctricos.</span>
+                      </p>
+                      <p className="text-sm flex items-start gap-2 text-muted-foreground">
+                        <span className="text-primary text-lg">✓</span>
+                        <span><strong className="text-foreground">Ahora en tendencia:</strong> Energía solar residencial y sistemas de almacenamiento.</span>
+                      </p>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Image Container */}
               <div className="relative">
                 {/* Hero Image */}
                 <img 
                   src={category.heroImage} 
                   alt={category.name}
-                  className="w-full h-[300px] md:h-[400px] object-cover rounded-xl"
+                  className="w-full h-[220px] md:h-[400px] object-cover rounded-xl"
                 />
                 
-                {/* White Card Overlay - positioned on left side */}
-                <div className="absolute top-4 left-4 md:top-8 md:left-8 bg-white rounded-xl p-4 md:p-6 shadow-lg max-w-[280px] md:max-w-[350px]">
-                  {/* Category Title */}
-                  <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-4">
+                {/* Desktop: Overlay Card (hidden on mobile) */}
+                <div className="hidden md:block absolute top-8 left-8 bg-white rounded-xl p-6 shadow-lg max-w-[350px]">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
                     {category.name}
                   </h3>
-                  
-                  {/* Benefits with checkmarks */}
                   <div className="space-y-3">
                     {category.id === 'handyman' && (
                       <>
-                        <p className="text-sm md:text-base flex items-start gap-2">
+                        <p className="text-base flex items-start gap-2">
                           <span className="text-primary text-lg">✓</span>
                           <span>Monta de forma segura tu TV, estantes, arte, espejos, y más.</span>
                         </p>
-                        <p className="text-sm md:text-base flex items-start gap-2">
+                        <p className="text-base flex items-start gap-2">
                           <span className="text-primary text-lg">✓</span>
                           <span><strong>Ahora en tendencia:</strong> Paredes galería, TVs artísticos, y estanterías envolventes.</span>
                         </p>
@@ -134,11 +202,11 @@ export const CategoryTabs = () => {
                     )}
                     {category.id === 'electrician' && (
                       <>
-                        <p className="text-sm md:text-base flex items-start gap-2">
+                        <p className="text-base flex items-start gap-2">
                           <span className="text-primary text-lg">✓</span>
                           <span>Instalaciones eléctricas seguras y certificadas por profesionales.</span>
                         </p>
-                        <p className="text-sm md:text-base flex items-start gap-2">
+                        <p className="text-base flex items-start gap-2">
                           <span className="text-primary text-lg">✓</span>
                           <span><strong>Ahora en tendencia:</strong> Iluminación LED inteligente y paneles solares.</span>
                         </p>
@@ -146,11 +214,11 @@ export const CategoryTabs = () => {
                     )}
                     {category.id === 'plumbing' && (
                       <>
-                        <p className="text-sm md:text-base flex items-start gap-2">
+                        <p className="text-base flex items-start gap-2">
                           <span className="text-primary text-lg">✓</span>
                           <span>Reparaciones rápidas de fugas, tuberías, y sistemas de agua.</span>
                         </p>
-                        <p className="text-sm md:text-base flex items-start gap-2">
+                        <p className="text-base flex items-start gap-2">
                           <span className="text-primary text-lg">✓</span>
                           <span><strong>Ahora en tendencia:</strong> Grifería moderna y sistemas de ahorro de agua.</span>
                         </p>
@@ -158,11 +226,11 @@ export const CategoryTabs = () => {
                     )}
                     {category.id === 'auto' && (
                       <>
-                        <p className="text-sm md:text-base flex items-start gap-2">
+                        <p className="text-base flex items-start gap-2">
                           <span className="text-primary text-lg">✓</span>
                           <span>Lavado profesional de auto a domicilio, sin complicaciones.</span>
                         </p>
-                        <p className="text-sm md:text-base flex items-start gap-2">
+                        <p className="text-base flex items-start gap-2">
                           <span className="text-primary text-lg">✓</span>
                           <span><strong>Ahora en tendencia:</strong> Detallado ecológico y protección cerámica.</span>
                         </p>
@@ -170,11 +238,11 @@ export const CategoryTabs = () => {
                     )}
                     {category.id === 'medusa' && (
                       <>
-                        <p className="text-sm md:text-base flex items-start gap-2">
+                        <p className="text-base flex items-start gap-2">
                           <span className="text-primary text-lg">✓</span>
                           <span>Instalación profesional de cargadores para vehículos eléctricos.</span>
                         </p>
-                        <p className="text-sm md:text-base flex items-start gap-2">
+                        <p className="text-base flex items-start gap-2">
                           <span className="text-primary text-lg">✓</span>
                           <span><strong>Ahora en tendencia:</strong> Energía solar residencial y sistemas de almacenamiento.</span>
                         </p>
