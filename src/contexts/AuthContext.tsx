@@ -62,11 +62,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string, phone?: string, isProvider?: boolean, role?: string) => {
-    const redirectUrl = `${window.location.origin}/auth/callback`;
-    
     // Store login context for post-verification routing
     const loginContext = isProvider ? 'provider' : 'client';
     localStorage.setItem('login_context', loginContext);
+    
+    // Include login_context in redirect URL so it persists across browser/device changes
+    const redirectUrl = `${window.location.origin}/auth/callback?login_context=${loginContext}`;
     
     const { data, error } = await supabase.auth.signUp({
       email,
