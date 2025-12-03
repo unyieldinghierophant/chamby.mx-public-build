@@ -122,6 +122,13 @@ export default function ProviderOnboardingWizard() {
   const [workZoneRadius, setWorkZoneRadius] = useState(5); // km
   const [availability, setAvailability] = useState('weekdays-9-5');
 
+  // Memoized callback to prevent infinite re-renders in WorkZonePicker
+  const handleWorkZoneChange = useCallback((lat: number, lng: number, radiusKm: number, zoneName: string) => {
+    setWorkZoneCoords({ lat, lng });
+    setWorkZoneRadius(radiusKm);
+    setWorkZone(zoneName);
+  }, []);
+
   // Check URL params for initial mode
   useEffect(() => {
     const tab = searchParams.get('tab');
@@ -837,17 +844,6 @@ export default function ProviderOnboardingWizard() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Teléfono</Label>
-                    <Input
-                      id="phone"
-                      placeholder="Ej: +52 1 234 567 8900"
-                      value={profileData.phone}
-                      onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                      className="text-base"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
                     <Label htmlFor="bio">Descripción breve (opcional)</Label>
                     <Textarea
                       id="bio"
@@ -949,11 +945,7 @@ export default function ProviderOnboardingWizard() {
                 </div>
 
                 <WorkZonePicker
-                  onZoneChange={(lat, lng, radiusKm, zoneName) => {
-                    setWorkZoneCoords({ lat, lng });
-                    setWorkZoneRadius(radiusKm);
-                    setWorkZone(zoneName);
-                  }}
+                  onZoneChange={handleWorkZoneChange}
                   initialLat={workZoneCoords?.lat}
                   initialLng={workZoneCoords?.lng}
                   initialRadius={workZoneRadius * 1000}
