@@ -33,10 +33,16 @@ import { ROUTES } from '@/constants/routes';
 import { z } from 'zod';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
+import { PhoneInput } from '@/components/ui/phone-input';
+import { isValidMexicanPhone, formatPhoneForStorage, MEXICO_COUNTRY_CODE } from '@/utils/phoneValidation';
+
 const signupSchema = z.object({
   fullName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   email: z.string().email('Email inválido'),
-  phone: z.string().min(10, 'El teléfono debe tener al menos 10 dígitos'),
+  phone: z.string()
+    .refine(val => isValidMexicanPhone(val), {
+      message: 'El teléfono debe tener exactamente 10 dígitos'
+    }),
   password: z.string()
     .min(8, 'La contraseña debe tener al menos 8 caracteres')
     .regex(/[A-Z]/, 'Debe contener al menos una mayúscula')
@@ -186,11 +192,12 @@ export default function ProviderOnboardingWizard() {
     }
 
     setSaving(true);
+    const formattedPhone = formatPhoneForStorage(signupData.phone);
     const { error } = await signUp(
       signupData.email,
       signupData.password,
       signupData.fullName,
-      signupData.phone,
+      formattedPhone,
       true, // is a provider
       'provider' // role
     );
@@ -660,16 +667,12 @@ export default function ProviderOnboardingWizard() {
                       <Label htmlFor="phone" className={signupErrors.phone ? 'text-destructive' : ''}>
                         Teléfono *
                       </Label>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                        <Input
-                          id="phone"
-                          placeholder="+52 1 234 567 8900"
-                          value={signupData.phone}
-                          onChange={(e) => setSignupData({ ...signupData, phone: e.target.value })}
-                          className={cn("pl-10", signupErrors.phone && 'border-destructive')}
-                        />
-                      </div>
+                      <PhoneInput
+                        id="phone"
+                        value={signupData.phone}
+                        onChange={(value) => setSignupData({ ...signupData, phone: value })}
+                        error={!!signupErrors.phone}
+                      />
                       {signupErrors.phone && (
                         <p className="text-destructive text-sm">{signupErrors.phone}</p>
                       )}

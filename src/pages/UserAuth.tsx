@@ -16,6 +16,8 @@ import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { OTPInput } from '@/components/OTPInput';
 import { AuthSuccessOverlay } from '@/components/AuthSuccessOverlay';
+import { PhoneInput } from '@/components/ui/phone-input';
+import { isValidMexicanPhone, formatPhoneForStorage, MEXICO_COUNTRY_CODE } from '@/utils/phoneValidation';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -25,7 +27,10 @@ const loginSchema = z.object({
 const signupSchema = z.object({
   fullName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   email: z.string().email('Email inválido'),
-  phone: z.string().min(10, 'El teléfono debe tener al menos 10 dígitos'),
+  phone: z.string()
+    .refine(val => isValidMexicanPhone(val), {
+      message: 'El teléfono debe tener exactamente 10 dígitos'
+    }),
   password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres')
 });
 
@@ -107,7 +112,8 @@ const UserAuth = () => {
 
   const sendOTP = async () => {
     setOtpSending(true);
-    console.log('Attempting to send OTP to:', signupData.phone);
+    const formattedPhone = formatPhoneForStorage(signupData.phone);
+    console.log('Attempting to send OTP to:', formattedPhone);
     
     try {
       // Generate reCAPTCHA token
@@ -126,7 +132,7 @@ const UserAuth = () => {
       });
 
       const { data, error } = await supabase.functions.invoke('send-otp', {
-        body: { phone: signupData.phone, recaptchaToken }
+        body: { phone: formattedPhone, recaptchaToken }
       });
 
       console.log('OTP response:', { data, error });
@@ -167,8 +173,9 @@ const UserAuth = () => {
 
     setOtpVerifying(true);
     try {
+      const formattedPhone = formatPhoneForStorage(signupData.phone);
       const { data, error } = await supabase.functions.invoke('verify-otp', {
-        body: { phone: signupData.phone, otp }
+        body: { phone: formattedPhone, otp }
       });
 
       if (error) throw error;
@@ -204,11 +211,12 @@ const UserAuth = () => {
     }
     
     setLoading(true);
+    const formattedPhone = formatPhoneForStorage(signupData.phone);
     const { error } = await signUp(
       signupData.email,
       signupData.password,
       signupData.fullName,
-      signupData.phone,
+      formattedPhone,
       false, // is not a provider
       'client' // role
     );
@@ -281,7 +289,7 @@ const UserAuth = () => {
                 Verificar Teléfono
               </CardTitle>
               <p className="text-muted-foreground">
-                Ingresa el código de 6 dígitos enviado a {signupData.phone}
+                Ingresa el código de 6 dígitos enviado a {MEXICO_COUNTRY_CODE} {signupData.phone ? signupData.phone.replace(/(\d{2})(\d{4})(\d{4})/, '$1 $2 $3') : ''}
               </p>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -561,14 +569,11 @@ const UserAuth = () => {
                         <Label htmlFor="signup-phone" className={getLabelClassName('phone', signupErrors)}>
                           Teléfono
                         </Label>
-                        <Input
+                        <PhoneInput
                           id="signup-phone"
-                          type="tel"
                           value={signupData.phone}
-                          onChange={(e) => setSignupData({ ...signupData, phone: e.target.value })}
-                          className={getInputClassName('phone', signupErrors)}
-                          placeholder="+52 55 1234 5678"
-                          required
+                          onChange={(value) => setSignupData({ ...signupData, phone: value })}
+                          error={!!signupErrors.phone}
                         />
                         {signupErrors.phone && (
                           <p className="text-red-500 text-sm">{signupErrors.phone}</p>
