@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -35,6 +35,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 
 import { PhoneInput } from '@/components/ui/phone-input';
 import { isValidMexicanPhone, formatPhoneForStorage, MEXICO_COUNTRY_CODE } from '@/utils/phoneValidation';
+import { WorkZonePicker } from '@/components/WorkZonePicker';
 
 const signupSchema = z.object({
   fullName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
@@ -117,6 +118,8 @@ export default function ProviderOnboardingWizard() {
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [customSkill, setCustomSkill] = useState('');
   const [workZone, setWorkZone] = useState('');
+  const [workZoneCoords, setWorkZoneCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [workZoneRadius, setWorkZoneRadius] = useState(5); // km
   const [availability, setAvailability] = useState('weekdays-9-5');
 
   // Check URL params for initial mode
@@ -400,13 +403,15 @@ export default function ProviderOnboardingWizard() {
 
     setSaving(true);
     try {
-      // Update provider profile
+      // Update provider profile with zone info
       const { error: providerError } = await supabase
         .from('providers')
         .update({
           display_name: profileData.displayName,
           skills: selectedSkills,
-          zone_served: workZone,
+          zone_served: workZone || `${workZoneRadius}km radius`,
+          current_latitude: workZoneCoords?.lat || null,
+          current_longitude: workZoneCoords?.lng || null,
           updated_at: new Date().toISOString()
         })
         .eq('user_id', user.id);
@@ -938,32 +943,21 @@ export default function ProviderOnboardingWizard() {
             {/* Step 5: Work Zone */}
             {currentStep === 5 && (
               <div className="space-y-6">
-                <div className="text-center mb-8">
+                <div className="text-center mb-6">
                   <h2 className="text-3xl font-bold text-foreground mb-2">Zona de Trabajo</h2>
-                  <p className="text-muted-foreground">¿Dónde ofreces tus servicios? *</p>
+                  <p className="text-muted-foreground">Define el área donde ofreces tus servicios</p>
                 </div>
 
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="workZone">Ciudad o zona</Label>
-                    <Input
-                      id="workZone"
-                      placeholder="Ej: Guadalajara, Zapopan, Tlaquepaque..."
-                      value={workZone}
-                      onChange={(e) => setWorkZone(e.target.value)}
-                      className="text-base"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Puedes especificar varias zonas separadas por comas
-                    </p>
-                  </div>
-
-                  <div className="bg-accent/20 rounded-lg p-4 border border-accent">
-                    <p className="text-sm text-muted-foreground">
-                      💡 <strong>Consejo:</strong> Mientras más amplia sea tu zona de trabajo, más oportunidades tendrás de recibir solicitudes.
-                    </p>
-                  </div>
-                </div>
+                <WorkZonePicker
+                  onZoneChange={(lat, lng, radiusKm, zoneName) => {
+                    setWorkZoneCoords({ lat, lng });
+                    setWorkZoneRadius(radiusKm);
+                    setWorkZone(zoneName);
+                  }}
+                  initialLat={workZoneCoords?.lat}
+                  initialLng={workZoneCoords?.lng}
+                  initialRadius={workZoneRadius * 1000}
+                />
               </div>
             )}
 
