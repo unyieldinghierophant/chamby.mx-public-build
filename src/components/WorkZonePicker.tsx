@@ -62,7 +62,12 @@ export function WorkZonePicker({
   const [radius, setRadius] = useState(initialRadius || DEFAULT_RADIUS);
   const [zoneName, setZoneName] = useState('');
   const [isLocating, setIsLocating] = useState(false);
-  const hasNotifiedParent = useRef(false);
+  
+  // Use ref to store callback to avoid dependency issues and infinite re-renders
+  const onZoneChangeRef = useRef(onZoneChange);
+  useEffect(() => {
+    onZoneChangeRef.current = onZoneChange;
+  }, [onZoneChange]);
 
   // Reverse geocode to get zone name
   useEffect(() => {
@@ -85,7 +90,7 @@ export function WorkZonePicker({
   // Notify parent of changes - debounced to prevent too many calls
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      onZoneChange(center[0], center[1], radius / 1000, zoneName);
+      onZoneChangeRef.current(center[0], center[1], radius / 1000, zoneName);
     }, 300);
     
     return () => clearTimeout(timeoutId);
