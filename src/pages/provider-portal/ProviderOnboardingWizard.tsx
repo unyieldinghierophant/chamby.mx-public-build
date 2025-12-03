@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
 import { 
   Sparkles, 
   User, 
@@ -23,7 +23,8 @@ import {
   Lock,
   Phone,
   Eye,
-  EyeOff
+  EyeOff,
+  LogIn
 } from 'lucide-react';
 import authSecurityImage from '@/assets/auth-security.png';
 import { toast } from 'sonner';
@@ -47,6 +48,11 @@ const signupSchema = z.object({
   path: ["confirmPassword"]
 });
 
+const loginSchema = z.object({
+  email: z.string().email('Email inválido'),
+  password: z.string().min(1, 'La contraseña es requerida')
+});
+
 const SUGGESTED_SKILLS = [
   'Plomería', 'Electricidad', 'Carpintería', 'Pintura', 
   'Jardinería', 'Limpieza', 'Reparaciones', 'Instalaciones',
@@ -55,7 +61,7 @@ const SUGGESTED_SKILLS = [
 
 const STEP_CONFIG = [
   { id: 1, icon: Sparkles, title: '¡Bienvenido!' },
-  { id: 2, icon: Mail, title: 'Crear Cuenta' },
+  { id: 2, icon: Mail, title: 'Cuenta' },
   { id: 3, icon: User, title: 'Perfil' },
   { id: 4, icon: Wrench, title: 'Habilidades' },
   { id: 5, icon: MapPin, title: 'Zona de Trabajo' },
@@ -64,13 +70,20 @@ const STEP_CONFIG = [
 ];
 
 export default function ProviderOnboardingWizard() {
-  const { user, signUp } = useAuth();
+  const { user, signUp, signIn, signInWithGoogle, resetPassword } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [currentStep, setCurrentStep] = useState(1);
   const [saving, setSaving] = useState(false);
   const [slideDirection, setSlideDirection] = useState<'left' | 'right'>('right');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Auth mode: 'signup' or 'login'
+  const [authMode, setAuthMode] = useState<'signup' | 'login'>('signup');
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetSent, setResetSent] = useState(false);
 
   // Signup data
   const [signupData, setSignupData] = useState({
@@ -81,6 +94,13 @@ export default function ProviderOnboardingWizard() {
     confirmPassword: ''
   });
   const [signupErrors, setSignupErrors] = useState<Record<string, string>>({});
+
+  // Login data
+  const [loginData, setLoginData] = useState({
+    email: '',
+    password: ''
+  });
+  const [loginErrors, setLoginErrors] = useState<Record<string, string>>({});
 
   // Profile data
   const [profileData, setProfileData] = useState({
@@ -93,10 +113,23 @@ export default function ProviderOnboardingWizard() {
   const [workZone, setWorkZone] = useState('');
   const [availability, setAvailability] = useState('weekdays-9-5');
 
+  // Check URL params for initial mode
   useEffect(() => {
-    // If user is already logged in, skip signup step
+    const tab = searchParams.get('tab');
+    if (tab === 'login') {
+      setAuthMode('login');
+      if (!user) {
+        setCurrentStep(2); // Go directly to auth step
+      }
+    } else if (tab === 'signup') {
+      setAuthMode('signup');
+    }
+  }, [searchParams, user]);
+
+  useEffect(() => {
+    // If user is already logged in, skip to profile step
     if (user) {
-      setCurrentStep(3); // Skip to profile step
+      setCurrentStep(3);
       
       // Load existing user data
       const loadUserData = async () => {
@@ -128,6 +161,7 @@ export default function ProviderOnboardingWizard() {
   const progress = (currentStep / totalSteps) * 100;
 
   const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [showVerificationPending, setShowVerificationPending] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState('');
 
   const handleSignup = async () => {
@@ -162,7 +196,7 @@ export default function ProviderOnboardingWizard() {
     if (error) {
       let errorMessage = error.message;
       if (error.message.includes('already registered') || error.message.includes('already exists')) {
-        errorMessage = 'Este email ya está registrado.';
+        errorMessage = 'Este email ya está registrado. Intenta iniciar sesión.';
       }
       toast.error('Error en el registro', { description: errorMessage });
       setSignupErrors({ email: errorMessage });
@@ -178,6 +212,107 @@ export default function ProviderOnboardingWizard() {
     setVerificationEmail(signupData.email);
     setShowEmailVerification(true);
     
+    setSaving(false);
+  };
+
+  const handleLogin = async () => {
+    setLoginErrors({});
+    
+    try {
+      loginSchema.parse(loginData);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errors: Record<string, string> = {};
+        error.issues.forEach((err) => {
+          if (err.path[0]) {
+            errors[err.path[0] as string] = err.message;
+          }
+        });
+        setLoginErrors(errors);
+        toast.error('Por favor completa todos los campos');
+        return;
+      }
+    }
+
+    setSaving(true);
+    localStorage.setItem('login_context', 'provider');
+    
+    const { error } = await signIn(loginData.email, loginData.password, 'provider');
+
+    if (error) {
+      let errorMessage = error.message;
+      
+      if (error.message.includes('Invalid login credentials')) {
+        errorMessage = 'Email o contraseña incorrectos';
+      } else if (error.message.includes('Email not confirmed')) {
+        errorMessage = 'Por favor verifica tu email antes de iniciar sesión';
+        setVerificationEmail(loginData.email);
+        setShowVerificationPending(true);
+        setSaving(false);
+        return;
+      }
+      
+      toast.error('Error al iniciar sesión', { description: errorMessage });
+      setLoginErrors({ email: errorMessage });
+      setSaving(false);
+      return;
+    }
+
+    toast.success('¡Bienvenido de vuelta!');
+    setSaving(false);
+    // Navigation will happen via useEffect when user state updates
+  };
+
+  const handleGoogleLogin = async () => {
+    setSaving(true);
+    localStorage.setItem('login_context', 'provider');
+    
+    const { error } = await signInWithGoogle(true, 'provider');
+    
+    if (error) {
+      toast.error('Error con Google', { description: error.message });
+      setSaving(false);
+    }
+    // If successful, user will be redirected by Google OAuth flow
+  };
+
+  const handleResetPassword = async () => {
+    if (!resetEmail.trim()) {
+      toast.error('Por favor ingresa tu email');
+      return;
+    }
+
+    setSaving(true);
+    const { error } = await resetPassword(resetEmail);
+    
+    if (error) {
+      toast.error('Error', { description: error.message });
+    } else {
+      setResetSent(true);
+      toast.success('Correo enviado', {
+        description: 'Revisa tu bandeja de entrada para restablecer tu contraseña'
+      });
+    }
+    setSaving(false);
+  };
+
+  const handleResendVerification = async (email: string) => {
+    setSaving(true);
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback?login_context=provider`
+      }
+    });
+    
+    if (error) {
+      toast.error('Error al reenviar', { description: error.message });
+    } else {
+      toast.success('Correo reenviado', {
+        description: 'Revisa tu bandeja de entrada'
+      });
+    }
     setSaving(false);
   };
 
@@ -274,13 +409,18 @@ export default function ProviderOnboardingWizard() {
   const canGoNext = () => {
     switch (currentStep) {
       case 2:
-        // Signup step - check if form is valid
+        // Auth step
         if (!user) {
-          return signupData.fullName.trim().length > 0 &&
-                 signupData.email.trim().length > 0 &&
-                 signupData.phone.trim().length > 0 &&
-                 signupData.password.length >= 8 &&
-                 signupData.password === signupData.confirmPassword;
+          if (authMode === 'signup') {
+            return signupData.fullName.trim().length > 0 &&
+                   signupData.email.trim().length > 0 &&
+                   signupData.phone.trim().length > 0 &&
+                   signupData.password.length >= 8 &&
+                   signupData.password === signupData.confirmPassword;
+          } else {
+            return loginData.email.trim().length > 0 &&
+                   loginData.password.length > 0;
+          }
         }
         return true;
       case 3:
@@ -293,6 +433,16 @@ export default function ProviderOnboardingWizard() {
         return true;
     }
   };
+
+  // Google icon SVG
+  const GoogleIcon = () => (
+    <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+    </svg>
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/10 flex items-center justify-center p-4 overflow-hidden relative">
@@ -376,128 +526,256 @@ export default function ProviderOnboardingWizard() {
               </div>
             )}
 
-            {/* Step 2: Signup (only if not authenticated) */}
+            {/* Step 2: Auth (Signup or Login) */}
             {currentStep === 2 && !user && (
               <div className="space-y-6">
-                <div className="text-center mb-8">
-                  <h2 className="text-3xl font-bold text-foreground mb-2">Crear Cuenta</h2>
-                  <p className="text-muted-foreground">Empecemos creando tu cuenta de Chambynauta</p>
+                <div className="text-center mb-6">
+                  <h2 className="text-3xl font-bold text-foreground mb-2">
+                    {authMode === 'signup' ? 'Crear Cuenta' : 'Iniciar Sesión'}
+                  </h2>
+                  <p className="text-muted-foreground">
+                    {authMode === 'signup' 
+                      ? 'Empecemos creando tu cuenta de Chambynauta' 
+                      : 'Bienvenido de vuelta, ingresa tus datos'}
+                  </p>
+                </div>
+
+                {/* Google Sign-in Button */}
+                <Button
+                  variant="outline"
+                  className="w-full py-6 text-base border-2 hover:bg-muted/50"
+                  onClick={handleGoogleLogin}
+                  disabled={saving}
+                >
+                  <GoogleIcon />
+                  Continuar con Google
+                </Button>
+
+                <div className="relative">
+                  <Separator />
+                  <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-4 text-sm text-muted-foreground">
+                    o con email
+                  </span>
+                </div>
+
+                {/* Auth Mode Toggle */}
+                <div className="flex rounded-lg border-2 p-1 bg-muted/30">
+                  <button
+                    className={cn(
+                      "flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all",
+                      authMode === 'signup' 
+                        ? "bg-primary text-primary-foreground shadow-sm" 
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                    onClick={() => setAuthMode('signup')}
+                  >
+                    Registrarse
+                  </button>
+                  <button
+                    className={cn(
+                      "flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all",
+                      authMode === 'login' 
+                        ? "bg-primary text-primary-foreground shadow-sm" 
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                    onClick={() => setAuthMode('login')}
+                  >
+                    Iniciar Sesión
+                  </button>
                 </div>
                 
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="fullName" className={signupErrors.fullName ? 'text-destructive' : ''}>
-                      Nombre Completo *
-                    </Label>
-                    <Input
-                      id="fullName"
-                      placeholder="Ej: Juan Pérez"
-                      value={signupData.fullName}
-                      onChange={(e) => setSignupData({ ...signupData, fullName: e.target.value })}
-                      className={signupErrors.fullName ? 'border-destructive' : ''}
-                    />
-                    {signupErrors.fullName && (
-                      <p className="text-destructive text-sm">{signupErrors.fullName}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className={signupErrors.email ? 'text-destructive' : ''}>
-                      Email *
-                    </Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                {/* Signup Form */}
+                {authMode === 'signup' && (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="fullName" className={signupErrors.fullName ? 'text-destructive' : ''}>
+                        Nombre Completo *
+                      </Label>
                       <Input
-                        id="email"
-                        type="email"
-                        placeholder="tu@email.com"
-                        value={signupData.email}
-                        onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
-                        className={cn("pl-10", signupErrors.email && 'border-destructive')}
+                        id="fullName"
+                        placeholder="Ej: Juan Pérez"
+                        value={signupData.fullName}
+                        onChange={(e) => setSignupData({ ...signupData, fullName: e.target.value })}
+                        className={signupErrors.fullName ? 'border-destructive' : ''}
                       />
+                      {signupErrors.fullName && (
+                        <p className="text-destructive text-sm">{signupErrors.fullName}</p>
+                      )}
                     </div>
-                    {signupErrors.email && (
-                      <p className="text-destructive text-sm">{signupErrors.email}</p>
-                    )}
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="phone" className={signupErrors.phone ? 'text-destructive' : ''}>
-                      Teléfono *
-                    </Label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                      <Input
-                        id="phone"
-                        placeholder="+52 1 234 567 8900"
-                        value={signupData.phone}
-                        onChange={(e) => setSignupData({ ...signupData, phone: e.target.value })}
-                        className={cn("pl-10", signupErrors.phone && 'border-destructive')}
-                      />
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className={signupErrors.email ? 'text-destructive' : ''}>
+                        Email *
+                      </Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="tu@email.com"
+                          value={signupData.email}
+                          onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
+                          className={cn("pl-10", signupErrors.email && 'border-destructive')}
+                        />
+                      </div>
+                      {signupErrors.email && (
+                        <p className="text-destructive text-sm">{signupErrors.email}</p>
+                      )}
                     </div>
-                    {signupErrors.phone && (
-                      <p className="text-destructive text-sm">{signupErrors.phone}</p>
-                    )}
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="password" className={signupErrors.password ? 'text-destructive' : ''}>
-                      Contraseña *
-                    </Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                      <Input
-                        id="password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Mínimo 8 caracteres"
-                        value={signupData.password}
-                        onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
-                        className={cn("pl-10 pr-10", signupErrors.password && 'border-destructive')}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
+                    <div className="space-y-2">
+                      <Label htmlFor="phone" className={signupErrors.phone ? 'text-destructive' : ''}>
+                        Teléfono *
+                      </Label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                        <Input
+                          id="phone"
+                          placeholder="+52 1 234 567 8900"
+                          value={signupData.phone}
+                          onChange={(e) => setSignupData({ ...signupData, phone: e.target.value })}
+                          className={cn("pl-10", signupErrors.phone && 'border-destructive')}
+                        />
+                      </div>
+                      {signupErrors.phone && (
+                        <p className="text-destructive text-sm">{signupErrors.phone}</p>
+                      )}
                     </div>
-                    {signupErrors.password && (
-                      <p className="text-destructive text-sm">{signupErrors.password}</p>
-                    )}
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="confirmPassword" className={signupErrors.confirmPassword ? 'text-destructive' : ''}>
-                      Confirmar Contraseña *
-                    </Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                      <Input
-                        id="confirmPassword"
-                        type={showConfirmPassword ? "text" : "password"}
-                        placeholder="Repite tu contraseña"
-                        value={signupData.confirmPassword}
-                        onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
-                        className={cn("pl-10 pr-10", signupErrors.confirmPassword && 'border-destructive')}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      >
-                        {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
+                    <div className="space-y-2">
+                      <Label htmlFor="password" className={signupErrors.password ? 'text-destructive' : ''}>
+                        Contraseña *
+                      </Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                        <Input
+                          id="password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Mínimo 8 caracteres"
+                          value={signupData.password}
+                          onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
+                          className={cn("pl-10 pr-10", signupErrors.password && 'border-destructive')}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      {signupErrors.password && (
+                        <p className="text-destructive text-sm">{signupErrors.password}</p>
+                      )}
                     </div>
-                    {signupErrors.confirmPassword && (
-                      <p className="text-destructive text-sm">{signupErrors.confirmPassword}</p>
-                    )}
+
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmPassword" className={signupErrors.confirmPassword ? 'text-destructive' : ''}>
+                        Confirmar Contraseña *
+                      </Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                        <Input
+                          id="confirmPassword"
+                          type={showConfirmPassword ? "text" : "password"}
+                          placeholder="Repite tu contraseña"
+                          value={signupData.confirmPassword}
+                          onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
+                          className={cn("pl-10 pr-10", signupErrors.confirmPassword && 'border-destructive')}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      {signupErrors.confirmPassword && (
+                        <p className="text-destructive text-sm">{signupErrors.confirmPassword}</p>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {/* Login Form */}
+                {authMode === 'login' && (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="loginEmail" className={loginErrors.email ? 'text-destructive' : ''}>
+                        Email
+                      </Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                        <Input
+                          id="loginEmail"
+                          type="email"
+                          placeholder="tu@email.com"
+                          value={loginData.email}
+                          onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                          className={cn("pl-10", loginErrors.email && 'border-destructive')}
+                        />
+                      </div>
+                      {loginErrors.email && (
+                        <p className="text-destructive text-sm">{loginErrors.email}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="loginPassword" className={loginErrors.password ? 'text-destructive' : ''}>
+                        Contraseña
+                      </Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                        <Input
+                          id="loginPassword"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Tu contraseña"
+                          value={loginData.password}
+                          onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                          className={cn("pl-10 pr-10", loginErrors.password && 'border-destructive')}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      {loginErrors.password && (
+                        <p className="text-destructive text-sm">{loginErrors.password}</p>
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setResetEmail(loginData.email);
+                        setShowResetPassword(true);
+                      }}
+                      className="text-sm text-primary hover:underline"
+                    >
+                      ¿Olvidaste tu contraseña?
+                    </button>
+                  </div>
+                )}
+
+                {/* Link to user auth */}
+                <p className="text-center text-sm text-muted-foreground pt-2">
+                  ¿Buscas servicios?{' '}
+                  <button
+                    type="button"
+                    onClick={() => navigate(ROUTES.USER_AUTH)}
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Regístrate como cliente
+                  </button>
+                </p>
               </div>
             )}
 
-            {/* Step 3: Basic Profile (was Step 2) */}
+            {/* Step 3: Basic Profile */}
             {currentStep === 3 && (
               <div className="space-y-6">
                 <div className="text-center mb-8">
@@ -795,9 +1073,13 @@ export default function ProviderOnboardingWizard() {
           {currentStep < totalSteps ? (
             <Button
               onClick={() => {
-                // If on signup step and not authenticated, handle signup
+                // If on auth step and not authenticated
                 if (currentStep === 2 && !user) {
-                  handleSignup();
+                  if (authMode === 'signup') {
+                    handleSignup();
+                  } else {
+                    handleLogin();
+                  }
                 } else {
                   goToNext();
                 }
@@ -805,8 +1087,14 @@ export default function ProviderOnboardingWizard() {
               disabled={!canGoNext() || saving}
               className="group"
             >
-              {saving ? 'Creando cuenta...' : currentStep === 2 && !user ? 'Crear Cuenta' : 'Siguiente'}
-              <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+              {saving ? 'Procesando...' : currentStep === 2 && !user 
+                ? (authMode === 'signup' ? 'Crear Cuenta' : 'Iniciar Sesión')
+                : 'Siguiente'}
+              {currentStep === 2 && authMode === 'login' && !user ? (
+                <LogIn className="w-4 h-4 ml-2" />
+              ) : (
+                <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+              )}
             </Button>
           ) : (
             <Button
@@ -846,12 +1134,100 @@ export default function ProviderOnboardingWizard() {
             <Button
               onClick={() => {
                 setShowEmailVerification(false);
-                navigate(ROUTES.PROVIDER_AUTH + '?tab=login');
+                setShowVerificationPending(true);
               }}
             >
               Entendido
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Verification Pending Full Screen */}
+      {showVerificationPending && (
+        <div className="fixed inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/10 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md bg-card/95 backdrop-blur-sm shadow-floating border-2">
+            <div className="p-8 text-center space-y-6">
+              <div className="mx-auto w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
+                <Mail className="w-10 h-10 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-foreground mb-2">Revisa tu correo 📧</h2>
+                <p className="text-muted-foreground">
+                  Te enviamos un enlace de verificación a{' '}
+                  <span className="font-semibold text-foreground">{verificationEmail}</span>
+                </p>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Haz clic en el enlace del correo para activar tu cuenta y luego regresa aquí para iniciar sesión.
+              </p>
+              <div className="space-y-3 pt-2">
+                <Button
+                  onClick={() => handleResendVerification(verificationEmail)}
+                  variant="outline"
+                  className="w-full"
+                  disabled={saving}
+                >
+                  Reenviar correo de verificación
+                </Button>
+                <Button
+                  onClick={() => {
+                    setShowVerificationPending(false);
+                    setAuthMode('login');
+                    setLoginData({ email: verificationEmail, password: '' });
+                  }}
+                  className="w-full"
+                >
+                  Ya verifiqué, ir a iniciar sesión
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Password Reset Modal */}
+      <Dialog open={showResetPassword} onOpenChange={(open) => {
+        setShowResetPassword(open);
+        if (!open) setResetSent(false);
+      }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Restablecer contraseña</DialogTitle>
+            <DialogDescription>
+              {resetSent 
+                ? 'Te hemos enviado un correo con instrucciones para restablecer tu contraseña.'
+                : 'Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña.'}
+            </DialogDescription>
+          </DialogHeader>
+          {!resetSent ? (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="resetEmail">Email</Label>
+                <Input
+                  id="resetEmail"
+                  type="email"
+                  placeholder="tu@email.com"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="ghost" onClick={() => setShowResetPassword(false)}>
+                  Cancelar
+                </Button>
+                <Button onClick={handleResetPassword} disabled={saving}>
+                  {saving ? 'Enviando...' : 'Enviar enlace'}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex justify-end">
+              <Button onClick={() => setShowResetPassword(false)}>
+                Entendido
+              </Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
