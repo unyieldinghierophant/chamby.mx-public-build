@@ -1,13 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { MapContainer, TileLayer, Circle, useMapEvents, useMap } from 'react-leaflet';
-import { LatLng } from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { MapPin, Minus, Plus, Navigation, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 
 // Guadalajara default center
 const DEFAULT_CENTER: [number, number] = [20.6597, -103.3496];
@@ -22,33 +18,114 @@ interface WorkZonePickerProps {
   initialRadius?: number;
 }
 
-// Component to handle map clicks and update circle position
-function MapClickHandler({ 
-  onPositionChange 
-}: { 
+// Lazy load the map component to avoid SSR issues
+const LazyMap = ({ center, radius, onPositionChange }: {
+  center: [number, number];
+  radius: number;
   onPositionChange: (lat: number, lng: number) => void;
-}) {
-  useMapEvents({
-    click(e) {
-      onPositionChange(e.latlng.lat, e.latlng.lng);
-    },
-  });
-  return null;
-}
+}) => {
+  const [MapComponents, setMapComponents] = useState<any>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-// Component to recenter map
-function RecenterMap({ center }: { center: [number, number] }) {
-  const map = useMap();
-  const prevCenter = useRef(center);
-  
   useEffect(() => {
-    if (prevCenter.current[0] !== center[0] || prevCenter.current[1] !== center[1]) {
-      map.setView(center, map.getZoom());
-      prevCenter.current = center;
-    }
-  }, [center, map]);
-  return null;
-}
+    let mounted = true;
+    
+    const loadMap = async () => {
+      try {
+        // Import Leaflet CSS
+        await import('leaflet/dist/leaflet.css');
+        
+        // Import react-leaflet components
+        const { MapContainer, TileLayer, Circle, useMapEvents, useMap } = await import('react-leaflet');
+        
+        if (mounted) {
+          setMapComponents({ MapContainer, TileLayer, Circle, useMapEvents, useMap });
+          setIsLoaded(true);
+        }
+      } catch (err) {
+        console.error('Failed to load map:', err);
+        if (mounted) {
+          setError('No se pudo cargar el mapa');
+        }
+      }
+    };
+
+    loadMap();
+    
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (error) {
+    return (
+      <div className="h-[300px] w-full bg-muted rounded-xl flex items-center justify-center">
+        <p className="text-muted-foreground">{error}</p>
+      </div>
+    );
+  }
+
+  if (!isLoaded || !MapComponents) {
+    return (
+      <div className="h-[300px] w-full bg-muted rounded-xl flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  const { MapContainer, TileLayer, Circle, useMapEvents, useMap } = MapComponents;
+
+  // Inner components that use hooks
+  const MapClickHandler = () => {
+    useMapEvents({
+      click(e: any) {
+        onPositionChange(e.latlng.lat, e.latlng.lng);
+      },
+    });
+    return null;
+  };
+
+  const RecenterControl = ({ mapCenter }: { mapCenter: [number, number] }) => {
+    const map = useMap();
+    const prevCenter = useRef(mapCenter);
+    
+    useEffect(() => {
+      if (prevCenter.current[0] !== mapCenter[0] || prevCenter.current[1] !== mapCenter[1]) {
+        map.setView(mapCenter, map.getZoom());
+        prevCenter.current = mapCenter;
+      }
+    }, [mapCenter, map]);
+    
+    return null;
+  };
+
+  return (
+    <MapContainer
+      center={center}
+      zoom={11}
+      style={{ height: '300px', width: '100%' }}
+      zoomControl={false}
+      attributionControl={false}
+    >
+      <TileLayer
+        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+      />
+      <Circle
+        center={center}
+        radius={radius}
+        pathOptions={{
+          color: '#8B5CF6',
+          fillColor: '#8B5CF6',
+          fillOpacity: 0.15,
+          weight: 2,
+        }}
+      />
+      <MapClickHandler />
+      <RecenterControl mapCenter={center} />
+    </MapContainer>
+  );
+};
 
 export function WorkZonePicker({ 
   onZoneChange, 
@@ -81,6 +158,7 @@ export function WorkZonePicker({
         setZoneName(city);
       } catch (error) {
         console.error('Error fetching zone name:', error);
+        setZoneName('');
       }
     };
     
@@ -159,29 +237,11 @@ export function WorkZonePicker({
 
       {/* Map */}
       <div className="relative rounded-xl overflow-hidden border border-border shadow-soft">
-        <MapContainer
-          center={center}
-          zoom={11}
-          style={{ height: '300px', width: '100%' }}
-          zoomControl={false}
-          attributionControl={false}
-        >
-          <TileLayer
-            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-          />
-          <Circle
-            center={center}
-            radius={radius}
-            pathOptions={{
-              color: 'hsl(var(--primary))',
-              fillColor: 'hsl(var(--primary))',
-              fillOpacity: 0.15,
-              weight: 2,
-            }}
-          />
-          <MapClickHandler onPositionChange={handlePositionChange} />
-          <RecenterMap center={center} />
-        </MapContainer>
+        <LazyMap 
+          center={center} 
+          radius={radius} 
+          onPositionChange={handlePositionChange} 
+        />
 
         {/* Center Pin Overlay */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full z-[1000] pointer-events-none">
