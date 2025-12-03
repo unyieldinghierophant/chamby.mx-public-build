@@ -70,7 +70,8 @@ serve(async (req) => {
     );
 
     // Create plain text version for better deliverability
-    const confirmationUrl = `${Deno.env.get("SUPABASE_URL")}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${redirect_to}`;
+    // URL-encode redirect_to to preserve query params like login_context
+    const confirmationUrl = `${Deno.env.get("SUPABASE_URL")}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(redirect_to)}`;
     const text = `¡Bienvenido a Chamby!
 
 Gracias por registrarte en Chamby, tu plataforma de confianza para conectar con profesionales verificados.
