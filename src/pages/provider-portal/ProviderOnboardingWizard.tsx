@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { 
   Sparkles, 
@@ -17,16 +16,29 @@ import {
   Calendar, 
   CheckCircle2, 
   ArrowRight,
+  ArrowLeft,
   Plus,
   X,
   Mail,
   Lock,
-  Phone,
   Eye,
   EyeOff,
-  LogIn
+  LogIn,
+  Zap,
+  Droplets,
+  Hammer,
+  Paintbrush,
+  Leaf,
+  Sparkle,
+  Settings,
+  Home,
+  Wrench as WrenchIcon,
+  Square,
+  Scissors,
+  GlassWater
 } from 'lucide-react';
-import authSecurityImage from '@/assets/auth-security.png';
+import chambyLogo from '@/assets/chamby-logo-new.png';
+import providerCharacter from '@/assets/walking-provider.png';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { ROUTES } from '@/constants/routes';
@@ -34,7 +46,7 @@ import { z } from 'zod';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 import { PhoneInput } from '@/components/ui/phone-input';
-import { isValidMexicanPhone, formatPhoneForStorage, MEXICO_COUNTRY_CODE } from '@/utils/phoneValidation';
+import { isValidMexicanPhone, formatPhoneForStorage } from '@/utils/phoneValidation';
 import { WorkZonePicker } from '@/components/WorkZonePicker';
 import { PasswordStrengthBar } from '@/components/PasswordStrengthBar';
 
@@ -61,20 +73,28 @@ const loginSchema = z.object({
   password: z.string().min(1, 'La contraseña es requerida')
 });
 
-const SUGGESTED_SKILLS = [
-  'Plomería', 'Electricidad', 'Carpintería', 'Pintura', 
-  'Jardinería', 'Limpieza', 'Reparaciones', 'Instalaciones',
-  'Mantenimiento', 'Albañilería', 'Herrería', 'Vidriería'
+// Skills with icons and colors for visual grid
+const SKILL_OPTIONS = [
+  { name: 'Plomería', icon: Droplets, bgColor: 'bg-blue-100', iconColor: 'text-blue-600' },
+  { name: 'Electricidad', icon: Zap, bgColor: 'bg-yellow-100', iconColor: 'text-yellow-600' },
+  { name: 'Carpintería', icon: Hammer, bgColor: 'bg-amber-100', iconColor: 'text-amber-700' },
+  { name: 'Pintura', icon: Paintbrush, bgColor: 'bg-pink-100', iconColor: 'text-pink-600' },
+  { name: 'Jardinería', icon: Leaf, bgColor: 'bg-green-100', iconColor: 'text-green-600' },
+  { name: 'Limpieza', icon: Sparkle, bgColor: 'bg-purple-100', iconColor: 'text-purple-600' },
+  { name: 'Reparaciones', icon: Settings, bgColor: 'bg-gray-100', iconColor: 'text-gray-600' },
+  { name: 'Instalaciones', icon: Home, bgColor: 'bg-indigo-100', iconColor: 'text-indigo-600' },
+  { name: 'Mantenimiento', icon: WrenchIcon, bgColor: 'bg-orange-100', iconColor: 'text-orange-600' },
+  { name: 'Albañilería', icon: Square, bgColor: 'bg-stone-200', iconColor: 'text-stone-700' },
+  { name: 'Herrería', icon: Scissors, bgColor: 'bg-slate-200', iconColor: 'text-slate-700' },
+  { name: 'Vidriería', icon: GlassWater, bgColor: 'bg-cyan-100', iconColor: 'text-cyan-600' },
 ];
 
-const STEP_CONFIG = [
-  { id: 1, icon: Sparkles, title: '¡Bienvenido!' },
-  { id: 2, icon: Mail, title: 'Cuenta' },
-  { id: 3, icon: User, title: 'Perfil' },
-  { id: 4, icon: Wrench, title: 'Habilidades' },
-  { id: 5, icon: MapPin, title: 'Zona de Trabajo' },
-  { id: 6, icon: Calendar, title: 'Disponibilidad' },
-  { id: 7, icon: CheckCircle2, title: '¡Listo!' }
+// Step labels for progress track (mobile-optimized)
+const PROGRESS_STEPS = [
+  { id: 2, label: 'CUENTA' },
+  { id: 3, label: 'PERFIL' },
+  { id: 4, label: 'SKILLS' },
+  { id: 5, label: 'ZONA' },
 ];
 
 export default function ProviderOnboardingWizard() {
@@ -83,7 +103,6 @@ export default function ProviderOnboardingWizard() {
   const [searchParams] = useSearchParams();
   const [currentStep, setCurrentStep] = useState(1);
   const [saving, setSaving] = useState(false);
-  const [slideDirection, setSlideDirection] = useState<'left' | 'right'>('right');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -120,23 +139,21 @@ export default function ProviderOnboardingWizard() {
   const [customSkill, setCustomSkill] = useState('');
   const [workZone, setWorkZone] = useState('');
   const [workZoneCoords, setWorkZoneCoords] = useState<{ lat: number; lng: number } | null>(null);
-  const [workZoneRadius, setWorkZoneRadius] = useState(5); // km
+  const [workZoneRadius, setWorkZoneRadius] = useState(5);
   const [availability, setAvailability] = useState('weekdays-9-5');
 
-  // Memoized callback to prevent infinite re-renders in WorkZonePicker
   const handleWorkZoneChange = useCallback((lat: number, lng: number, radiusKm: number, zoneName: string) => {
     setWorkZoneCoords({ lat, lng });
     setWorkZoneRadius(radiusKm);
     setWorkZone(zoneName);
   }, []);
 
-  // Check URL params for initial mode
   useEffect(() => {
     const tab = searchParams.get('tab');
     if (tab === 'login') {
       setAuthMode('login');
       if (!user) {
-        setCurrentStep(2); // Go directly to auth step
+        setCurrentStep(2);
       }
     } else if (tab === 'signup') {
       setAuthMode('signup');
@@ -144,11 +161,9 @@ export default function ProviderOnboardingWizard() {
   }, [searchParams, user]);
 
   useEffect(() => {
-    // If user is already logged in, skip to profile step
     if (user) {
       setCurrentStep(3);
       
-      // Load existing user data
       const loadUserData = async () => {
         const { data: userData } = await supabase
           .from('users')
@@ -174,8 +189,8 @@ export default function ProviderOnboardingWizard() {
     }
   }, [user]);
 
-  const totalSteps = STEP_CONFIG.length;
-  const progress = (currentStep / totalSteps) * 100;
+  const totalSteps = 7;
+  const progress = Math.max(0, ((currentStep - 1) / (totalSteps - 2)) * 100);
 
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [showVerificationPending, setShowVerificationPending] = useState(false);
@@ -209,8 +224,8 @@ export default function ProviderOnboardingWizard() {
       signupData.password,
       signupData.fullName,
       formattedPhone,
-      true, // is a provider
-      'provider' // role
+      true,
+      'provider'
     );
 
     if (error) {
@@ -224,11 +239,9 @@ export default function ProviderOnboardingWizard() {
       return;
     }
 
-    // Mark as new provider signup
     localStorage.setItem('new_provider_signup', 'true');
     localStorage.setItem('login_context', 'provider');
     
-    // Show email verification message
     setVerificationEmail(signupData.email);
     setShowEmailVerification(true);
     
@@ -280,7 +293,6 @@ export default function ProviderOnboardingWizard() {
 
     toast.success('¡Bienvenido de vuelta!');
     setSaving(false);
-    // Navigation will happen via useEffect when user state updates
   };
 
   const handleGoogleLogin = async () => {
@@ -293,7 +305,6 @@ export default function ProviderOnboardingWizard() {
       toast.error('Error con Google', { description: error.message });
       setSaving(false);
     }
-    // If successful, user will be redirected by Google OAuth flow
   };
 
   const handleResetPassword = async () => {
@@ -369,20 +380,16 @@ export default function ProviderOnboardingWizard() {
 
   const goToNext = () => {
     if (currentStep < totalSteps) {
-      setSlideDirection('right');
       setCurrentStep(currentStep + 1);
     }
   };
 
   const goToPrevious = () => {
     if (currentStep > 1) {
-      // Skip back to signup if not authenticated
       if (currentStep === 3 && !user) {
-        setSlideDirection('left');
         setCurrentStep(2);
         return;
       }
-      setSlideDirection('left');
       setCurrentStep(currentStep - 1);
     }
   };
@@ -411,7 +418,6 @@ export default function ProviderOnboardingWizard() {
 
     setSaving(true);
     try {
-      // Update provider profile with zone info
       const { error: providerError } = await supabase
         .from('providers')
         .update({
@@ -426,7 +432,6 @@ export default function ProviderOnboardingWizard() {
 
       if (providerError) throw providerError;
 
-      // Update user profile
       const { error: userError } = await supabase
         .from('users')
         .update({
@@ -442,10 +447,8 @@ export default function ProviderOnboardingWizard() {
         description: 'Tu cuenta está lista para recibir trabajos'
       });
 
-      // Clear the signup flag
       localStorage.removeItem('new_provider_signup');
 
-      // Navigate to provider portal
       setTimeout(() => {
         navigate(ROUTES.PROVIDER_PORTAL);
       }, 1500);
@@ -462,7 +465,6 @@ export default function ProviderOnboardingWizard() {
   const canGoNext = () => {
     switch (currentStep) {
       case 2:
-        // Auth step
         if (!user) {
           if (authMode === 'signup') {
             return signupData.fullName.trim().length > 0 &&
@@ -487,7 +489,6 @@ export default function ProviderOnboardingWizard() {
     }
   };
 
-  // Google icon SVG
   const GoogleIcon = () => (
     <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
       <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -497,786 +498,916 @@ export default function ProviderOnboardingWizard() {
     </svg>
   );
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/10 flex items-center justify-center p-2 sm:p-4 overflow-hidden relative">
-      {/* Decorative elements - hidden on mobile for performance */}
-      <div className="absolute inset-0 bg-gradient-mesh opacity-30 pointer-events-none hidden sm:block" />
-      <div className="absolute top-20 right-20 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse hidden sm:block" />
-      <div className="absolute bottom-20 left-20 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse delay-1000 hidden sm:block" />
-
-      <Card className="w-full max-w-2xl shadow-floating relative z-10 overflow-hidden border-2 mx-2 sm:mx-0">
-        {/* Progress Bar */}
-        <div className="absolute top-0 left-0 right-0 h-1.5 sm:h-2 bg-muted">
-          <div 
-            className="h-full bg-gradient-button transition-all duration-500 ease-out"
-            style={{ width: `${progress}%` }}
+  // Step 1: Welcome Screen (Full-screen Chamby blue)
+  if (currentStep === 1) {
+    return (
+      <div className="min-h-screen bg-primary flex flex-col">
+        {/* Mobile Welcome */}
+        <div className="flex-1 flex flex-col items-center justify-center px-8 py-12 text-center md:hidden">
+          <img 
+            src={providerCharacter} 
+            alt="Chamby Provider" 
+            className="w-48 h-48 object-contain mb-8 animate-bounce-subtle"
           />
+          <h1 className="text-3xl font-bold text-primary-foreground mb-3">
+            ¡Bienvenido!
+          </h1>
+          <p className="text-primary-foreground/80 text-lg mb-10 max-w-xs">
+            Estás a unos pasos de comenzar a recibir trabajos
+          </p>
+          
+          <div className="w-full space-y-3 max-w-sm">
+            <Button 
+              className="w-full py-6 bg-background text-foreground font-semibold text-lg rounded-xl hover:bg-background/90"
+              onClick={goToNext}
+            >
+              Comenzar
+            </Button>
+            <Button 
+              variant="outline"
+              className="w-full py-6 border-2 border-primary-foreground/30 text-primary-foreground font-medium text-lg rounded-xl bg-transparent hover:bg-primary-foreground/10"
+              onClick={() => {
+                setAuthMode('login');
+                goToNext();
+              }}
+            >
+              Ya tengo cuenta
+            </Button>
+          </div>
         </div>
 
-        {/* Step Indicators - Compact on mobile */}
-        <div className="flex justify-between items-center px-3 sm:px-8 pt-6 sm:pt-8 pb-2 sm:pb-4 overflow-x-auto">
-          {STEP_CONFIG.map((step) => {
-            const Icon = step.icon;
-            const isActive = currentStep === step.id;
-            const isCompleted = currentStep > step.id;
+        {/* Desktop Welcome */}
+        <div className="hidden md:flex min-h-screen items-center justify-center p-8">
+          <Card className="w-full max-w-lg p-12 text-center">
+            <img 
+              src={chambyLogo} 
+              alt="Chamby" 
+              className="h-16 mx-auto mb-8"
+            />
+            <img 
+              src={providerCharacter} 
+              alt="Chamby Provider" 
+              className="w-40 h-40 object-contain mx-auto mb-6"
+            />
+            <h1 className="text-3xl font-bold text-foreground mb-3">
+              ¡Bienvenido a Chamby!
+            </h1>
+            <p className="text-muted-foreground text-lg mb-8">
+              Estás a unos pasos de comenzar a recibir trabajos
+            </p>
+            <div className="space-y-3">
+              <Button 
+                className="w-full py-6 text-lg"
+                onClick={goToNext}
+              >
+                Comenzar
+                <ArrowRight className="ml-2 w-5 h-5" />
+              </Button>
+              <Button 
+                variant="outline"
+                className="w-full py-5"
+                onClick={() => {
+                  setAuthMode('login');
+                  goToNext();
+                }}
+              >
+                Ya tengo cuenta
+              </Button>
+            </div>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Main wizard layout for steps 2-7
+  return (
+    <div className="min-h-screen bg-background md:bg-gradient-to-br md:from-primary/5 md:via-background md:to-accent/10">
+      {/* Mobile Header */}
+      <div className="md:hidden sticky top-0 z-20 bg-background border-b">
+        <div className="flex items-center justify-between px-4 py-3">
+          <button 
+            onClick={goToPrevious}
+            disabled={currentStep === 1}
+            className="p-2 -ml-2 text-foreground disabled:opacity-30"
+          >
+            <ArrowLeft className="w-6 h-6" />
+          </button>
+          <img src={chambyLogo} alt="Chamby" className="h-8" />
+          <div className="w-10" />
+        </div>
+
+        {/* Progress Track */}
+        {currentStep >= 2 && currentStep <= 6 && (
+          <div className="px-4 pb-4">
+            <div className="flex items-center justify-between text-[10px] font-semibold tracking-wider mb-2">
+              {PROGRESS_STEPS.map((step) => (
+                <span 
+                  key={step.id}
+                  className={cn(
+                    "transition-colors",
+                    currentStep >= step.id ? "text-primary" : "text-muted-foreground/50"
+                  )}
+                >
+                  {step.label}
+                </span>
+              ))}
+            </div>
+            <div className="relative h-1 bg-muted rounded-full">
+              <div 
+                className="absolute h-full bg-primary rounded-full transition-all duration-500"
+                style={{ width: `${progress}%` }}
+              />
+              {/* Progress dots */}
+              <div className="absolute top-1/2 -translate-y-1/2 left-0 w-2 h-2 rounded-full bg-primary" />
+              <div className={cn(
+                "absolute top-1/2 -translate-y-1/2 left-1/3 w-2 h-2 rounded-full transition-colors",
+                currentStep >= 3 ? "bg-primary" : "bg-muted-foreground/30"
+              )} />
+              <div className={cn(
+                "absolute top-1/2 -translate-y-1/2 left-2/3 w-2 h-2 rounded-full transition-colors",
+                currentStep >= 4 ? "bg-primary" : "bg-muted-foreground/30"
+              )} />
+              <div className={cn(
+                "absolute top-1/2 -translate-y-1/2 right-0 w-2 h-2 rounded-full transition-colors",
+                currentStep >= 5 ? "bg-primary" : "bg-muted-foreground/30"
+              )} />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Desktop Card Wrapper */}
+      <div className="md:flex md:items-center md:justify-center md:min-h-screen md:p-8">
+        <Card className="hidden md:block w-full max-w-2xl shadow-floating border-2">
+          {/* Desktop Progress Bar */}
+          <div className="h-2 bg-muted">
+            <div 
+              className="h-full bg-primary transition-all duration-500"
+              style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+            />
+          </div>
+          
+          {/* Desktop Content */}
+          <div className="p-8 min-h-[500px]">
+            {renderStepContent()}
+          </div>
+
+          {/* Desktop Navigation */}
+          <div className="px-8 py-6 border-t bg-muted/30 flex justify-between items-center">
+            <Button
+              variant="ghost"
+              onClick={goToPrevious}
+              disabled={currentStep === 1 || saving}
+            >
+              Atrás
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              Paso {currentStep} de {totalSteps}
+            </span>
+            {renderNextButton()}
+          </div>
+        </Card>
+
+        {/* Mobile Content */}
+        <div className="md:hidden flex flex-col min-h-[calc(100vh-120px)]">
+          <div className="flex-1 px-6 py-6 overflow-y-auto pb-24">
+            {renderStepContent()}
+          </div>
+
+          {/* Mobile Fixed Bottom Navigation */}
+          <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t safe-area-pb">
+            <div className="flex items-center justify-between">
+              <button 
+                onClick={goToPrevious}
+                disabled={currentStep <= 2 || saving}
+                className="text-sm font-medium text-foreground disabled:opacity-30"
+              >
+                Atrás
+              </button>
+              {renderNextButton(true)}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Modals */}
+      {renderModals()}
+    </div>
+  );
+
+  function renderStepContent() {
+    switch (currentStep) {
+      case 2:
+        return renderAuthStep();
+      case 3:
+        return renderProfileStep();
+      case 4:
+        return renderSkillsStep();
+      case 5:
+        return renderZoneStep();
+      case 6:
+        return renderAvailabilityStep();
+      case 7:
+        return renderCompletionStep();
+      default:
+        return null;
+    }
+  }
+
+  function renderAuthStep() {
+    if (user) {
+      goToNext();
+      return null;
+    }
+
+    return (
+      <div className="space-y-6">
+        {/* Conversational Header */}
+        <div className="mb-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+            {authMode === 'signup' ? '¡Hola! Vamos a crear tu cuenta' : '¡Bienvenido de vuelta!'}
+          </h2>
+          <p className="text-muted-foreground">
+            {authMode === 'signup' 
+              ? 'Necesitamos algunos datos para empezar' 
+              : 'Ingresa tus datos para continuar'}
+          </p>
+        </div>
+
+        {/* Google Sign-in */}
+        <Button
+          variant="outline"
+          className="w-full py-6 text-base border-2 hover:bg-muted/50 rounded-xl"
+          onClick={handleGoogleLogin}
+          disabled={saving}
+        >
+          <GoogleIcon />
+          Continuar con Google
+        </Button>
+
+        <div className="relative">
+          <Separator />
+          <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-4 text-sm text-muted-foreground">
+            o con email
+          </span>
+        </div>
+
+        {/* Auth Mode Toggle */}
+        <div className="flex rounded-xl border-2 p-1 bg-muted/30">
+          <button
+            className={cn(
+              "flex-1 py-3 px-4 rounded-lg text-sm font-medium transition-all",
+              authMode === 'signup' 
+                ? "bg-primary text-primary-foreground shadow-sm" 
+                : "text-muted-foreground hover:text-foreground"
+            )}
+            onClick={() => setAuthMode('signup')}
+          >
+            Registrarse
+          </button>
+          <button
+            className={cn(
+              "flex-1 py-3 px-4 rounded-lg text-sm font-medium transition-all",
+              authMode === 'login' 
+                ? "bg-primary text-primary-foreground shadow-sm" 
+                : "text-muted-foreground hover:text-foreground"
+            )}
+            onClick={() => setAuthMode('login')}
+          >
+            Iniciar Sesión
+          </button>
+        </div>
+        
+        {/* Signup Form */}
+        {authMode === 'signup' && (
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+                NOMBRE COMPLETO
+              </Label>
+              <Input
+                placeholder="Juan Pérez"
+                value={signupData.fullName}
+                onChange={(e) => setSignupData({ ...signupData, fullName: e.target.value })}
+                className={cn(
+                  "h-14 text-base border-2 rounded-xl px-4",
+                  signupErrors.fullName && 'border-destructive'
+                )}
+              />
+              {signupErrors.fullName && (
+                <p className="text-destructive text-sm">{signupErrors.fullName}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+                EMAIL
+              </Label>
+              <Input
+                type="email"
+                placeholder="tu@email.com"
+                value={signupData.email}
+                onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
+                className={cn(
+                  "h-14 text-base border-2 rounded-xl px-4",
+                  signupErrors.email && 'border-destructive'
+                )}
+              />
+              {signupErrors.email && (
+                <p className="text-destructive text-sm">{signupErrors.email}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+                TELÉFONO
+              </Label>
+              <PhoneInput
+                value={signupData.phone}
+                onChange={(value) => setSignupData({ ...signupData, phone: value })}
+                error={!!signupErrors.phone}
+              />
+              {signupErrors.phone && (
+                <p className="text-destructive text-sm">{signupErrors.phone}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+                CONTRASEÑA
+              </Label>
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Crea una contraseña segura"
+                  value={signupData.password}
+                  onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
+                  className={cn(
+                    "h-14 text-base border-2 rounded-xl px-4 pr-12",
+                    signupErrors.password && 'border-destructive'
+                  )}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+              <PasswordStrengthBar password={signupData.password} />
+              {signupErrors.password && (
+                <p className="text-destructive text-sm">{signupErrors.password}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+                CONFIRMAR CONTRASEÑA
+              </Label>
+              <div className="relative">
+                <Input
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Repite tu contraseña"
+                  value={signupData.confirmPassword}
+                  onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
+                  className={cn(
+                    "h-14 text-base border-2 rounded-xl px-4 pr-12",
+                    signupErrors.confirmPassword && 'border-destructive'
+                  )}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+              {signupErrors.confirmPassword && (
+                <p className="text-destructive text-sm">{signupErrors.confirmPassword}</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Login Form */}
+        {authMode === 'login' && (
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+                EMAIL
+              </Label>
+              <Input
+                type="email"
+                placeholder="tu@email.com"
+                value={loginData.email}
+                onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                className={cn(
+                  "h-14 text-base border-2 rounded-xl px-4",
+                  loginErrors.email && 'border-destructive'
+                )}
+              />
+              {loginErrors.email && (
+                <p className="text-destructive text-sm">{loginErrors.email}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+                CONTRASEÑA
+              </Label>
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Tu contraseña"
+                  value={loginData.password}
+                  onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                  className={cn(
+                    "h-14 text-base border-2 rounded-xl px-4 pr-12",
+                    loginErrors.password && 'border-destructive'
+                  )}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+              {loginErrors.password && (
+                <p className="text-destructive text-sm">{loginErrors.password}</p>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setResetEmail(loginData.email);
+                setShowResetPassword(true);
+              }}
+              className="text-sm text-primary hover:underline"
+            >
+              ¿Olvidaste tu contraseña?
+            </button>
+          </div>
+        )}
+
+        <p className="text-center text-sm text-muted-foreground pt-2">
+          ¿Buscas servicios?{' '}
+          <button
+            type="button"
+            onClick={() => navigate(ROUTES.USER_AUTH)}
+            className="text-primary hover:underline font-medium"
+          >
+            Regístrate como cliente
+          </button>
+        </p>
+      </div>
+    );
+  }
+
+  function renderProfileStep() {
+    return (
+      <div className="space-y-6">
+        <div className="mb-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+            ¿Cómo te llamas?
+          </h2>
+          <p className="text-muted-foreground">
+            Este nombre aparecerá en tu perfil profesional
+          </p>
+        </div>
+        
+        <div className="space-y-5">
+          <div className="space-y-2">
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+              NOMBRE PARA MOSTRAR
+            </Label>
+            <Input
+              placeholder="Juan Pérez"
+              value={profileData.displayName}
+              onChange={(e) => setProfileData({ ...profileData, displayName: e.target.value })}
+              className="h-14 text-base border-2 rounded-xl px-4"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+              DESCRIPCIÓN BREVE <span className="text-muted-foreground/60">(OPCIONAL)</span>
+            </Label>
+            <Textarea
+              placeholder="Electricista con 10 años de experiencia..."
+              value={profileData.bio}
+              onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
+              className="text-base border-2 rounded-xl px-4 py-3 resize-none min-h-[100px]"
+              rows={3}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  function renderSkillsStep() {
+    return (
+      <div className="space-y-6">
+        <div className="mb-6">
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+            ¿Qué servicios ofreces?
+          </h2>
+          <p className="text-muted-foreground">
+            Selecciona todas las que apliquen
+          </p>
+        </div>
+
+        {/* Visual Skill Grid */}
+        <div className="grid grid-cols-3 gap-3">
+          {SKILL_OPTIONS.map((skill) => {
+            const Icon = skill.icon;
+            const isSelected = selectedSkills.includes(skill.name);
             
             return (
-              <div key={step.id} className="flex flex-col items-center gap-1 sm:gap-2 flex-1 min-w-0">
+              <button
+                key={skill.name}
+                onClick={() => toggleSkill(skill.name)}
+                className={cn(
+                  "flex flex-col items-center p-3 md:p-4 rounded-xl border-2 transition-all",
+                  isSelected
+                    ? "border-primary bg-primary/5 shadow-md"
+                    : "border-muted hover:border-primary/50"
+                )}
+              >
                 <div className={cn(
-                  "w-9 h-9 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all duration-300",
-                  isActive && "bg-primary text-primary-foreground shadow-glow scale-105 sm:scale-110",
-                  isCompleted && "bg-success text-success-foreground",
-                  !isActive && !isCompleted && "bg-muted text-muted-foreground"
+                  "w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center mb-2",
+                  skill.bgColor
                 )}>
-                  <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <Icon className={cn("w-5 h-5 md:w-6 md:h-6", skill.iconColor)} />
                 </div>
-                <span className={cn(
-                  "text-[10px] sm:text-xs font-medium text-center transition-colors hidden sm:block truncate w-full px-1",
-                  isActive && "text-primary",
-                  isCompleted && "text-success",
-                  !isActive && !isCompleted && "text-muted-foreground"
-                )}>
-                  {step.title}
+                <span className="text-[11px] md:text-xs font-medium text-center leading-tight">
+                  {skill.name}
                 </span>
-              </div>
+                {isSelected && (
+                  <div className="mt-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+                    <CheckCircle2 className="w-3 h-3 text-primary-foreground" />
+                  </div>
+                )}
+              </button>
             );
           })}
         </div>
 
-        {/* Step Content - Better mobile padding */}
-        <div className="px-4 sm:px-8 py-4 sm:py-6 min-h-[350px] sm:min-h-[400px]">
-          <div className={cn(
-            "animate-fade-in",
-            slideDirection === 'right' ? 'animate-slide-in-right' : 'animate-slide-in-left'
-          )}>
-            {/* Step 1: Welcome */}
-            {currentStep === 1 && (
-              <div className="text-center space-y-6 py-8">
-                <div className="flex justify-center mb-6">
-                  <img 
-                    src={authSecurityImage} 
-                    alt="Seguridad" 
-                    className="w-48 h-48 object-contain"
-                  />
-                </div>
-                <h1 className="text-4xl font-bold bg-gradient-hero bg-clip-text text-transparent">
-                  ¡Bienvenido a Chamby!
-                </h1>
-                <p className="text-muted-foreground text-lg max-w-md mx-auto">
-                  Estás a unos pasos de comenzar a recibir trabajos. Vamos a configurar tu perfil profesional.
-                </p>
-                <div className="flex justify-center pt-6">
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    onClick={goToNext}
-                    className="group px-8 border-2 border-primary bg-white hover:bg-primary hover:text-white transition-all"
-                  >
-                    Siguiente
-                    <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" />
-                  </Button>
-                </div>
-              </div>
-            )}
+        {/* Custom Skill Input */}
+        <div className="pt-4 border-t">
+          <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2 block">
+            AGREGAR OTRA HABILIDAD
+          </Label>
+          <div className="flex gap-2">
+            <Input
+              placeholder="Ej: Aire acondicionado"
+              value={customSkill}
+              onChange={(e) => setCustomSkill(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && addCustomSkill()}
+              className="h-12 text-base border-2 rounded-xl flex-1"
+            />
+            <Button 
+              onClick={addCustomSkill}
+              disabled={!customSkill.trim()}
+              className="h-12 px-4 rounded-xl"
+            >
+              <Plus className="w-5 h-5" />
+            </Button>
+          </div>
+        </div>
 
-            {/* Step 2: Auth (Signup or Login) */}
-            {currentStep === 2 && !user && (
-              <div className="space-y-4 sm:space-y-6">
-                <div className="text-center mb-4 sm:mb-6">
-                  <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-1 sm:mb-2">
-                    {authMode === 'signup' ? 'Crear Cuenta' : 'Iniciar Sesión'}
-                  </h2>
-                  <p className="text-sm sm:text-base text-muted-foreground">
-                    {authMode === 'signup' 
-                      ? 'Empecemos creando tu cuenta de Chambynauta' 
-                      : 'Bienvenido de vuelta, ingresa tus datos'}
-                  </p>
-                </div>
-
-                {/* Google Sign-in Button */}
-                <Button
-                  variant="outline"
-                  className="w-full py-5 sm:py-6 text-sm sm:text-base border-2 hover:bg-muted/50"
-                  onClick={handleGoogleLogin}
-                  disabled={saving}
+        {/* Selected custom skills */}
+        {selectedSkills.filter(s => !SKILL_OPTIONS.find(opt => opt.name === s)).length > 0 && (
+          <div className="flex flex-wrap gap-2 pt-2">
+            {selectedSkills
+              .filter(s => !SKILL_OPTIONS.find(opt => opt.name === s))
+              .map((skill) => (
+                <span
+                  key={skill}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium"
                 >
-                  <GoogleIcon />
-                  Continuar con Google
-                </Button>
-
-                <div className="relative">
-                  <Separator />
-                  <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-3 sm:px-4 text-xs sm:text-sm text-muted-foreground">
-                    o con email
-                  </span>
-                </div>
-
-                {/* Auth Mode Toggle */}
-                <div className="flex rounded-lg border-2 p-1 bg-muted/30">
-                  <button
-                    className={cn(
-                      "flex-1 py-2 px-3 sm:px-4 rounded-md text-sm font-medium transition-all",
-                      authMode === 'signup' 
-                        ? "bg-primary text-primary-foreground shadow-sm" 
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                    onClick={() => setAuthMode('signup')}
-                  >
-                    Registrarse
+                  {skill}
+                  <button onClick={() => removeSkill(skill)} className="hover:text-destructive">
+                    <X className="w-4 h-4" />
                   </button>
-                  <button
-                    className={cn(
-                      "flex-1 py-2 px-3 sm:px-4 rounded-md text-sm font-medium transition-all",
-                      authMode === 'login' 
-                        ? "bg-primary text-primary-foreground shadow-sm" 
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                    onClick={() => setAuthMode('login')}
-                  >
-                    Iniciar Sesión
-                  </button>
-                </div>
-                
-                {/* Signup Form */}
-                {authMode === 'signup' && (
-                  <div className="space-y-3 sm:space-y-4">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="fullName" className={cn("text-sm", signupErrors.fullName && 'text-destructive')}>
-                        Nombre Completo *
-                      </Label>
-                      <Input
-                        id="fullName"
-                        placeholder="Ej: Juan Pérez"
-                        value={signupData.fullName}
-                        onChange={(e) => setSignupData({ ...signupData, fullName: e.target.value })}
-                        className={cn("h-11", signupErrors.fullName && 'border-destructive')}
-                      />
-                      {signupErrors.fullName && (
-                        <p className="text-destructive text-xs sm:text-sm">{signupErrors.fullName}</p>
-                      )}
-                    </div>
+                </span>
+              ))}
+          </div>
+        )}
 
-                    <div className="space-y-1.5">
-                      <Label htmlFor="email" className={cn("text-sm", signupErrors.email && 'text-destructive')}>
-                        Email *
-                      </Label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
-                        <Input
-                          id="email"
-                          type="email"
-                          placeholder="tu@email.com"
-                          value={signupData.email}
-                          onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
-                          className={cn("pl-9 sm:pl-10 h-11", signupErrors.email && 'border-destructive')}
-                        />
-                      </div>
-                      {signupErrors.email && (
-                        <p className="text-destructive text-xs sm:text-sm">{signupErrors.email}</p>
-                      )}
-                    </div>
+        <p className="text-sm text-muted-foreground text-center">
+          {selectedSkills.length} habilidad{selectedSkills.length !== 1 ? 'es' : ''} seleccionada{selectedSkills.length !== 1 ? 's' : ''}
+        </p>
+      </div>
+    );
+  }
 
-                    <div className="space-y-1.5">
-                      <Label htmlFor="phone" className={cn("text-sm", signupErrors.phone && 'text-destructive')}>
-                        Teléfono *
-                      </Label>
-                      <PhoneInput
-                        id="phone"
-                        value={signupData.phone}
-                        onChange={(value) => setSignupData({ ...signupData, phone: value })}
-                        error={!!signupErrors.phone}
-                      />
-                      {signupErrors.phone && (
-                        <p className="text-destructive text-xs sm:text-sm">{signupErrors.phone}</p>
-                      )}
-                    </div>
+  function renderZoneStep() {
+    return (
+      <div className="space-y-6">
+        <div className="mb-6">
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+            ¿Dónde trabajas?
+          </h2>
+          <p className="text-muted-foreground">
+            Define tu área de servicio en el mapa
+          </p>
+        </div>
 
-                    <div className="space-y-1.5">
-                      <Label htmlFor="password" className={signupErrors.password ? 'text-destructive' : ''}>
-                        Contraseña *
-                      </Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
-                        <Input
-                          id="password"
-                          type={showPassword ? "text" : "password"}
-                          placeholder="Crea una contraseña segura"
-                          value={signupData.password}
-                          onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
-                          className={cn("pl-9 sm:pl-10 pr-10 h-11", signupErrors.password && 'border-destructive')}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        >
-                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
-                      </div>
-                      <PasswordStrengthBar password={signupData.password} />
-                      {signupErrors.password && (
-                        <p className="text-destructive text-sm">{signupErrors.password}</p>
-                      )}
-                    </div>
+        <WorkZonePicker 
+          initialLat={workZoneCoords?.lat}
+          initialLng={workZoneCoords?.lng}
+          initialRadius={workZoneRadius}
+          onZoneChange={handleWorkZoneChange}
+        />
+      </div>
+    );
+  }
 
-                    <div className="space-y-1.5">
-                      <Label htmlFor="confirmPassword" className={cn("text-sm", signupErrors.confirmPassword && 'text-destructive')}>
-                        Confirmar Contraseña *
-                      </Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
-                        <Input
-                          id="confirmPassword"
-                          type={showConfirmPassword ? "text" : "password"}
-                          placeholder="Repite tu contraseña"
-                          value={signupData.confirmPassword}
-                          onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
-                          className={cn("pl-9 sm:pl-10 pr-10 h-11", signupErrors.confirmPassword && 'border-destructive')}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        >
-                          {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
-                      </div>
-                      {signupErrors.confirmPassword && (
-                        <p className="text-destructive text-xs sm:text-sm">{signupErrors.confirmPassword}</p>
-                      )}
-                    </div>
-                  </div>
-                )}
+  function renderAvailabilityStep() {
+    return (
+      <div className="space-y-6">
+        <div className="mb-6">
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+            ¿Cuándo estás disponible?
+          </h2>
+          <p className="text-muted-foreground">
+            Podrás cambiar esto después
+          </p>
+        </div>
 
-                {/* Login Form */}
-                {authMode === 'login' && (
-                  <div className="space-y-3 sm:space-y-4">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="loginEmail" className={cn("text-sm", loginErrors.email && 'text-destructive')}>
-                        Email
-                      </Label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
-                        <Input
-                          id="loginEmail"
-                          type="email"
-                          placeholder="tu@email.com"
-                          value={loginData.email}
-                          onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
-                          className={cn("pl-9 sm:pl-10 h-11", loginErrors.email && 'border-destructive')}
-                        />
-                      </div>
-                      {loginErrors.email && (
-                        <p className="text-destructive text-xs sm:text-sm">{loginErrors.email}</p>
-                      )}
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label htmlFor="loginPassword" className={cn("text-sm", loginErrors.password && 'text-destructive')}>
-                        Contraseña
-                      </Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
-                        <Input
-                          id="loginPassword"
-                          type={showPassword ? "text" : "password"}
-                          placeholder="Tu contraseña"
-                          value={loginData.password}
-                          onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                          className={cn("pl-9 sm:pl-10 pr-10 h-11", loginErrors.password && 'border-destructive')}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        >
-                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
-                      </div>
-                      {loginErrors.password && (
-                        <p className="text-destructive text-xs sm:text-sm">{loginErrors.password}</p>
-                      )}
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setResetEmail(loginData.email);
-                        setShowResetPassword(true);
-                      }}
-                      className="text-sm text-primary hover:underline"
-                    >
-                      ¿Olvidaste tu contraseña?
-                    </button>
-                  </div>
-                )}
-
-                {/* Link to user auth */}
-                <p className="text-center text-xs sm:text-sm text-muted-foreground pt-2">
-                  ¿Buscas servicios?{' '}
-                  <button
-                    type="button"
-                    onClick={() => navigate(ROUTES.USER_AUTH)}
-                    className="text-primary hover:underline font-medium"
-                  >
-                    Regístrate como cliente
-                  </button>
-                </p>
-              </div>
-            )}
-
-            {/* Step 3: Basic Profile */}
-            {currentStep === 3 && (
-              <div className="space-y-6">
-                <div className="text-center mb-8">
-                  <h2 className="text-3xl font-bold text-foreground mb-2">Perfil Básico</h2>
-                  <p className="text-muted-foreground">Cuéntanos un poco sobre ti</p>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="displayName">Nombre para mostrar *</Label>
-                    <Input
-                      id="displayName"
-                      placeholder="Ej: Juan Pérez"
-                      value={profileData.displayName}
-                      onChange={(e) => setProfileData({ ...profileData, displayName: e.target.value })}
-                      className="text-base"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="bio">Descripción breve (opcional)</Label>
-                    <Textarea
-                      id="bio"
-                      placeholder="Ej: Electricista con 10 años de experiencia..."
-                      value={profileData.bio}
-                      onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
-                      className="text-base resize-none"
-                      rows={3}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Step 4: Skills Selection */}
-            {currentStep === 4 && (
-              <div className="space-y-6">
-                <div className="text-center mb-8">
-                  <h2 className="text-3xl font-bold text-foreground mb-2">Tus Habilidades</h2>
-                  <p className="text-muted-foreground">Selecciona los servicios que ofreces *</p>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="flex flex-wrap gap-2">
-                    {SUGGESTED_SKILLS.map((skill) => (
-                      <Badge
-                        key={skill}
-                        variant={selectedSkills.includes(skill) ? "default" : "outline"}
-                        className={cn(
-                          "cursor-pointer px-4 py-2 text-sm transition-all duration-200",
-                          selectedSkills.includes(skill) 
-                            ? "bg-primary text-primary-foreground shadow-soft hover:shadow-raised scale-105" 
-                            : "hover:bg-accent hover:border-primary"
-                        )}
-                        onClick={() => toggleSkill(skill)}
-                      >
-                        {skill}
-                        {selectedSkills.includes(skill) && (
-                          <CheckCircle2 className="w-3 h-3 ml-2" />
-                        )}
-                      </Badge>
-                    ))}
-                  </div>
-
-                  <div className="pt-4 border-t">
-                    <Label className="text-sm text-muted-foreground mb-2 block">
-                      ¿Ofreces algo más?
-                    </Label>
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="Escribe una habilidad personalizada"
-                        value={customSkill}
-                        onChange={(e) => setCustomSkill(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomSkill())}
-                        className="text-base"
-                      />
-                      <Button 
-                        type="button" 
-                        onClick={addCustomSkill}
-                        disabled={!customSkill.trim()}
-                        size="icon"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  {selectedSkills.length > 0 && (
-                    <div className="pt-4 border-t">
-                      <Label className="text-sm text-muted-foreground mb-2 block">
-                        Seleccionadas ({selectedSkills.length})
-                      </Label>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedSkills.map((skill) => (
-                          <Badge
-                            key={skill}
-                            className="bg-success text-success-foreground px-3 py-1.5 flex items-center gap-2"
-                          >
-                            {skill}
-                            <X 
-                              className="w-3 h-3 cursor-pointer hover:text-destructive" 
-                              onClick={() => removeSkill(skill)}
-                            />
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
+        <div className="space-y-3">
+          {[
+            { id: 'weekdays-9-5', title: 'Lunes a Viernes', desc: '9:00 AM - 5:00 PM' },
+            { id: 'weekdays-extended', title: 'Lunes a Viernes Extendido', desc: '7:00 AM - 9:00 PM' },
+            { id: 'flexible', title: 'Flexible', desc: 'Disponible cualquier día y horario' },
+            { id: 'weekends', title: 'Solo fines de semana', desc: 'Sábados y domingos' },
+          ].map((option) => (
+            <button
+              key={option.id}
+              className={cn(
+                "w-full border-2 rounded-xl p-4 text-left transition-all",
+                availability === option.id 
+                  ? "border-primary bg-primary/5 shadow-md" 
+                  : "border-muted hover:border-primary/50"
+              )}
+              onClick={() => setAvailability(option.id)}
+            >
+              <div className="flex items-center gap-3">
+                <div className={cn(
+                  "w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0",
+                  availability === option.id ? "border-primary" : "border-muted-foreground"
+                )}>
+                  {availability === option.id && (
+                    <div className="w-3 h-3 rounded-full bg-primary" />
                   )}
                 </div>
-              </div>
-            )}
-
-            {/* Step 5: Work Zone */}
-            {currentStep === 5 && (
-              <div className="space-y-6">
-                <div className="text-center mb-6">
-                  <h2 className="text-3xl font-bold text-foreground mb-2">Zona de Trabajo</h2>
-                  <p className="text-muted-foreground">Define el área donde ofreces tus servicios</p>
-                </div>
-
-                <WorkZonePicker
-                  onZoneChange={handleWorkZoneChange}
-                  initialLat={workZoneCoords?.lat}
-                  initialLng={workZoneCoords?.lng}
-                  initialRadius={workZoneRadius * 1000}
-                />
-              </div>
-            )}
-
-            {/* Step 6: Availability */}
-            {currentStep === 6 && (
-              <div className="space-y-6">
-                <div className="text-center mb-8">
-                  <h2 className="text-3xl font-bold text-foreground mb-2">Disponibilidad</h2>
-                  <p className="text-muted-foreground">¿Cuándo puedes trabajar?</p>
-                </div>
-
-                <div className="space-y-3">
-                  <div 
-                    className={cn(
-                      "border-2 rounded-lg p-4 cursor-pointer transition-all",
-                      availability === 'weekdays-9-5' 
-                        ? "border-primary bg-primary/5 shadow-soft" 
-                        : "border-border hover:border-primary/50"
-                    )}
-                    onClick={() => setAvailability('weekdays-9-5')}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={cn(
-                        "w-5 h-5 rounded-full border-2 flex items-center justify-center",
-                        availability === 'weekdays-9-5' ? "border-primary" : "border-muted-foreground"
-                      )}>
-                        {availability === 'weekdays-9-5' && (
-                          <div className="w-3 h-3 rounded-full bg-primary" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-semibold">Lunes a Viernes, 9:00 - 17:00</p>
-                        <p className="text-sm text-muted-foreground">Horario de oficina</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div 
-                    className={cn(
-                      "border-2 rounded-lg p-4 cursor-pointer transition-all",
-                      availability === 'flexible' 
-                        ? "border-primary bg-primary/5 shadow-soft" 
-                        : "border-border hover:border-primary/50"
-                    )}
-                    onClick={() => setAvailability('flexible')}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={cn(
-                        "w-5 h-5 rounded-full border-2 flex items-center justify-center",
-                        availability === 'flexible' ? "border-primary" : "border-muted-foreground"
-                      )}>
-                        {availability === 'flexible' && (
-                          <div className="w-3 h-3 rounded-full bg-primary" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-semibold">Flexible</p>
-                        <p className="text-sm text-muted-foreground">Disponible cualquier día y horario</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div 
-                    className={cn(
-                      "border-2 rounded-lg p-4 cursor-pointer transition-all",
-                      availability === 'weekends' 
-                        ? "border-primary bg-primary/5 shadow-soft" 
-                        : "border-border hover:border-primary/50"
-                    )}
-                    onClick={() => setAvailability('weekends')}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={cn(
-                        "w-5 h-5 rounded-full border-2 flex items-center justify-center",
-                        availability === 'weekends' ? "border-primary" : "border-muted-foreground"
-                      )}>
-                        {availability === 'weekends' && (
-                          <div className="w-3 h-3 rounded-full bg-primary" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-semibold">Solo fines de semana</p>
-                        <p className="text-sm text-muted-foreground">Sábados y domingos</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <p className="text-xs text-muted-foreground text-center pt-2">
-                  Podrás modificar tu disponibilidad más adelante desde tu perfil
-                </p>
-              </div>
-            )}
-
-            {/* Step 7: Completion */}
-            {currentStep === 7 && (
-              <div className="text-center space-y-4 sm:space-y-6 py-4 sm:py-8">
-                <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-success to-success/70 animate-bounce-subtle">
-                  <CheckCircle2 className="w-10 h-10 sm:w-12 sm:h-12 text-success-foreground" />
-                </div>
-                <h1 className="text-2xl sm:text-4xl font-bold text-foreground">
-                  ¡Todo Listo!
-                </h1>
-                <p className="text-muted-foreground text-base sm:text-lg max-w-md mx-auto px-2">
-                  Tu perfil está completo. Ya puedes comenzar a recibir solicitudes de trabajo.
-                </p>
-                
-                <div className="bg-accent/20 rounded-lg p-4 sm:p-6 border border-accent max-w-md mx-auto text-left">
-                  <h3 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Resumen de tu perfil:</h3>
-                  <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-muted-foreground">
-                    <li>✓ Nombre: {profileData.displayName}</li>
-                    <li>✓ Habilidades: {selectedSkills.length} seleccionadas</li>
-                    <li>✓ Zona: {workZone}</li>
-                    <li>✓ Disponibilidad configurada</li>
-                  </ul>
+                <div>
+                  <p className="font-semibold text-foreground">{option.title}</p>
+                  <p className="text-sm text-muted-foreground">{option.desc}</p>
                 </div>
               </div>
-            )}
-          </div>
+            </button>
+          ))}
         </div>
+      </div>
+    );
+  }
 
-        {/* Navigation Buttons - Mobile optimized */}
-        <div className={cn(
-          "px-4 sm:px-8 py-4 sm:py-6 border-t bg-muted/30 justify-between items-center gap-2",
-          currentStep === 1 ? "hidden sm:flex" : "flex"
-        )}>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={goToPrevious}
-            disabled={currentStep === 1 || saving}
-            className={cn(
-              "transition-opacity text-sm px-3 sm:px-4",
-              currentStep === 1 && "opacity-0 pointer-events-none"
-            )}
-          >
-            Atrás
-          </Button>
+  function renderCompletionStep() {
+    return (
+      <div className="text-center space-y-6 py-8">
+        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 animate-bounce-subtle">
+          <CheckCircle2 className="w-10 h-10 text-green-600" />
+        </div>
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+          ¡Todo Listo!
+        </h1>
+        <p className="text-muted-foreground text-lg max-w-sm mx-auto">
+          Tu perfil está completo. Ya puedes comenzar a recibir trabajos.
+        </p>
+        
+        <div className="bg-muted/50 rounded-xl p-5 border max-w-sm mx-auto text-left">
+          <h3 className="font-semibold mb-3 text-sm">Resumen de tu perfil:</h3>
+          <ul className="space-y-2 text-sm text-muted-foreground">
+            <li className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-green-600" />
+              Nombre: {profileData.displayName}
+            </li>
+            <li className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-green-600" />
+              {selectedSkills.length} habilidades
+            </li>
+            <li className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-green-600" />
+              Zona: {workZone}
+            </li>
+            <li className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-green-600" />
+              Disponibilidad configurada
+            </li>
+          </ul>
+        </div>
+      </div>
+    );
+  }
 
-          <div className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
-            Paso {currentStep} de {totalSteps}
-          </div>
+  function renderNextButton(isMobile = false) {
+    if (currentStep < totalSteps) {
+      const handleClick = () => {
+        if (currentStep === 2 && !user) {
+          if (authMode === 'signup') {
+            handleSignup();
+          } else {
+            handleLogin();
+          }
+        } else {
+          goToNext();
+        }
+      };
 
-          {currentStep < totalSteps ? (
-            <Button
-              size="sm"
-              onClick={() => {
-                // If on auth step and not authenticated
-                if (currentStep === 2 && !user) {
-                  if (authMode === 'signup') {
-                    handleSignup();
-                  } else {
-                    handleLogin();
-                  }
-                } else {
-                  goToNext();
-                }
-              }}
-              disabled={!canGoNext() || saving}
-              className="group text-sm px-3 sm:px-4"
-            >
-              {saving ? 'Procesando...' : currentStep === 2 && !user 
-                ? (authMode === 'signup' ? 'Crear Cuenta' : 'Iniciar Sesión')
-                : 'Siguiente'}
-              {currentStep === 2 && authMode === 'login' && !user ? (
-                <LogIn className="w-4 h-4 ml-2" />
-              ) : (
-                <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
-              )}
-            </Button>
-          ) : (
-            <Button
-              onClick={handleFinish}
-              disabled={saving}
-              className="bg-success hover:bg-success/90"
-            >
-              {saving ? 'Guardando...' : 'Ir al Portal'}
-            </Button>
+      const buttonText = saving 
+        ? 'Procesando...' 
+        : currentStep === 2 && !user 
+          ? (authMode === 'signup' ? 'Crear Cuenta' : 'Iniciar Sesión')
+          : 'Siguiente';
+
+      return (
+        <Button
+          onClick={handleClick}
+          disabled={!canGoNext() || saving}
+          className={cn(
+            "font-semibold",
+            isMobile ? "px-8 py-3 rounded-full" : ""
           )}
-        </div>
-      </Card>
+        >
+          {buttonText}
+          {currentStep === 2 && authMode === 'login' && !user ? (
+            <LogIn className="w-4 h-4 ml-2" />
+          ) : (
+            <ArrowRight className="w-4 h-4 ml-2" />
+          )}
+        </Button>
+      );
+    }
 
-      {/* Email Verification Modal */}
-      <Dialog open={showEmailVerification} onOpenChange={setShowEmailVerification}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Mail className="w-5 h-5 text-primary" />
-              Verifica tu correo
-            </DialogTitle>
-            <DialogDescription className="space-y-3 pt-2">
-              <p>
-                Hemos enviado un correo de verificación a:
-              </p>
-              <p className="font-semibold text-foreground">{verificationEmail}</p>
-              <p>
-                Por favor revisa tu bandeja de entrada y haz clic en el enlace de verificación para activar tu cuenta.
-              </p>
-              <div className="bg-accent/20 border border-accent rounded-lg p-3 text-sm">
-                <p className="font-medium text-foreground mb-1">💡 Consejo:</p>
-                <p>Si no ves el correo, revisa tu carpeta de spam o correo no deseado.</p>
-              </div>
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-end">
-            <Button
-              onClick={() => {
+    return (
+      <Button
+        onClick={handleFinish}
+        disabled={saving}
+        className={cn(
+          "bg-green-600 hover:bg-green-700 font-semibold",
+          isMobile ? "px-8 py-3 rounded-full" : ""
+        )}
+      >
+        {saving ? 'Guardando...' : 'Ir al Portal'}
+      </Button>
+    );
+  }
+
+  function renderModals() {
+    return (
+      <>
+        {/* Email Verification Modal */}
+        <Dialog open={showEmailVerification} onOpenChange={setShowEmailVerification}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Mail className="w-5 h-5 text-primary" />
+                Verifica tu correo
+              </DialogTitle>
+              <DialogDescription className="space-y-3 pt-2">
+                <p>Hemos enviado un correo de verificación a:</p>
+                <p className="font-semibold text-foreground">{verificationEmail}</p>
+                <p>Por favor revisa tu bandeja de entrada y haz clic en el enlace.</p>
+                <div className="bg-accent/20 border border-accent rounded-lg p-3 text-sm">
+                  <p className="font-medium text-foreground mb-1">💡 Consejo:</p>
+                  <p>Si no ves el correo, revisa tu carpeta de spam.</p>
+                </div>
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end">
+              <Button onClick={() => {
                 setShowEmailVerification(false);
                 setShowVerificationPending(true);
-              }}
-            >
-              Entendido
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Verification Pending Full Screen */}
-      {showVerificationPending && (
-        <div className="fixed inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/10 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-md bg-card/95 backdrop-blur-sm shadow-floating border-2">
-            <div className="p-8 text-center space-y-6">
-              <div className="mx-auto w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
-                <Mail className="w-10 h-10 text-primary" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-foreground mb-2">Revisa tu correo 📧</h2>
-                <p className="text-muted-foreground">
-                  Te enviamos un enlace de verificación a{' '}
-                  <span className="font-semibold text-foreground">{verificationEmail}</span>
-                </p>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Haz clic en el enlace del correo o ingresa el código de verificación abajo.
-              </p>
-              
-              {/* Manual Code Verification */}
-              <div className="space-y-3 pt-2 border-t border-border">
-                <p className="text-sm font-medium text-foreground pt-3">O ingresa el código del correo:</p>
-                <Input
-                  placeholder="Código de verificación"
-                  value={verificationCode}
-                  onChange={(e) => setVerificationCode(e.target.value)}
-                  className="text-center text-lg tracking-widest font-mono"
-                  maxLength={6}
-                />
-                <Button
-                  onClick={handleVerifyWithCode}
-                  className="w-full"
-                  disabled={verifyingCode || !verificationCode.trim()}
-                >
-                  {verifyingCode ? 'Verificando...' : 'Verificar con código'}
-                </Button>
-              </div>
-
-              <div className="space-y-3 pt-2">
-                <Button
-                  onClick={() => handleResendVerification(verificationEmail)}
-                  variant="outline"
-                  className="w-full"
-                  disabled={saving}
-                >
-                  Reenviar correo de verificación
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    setShowVerificationPending(false);
-                    setAuthMode('login');
-                    setLoginData({ email: verificationEmail, password: '' });
-                  }}
-                  className="w-full"
-                >
-                  Ya verifiqué, ir a iniciar sesión
-                </Button>
-              </div>
-            </div>
-          </Card>
-        </div>
-      )}
-
-      {/* Password Reset Modal */}
-      <Dialog open={showResetPassword} onOpenChange={(open) => {
-        setShowResetPassword(open);
-        if (!open) setResetSent(false);
-      }}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Restablecer contraseña</DialogTitle>
-            <DialogDescription>
-              {resetSent 
-                ? 'Te hemos enviado un correo con instrucciones para restablecer tu contraseña.'
-                : 'Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña.'}
-            </DialogDescription>
-          </DialogHeader>
-          {!resetSent ? (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="resetEmail">Email</Label>
-                <Input
-                  id="resetEmail"
-                  type="email"
-                  placeholder="tu@email.com"
-                  value={resetEmail}
-                  onChange={(e) => setResetEmail(e.target.value)}
-                />
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button variant="ghost" onClick={() => setShowResetPassword(false)}>
-                  Cancelar
-                </Button>
-                <Button onClick={handleResetPassword} disabled={saving}>
-                  {saving ? 'Enviando...' : 'Enviar enlace'}
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="flex justify-end">
-              <Button onClick={() => setShowResetPassword(false)}>
+              }}>
                 Entendido
               </Button>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
+          </DialogContent>
+        </Dialog>
+
+        {/* Verification Pending */}
+        {showVerificationPending && (
+          <div className="fixed inset-0 bg-background/95 flex items-center justify-center z-50 p-4">
+            <Card className="w-full max-w-md shadow-floating border-2">
+              <div className="p-8 text-center space-y-6">
+                <div className="mx-auto w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
+                  <Mail className="w-10 h-10 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground mb-2">Revisa tu correo 📧</h2>
+                  <p className="text-muted-foreground">
+                    Te enviamos un enlace a{' '}
+                    <span className="font-semibold text-foreground">{verificationEmail}</span>
+                  </p>
+                </div>
+                
+                <div className="space-y-3 pt-2 border-t">
+                  <p className="text-sm font-medium text-foreground pt-3">O ingresa el código:</p>
+                  <Input
+                    placeholder="Código de verificación"
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value)}
+                    className="text-center text-lg tracking-widest font-mono h-14"
+                    maxLength={6}
+                  />
+                  <Button
+                    onClick={handleVerifyWithCode}
+                    className="w-full h-12"
+                    disabled={verifyingCode || !verificationCode.trim()}
+                  >
+                    {verifyingCode ? 'Verificando...' : 'Verificar'}
+                  </Button>
+                </div>
+
+                <div className="space-y-3">
+                  <Button
+                    onClick={() => handleResendVerification(verificationEmail)}
+                    variant="outline"
+                    className="w-full"
+                    disabled={saving}
+                  >
+                    Reenviar correo
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      setShowVerificationPending(false);
+                      setAuthMode('login');
+                      setLoginData({ email: verificationEmail, password: '' });
+                    }}
+                    className="w-full"
+                  >
+                    Ya verifiqué, iniciar sesión
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* Password Reset Modal */}
+        <Dialog open={showResetPassword} onOpenChange={(open) => {
+          setShowResetPassword(open);
+          if (!open) setResetSent(false);
+        }}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Restablecer contraseña</DialogTitle>
+              <DialogDescription>
+                {resetSent 
+                  ? 'Te enviamos un correo con instrucciones.'
+                  : 'Ingresa tu email para restablecer tu contraseña.'}
+              </DialogDescription>
+            </DialogHeader>
+            {!resetSent ? (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Email</Label>
+                  <Input
+                    type="email"
+                    placeholder="tu@email.com"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    className="h-12"
+                  />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button variant="ghost" onClick={() => setShowResetPassword(false)}>
+                    Cancelar
+                  </Button>
+                  <Button onClick={handleResetPassword} disabled={saving}>
+                    {saving ? 'Enviando...' : 'Enviar'}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex justify-end">
+                <Button onClick={() => setShowResetPassword(false)}>
+                  Entendido
+                </Button>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+      </>
+    );
+  }
 }
