@@ -163,6 +163,8 @@ export default function ProviderOnboardingWizard() {
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [showVerificationPending, setShowVerificationPending] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [verifyingCode, setVerifyingCode] = useState(false);
 
   const handleSignup = async () => {
     setSignupErrors({});
@@ -314,6 +316,37 @@ export default function ProviderOnboardingWizard() {
       });
     }
     setSaving(false);
+  };
+
+  const handleVerifyWithCode = async () => {
+    if (!verificationCode.trim() || !verificationEmail) {
+      toast.error('Por favor ingresa el código de verificación');
+      return;
+    }
+
+    setVerifyingCode(true);
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        email: verificationEmail,
+        token: verificationCode.trim(),
+        type: 'signup'
+      });
+
+      if (error) {
+        toast.error('Código inválido', { description: error.message });
+      } else {
+        toast.success('¡Email verificado!', {
+          description: 'Tu cuenta ha sido activada'
+        });
+        setShowVerificationPending(false);
+        setAuthMode('login');
+        setLoginData({ email: verificationEmail, password: '' });
+      }
+    } catch (error: any) {
+      toast.error('Error al verificar', { description: error.message });
+    } finally {
+      setVerifyingCode(false);
+    }
   };
 
   const goToNext = () => {
@@ -1159,8 +1192,28 @@ export default function ProviderOnboardingWizard() {
                 </p>
               </div>
               <p className="text-sm text-muted-foreground">
-                Haz clic en el enlace del correo para activar tu cuenta y luego regresa aquí para iniciar sesión.
+                Haz clic en el enlace del correo o ingresa el código de verificación abajo.
               </p>
+              
+              {/* Manual Code Verification */}
+              <div className="space-y-3 pt-2 border-t border-border">
+                <p className="text-sm font-medium text-foreground pt-3">O ingresa el código del correo:</p>
+                <Input
+                  placeholder="Código de verificación"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value)}
+                  className="text-center text-lg tracking-widest font-mono"
+                  maxLength={6}
+                />
+                <Button
+                  onClick={handleVerifyWithCode}
+                  className="w-full"
+                  disabled={verifyingCode || !verificationCode.trim()}
+                >
+                  {verifyingCode ? 'Verificando...' : 'Verificar con código'}
+                </Button>
+              </div>
+
               <div className="space-y-3 pt-2">
                 <Button
                   onClick={() => handleResendVerification(verificationEmail)}
@@ -1171,6 +1224,7 @@ export default function ProviderOnboardingWizard() {
                   Reenviar correo de verificación
                 </Button>
                 <Button
+                  variant="ghost"
                   onClick={() => {
                     setShowVerificationPending(false);
                     setAuthMode('login');
