@@ -16,7 +16,7 @@ import { ROUTES } from "@/constants/routes";
 import Index from "./pages/Index";
 import Home from "./pages/Home";
 import UserAuth from "./pages/UserAuth";
-import ProviderAuth from "./pages/ProviderAuth";
+import ProviderOnboardingWizard from "./pages/provider-portal/ProviderOnboardingWizard";
 import ProviderLanding from "./pages/ProviderLanding";
 import UserLanding from "./pages/UserLanding";
 import AuthCallback from "./pages/AuthCallback";
@@ -53,7 +53,6 @@ import ProviderVerification from "./pages/provider-portal/ProviderVerification";
 import ProviderProfileEdit from "./pages/provider-portal/ProviderProfileEdit";
 import ProviderSupport from "./pages/provider-portal/ProviderSupport";
 import ProviderSkillsSelection from "./pages/provider-portal/ProviderSkillsSelection";
-import ProviderOnboardingWizard from "./pages/provider-portal/ProviderOnboardingWizard";
 // Provider notifications disabled during cleanup
 import RescheduleRequest from "./pages/provider-portal/RescheduleRequest";
 import AvailableJobs from "./pages/provider-portal/AvailableJobs";
@@ -130,7 +129,7 @@ const App = () => {
               <Route path={ROUTES.SOLICITAR_SERVICIO} element={<Navigate to={ROUTES.BOOK_JOB} replace />} />
               <Route path={ROUTES.BOOK_JOB} element={<BookJob />} />
               <Route path={ROUTES.USER_AUTH} element={<UserAuth />} />
-              <Route path={ROUTES.PROVIDER_AUTH} element={<ProviderAuth />} />
+              <Route path={ROUTES.PROVIDER_AUTH} element={<ProviderOnboardingWizard />} />
               <Route path={ROUTES.BECOME_PROVIDER} element={<BecomeProvider />} />
               <Route path={ROUTES.CHOOSE_ROLE} element={<RoleSelection />} />
               <Route path={ROUTES.AUTH_CALLBACK} element={<AuthCallback />} />
