@@ -36,6 +36,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { PhoneInput } from '@/components/ui/phone-input';
 import { isValidMexicanPhone, formatPhoneForStorage, MEXICO_COUNTRY_CODE } from '@/utils/phoneValidation';
 import { WorkZonePicker } from '@/components/WorkZonePicker';
+import { PasswordStrengthBar } from '@/components/PasswordStrengthBar';
 
 const signupSchema = z.object({
   fullName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
@@ -497,40 +498,40 @@ export default function ProviderOnboardingWizard() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/10 flex items-center justify-center p-4 overflow-hidden relative">
-      {/* Decorative elements */}
-      <div className="absolute inset-0 bg-gradient-mesh opacity-30 pointer-events-none" />
-      <div className="absolute top-20 right-20 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-20 left-20 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse delay-1000" />
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/10 flex items-center justify-center p-2 sm:p-4 overflow-hidden relative">
+      {/* Decorative elements - hidden on mobile for performance */}
+      <div className="absolute inset-0 bg-gradient-mesh opacity-30 pointer-events-none hidden sm:block" />
+      <div className="absolute top-20 right-20 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse hidden sm:block" />
+      <div className="absolute bottom-20 left-20 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse delay-1000 hidden sm:block" />
 
-      <Card className="w-full max-w-2xl shadow-floating relative z-10 overflow-hidden border-2">
+      <Card className="w-full max-w-2xl shadow-floating relative z-10 overflow-hidden border-2 mx-2 sm:mx-0">
         {/* Progress Bar */}
-        <div className="absolute top-0 left-0 right-0 h-2 bg-muted">
+        <div className="absolute top-0 left-0 right-0 h-1.5 sm:h-2 bg-muted">
           <div 
             className="h-full bg-gradient-button transition-all duration-500 ease-out"
             style={{ width: `${progress}%` }}
           />
         </div>
 
-        {/* Step Indicators */}
-        <div className="flex justify-between items-center px-8 pt-8 pb-4">
+        {/* Step Indicators - Compact on mobile */}
+        <div className="flex justify-between items-center px-3 sm:px-8 pt-6 sm:pt-8 pb-2 sm:pb-4 overflow-x-auto">
           {STEP_CONFIG.map((step) => {
             const Icon = step.icon;
             const isActive = currentStep === step.id;
             const isCompleted = currentStep > step.id;
             
             return (
-              <div key={step.id} className="flex flex-col items-center gap-2 flex-1">
+              <div key={step.id} className="flex flex-col items-center gap-1 sm:gap-2 flex-1 min-w-0">
                 <div className={cn(
-                  "w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300",
-                  isActive && "bg-primary text-primary-foreground shadow-glow scale-110",
+                  "w-9 h-9 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all duration-300",
+                  isActive && "bg-primary text-primary-foreground shadow-glow scale-105 sm:scale-110",
                   isCompleted && "bg-success text-success-foreground",
                   !isActive && !isCompleted && "bg-muted text-muted-foreground"
                 )}>
-                  <Icon className="w-5 h-5" />
+                  <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
                 <span className={cn(
-                  "text-xs font-medium text-center transition-colors hidden sm:block",
+                  "text-[10px] sm:text-xs font-medium text-center transition-colors hidden sm:block truncate w-full px-1",
                   isActive && "text-primary",
                   isCompleted && "text-success",
                   !isActive && !isCompleted && "text-muted-foreground"
@@ -542,8 +543,8 @@ export default function ProviderOnboardingWizard() {
           })}
         </div>
 
-        {/* Step Content */}
-        <div className="px-8 py-6 min-h-[400px]">
+        {/* Step Content - Better mobile padding */}
+        <div className="px-4 sm:px-8 py-4 sm:py-6 min-h-[350px] sm:min-h-[400px]">
           <div className={cn(
             "animate-fade-in",
             slideDirection === 'right' ? 'animate-slide-in-right' : 'animate-slide-in-left'
@@ -580,12 +581,12 @@ export default function ProviderOnboardingWizard() {
 
             {/* Step 2: Auth (Signup or Login) */}
             {currentStep === 2 && !user && (
-              <div className="space-y-6">
-                <div className="text-center mb-6">
-                  <h2 className="text-3xl font-bold text-foreground mb-2">
+              <div className="space-y-4 sm:space-y-6">
+                <div className="text-center mb-4 sm:mb-6">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-1 sm:mb-2">
                     {authMode === 'signup' ? 'Crear Cuenta' : 'Iniciar Sesión'}
                   </h2>
-                  <p className="text-muted-foreground">
+                  <p className="text-sm sm:text-base text-muted-foreground">
                     {authMode === 'signup' 
                       ? 'Empecemos creando tu cuenta de Chambynauta' 
                       : 'Bienvenido de vuelta, ingresa tus datos'}
@@ -595,7 +596,7 @@ export default function ProviderOnboardingWizard() {
                 {/* Google Sign-in Button */}
                 <Button
                   variant="outline"
-                  className="w-full py-6 text-base border-2 hover:bg-muted/50"
+                  className="w-full py-5 sm:py-6 text-sm sm:text-base border-2 hover:bg-muted/50"
                   onClick={handleGoogleLogin}
                   disabled={saving}
                 >
@@ -605,7 +606,7 @@ export default function ProviderOnboardingWizard() {
 
                 <div className="relative">
                   <Separator />
-                  <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-4 text-sm text-muted-foreground">
+                  <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-3 sm:px-4 text-xs sm:text-sm text-muted-foreground">
                     o con email
                   </span>
                 </div>
@@ -614,7 +615,7 @@ export default function ProviderOnboardingWizard() {
                 <div className="flex rounded-lg border-2 p-1 bg-muted/30">
                   <button
                     className={cn(
-                      "flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all",
+                      "flex-1 py-2 px-3 sm:px-4 rounded-md text-sm font-medium transition-all",
                       authMode === 'signup' 
                         ? "bg-primary text-primary-foreground shadow-sm" 
                         : "text-muted-foreground hover:text-foreground"
@@ -625,7 +626,7 @@ export default function ProviderOnboardingWizard() {
                   </button>
                   <button
                     className={cn(
-                      "flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all",
+                      "flex-1 py-2 px-3 sm:px-4 rounded-md text-sm font-medium transition-all",
                       authMode === 'login' 
                         ? "bg-primary text-primary-foreground shadow-sm" 
                         : "text-muted-foreground hover:text-foreground"
@@ -638,9 +639,9 @@ export default function ProviderOnboardingWizard() {
                 
                 {/* Signup Form */}
                 {authMode === 'signup' && (
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="fullName" className={signupErrors.fullName ? 'text-destructive' : ''}>
+                  <div className="space-y-3 sm:space-y-4">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="fullName" className={cn("text-sm", signupErrors.fullName && 'text-destructive')}>
                         Nombre Completo *
                       </Label>
                       <Input
@@ -648,35 +649,35 @@ export default function ProviderOnboardingWizard() {
                         placeholder="Ej: Juan Pérez"
                         value={signupData.fullName}
                         onChange={(e) => setSignupData({ ...signupData, fullName: e.target.value })}
-                        className={signupErrors.fullName ? 'border-destructive' : ''}
+                        className={cn("h-11", signupErrors.fullName && 'border-destructive')}
                       />
                       {signupErrors.fullName && (
-                        <p className="text-destructive text-sm">{signupErrors.fullName}</p>
+                        <p className="text-destructive text-xs sm:text-sm">{signupErrors.fullName}</p>
                       )}
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="email" className={signupErrors.email ? 'text-destructive' : ''}>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="email" className={cn("text-sm", signupErrors.email && 'text-destructive')}>
                         Email *
                       </Label>
                       <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                         <Input
                           id="email"
                           type="email"
                           placeholder="tu@email.com"
                           value={signupData.email}
                           onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
-                          className={cn("pl-10", signupErrors.email && 'border-destructive')}
+                          className={cn("pl-9 sm:pl-10 h-11", signupErrors.email && 'border-destructive')}
                         />
                       </div>
                       {signupErrors.email && (
-                        <p className="text-destructive text-sm">{signupErrors.email}</p>
+                        <p className="text-destructive text-xs sm:text-sm">{signupErrors.email}</p>
                       )}
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="phone" className={signupErrors.phone ? 'text-destructive' : ''}>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="phone" className={cn("text-sm", signupErrors.phone && 'text-destructive')}>
                         Teléfono *
                       </Label>
                       <PhoneInput
@@ -686,23 +687,23 @@ export default function ProviderOnboardingWizard() {
                         error={!!signupErrors.phone}
                       />
                       {signupErrors.phone && (
-                        <p className="text-destructive text-sm">{signupErrors.phone}</p>
+                        <p className="text-destructive text-xs sm:text-sm">{signupErrors.phone}</p>
                       )}
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                       <Label htmlFor="password" className={signupErrors.password ? 'text-destructive' : ''}>
                         Contraseña *
                       </Label>
                       <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                         <Input
                           id="password"
                           type={showPassword ? "text" : "password"}
-                          placeholder="Mínimo 8 caracteres"
+                          placeholder="Crea una contraseña segura"
                           value={signupData.password}
                           onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
-                          className={cn("pl-10 pr-10", signupErrors.password && 'border-destructive')}
+                          className={cn("pl-9 sm:pl-10 pr-10 h-11", signupErrors.password && 'border-destructive')}
                         />
                         <button
                           type="button"
@@ -712,24 +713,25 @@ export default function ProviderOnboardingWizard() {
                           {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                       </div>
+                      <PasswordStrengthBar password={signupData.password} />
                       {signupErrors.password && (
                         <p className="text-destructive text-sm">{signupErrors.password}</p>
                       )}
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="confirmPassword" className={signupErrors.confirmPassword ? 'text-destructive' : ''}>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="confirmPassword" className={cn("text-sm", signupErrors.confirmPassword && 'text-destructive')}>
                         Confirmar Contraseña *
                       </Label>
                       <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                         <Input
                           id="confirmPassword"
                           type={showConfirmPassword ? "text" : "password"}
                           placeholder="Repite tu contraseña"
                           value={signupData.confirmPassword}
                           onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
-                          className={cn("pl-10 pr-10", signupErrors.confirmPassword && 'border-destructive')}
+                          className={cn("pl-9 sm:pl-10 pr-10 h-11", signupErrors.confirmPassword && 'border-destructive')}
                         />
                         <button
                           type="button"
@@ -740,7 +742,7 @@ export default function ProviderOnboardingWizard() {
                         </button>
                       </div>
                       {signupErrors.confirmPassword && (
-                        <p className="text-destructive text-sm">{signupErrors.confirmPassword}</p>
+                        <p className="text-destructive text-xs sm:text-sm">{signupErrors.confirmPassword}</p>
                       )}
                     </div>
                   </div>
@@ -748,40 +750,40 @@ export default function ProviderOnboardingWizard() {
 
                 {/* Login Form */}
                 {authMode === 'login' && (
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="loginEmail" className={loginErrors.email ? 'text-destructive' : ''}>
+                  <div className="space-y-3 sm:space-y-4">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="loginEmail" className={cn("text-sm", loginErrors.email && 'text-destructive')}>
                         Email
                       </Label>
                       <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                         <Input
                           id="loginEmail"
                           type="email"
                           placeholder="tu@email.com"
                           value={loginData.email}
                           onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
-                          className={cn("pl-10", loginErrors.email && 'border-destructive')}
+                          className={cn("pl-9 sm:pl-10 h-11", loginErrors.email && 'border-destructive')}
                         />
                       </div>
                       {loginErrors.email && (
-                        <p className="text-destructive text-sm">{loginErrors.email}</p>
+                        <p className="text-destructive text-xs sm:text-sm">{loginErrors.email}</p>
                       )}
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="loginPassword" className={loginErrors.password ? 'text-destructive' : ''}>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="loginPassword" className={cn("text-sm", loginErrors.password && 'text-destructive')}>
                         Contraseña
                       </Label>
                       <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                         <Input
                           id="loginPassword"
                           type={showPassword ? "text" : "password"}
                           placeholder="Tu contraseña"
                           value={loginData.password}
                           onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                          className={cn("pl-10 pr-10", loginErrors.password && 'border-destructive')}
+                          className={cn("pl-9 sm:pl-10 pr-10 h-11", loginErrors.password && 'border-destructive')}
                         />
                         <button
                           type="button"
@@ -792,7 +794,7 @@ export default function ProviderOnboardingWizard() {
                         </button>
                       </div>
                       {loginErrors.password && (
-                        <p className="text-destructive text-sm">{loginErrors.password}</p>
+                        <p className="text-destructive text-xs sm:text-sm">{loginErrors.password}</p>
                       )}
                     </div>
 
@@ -810,7 +812,7 @@ export default function ProviderOnboardingWizard() {
                 )}
 
                 {/* Link to user auth */}
-                <p className="text-center text-sm text-muted-foreground pt-2">
+                <p className="text-center text-xs sm:text-sm text-muted-foreground pt-2">
                   ¿Buscas servicios?{' '}
                   <button
                     type="button"
@@ -1046,20 +1048,20 @@ export default function ProviderOnboardingWizard() {
 
             {/* Step 7: Completion */}
             {currentStep === 7 && (
-              <div className="text-center space-y-6 py-8">
-                <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-success to-success/70 animate-bounce-subtle">
-                  <CheckCircle2 className="w-12 h-12 text-success-foreground" />
+              <div className="text-center space-y-4 sm:space-y-6 py-4 sm:py-8">
+                <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-success to-success/70 animate-bounce-subtle">
+                  <CheckCircle2 className="w-10 h-10 sm:w-12 sm:h-12 text-success-foreground" />
                 </div>
-                <h1 className="text-4xl font-bold text-foreground">
+                <h1 className="text-2xl sm:text-4xl font-bold text-foreground">
                   ¡Todo Listo!
                 </h1>
-                <p className="text-muted-foreground text-lg max-w-md mx-auto">
+                <p className="text-muted-foreground text-base sm:text-lg max-w-md mx-auto px-2">
                   Tu perfil está completo. Ya puedes comenzar a recibir solicitudes de trabajo.
                 </p>
                 
-                <div className="bg-accent/20 rounded-lg p-6 border border-accent max-w-md mx-auto text-left">
-                  <h3 className="font-semibold mb-3">Resumen de tu perfil:</h3>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
+                <div className="bg-accent/20 rounded-lg p-4 sm:p-6 border border-accent max-w-md mx-auto text-left">
+                  <h3 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Resumen de tu perfil:</h3>
+                  <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-muted-foreground">
                     <li>✓ Nombre: {profileData.displayName}</li>
                     <li>✓ Habilidades: {selectedSkills.length} seleccionadas</li>
                     <li>✓ Zona: {workZone}</li>
@@ -1071,29 +1073,31 @@ export default function ProviderOnboardingWizard() {
           </div>
         </div>
 
-        {/* Navigation Buttons */}
+        {/* Navigation Buttons - Mobile optimized */}
         <div className={cn(
-          "px-8 py-6 border-t bg-muted/30 justify-between items-center",
-          currentStep === 1 ? "hidden md:flex" : "flex"
+          "px-4 sm:px-8 py-4 sm:py-6 border-t bg-muted/30 justify-between items-center gap-2",
+          currentStep === 1 ? "hidden sm:flex" : "flex"
         )}>
           <Button
             variant="ghost"
+            size="sm"
             onClick={goToPrevious}
             disabled={currentStep === 1 || saving}
             className={cn(
-              "transition-opacity",
+              "transition-opacity text-sm px-3 sm:px-4",
               currentStep === 1 && "opacity-0 pointer-events-none"
             )}
           >
             Atrás
           </Button>
 
-          <div className="text-sm text-muted-foreground">
+          <div className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
             Paso {currentStep} de {totalSteps}
           </div>
 
           {currentStep < totalSteps ? (
             <Button
+              size="sm"
               onClick={() => {
                 // If on auth step and not authenticated
                 if (currentStep === 2 && !user) {
@@ -1107,7 +1111,7 @@ export default function ProviderOnboardingWizard() {
                 }
               }}
               disabled={!canGoNext() || saving}
-              className="group"
+              className="group text-sm px-3 sm:px-4"
             >
               {saving ? 'Procesando...' : currentStep === 2 && !user 
                 ? (authMode === 'signup' ? 'Crear Cuenta' : 'Iniciar Sesión')
