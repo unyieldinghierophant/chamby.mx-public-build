@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -24,7 +24,10 @@ const LazyMap = ({ center, radius, onPositionChange }: {
   radius: number;
   onPositionChange: (lat: number, lng: number) => void;
 }) => {
-  const [MapComponents, setMapComponents] = useState<any>(null);
+  const [MapComponents, setMapComponents] = useState<{
+    MapContainer: any;
+    WorkZoneMapContent: any;
+  } | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,11 +39,17 @@ const LazyMap = ({ center, radius, onPositionChange }: {
         // Import Leaflet CSS
         await import('leaflet/dist/leaflet.css');
         
-        // Import react-leaflet components
-        const { MapContainer, TileLayer, Circle, useMapEvents, useMap } = await import('react-leaflet');
+        // Import react-leaflet MapContainer and our content component
+        const [reactLeaflet, mapContent] = await Promise.all([
+          import('react-leaflet'),
+          import('@/components/WorkZoneMapContent')
+        ]);
         
         if (mounted) {
-          setMapComponents({ MapContainer, TileLayer, Circle, useMapEvents, useMap });
+          setMapComponents({
+            MapContainer: reactLeaflet.MapContainer,
+            WorkZoneMapContent: mapContent.WorkZoneMapContent
+          });
           setIsLoaded(true);
         }
       } catch (err) {
@@ -74,31 +83,7 @@ const LazyMap = ({ center, radius, onPositionChange }: {
     );
   }
 
-  const { MapContainer, TileLayer, Circle, useMapEvents, useMap } = MapComponents;
-
-  // Inner components that use hooks
-  const MapClickHandler = () => {
-    useMapEvents({
-      click(e: any) {
-        onPositionChange(e.latlng.lat, e.latlng.lng);
-      },
-    });
-    return null;
-  };
-
-  const RecenterControl = ({ mapCenter }: { mapCenter: [number, number] }) => {
-    const map = useMap();
-    const prevCenter = useRef(mapCenter);
-    
-    useEffect(() => {
-      if (prevCenter.current[0] !== mapCenter[0] || prevCenter.current[1] !== mapCenter[1]) {
-        map.setView(mapCenter, map.getZoom());
-        prevCenter.current = mapCenter;
-      }
-    }, [mapCenter, map]);
-    
-    return null;
-  };
+  const { MapContainer, WorkZoneMapContent } = MapComponents;
 
   return (
     <MapContainer
@@ -108,21 +93,11 @@ const LazyMap = ({ center, radius, onPositionChange }: {
       zoomControl={false}
       attributionControl={false}
     >
-      <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+      <WorkZoneMapContent 
+        center={center} 
+        radius={radius} 
+        onPositionChange={onPositionChange} 
       />
-      <Circle
-        center={center}
-        radius={radius}
-        pathOptions={{
-          color: '#8B5CF6',
-          fillColor: '#8B5CF6',
-          fillOpacity: 0.15,
-          weight: 2,
-        }}
-      />
-      <MapClickHandler />
-      <RecenterControl mapCenter={center} />
     </MapContainer>
   );
 };
