@@ -31,7 +31,6 @@ import { useVerificationStatus } from "@/hooks/useVerificationStatus";
 import { useProfile } from "@/hooks/useProfile";
 import { useState } from "react";
 import logo from "@/assets/chamby-logo-text.png";
-import walkingProvider from "@/assets/provider-character.png";
 import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
 
@@ -209,65 +208,45 @@ const ProviderLanding = () => {
         </div>
       </header>
       
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center pt-24 pb-12 overflow-hidden bg-gradient-to-br from-background to-accent/20">
+      {/* Hero Section - Matching main landing style */}
+      <section className="relative min-h-[90vh] flex items-center justify-center pt-24 pb-12 overflow-hidden bg-primary">
         <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              {/* Left Column - Text Content */}
-              <div className="space-y-8 text-left">
-                <Badge className="bg-primary/10 text-primary border-primary/20 text-sm font-medium px-4 py-2 inline-flex items-center gap-2">
-                  🚀 Únete a más de 500+ profesionales
-                </Badge>
-                
-                <div className="space-y-6">
-                  <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-[1.1]">
-                    Sé tu Propio Jefe.{" "}
-                    <span className="block mt-2">
-                      Trabaja Cuando Quieras.
-                    </span>
-                  </h1>
-                  
-                  <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-2xl">
-                    Únete a Chamby y gana más con comisiones bajas, pagos garantizados y un flujo constante de clientes.
-                  </p>
-                </div>
+          <div className="max-w-5xl mx-auto text-center space-y-8">
+            <Badge className="bg-white/10 text-white border-white/20 text-sm font-medium px-4 py-2 inline-flex items-center gap-2">
+              🚀 Únete a más de 500+ profesionales
+            </Badge>
+            
+            <h1 className="font-dillan text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-white leading-[1.1] tracking-wide">
+              SÉ TU PROPIO JEFE
+            </h1>
+            
+            <p className="text-lg md:text-xl text-white/80 leading-relaxed max-w-2xl mx-auto">
+              Únete a Chamby y gana más con comisiones bajas, pagos garantizados y un flujo constante de clientes.
+            </p>
 
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <ModernButton 
-                    size="xl" 
-                    className="bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant font-semibold px-8 py-4 text-lg"
-                    onClick={handleGetStarted}
-                  >
-                    Comenzar Ahora
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </ModernButton>
-                </div>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <ModernButton 
+                size="xl" 
+                className="bg-white text-primary hover:bg-white/90 font-semibold px-8 py-4 text-lg shadow-elegant"
+                onClick={handleGetStarted}
+              >
+                Comenzar Ahora
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </ModernButton>
+            </div>
 
-                <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 text-sm text-muted-foreground">
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-5 w-5 text-success" />
-                    <span>Sin costos ocultos</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-5 w-5 text-success" />
-                    <span>Registro gratuito</span>
-                  </div>
-                </div>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 text-sm text-white/80">
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-5 w-5 text-white" />
+                <span>Sin costos ocultos</span>
               </div>
-
-              {/* Right Column - Character Illustration - 2x larger */}
-              <div className="relative flex items-center justify-center lg:justify-end">
-                <div className="relative w-full" style={{ maxWidth: '800px' }}>
-                  <img 
-                    src={walkingProvider} 
-                    alt="Chamby Professional" 
-                    className="w-full h-auto animate-[float_3s_ease-in-out_infinite]"
-                    style={{
-                      filter: 'drop-shadow(0 20px 40px rgba(30, 58, 138, 0.3))'
-                    }}
-                  />
-                </div>
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-5 w-5 text-white" />
+                <span>Registro gratuito</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-5 w-5 text-white" />
+                <span>Solo 10% comisión</span>
               </div>
             </div>
           </div>
@@ -278,24 +257,24 @@ const ProviderLanding = () => {
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              ¿Por qué elegir Chamby?
+            <h2 className="font-dillan text-3xl sm:text-4xl text-foreground mb-4">
+              ¿POR QUÉ ELEGIR CHAMBY?
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Te damos todas las herramientas para que construyas un negocio exitoso
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {valueProps.map((prop, index) => (
-              <Card key={index} className="bg-gradient-card border-white/20 hover:shadow-elegant transition-all duration-300 hover:transform hover:-translate-y-2">
-                <CardContent className="p-8 text-center">
-                  <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                    <prop.icon className="h-8 w-8 text-primary" />
+              <Card key={index} className="bg-card border border-border hover:shadow-elegant transition-all duration-300 hover:transform hover:-translate-y-2">
+                <CardContent className="p-6 text-center">
+                  <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                    <prop.icon className="h-7 w-7 text-primary" />
                   </div>
-                  <h3 className="text-xl font-bold text-foreground mb-3">{prop.title}</h3>
-                  <p className="text-muted-foreground mb-4">{prop.description}</p>
-                  <Badge className="bg-green-100 text-green-700 border-green-200">
+                  <h3 className="text-lg font-bold text-foreground mb-2">{prop.title}</h3>
+                  <p className="text-sm text-muted-foreground mb-4">{prop.description}</p>
+                  <Badge className="bg-primary/10 text-primary border-primary/20">
                     {prop.highlight}
                   </Badge>
                 </CardContent>
@@ -306,32 +285,32 @@ const ProviderLanding = () => {
       </section>
 
       {/* How It Works */}
-      <section className="py-20 bg-gradient-subtle">
+      <section className="py-20 bg-accent/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Cómo Funciona
+            <h2 className="font-dillan text-3xl sm:text-4xl text-foreground mb-4">
+              CÓMO FUNCIONA
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Comenzar es fácil, solo sigue estos 3 simples pasos
             </p>
           </div>
 
           <div className="max-w-4xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {steps.map((step, index) => (
                 <div key={index} className="relative">
-                  <Card className="bg-gradient-card border-white/20 hover:shadow-elegant transition-all duration-300">
-                    <CardContent className="p-8">
-                      <div className="text-6xl font-bold text-primary/20 mb-4">{step.number}</div>
-                      <h3 className="text-xl font-bold text-foreground mb-4">{step.title}</h3>
-                      <p className="text-muted-foreground leading-relaxed">{step.description}</p>
+                  <Card className="bg-card border border-border hover:shadow-elegant transition-all duration-300 h-full">
+                    <CardContent className="p-6">
+                      <div className="text-5xl font-bold text-primary/20 mb-4">{step.number}</div>
+                      <h3 className="text-lg font-bold text-foreground mb-3">{step.title}</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{step.description}</p>
                     </CardContent>
                   </Card>
                   
                   {index < steps.length - 1 && (
-                    <div className="hidden lg:block absolute top-1/2 -right-4 transform -translate-y-1/2">
-                      <ArrowRight className="h-8 w-8 text-muted-foreground/30" />
+                    <div className="hidden lg:block absolute top-1/2 -right-4 transform -translate-y-1/2 z-10">
+                      <ArrowRight className="h-6 w-6 text-primary/40" />
                     </div>
                   )}
                 </div>
@@ -345,30 +324,30 @@ const ProviderLanding = () => {
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Lo que dicen nuestros profesionales
+            <h2 className="font-dillan text-3xl sm:text-4xl text-foreground mb-4">
+              LO QUE DICEN NUESTROS PROFESIONALES
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Historias reales de éxito de nuestra comunidad
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
             {[1, 2, 3].map((item) => (
-              <Card key={item} className="bg-gradient-card border-white/20">
-                <CardContent className="p-8">
-                  <Quote className="h-8 w-8 text-primary mb-4" />
-                  <p className="text-muted-foreground mb-6 italic">
+              <Card key={item} className="bg-card border border-border">
+                <CardContent className="p-6">
+                  <Quote className="h-6 w-6 text-primary mb-4" />
+                  <p className="text-sm text-muted-foreground mb-5 italic">
                     "Testimonial placeholder - Historia de éxito de un profesional que trabaja con Chamby."
                   </p>
                   <div className="flex items-center">
-                    <div className="w-12 h-12 bg-muted rounded-full mr-4"></div>
+                    <div className="w-10 h-10 bg-muted rounded-full mr-3"></div>
                     <div>
-                      <div className="font-semibold text-foreground">Nombre del Profesional</div>
-                      <div className="text-sm text-muted-foreground">Especialidad</div>
+                      <div className="font-semibold text-foreground text-sm">Nombre del Profesional</div>
+                      <div className="text-xs text-muted-foreground">Especialidad</div>
                     </div>
                   </div>
-                  <div className="flex mt-4">
+                  <div className="flex mt-3">
                     {[...Array(5)].map((_, i) => (
                       <Star key={i} className="h-4 w-4 text-yellow-400 fill-current" />
                     ))}
@@ -381,23 +360,23 @@ const ProviderLanding = () => {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 bg-gradient-subtle">
+      <section className="py-20 bg-accent/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Preguntas Frecuentes
+            <h2 className="font-dillan text-3xl sm:text-4xl text-foreground mb-4">
+              PREGUNTAS FRECUENTES
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Resolvemos tus dudas más comunes
             </p>
           </div>
 
-          <div className="max-w-3xl mx-auto space-y-6">
+          <div className="max-w-3xl mx-auto space-y-4">
             {faqs.map((faq, index) => (
-              <Card key={index} className="bg-gradient-card border-white/20">
-                <CardContent className="p-8">
-                  <h3 className="text-xl font-bold text-foreground mb-4">{faq.question}</h3>
-                  <p className="text-muted-foreground leading-relaxed">{faq.answer}</p>
+              <Card key={index} className="bg-card border border-border">
+                <CardContent className="p-6">
+                  <h3 className="text-lg font-bold text-foreground mb-3">{faq.question}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{faq.answer}</p>
                 </CardContent>
               </Card>
             ))}
@@ -408,24 +387,24 @@ const ProviderLanding = () => {
       {/* Final CTA Section */}
       <section className="py-20 bg-primary">
         <div className="container mx-auto px-4 text-center">
-          <div className="max-w-3xl mx-auto space-y-8">
-            <h2 className="text-4xl font-bold text-white mb-4">
-              ¿Listo para Empezar?
+          <div className="max-w-3xl mx-auto space-y-6">
+            <h2 className="font-dillan text-3xl sm:text-4xl text-white mb-4">
+              ¿LISTO PARA EMPEZAR?
             </h2>
-            <p className="text-xl text-white/90 leading-relaxed">
+            <p className="text-lg text-white/80 leading-relaxed">
               Únete a cientos de profesionales que ya están ganando más con Chamby
             </p>
             
             <ModernButton 
               size="xl" 
-              className="bg-white text-primary hover:bg-gray-100 font-semibold px-8 py-4 text-lg"
+              className="bg-white text-primary hover:bg-white/90 font-semibold px-8 py-4 text-lg"
               onClick={handleGetStarted}
             >
               Comenzar Ahora - Es Gratis
               <ArrowRight className="ml-2 h-5 w-5" />
             </ModernButton>
             
-            <p className="text-white/80 text-sm">
+            <p className="text-white/70 text-sm">
               Sin compromisos • Cancelación gratuita • Soporte incluido
             </p>
           </div>
