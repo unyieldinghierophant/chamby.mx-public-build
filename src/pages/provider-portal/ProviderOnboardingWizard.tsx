@@ -102,6 +102,7 @@ export default function ProviderOnboardingWizard() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [currentStep, setCurrentStep] = useState(1);
+  const [slideDirection, setSlideDirection] = useState<'forward' | 'backward'>('forward');
   const [saving, setSaving] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -380,12 +381,14 @@ export default function ProviderOnboardingWizard() {
 
   const goToNext = () => {
     if (currentStep < totalSteps) {
+      setSlideDirection('forward');
       setCurrentStep(currentStep + 1);
     }
   };
 
   const goToPrevious = () => {
     if (currentStep > 1) {
+      setSlideDirection('backward');
       if (currentStep === 3 && !user) {
         setCurrentStep(2);
         return;
@@ -593,7 +596,7 @@ export default function ProviderOnboardingWizard() {
           >
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <img src={chambyLogo} alt="Chamby" className="h-8" />
+          <img src={chambyLogo} alt="Chamby" className="h-20" />
           <div className="w-10" />
         </div>
 
@@ -671,21 +674,29 @@ export default function ProviderOnboardingWizard() {
 
         {/* Mobile Content */}
         <div className="md:hidden flex flex-col min-h-[calc(100vh-120px)]">
-          <div className="flex-1 px-6 py-6 overflow-y-auto pb-24">
+          <div 
+            key={currentStep}
+            className={cn(
+              "flex-1 px-6 py-6 overflow-y-auto pb-32",
+              slideDirection === 'forward' ? 'animate-slide-in-right' : 'animate-slide-in-left'
+            )}
+          >
             {renderStepContent()}
           </div>
 
-          {/* Mobile Fixed Bottom Navigation */}
+          {/* Mobile Fixed Bottom Navigation - Centered, Next on top */}
           <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t safe-area-pb">
-            <div className="flex items-center justify-between">
-              <button 
-                onClick={goToPrevious}
-                disabled={currentStep <= 2 || saving}
-                className="text-sm font-medium text-foreground disabled:opacity-30"
-              >
-                Atrás
-              </button>
+            <div className="flex flex-col items-center gap-3 max-w-sm mx-auto">
               {renderNextButton(true)}
+              {currentStep > 2 && (
+                <button 
+                  onClick={goToPrevious}
+                  disabled={saving}
+                  className="text-sm font-medium text-muted-foreground uppercase tracking-wider disabled:opacity-30"
+                >
+                  Atrás
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -1244,7 +1255,7 @@ export default function ProviderOnboardingWizard() {
           disabled={!canGoNext() || saving}
           className={cn(
             "font-semibold",
-            isMobile ? "px-8 py-3 rounded-full" : ""
+            isMobile ? "w-full py-4 text-base rounded-xl" : ""
           )}
         >
           {buttonText}
@@ -1262,8 +1273,8 @@ export default function ProviderOnboardingWizard() {
         onClick={handleFinish}
         disabled={saving}
         className={cn(
-          "bg-green-600 hover:bg-green-700 font-semibold",
-          isMobile ? "px-8 py-3 rounded-full" : ""
+          "bg-success hover:bg-success/90 font-semibold",
+          isMobile ? "w-full py-4 text-base rounded-xl" : ""
         )}
       >
         {saving ? 'Guardando...' : 'Ir al Portal'}
