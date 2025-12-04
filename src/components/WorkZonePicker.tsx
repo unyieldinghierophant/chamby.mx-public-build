@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -18,89 +18,15 @@ interface WorkZonePickerProps {
   initialRadius?: number;
 }
 
-// Lazy load the map component to avoid SSR issues
-const LazyMap = ({ center, radius, onPositionChange }: {
-  center: [number, number];
-  radius: number;
-  onPositionChange: (lat: number, lng: number) => void;
-}) => {
-  const [MapComponents, setMapComponents] = useState<{
-    MapContainer: any;
-    WorkZoneMapContent: any;
-  } | null>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+// Lazy load the entire map component
+const WorkZoneMap = lazy(() => import('@/components/WorkZoneMap'));
 
-  useEffect(() => {
-    let mounted = true;
-    
-    const loadMap = async () => {
-      try {
-        // Import Leaflet CSS
-        await import('leaflet/dist/leaflet.css');
-        
-        // Import react-leaflet MapContainer and our content component
-        const [reactLeaflet, mapContent] = await Promise.all([
-          import('react-leaflet'),
-          import('@/components/WorkZoneMapContent')
-        ]);
-        
-        if (mounted) {
-          setMapComponents({
-            MapContainer: reactLeaflet.MapContainer,
-            WorkZoneMapContent: mapContent.WorkZoneMapContent
-          });
-          setIsLoaded(true);
-        }
-      } catch (err) {
-        console.error('Failed to load map:', err);
-        if (mounted) {
-          setError('No se pudo cargar el mapa');
-        }
-      }
-    };
-
-    loadMap();
-    
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  if (error) {
-    return (
-      <div className="h-[300px] w-full bg-muted rounded-xl flex items-center justify-center">
-        <p className="text-muted-foreground">{error}</p>
-      </div>
-    );
-  }
-
-  if (!isLoaded || !MapComponents) {
-    return (
-      <div className="h-[300px] w-full bg-muted rounded-xl flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  const { MapContainer, WorkZoneMapContent } = MapComponents;
-
-  return (
-    <MapContainer
-      center={center}
-      zoom={11}
-      style={{ height: '300px', width: '100%' }}
-      zoomControl={false}
-      attributionControl={false}
-    >
-      <WorkZoneMapContent 
-        center={center} 
-        radius={radius} 
-        onPositionChange={onPositionChange} 
-      />
-    </MapContainer>
-  );
-};
+// Loading fallback for the map
+const MapLoadingFallback = () => (
+  <div className="h-[300px] w-full bg-muted rounded-xl flex items-center justify-center">
+    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+  </div>
+);
 
 export function WorkZonePicker({ 
   onZoneChange, 
@@ -212,11 +138,13 @@ export function WorkZonePicker({
 
       {/* Map */}
       <div className="relative rounded-xl overflow-hidden border border-border shadow-soft">
-        <LazyMap 
-          center={center} 
-          radius={radius} 
-          onPositionChange={handlePositionChange} 
-        />
+        <Suspense fallback={<MapLoadingFallback />}>
+          <WorkZoneMap 
+            center={center} 
+            radius={radius} 
+            onPositionChange={handlePositionChange} 
+          />
+        </Suspense>
 
         {/* Center Pin Overlay */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full z-[1000] pointer-events-none">
