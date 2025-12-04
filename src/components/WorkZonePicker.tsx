@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { MapPin, Minus, Plus, Navigation, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import WorkZoneMap from '@/components/WorkZoneMap';
 
 // Guadalajara default center
 const DEFAULT_CENTER: [number, number] = [20.6597, -103.3496];
@@ -17,16 +18,6 @@ interface WorkZonePickerProps {
   initialLng?: number;
   initialRadius?: number;
 }
-
-// Lazy load the entire map component
-const WorkZoneMap = lazy(() => import('@/components/WorkZoneMap'));
-
-// Loading fallback for the map
-const MapLoadingFallback = () => (
-  <div className="h-[300px] w-full bg-muted rounded-xl flex items-center justify-center">
-    <Loader2 className="w-8 h-8 animate-spin text-primary" />
-  </div>
-);
 
 export function WorkZonePicker({ 
   onZoneChange, 
@@ -138,13 +129,11 @@ export function WorkZonePicker({
 
       {/* Map */}
       <div className="relative rounded-xl overflow-hidden border border-border shadow-soft">
-        <Suspense fallback={<MapLoadingFallback />}>
-          <WorkZoneMap 
-            center={center} 
-            radius={radius} 
-            onPositionChange={handlePositionChange} 
-          />
-        </Suspense>
+        <WorkZoneMap 
+          center={center} 
+          radius={radius} 
+          onPositionChange={handlePositionChange} 
+        />
 
         {/* Center Pin Overlay */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full z-[1000] pointer-events-none">

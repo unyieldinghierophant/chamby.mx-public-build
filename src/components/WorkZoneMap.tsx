@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Circle, useMapEvents, useMap } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
+import { useCallback } from 'react';
+import { GoogleMap, Circle, useJsApiLoader } from '@react-google-maps/api';
+import { Loader2 } from 'lucide-react';
 
 interface WorkZoneMapProps {
   center: [number, number];
@@ -8,58 +8,85 @@ interface WorkZoneMapProps {
   onPositionChange: (lat: number, lng: number) => void;
 }
 
-// Inner component that uses react-leaflet hooks
-function MapEventHandler({ 
-  center, 
-  onPositionChange 
-}: { 
-  center: [number, number]; 
-  onPositionChange: (lat: number, lng: number) => void;
-}) {
-  const map = useMap();
-  const prevCenter = useRef(center);
-  
-  // Handle map clicks
-  useMapEvents({
-    click(e) {
-      onPositionChange(e.latlng.lat, e.latlng.lng);
-    },
-  });
-  
-  // Handle recentering when center changes
-  useEffect(() => {
-    if (prevCenter.current[0] !== center[0] || prevCenter.current[1] !== center[1]) {
-      map.setView(center, map.getZoom());
-      prevCenter.current = center;
-    }
-  }, [center, map]);
+const mapContainerStyle = {
+  height: '300px',
+  width: '100%',
+};
 
-  return null;
-}
+const mapStyles = [
+  { elementType: 'geometry', stylers: [{ color: '#f5f5f5' }] },
+  { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#616161' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#f5f5f5' }] },
+  { featureType: 'administrative.land_parcel', elementType: 'labels.text.fill', stylers: [{ color: '#bdbdbd' }] },
+  { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#eeeeee' }] },
+  { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#757575' }] },
+  { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#e5e5e5' }] },
+  { featureType: 'poi.park', elementType: 'labels.text.fill', stylers: [{ color: '#9e9e9e' }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
+  { featureType: 'road.arterial', elementType: 'labels.text.fill', stylers: [{ color: '#757575' }] },
+  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#dadada' }] },
+  { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#616161' }] },
+  { featureType: 'road.local', elementType: 'labels.text.fill', stylers: [{ color: '#9e9e9e' }] },
+  { featureType: 'transit.line', elementType: 'geometry', stylers: [{ color: '#e5e5e5' }] },
+  { featureType: 'transit.station', elementType: 'geometry', stylers: [{ color: '#eeeeee' }] },
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#c9c9c9' }] },
+  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#9e9e9e' }] },
+];
+
+const circleOptions = {
+  strokeColor: '#8B5CF6',
+  fillColor: '#8B5CF6',
+  fillOpacity: 0.15,
+  strokeWeight: 2,
+  clickable: false,
+};
 
 export default function WorkZoneMap({ center, radius, onPositionChange }: WorkZoneMapProps) {
+  const { isLoaded, loadError } = useJsApiLoader({
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
+  });
+
+  const handleMapClick = useCallback((e: google.maps.MapMouseEvent) => {
+    if (e.latLng) {
+      onPositionChange(e.latLng.lat(), e.latLng.lng());
+    }
+  }, [onPositionChange]);
+
+  if (loadError) {
+    return (
+      <div className="h-[300px] w-full bg-muted rounded-xl flex items-center justify-center">
+        <p className="text-sm text-muted-foreground">Error al cargar el mapa</p>
+      </div>
+    );
+  }
+
+  if (!isLoaded) {
+    return (
+      <div className="h-[300px] w-full bg-muted rounded-xl flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
-    <MapContainer
-      center={center}
+    <GoogleMap
+      mapContainerStyle={mapContainerStyle}
+      center={{ lat: center[0], lng: center[1] }}
       zoom={11}
-      style={{ height: '300px', width: '100%' }}
-      zoomControl={false}
-      attributionControl={false}
+      onClick={handleMapClick}
+      options={{
+        styles: mapStyles,
+        disableDefaultUI: true,
+        zoomControl: false,
+        gestureHandling: 'greedy',
+      }}
     >
-      <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-      />
       <Circle
-        center={center}
+        center={{ lat: center[0], lng: center[1] }}
         radius={radius}
-        pathOptions={{
-          color: '#8B5CF6',
-          fillColor: '#8B5CF6',
-          fillOpacity: 0.15,
-          weight: 2,
-        }}
+        options={circleOptions}
       />
-      <MapEventHandler center={center} onPositionChange={onPositionChange} />
-    </MapContainer>
+    </GoogleMap>
   );
 }
