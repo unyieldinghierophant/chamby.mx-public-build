@@ -15,7 +15,7 @@ import { useEffect } from "react";
 import { ROUTES } from "@/constants/routes";
 import Index from "./pages/Index";
 import Home from "./pages/Home";
-import UserAuth from "./pages/UserAuth";
+import UserOnboardingWizard from "./pages/UserOnboardingWizard";
 import ProviderOnboardingWizard from "./pages/provider-portal/ProviderOnboardingWizard";
 import ProviderLanding from "./pages/ProviderLanding";
 import UserLanding from "./pages/UserLanding";
@@ -72,7 +72,8 @@ const ConditionalChatBot = () => {
     ROUTES.BOOK_JOB, 
     ROUTES.SOLICITAR_SERVICIO,
     ROUTES.PROVIDER_AUTH,
-    ROUTES.PROVIDER_ONBOARDING_WIZARD
+    ROUTES.PROVIDER_ONBOARDING_WIZARD,
+    ROUTES.USER_AUTH
   ];
 
   if (hideOnRoutes.includes(location.pathname)) {
@@ -128,7 +129,7 @@ const App = () => {
               <Route path={ROUTES.USER_LANDING} element={<UserLanding />} />
               <Route path={ROUTES.SOLICITAR_SERVICIO} element={<Navigate to={ROUTES.BOOK_JOB} replace />} />
               <Route path={ROUTES.BOOK_JOB} element={<BookJob />} />
-              <Route path={ROUTES.USER_AUTH} element={<UserAuth />} />
+              <Route path={ROUTES.USER_AUTH} element={<UserOnboardingWizard />} />
               <Route path={ROUTES.PROVIDER_AUTH} element={<ProviderOnboardingWizard />} />
               <Route path={ROUTES.BECOME_PROVIDER} element={<BecomeProvider />} />
               <Route path={ROUTES.CHOOSE_ROLE} element={<RoleSelection />} />
