@@ -20,6 +20,9 @@ export type Database = {
           file_url: string | null
           id: string
           provider_id: string | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           uploaded_at: string | null
           verification_status: string | null
         }
@@ -28,6 +31,9 @@ export type Database = {
           file_url?: string | null
           id?: string
           provider_id?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           uploaded_at?: string | null
           verification_status?: string | null
         }
@@ -36,6 +42,9 @@ export type Database = {
           file_url?: string | null
           id?: string
           provider_id?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           uploaded_at?: string | null
           verification_status?: string | null
         }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Upload, Loader2 } from "lucide-react";
+import { Upload, Loader2, Camera, ImageIcon } from "lucide-react";
 
 interface DocumentUploadDialogProps {
   open: boolean;
@@ -34,6 +34,8 @@ export const DocumentUploadDialog = ({
   const { user } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -46,14 +48,11 @@ export const DocumentUploadDialog = ({
 
     setUploading(true);
     try {
-      // Use user.id directly as client_id
-      const clientId = user.id;
-
       // Upload file to storage
       const fileExt = file.name.split(".").pop();
       const fileName = `${user.id}/verification/${docType}_${Date.now()}.${fileExt}`;
       
-      const { error: uploadError, data: uploadData } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from("user-documents")
         .upload(fileName, file);
 
@@ -64,17 +63,24 @@ export const DocumentUploadDialog = ({
         .from("user-documents")
         .getPublicUrl(fileName);
 
-      // Create document record
+      // Create document record - use provider_id (which is user.id)
       const { error: dbError } = await supabase
         .from("documents")
         .insert({
-          client_id: clientId,
+          provider_id: user.id,
           doc_type: docType,
           file_url: publicUrl,
           verification_status: "pending",
         });
 
       if (dbError) throw dbError;
+
+      // Update provider_details verification_status to pending if it was 'none'
+      await supabase
+        .from("provider_details")
+        .update({ verification_status: 'pending' })
+        .eq('user_id', user.id)
+        .eq('verification_status', 'none');
 
       toast.success("Documento subido exitosamente");
       setFile(null);
@@ -96,16 +102,60 @@ export const DocumentUploadDialog = ({
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          <div>
-            <Label htmlFor="document">Seleccionar archivo</Label>
-            <Input
-              id="document"
-              type="file"
-              accept="image/*,.pdf"
-              onChange={handleFileChange}
+          {/* Option buttons */}
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              variant="outline"
+              className="h-20 flex-col gap-2"
+              onClick={() => cameraInputRef.current?.click()}
               disabled={uploading}
-            />
+            >
+              <Camera className="w-6 h-6" />
+              <span className="text-sm">Tomar Foto</span>
+            </Button>
+            <Button
+              variant="outline"
+              className="h-20 flex-col gap-2"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+            >
+              <ImageIcon className="w-6 h-6" />
+              <span className="text-sm">Galería</span>
+            </Button>
           </div>
+
+          {/* Hidden inputs */}
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,.pdf"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+
+          {/* Selected file preview */}
+          {file && (
+            <div className="bg-muted/50 rounded-lg p-3 flex items-center gap-3">
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                <ImageIcon className="w-6 h-6 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium truncate">{file.name}</p>
+                <p className="text-sm text-muted-foreground">
+                  {(file.size / 1024 / 1024).toFixed(2)} MB
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="flex justify-end gap-2">
             <Button
               variant="outline"
