@@ -163,6 +163,12 @@ export default function ProviderOnboardingWizard() {
 
   useEffect(() => {
     if (user) {
+      // If user logged in (not signing up), redirect directly to portal
+      if (authMode === 'login') {
+        navigate(ROUTES.PROVIDER_PORTAL);
+        return;
+      }
+      
       setCurrentStep(3);
       
       const loadUserData = async () => {
@@ -188,7 +194,7 @@ export default function ProviderOnboardingWizard() {
 
       loadUserData();
     }
-  }, [user]);
+  }, [user, authMode, navigate]);
 
   const totalSteps = 7;
   const progress = Math.max(0, ((currentStep - 1) / (totalSteps - 2)) * 100);
@@ -294,6 +300,7 @@ export default function ProviderOnboardingWizard() {
 
     toast.success('¡Bienvenido de vuelta!');
     setSaving(false);
+    navigate(ROUTES.PROVIDER_PORTAL);
   };
 
   const handleGoogleLogin = async () => {
@@ -1254,7 +1261,7 @@ export default function ProviderOnboardingWizard() {
           onClick={handleClick}
           disabled={!canGoNext() || saving}
           className={cn(
-            "font-semibold",
+            "font-semibold shadow-lg bg-primary text-primary-foreground hover:bg-primary/90",
             isMobile ? "w-full py-4 text-base rounded-xl" : ""
           )}
         >
@@ -1273,7 +1280,7 @@ export default function ProviderOnboardingWizard() {
         onClick={handleFinish}
         disabled={saving}
         className={cn(
-          "bg-success hover:bg-success/90 font-semibold",
+          "bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg",
           isMobile ? "w-full py-4 text-base rounded-xl" : ""
         )}
       >
