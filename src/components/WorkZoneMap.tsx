@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import { GoogleMap, Circle, useJsApiLoader } from '@react-google-maps/api';
 import { Loader2 } from 'lucide-react';
 
@@ -34,24 +34,29 @@ const mapStyles = [
   { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#9e9e9e' }] },
 ];
 
-const circleOptions = {
-  strokeColor: '#8B5CF6',
-  fillColor: '#8B5CF6',
-  fillOpacity: 0.15,
-  strokeWeight: 2,
-  clickable: false,
-};
-
 export default function WorkZoneMap({ center, radius, onPositionChange }: WorkZoneMapProps) {
+  const mapRef = useRef<google.maps.Map | null>(null);
+  
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
   });
+
+  // Recenter map when center changes
+  useEffect(() => {
+    if (mapRef.current) {
+      mapRef.current.panTo({ lat: center[0], lng: center[1] });
+    }
+  }, [center]);
 
   const handleMapClick = useCallback((e: google.maps.MapMouseEvent) => {
     if (e.latLng) {
       onPositionChange(e.latLng.lat(), e.latLng.lng());
     }
   }, [onPositionChange]);
+
+  const onMapLoad = useCallback((map: google.maps.Map) => {
+    mapRef.current = map;
+  }, []);
 
   if (loadError) {
     return (
@@ -69,12 +74,15 @@ export default function WorkZoneMap({ center, radius, onPositionChange }: WorkZo
     );
   }
 
+  const circleCenter = { lat: center[0], lng: center[1] };
+
   return (
     <GoogleMap
       mapContainerStyle={mapContainerStyle}
-      center={{ lat: center[0], lng: center[1] }}
+      center={circleCenter}
       zoom={11}
       onClick={handleMapClick}
+      onLoad={onMapLoad}
       options={{
         styles: mapStyles,
         disableDefaultUI: true,
@@ -83,9 +91,17 @@ export default function WorkZoneMap({ center, radius, onPositionChange }: WorkZo
       }}
     >
       <Circle
-        center={{ lat: center[0], lng: center[1] }}
+        center={circleCenter}
         radius={radius}
-        options={circleOptions}
+        options={{
+          strokeColor: '#8B5CF6',
+          strokeOpacity: 1,
+          strokeWeight: 2,
+          fillColor: '#8B5CF6',
+          fillOpacity: 0.2,
+          clickable: false,
+          zIndex: 1,
+        }}
       />
     </GoogleMap>
   );
