@@ -529,14 +529,14 @@ export default function ProviderOnboardingWizard() {
           
           <div className="w-full space-y-3 max-w-sm">
             <Button 
-              className="w-full py-6 bg-background text-foreground font-semibold text-lg rounded-xl hover:bg-background/90"
+              className="w-full py-6 bg-primary text-white font-semibold text-lg rounded-xl hover:bg-primary/90 shadow-lg"
               onClick={goToNext}
             >
               Comenzar
             </Button>
             <Button 
-              variant="outline"
-              className="w-full py-6 border-2 border-primary-foreground/30 text-primary-foreground font-medium text-lg rounded-xl bg-transparent hover:bg-primary-foreground/10"
+              variant="ghost"
+              className="w-full py-6 text-primary-foreground font-medium text-lg rounded-xl bg-transparent hover:bg-transparent hover:text-primary-foreground/80"
               onClick={() => {
                 setAuthMode('login');
                 goToNext();
@@ -568,15 +568,15 @@ export default function ProviderOnboardingWizard() {
             </p>
             <div className="space-y-3">
               <Button 
-                className="w-full py-6 text-lg"
+                className="w-full py-6 text-lg bg-primary text-white hover:bg-primary/90 shadow-lg"
                 onClick={goToNext}
               >
                 Comenzar
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
               <Button 
-                variant="outline"
-                className="w-full py-5"
+                variant="ghost"
+                className="w-full py-5 text-muted-foreground hover:text-foreground hover:bg-transparent"
                 onClick={() => {
                   setAuthMode('login');
                   goToNext();
