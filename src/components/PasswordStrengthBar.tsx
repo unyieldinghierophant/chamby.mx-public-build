@@ -18,6 +18,7 @@ export function PasswordStrengthBar({ password, className }: PasswordStrengthBar
     { label: 'Al menos una mayúscula (A-Z)', met: /[A-Z]/.test(password) },
     { label: 'Al menos una minúscula (a-z)', met: /[a-z]/.test(password) },
     { label: 'Al menos un número (0-9)', met: /[0-9]/.test(password) },
+    { label: 'Al menos un caracter especial (!@#$%^&*)', met: /[!@#$%^&*(),.?":{}|<>]/.test(password) },
   ], [password]);
 
   const strength = useMemo(() => {
@@ -32,6 +33,7 @@ export function PasswordStrengthBar({ password, className }: PasswordStrengthBar
     if (strength === 1) return 'bg-red-500';
     if (strength === 2) return 'bg-orange-500';
     if (strength === 3) return 'bg-yellow-500';
+    if (strength === 4) return 'bg-lime-500';
     return 'bg-green-500';
   };
 
@@ -39,7 +41,8 @@ export function PasswordStrengthBar({ password, className }: PasswordStrengthBar
     if (strength === 0) return '';
     if (strength === 1) return 'Muy débil';
     if (strength === 2) return 'Débil';
-    if (strength === 3) return 'Aceptable';
+    if (strength === 3) return 'Regular';
+    if (strength === 4) return 'Buena';
     return 'Fuerte';
   };
 
@@ -48,6 +51,7 @@ export function PasswordStrengthBar({ password, className }: PasswordStrengthBar
     if (strength === 1) return 'text-red-500';
     if (strength === 2) return 'text-orange-500';
     if (strength === 3) return 'text-yellow-600';
+    if (strength === 4) return 'text-lime-600';
     return 'text-green-500';
   };
 
