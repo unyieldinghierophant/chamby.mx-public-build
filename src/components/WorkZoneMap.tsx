@@ -1,5 +1,5 @@
-import { useCallback, useRef, useEffect } from 'react';
-import { GoogleMap, Circle, useJsApiLoader } from '@react-google-maps/api';
+import { useCallback, useRef, useEffect, useState } from 'react';
+import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
 import { Loader2 } from 'lucide-react';
 
 interface WorkZoneMapProps {
@@ -36,17 +36,51 @@ const mapStyles = [
 
 export default function WorkZoneMap({ center, radius, onPositionChange }: WorkZoneMapProps) {
   const mapRef = useRef<google.maps.Map | null>(null);
+  const circleRef = useRef<google.maps.Circle | null>(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
   
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
   });
 
-  // Recenter map when center changes
+  // Create and update circle when map loads or center/radius changes
   useEffect(() => {
-    if (mapRef.current) {
-      mapRef.current.panTo({ lat: center[0], lng: center[1] });
+    if (!mapRef.current || !mapLoaded) return;
+
+    const circleCenter = { lat: center[0], lng: center[1] };
+
+    // If circle doesn't exist, create it
+    if (!circleRef.current) {
+      circleRef.current = new google.maps.Circle({
+        map: mapRef.current,
+        center: circleCenter,
+        radius: radius,
+        strokeColor: '#8B5CF6',
+        strokeOpacity: 0.8,
+        strokeWeight: 2,
+        fillColor: '#8B5CF6',
+        fillOpacity: 0.25,
+        clickable: false,
+      });
+    } else {
+      // Update existing circle
+      circleRef.current.setCenter(circleCenter);
+      circleRef.current.setRadius(radius);
     }
-  }, [center]);
+
+    // Pan map to new center
+    mapRef.current.panTo(circleCenter);
+  }, [center, radius, mapLoaded]);
+
+  // Cleanup circle on unmount
+  useEffect(() => {
+    return () => {
+      if (circleRef.current) {
+        circleRef.current.setMap(null);
+        circleRef.current = null;
+      }
+    };
+  }, []);
 
   const handleMapClick = useCallback((e: google.maps.MapMouseEvent) => {
     if (e.latLng) {
@@ -56,6 +90,7 @@ export default function WorkZoneMap({ center, radius, onPositionChange }: WorkZo
 
   const onMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
+    setMapLoaded(true);
   }, []);
 
   if (loadError) {
@@ -74,12 +109,10 @@ export default function WorkZoneMap({ center, radius, onPositionChange }: WorkZo
     );
   }
 
-  const circleCenter = { lat: center[0], lng: center[1] };
-
   return (
     <GoogleMap
       mapContainerStyle={mapContainerStyle}
-      center={circleCenter}
+      center={{ lat: center[0], lng: center[1] }}
       zoom={11}
       onClick={handleMapClick}
       onLoad={onMapLoad}
@@ -89,20 +122,6 @@ export default function WorkZoneMap({ center, radius, onPositionChange }: WorkZo
         zoomControl: false,
         gestureHandling: 'greedy',
       }}
-    >
-      <Circle
-        center={circleCenter}
-        radius={radius}
-        options={{
-          strokeColor: '#8B5CF6',
-          strokeOpacity: 1,
-          strokeWeight: 2,
-          fillColor: '#8B5CF6',
-          fillOpacity: 0.2,
-          clickable: false,
-          zIndex: 1,
-        }}
-      />
-    </GoogleMap>
+    />
   );
 }
