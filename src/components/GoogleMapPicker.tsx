@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { GoogleMap, LoadScript, Autocomplete } from '@react-google-maps/api';
+import { GoogleMap, useJsApiLoader, Autocomplete } from '@react-google-maps/api';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -88,6 +88,16 @@ interface GoogleMapPickerProps {
 export const GoogleMapPicker = ({ onLocationSelect, initialLocation, onConfirm }: GoogleMapPickerProps) => {
   const { user } = useAuth();
   const { locations, loading: locationsLoading, addLocation, updateLocation, deleteLocation } = useSavedLocations();
+  
+  // Your Google Maps API key should be stored in environment variables
+  const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
+  
+  // Use the hook-based loader to prevent re-mounting issues
+  const { isLoaded, loadError } = useJsApiLoader({
+    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+    libraries: libraries,
+  });
+  
   const [center, setCenter] = useState(defaultCenter);
   const [currentAddress, setCurrentAddress] = useState(initialLocation || '');
   const [currentCity, setCurrentCity] = useState('');
@@ -110,9 +120,6 @@ export const GoogleMapPicker = ({ onLocationSelect, initialLocation, onConfirm }
     address: '',
     isDefault: false
   });
-
-  // Your Google Maps API key should be stored in environment variables
-  const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
 
   // Debounced reverse geocoding function
   const reverseGeocode = useCallback((lat: number, lng: number) => {
@@ -440,6 +447,28 @@ export const GoogleMapPicker = ({ onLocationSelect, initialLocation, onConfirm }
     );
   }
 
+  if (loadError) {
+    return (
+      <div className="p-8 text-center border border-destructive rounded-lg bg-destructive/10">
+        <p className="text-destructive font-semibold">
+          Error al cargar Google Maps
+        </p>
+        <p className="text-sm text-muted-foreground mt-2">
+          Por favor recarga la página e intenta de nuevo
+        </p>
+      </div>
+    );
+  }
+
+  if (!isLoaded) {
+    return (
+      <div className="p-8 text-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+        <p className="text-muted-foreground">Cargando mapa...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {/* Saved Locations - Show for authenticated users */}
@@ -628,11 +657,7 @@ export const GoogleMapPicker = ({ onLocationSelect, initialLocation, onConfirm }
         </div>
       )}
 
-      <LoadScript
-        googleMapsApiKey={GOOGLE_MAPS_API_KEY}
-        libraries={libraries}
-      >
-        {/* Search Bar - Floating on Mobile */}
+      {/* Search Bar - Floating on Mobile */}
         <div className="space-y-3">
           <Label className="text-lg font-semibold text-foreground">
             Arrastra el mapa para seleccionar ubicación
@@ -805,7 +830,6 @@ export const GoogleMapPicker = ({ onLocationSelect, initialLocation, onConfirm }
         <p className="text-sm text-muted-foreground text-center">
           💡 Arrastra el mapa para ajustar la ubicación exacta del pin central
         </p>
-      </LoadScript>
     </div>
   );
 };
