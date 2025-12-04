@@ -35,7 +35,8 @@ import {
   Wrench as WrenchIcon,
   Square,
   Scissors,
-  GlassWater
+  GlassWater,
+  FileCheck
 } from 'lucide-react';
 import chambyLogo from '@/assets/chamby-logo-new.png';
 import providerCharacter from '@/assets/walking-provider.png';
@@ -49,6 +50,7 @@ import { PhoneInput } from '@/components/ui/phone-input';
 import { isValidMexicanPhone, formatPhoneForStorage } from '@/utils/phoneValidation';
 import { WorkZonePicker } from '@/components/WorkZonePicker';
 import { PasswordStrengthBar } from '@/components/PasswordStrengthBar';
+import { DocumentsStep } from '@/components/provider-portal/DocumentsStep';
 
 const signupSchema = z.object({
   fullName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
@@ -96,6 +98,7 @@ const PROGRESS_STEPS = [
   { id: 3, label: 'PERFIL' },
   { id: 4, label: 'SKILLS' },
   { id: 5, label: 'ZONA' },
+  { id: 6, label: 'DOCS' },
 ];
 
 export default function ProviderOnboardingWizard() {
@@ -208,7 +211,7 @@ export default function ProviderOnboardingWizard() {
     }
   }, [user, authMode, navigate]);
 
-  const totalSteps = 7;
+  const totalSteps = 8;
   const progress = Math.max(0, ((currentStep - 1) / (totalSteps - 2)) * 100);
 
   const [showEmailVerification, setShowEmailVerification] = useState(false);
@@ -506,6 +509,9 @@ export default function ProviderOnboardingWizard() {
         return selectedSkills.length > 0;
       case 5:
         return workZone.trim().length > 0;
+      case 6:
+        // Documents step is optional, always allow to proceed
+        return true;
       default:
         return true;
     }
@@ -620,7 +626,7 @@ export default function ProviderOnboardingWizard() {
         </div>
 
         {/* Progress Track */}
-        {currentStep >= 2 && currentStep <= 6 && (
+        {currentStep >= 2 && currentStep <= 7 && (
           <div className="px-4 pb-4">
             <div className="flex items-center justify-between text-[10px] font-semibold tracking-wider mb-2">
               {PROGRESS_STEPS.map((step) => (
@@ -643,16 +649,20 @@ export default function ProviderOnboardingWizard() {
               {/* Progress dots */}
               <div className="absolute top-1/2 -translate-y-1/2 left-0 w-2 h-2 rounded-full bg-primary" />
               <div className={cn(
-                "absolute top-1/2 -translate-y-1/2 left-1/3 w-2 h-2 rounded-full transition-colors",
+                "absolute top-1/2 -translate-y-1/2 left-1/4 w-2 h-2 rounded-full transition-colors",
                 currentStep >= 3 ? "bg-primary" : "bg-muted-foreground/30"
               )} />
               <div className={cn(
-                "absolute top-1/2 -translate-y-1/2 left-2/3 w-2 h-2 rounded-full transition-colors",
+                "absolute top-1/2 -translate-y-1/2 left-1/2 w-2 h-2 rounded-full transition-colors",
                 currentStep >= 4 ? "bg-primary" : "bg-muted-foreground/30"
               )} />
               <div className={cn(
-                "absolute top-1/2 -translate-y-1/2 right-0 w-2 h-2 rounded-full transition-colors",
+                "absolute top-1/2 -translate-y-1/2 left-3/4 w-2 h-2 rounded-full transition-colors",
                 currentStep >= 5 ? "bg-primary" : "bg-muted-foreground/30"
+              )} />
+              <div className={cn(
+                "absolute top-1/2 -translate-y-1/2 right-0 w-2 h-2 rounded-full transition-colors",
+                currentStep >= 6 ? "bg-primary" : "bg-muted-foreground/30"
               )} />
             </div>
           </div>
@@ -737,8 +747,10 @@ export default function ProviderOnboardingWizard() {
       case 5:
         return renderZoneStep();
       case 6:
-        return renderAvailabilityStep();
+        return renderDocumentsStep();
       case 7:
+        return renderAvailabilityStep();
+      case 8:
         return renderCompletionStep();
       default:
         return null;
@@ -1138,6 +1150,12 @@ export default function ProviderOnboardingWizard() {
     );
   }
 
+  function renderDocumentsStep() {
+    return (
+      <DocumentsStep isOptional={true} />
+    );
+  }
+
   function renderZoneStep() {
     return (
       <div className="space-y-6">
@@ -1266,24 +1284,33 @@ export default function ProviderOnboardingWizard() {
         ? 'Procesando...' 
         : currentStep === 2 && !user 
           ? (authMode === 'signup' ? 'Crear Cuenta' : 'Iniciar Sesión')
-          : 'Siguiente';
+          : currentStep === 6
+            ? 'Continuar'
+            : 'Siguiente';
 
       return (
-        <Button
-          onClick={handleClick}
-          disabled={!canGoNext() || saving}
-          className={cn(
-            "font-semibold shadow-lg bg-primary text-primary-foreground hover:bg-primary/90",
-            isMobile ? "w-full py-4 text-base rounded-xl" : ""
+        <div className={cn("flex flex-col gap-2", isMobile ? "w-full" : "")}>
+          <Button
+            onClick={handleClick}
+            disabled={!canGoNext() || saving}
+            className={cn(
+              "font-semibold shadow-lg bg-primary text-primary-foreground hover:bg-primary/90",
+              isMobile ? "w-full py-4 text-base rounded-xl" : ""
+            )}
+          >
+            {buttonText}
+            {currentStep === 2 && authMode === 'login' && !user ? (
+              <LogIn className="w-4 h-4 ml-2" />
+            ) : (
+              <ArrowRight className="w-4 h-4 ml-2" />
+            )}
+          </Button>
+          {currentStep === 6 && isMobile && (
+            <p className="text-xs text-center text-muted-foreground">
+              Puedes completar la verificación después
+            </p>
           )}
-        >
-          {buttonText}
-          {currentStep === 2 && authMode === 'login' && !user ? (
-            <LogIn className="w-4 h-4 ml-2" />
-          ) : (
-            <ArrowRight className="w-4 h-4 ml-2" />
-          )}
-        </Button>
+        </div>
       );
     }
 
