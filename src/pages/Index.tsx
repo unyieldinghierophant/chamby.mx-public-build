@@ -12,6 +12,7 @@ import { Menu, X } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AllCategoriesDialog } from "@/components/AllCategoriesDialog";
 import { ReviewsCarousel } from "@/components/ReviewsCarousel";
+import { FullPageSkeleton } from "@/components/skeletons";
 const Index = () => {
   const {
     user,
@@ -43,12 +44,7 @@ const Index = () => {
     }
   }, [user, loading, navigate]);
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Cargando...</p>
-        </div>
-      </div>;
+    return <FullPageSkeleton />;
   }
 
   // Not logged in - show landing page

@@ -19,7 +19,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-// import { useFCMToken } from "@/hooks/useFCMToken";
+import { ProviderDashboardSkeleton } from "@/components/skeletons";
 
 interface UpcomingJob {
   id: string;
@@ -154,11 +154,7 @@ const ProviderDashboardHome = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
-      </div>
-    );
+    return <ProviderDashboardSkeleton />;
   }
 
   return (

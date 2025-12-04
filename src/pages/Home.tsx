@@ -12,6 +12,7 @@ import { Briefcase, Calendar, Clock, Heart, Shield, Star, Home as HomeIcon, Wren
 import EnhancedSearchBar from "@/components/EnhancedSearchBar";
 import HowItWorks from "@/components/HowItWorks";
 import Trust from "@/components/Trust";
+import { HomePageSkeleton } from "@/components/skeletons";
 
 export default function Home() {
   const { user, loading: authLoading } = useAuth();
@@ -35,11 +36,12 @@ export default function Home() {
 
   if (authLoading || roleLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Cargando...</p>
-        </div>
+      <div className="min-h-screen bg-background">
+        <Header />
+        <section className="relative min-h-screen bg-background flex items-center justify-center pt-20 overflow-hidden">
+          <HomePageSkeleton />
+        </section>
+        <Footer />
       </div>
     );
   }

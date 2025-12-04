@@ -20,10 +20,14 @@ import {
   Mail
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { ProfileCardSkeleton, MenuSectionSkeleton } from "@/components/skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const MobileProfile = () => {
-  const { user, signOut } = useAuth();
-  const { profile } = useProfile();
+  const { user, signOut, loading: authLoading } = useAuth();
+  const { profile, loading: profileLoading } = useProfile();
+
+  const isLoading = authLoading || profileLoading;
 
   const menuSections = [
     {
@@ -91,7 +95,7 @@ const MobileProfile = () => {
     }
   ];
 
-  if (!user) {
+  if (!user && !authLoading) {
     return (
       <div className="min-h-screen bg-gradient-main flex items-center justify-center pb-20">
         <div className="text-center p-8">
@@ -102,6 +106,28 @@ const MobileProfile = () => {
         </div>
         <MobileBottomNav />
       </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <>
+        <Header />
+        <div className="min-h-screen bg-gradient-main pb-20 pt-32">
+          <div className="bg-gradient-glass backdrop-blur-glass border-b border-white/20 sticky top-32 z-40">
+            <div className="p-4">
+              <Skeleton className="h-7 w-28" />
+            </div>
+          </div>
+          <div className="p-4 space-y-6">
+            <ProfileCardSkeleton />
+            <MenuSectionSkeleton itemCount={3} />
+            <MenuSectionSkeleton itemCount={2} />
+            <MenuSectionSkeleton itemCount={3} />
+          </div>
+        </div>
+        <MobileBottomNav />
+      </>
     );
   }
 

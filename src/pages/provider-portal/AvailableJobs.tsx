@@ -3,7 +3,8 @@ import { useAvailableJobs } from "@/hooks/useAvailableJobs";
 import { useNotifications } from "@/hooks/useNotifications";
 import { JobRequestCard } from "@/components/provider-portal/JobRequestCard";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Briefcase, Loader2 } from "lucide-react";
+import { Briefcase } from "lucide-react";
+import { JobCardSkeleton } from "@/components/skeletons";
 
 const AvailableJobs = () => {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
@@ -46,8 +47,10 @@ const AvailableJobs = () => {
       </Tabs>
 
       {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <JobCardSkeleton key={i} style={{ animationDelay: `${i * 100}ms` }} />
+          ))}
         </div>
       ) : filteredNotifications.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
