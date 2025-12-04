@@ -18,7 +18,7 @@ export function PasswordStrengthBar({ password, className }: PasswordStrengthBar
     { label: 'Al menos una mayúscula (A-Z)', met: /[A-Z]/.test(password) },
     { label: 'Al menos una minúscula (a-z)', met: /[a-z]/.test(password) },
     { label: 'Al menos un número (0-9)', met: /[0-9]/.test(password) },
-    { label: 'Al menos un caracter especial (!@#$%^&*)', met: /[!@#$%^&*(),.?":{}|<>]/.test(password) },
+    { label: 'Al menos un caracter especial', met: /[^a-zA-Z0-9\s]/.test(password) },
   ], [password]);
 
   const strength = useMemo(() => {

@@ -61,7 +61,8 @@ const signupSchema = z.object({
     .min(8, 'La contraseña debe tener al menos 8 caracteres')
     .regex(/[A-Z]/, 'Debe contener al menos una mayúscula')
     .regex(/[a-z]/, 'Debe contener al menos una minúscula')
-    .regex(/[0-9]/, 'Debe contener al menos un número'),
+    .regex(/[0-9]/, 'Debe contener al menos un número')
+    .regex(/[^a-zA-Z0-9\s]/, 'Debe contener al menos un caracter especial'),
   confirmPassword: z.string()
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Las contraseñas no coinciden",
