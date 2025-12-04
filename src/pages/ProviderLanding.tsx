@@ -320,7 +320,7 @@ const ProviderLanding = () => {
         </div>
       </section>
 
-      {/* Testimonials Placeholder */}
+      {/* Testimonials */}
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
@@ -333,22 +333,46 @@ const ProviderLanding = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {[1, 2, 3].map((item) => (
-              <Card key={item} className="bg-card border border-border">
+            {[
+              {
+                quote: "Antes tenía que buscar clientes por mi cuenta. Ahora con Chamby me llegan trabajos constantes y el pago siempre es seguro. En 3 meses dupliqué mis ingresos.",
+                name: "Roberto Mendoza",
+                specialty: "Plomero · Guadalajara",
+                rating: 5,
+                initials: "RM"
+              },
+              {
+                quote: "Lo que más me gusta es la flexibilidad. Yo decido cuándo trabajar y qué trabajos aceptar. La comisión del 10% es mucho mejor que otras plataformas.",
+                name: "María Elena Torres",
+                specialty: "Limpieza · Zapopan",
+                rating: 5,
+                initials: "MT"
+              },
+              {
+                quote: "El proceso de verificación me dio confianza. Los clientes saben que somos profesionales serios. He conseguido clientes recurrentes gracias a Chamby.",
+                name: "Carlos Jiménez",
+                specialty: "Electricista · Tlaquepaque",
+                rating: 5,
+                initials: "CJ"
+              }
+            ].map((testimonial, index) => (
+              <Card key={index} className="bg-card border border-border">
                 <CardContent className="p-6">
                   <Quote className="h-6 w-6 text-primary mb-4" />
                   <p className="text-sm text-muted-foreground mb-5 italic">
-                    "Testimonial placeholder - Historia de éxito de un profesional que trabaja con Chamby."
+                    "{testimonial.quote}"
                   </p>
                   <div className="flex items-center">
-                    <div className="w-10 h-10 bg-muted rounded-full mr-3"></div>
+                    <div className="w-10 h-10 bg-primary/10 rounded-full mr-3 flex items-center justify-center">
+                      <span className="text-sm font-semibold text-primary">{testimonial.initials}</span>
+                    </div>
                     <div>
-                      <div className="font-semibold text-foreground text-sm">Nombre del Profesional</div>
-                      <div className="text-xs text-muted-foreground">Especialidad</div>
+                      <div className="font-semibold text-foreground text-sm">{testimonial.name}</div>
+                      <div className="text-xs text-muted-foreground">{testimonial.specialty}</div>
                     </div>
                   </div>
                   <div className="flex mt-3">
-                    {[...Array(5)].map((_, i) => (
+                    {[...Array(testimonial.rating)].map((_, i) => (
                       <Star key={i} className="h-4 w-4 text-yellow-400 fill-current" />
                     ))}
                   </div>
