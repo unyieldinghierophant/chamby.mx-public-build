@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { JobListSkeleton } from "@/components/skeletons";
 
 const MobileJobs = () => {
   const { user } = useAuth();
@@ -227,7 +228,9 @@ const MobileJobs = () => {
           
           <div className="mt-4 space-y-4">
             <TabsContent value="upcoming" className="mt-0">
-              {getCategoryJobs("upcoming").length > 0 ? (
+              {loading ? (
+                <JobListSkeleton count={2} />
+              ) : getCategoryJobs("upcoming").length > 0 ? (
                 getCategoryJobs("upcoming").map((job) => (
                   <JobCard key={job.id} job={job} />
                 ))
@@ -240,7 +243,9 @@ const MobileJobs = () => {
             </TabsContent>
             
             <TabsContent value="in_progress" className="mt-0">
-              {getCategoryJobs("in_progress").length > 0 ? (
+              {loading ? (
+                <JobListSkeleton count={2} />
+              ) : getCategoryJobs("in_progress").length > 0 ? (
                 getCategoryJobs("in_progress").map((job) => (
                   <JobCard key={job.id} job={job} />
                 ))
@@ -253,7 +258,9 @@ const MobileJobs = () => {
             </TabsContent>
             
             <TabsContent value="past" className="mt-0">
-              {getCategoryJobs("past").length > 0 ? (
+              {loading ? (
+                <JobListSkeleton count={2} />
+              ) : getCategoryJobs("past").length > 0 ? (
                 getCategoryJobs("past").map((job) => (
                   <JobCard key={job.id} job={job} />
                 ))
