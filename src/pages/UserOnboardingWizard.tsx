@@ -118,6 +118,12 @@ export default function UserOnboardingWizard() {
 
   useEffect(() => {
     if (user) {
+      // If user logged in (not signing up), redirect directly to landing
+      if (authMode === 'login') {
+        navigate(ROUTES.USER_LANDING);
+        return;
+      }
+      
       setCurrentStep(3);
       
       const loadUserData = async () => {
@@ -142,7 +148,7 @@ export default function UserOnboardingWizard() {
 
       loadUserData();
     }
-  }, [user]);
+  }, [user, authMode, navigate]);
 
   const totalSteps = 4;
   const progress = Math.max(0, ((currentStep - 1) / (totalSteps - 1)) * 100);
@@ -248,6 +254,7 @@ export default function UserOnboardingWizard() {
 
     toast.success('¡Bienvenido de vuelta!');
     setSaving(false);
+    navigate(ROUTES.USER_LANDING);
   };
 
   const handleGoogleLogin = async () => {
@@ -965,16 +972,13 @@ export default function UserOnboardingWizard() {
           ? (authMode === 'signup' ? 'Crear Cuenta' : 'Iniciar Sesión')
           : 'Siguiente';
 
-      const isSignupButton = currentStep === 2 && !user && authMode === 'signup';
-
       return (
         <Button
           onClick={handleClick}
           disabled={!canGoNext() || saving}
           className={cn(
-            "font-semibold shadow-lg",
-            isMobile ? "w-full py-4 text-base rounded-xl" : "",
-            isSignupButton ? "bg-primary text-primary-foreground hover:bg-primary/90" : ""
+            "font-semibold shadow-lg bg-primary text-primary-foreground hover:bg-primary/90",
+            isMobile ? "w-full py-4 text-base rounded-xl" : ""
           )}
         >
           {buttonText}
@@ -992,7 +996,7 @@ export default function UserOnboardingWizard() {
         onClick={handleFinish}
         disabled={saving}
         className={cn(
-          "bg-green-600 hover:bg-green-700 font-semibold shadow-lg",
+          "bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg",
           isMobile ? "w-full py-4 text-base rounded-xl" : ""
         )}
       >
