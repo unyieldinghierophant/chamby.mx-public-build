@@ -312,7 +312,7 @@ export default function ProviderOnboardingWizard() {
 
     toast.success('¡Bienvenido de vuelta!');
     setSaving(false);
-    navigate(ROUTES.PROVIDER_PORTAL);
+    // Navigation handled by useEffect based on onboarding status
   };
 
   const handleGoogleLogin = async () => {
