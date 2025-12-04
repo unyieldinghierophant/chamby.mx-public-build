@@ -1,13 +1,22 @@
 import { useEffect, useRef } from 'react';
-import { TileLayer, Circle, useMapEvents, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Circle, useMapEvents, useMap } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
 
-interface MapContentProps {
+interface WorkZoneMapProps {
   center: [number, number];
   radius: number;
   onPositionChange: (lat: number, lng: number) => void;
 }
 
-export function WorkZoneMapContent({ center, radius, onPositionChange }: MapContentProps) {
+// Inner component that uses react-leaflet hooks
+function MapEventHandler({ 
+  center, 
+  onPositionChange 
+}: { 
+  center: [number, number]; 
+  onPositionChange: (lat: number, lng: number) => void;
+}) {
+  const map = useMap();
   const prevCenter = useRef(center);
   
   // Handle map clicks
@@ -17,8 +26,7 @@ export function WorkZoneMapContent({ center, radius, onPositionChange }: MapCont
     },
   });
   
-  // Handle recentering
-  const map = useMap();
+  // Handle recentering when center changes
   useEffect(() => {
     if (prevCenter.current[0] !== center[0] || prevCenter.current[1] !== center[1]) {
       map.setView(center, map.getZoom());
@@ -26,8 +34,18 @@ export function WorkZoneMapContent({ center, radius, onPositionChange }: MapCont
     }
   }, [center, map]);
 
+  return null;
+}
+
+export default function WorkZoneMap({ center, radius, onPositionChange }: WorkZoneMapProps) {
   return (
-    <>
+    <MapContainer
+      center={center}
+      zoom={11}
+      style={{ height: '300px', width: '100%' }}
+      zoomControl={false}
+      attributionControl={false}
+    >
       <TileLayer
         url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
       />
@@ -41,6 +59,7 @@ export function WorkZoneMapContent({ center, radius, onPositionChange }: MapCont
           weight: 2,
         }}
       />
-    </>
+      <MapEventHandler center={center} onPositionChange={onPositionChange} />
+    </MapContainer>
   );
 }
