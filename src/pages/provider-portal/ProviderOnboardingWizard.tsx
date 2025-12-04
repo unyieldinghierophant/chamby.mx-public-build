@@ -164,15 +164,26 @@ export default function ProviderOnboardingWizard() {
 
   useEffect(() => {
     if (user) {
-      // If user logged in (not signing up), redirect directly to portal
-      if (authMode === 'login') {
-        navigate(ROUTES.PROVIDER_PORTAL);
-        return;
-      }
-      
-      setCurrentStep(3);
-      
-      const loadUserData = async () => {
+      // Check if provider has completed onboarding (has skills)
+      const checkOnboardingStatus = async () => {
+        const { data: provider } = await supabase
+          .from('providers')
+          .select('skills, zone_served')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        // If provider has skills and zone, they've completed onboarding - redirect to portal
+        const hasCompletedOnboarding = provider?.skills?.length > 0 && provider?.zone_served;
+        
+        // If user logged in (not signing up) AND has completed onboarding, redirect to portal
+        if (authMode === 'login' && hasCompletedOnboarding) {
+          navigate(ROUTES.PROVIDER_PORTAL);
+          return;
+        }
+        
+        // Otherwise, continue with wizard
+        setCurrentStep(3);
+        
         const { data: userData } = await supabase
           .from('users')
           .select('full_name, phone')
@@ -193,7 +204,7 @@ export default function ProviderOnboardingWizard() {
         }
       };
 
-      loadUserData();
+      checkOnboardingStatus();
     }
   }, [user, authMode, navigate]);
 
@@ -529,7 +540,7 @@ export default function ProviderOnboardingWizard() {
           
           <div className="w-full space-y-3 max-w-sm">
             <Button 
-              className="w-full py-6 bg-primary text-white font-semibold text-lg rounded-xl hover:bg-primary/90 shadow-lg"
+              className="w-full py-6 bg-white text-primary font-semibold text-lg rounded-xl hover:bg-white/90 shadow-lg"
               onClick={goToNext}
             >
               Comenzar
