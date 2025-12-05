@@ -21,6 +21,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthModal } from './AuthModal';
 import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { BookingConfirmation } from './BookingConfirmation';
+import { JobSuccessScreen } from './JobSuccessScreen';
 
 // Input validation schema
 const jobRequestSchema = z.object({
@@ -181,8 +182,8 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [whatsappUrl, setWhatsappUrl] = useState("");
-  const [showWhatsAppButton, setShowWhatsAppButton] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [createdJobId, setCreatedJobId] = useState<string | null>(null);
   const [isLoadingForm, setIsLoadingForm] = useState(true);
   const { toast } = useToast();
   const { saveFormData, loadFormData, clearFormData } = useFormPersistence('job-booking');
@@ -430,10 +431,21 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
   };
 
 
-  const handleSubmit = async () => {
+  // Show confirmation screen first (step before actual submission)
+  const handleShowConfirmation = () => {
     if (!canProceedToNextStep()) return;
 
-    // Final submission requires authentication
+    // Check authentication before showing confirmation
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+
+    setShowConfirmation(true);
+  };
+
+  // Actually submit the job (called from confirmation screen)
+  const handleSubmit = async () => {
     if (!user) {
       setShowAuthModal(true);
       return;
@@ -449,28 +461,6 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
       } else if (datePreference === 'before') {
         dateText = "Inmediatamente";
       }
-
-      // Format time slots
-      let timeSlotText = "Sin preferencia";
-      if (needsSpecificTime && selectedTimeSlots.length > 0) {
-        const slotLabels = selectedTimeSlots.map(slotId => {
-          const slot = timeSlots.find(s => s.id === slotId);
-          return slot ? `${slot.label} (${slot.time})` : '';
-        }).filter(Boolean);
-        timeSlotText = slotLabels.join(', ');
-      }
-
-      // Prepare job data
-      const jobData = {
-        user_id: (await supabase.auth.getUser()).data.user?.id || null,
-        service: taskDescription,
-        date: dateText,
-        time_preference: timeSlotText,
-        exact_time: needsSpecificTime ? timeSlotText : null,
-        location: location,
-        details: details,
-        photo_count: uploadedFiles.length,
-      };
 
       // Validate input before submission
       const validationResult = jobRequestSchema.safeParse({
@@ -488,10 +478,11 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
           description: firstError.message,
           variant: "destructive",
         });
+        setIsSubmitting(false);
         return;
       }
 
-      // Create job entry in jobs table using auth.user.id directly
+      // Create job entry in jobs table
       const scheduledDate = specificDate || new Date(Date.now() + 24 * 60 * 60 * 1000);
       
       const { data: newJob, error: jobError } = await supabase
@@ -534,14 +525,15 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
         });
       } catch (notifError) {
         console.error('Failed to send notification:', notifError);
-        // Continue anyway - notification is not critical
       }
       
       // Clear saved form data
       clearFormData();
       
-      // Navigate to waiting page
-      navigate(`/esperando-proveedor?job_id=${newJob.id}`);
+      // Store job ID and show success screen
+      setCreatedJobId(newJob.id);
+      setShowConfirmation(false);
+      setShowSuccess(true);
 
     } catch (error: any) {
       console.error('Error submitting task:', error);
@@ -584,11 +576,8 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
     navigate('/auth/user');
   };
 
-  const handleConfirmSubmit = () => {
-    // Clear saved form data
-    clearFormData();
-
-    // Reset form
+  const handleSuccessNavigate = () => {
+    // Reset form state
     setCurrentStep(1);
     setTaskDescription("");
     setDatePreference('specific');
@@ -598,29 +587,14 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
     setLocation("");
     setDetails("");
     setUploadedFiles([]);
-    setShowConfirmation(false);
+    setShowSuccess(false);
     
-    // Try to open WhatsApp
-    const whatsappWindow = window.open(whatsappUrl, '_blank');
-    
-    // Safari often blocks window.open, show manual button as fallback
-    if (!whatsappWindow || whatsappWindow.closed || typeof whatsappWindow.closed === 'undefined') {
-      console.log('WhatsApp redirect was blocked, showing manual button');
-      setShowWhatsAppButton(true);
-      toast({
-        title: "Abre WhatsApp manualmente",
-        description: "Tu navegador bloqueó la redirección automática. Usa el botón verde para continuar.",
-        duration: 8000,
-      });
-    } else {
-      // Redirect was successful
-      setShowWhatsAppButton(false);
-    }
+    // Navigate to waiting page
+    navigate(`/esperando-proveedor?job_id=${createdJobId}`);
   };
 
   const handleGoBack = () => {
     setShowConfirmation(false);
-    setIsSubmitting(false);
   };
 
   // Format display values for confirmation screen
@@ -720,8 +694,13 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
 
       {/* Main Content */}
       <div className="flex-1 max-w-3xl">
-        {/* Show confirmation screen or form */}
-        {showConfirmation ? (
+        {/* Show success screen */}
+        {showSuccess && createdJobId ? (
+          <JobSuccessScreen
+            jobId={createdJobId}
+            onNavigate={handleSuccessNavigate}
+          />
+        ) : showConfirmation ? (
           <BookingConfirmation
             service={taskDescription}
             date={getFormattedDate()}
@@ -729,44 +708,10 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
             location={location}
             details={details}
             photoCount={uploadedFiles.length}
-            onConfirm={handleConfirmSubmit}
+            onConfirm={handleSubmit}
             onGoBack={handleGoBack}
+            isSubmitting={isSubmitting}
           />
-        ) : showWhatsAppButton ? (
-          <div className="w-full max-w-3xl mx-auto space-y-8 animate-fade-in">
-            <div className="text-center space-y-4">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-success/10 mx-auto mb-4">
-                <Check className="w-8 h-8 text-success" />
-              </div>
-              <h1 className="text-4xl font-bold text-foreground font-['Made_Dillan']">
-                ¡Solicitud lista!
-              </h1>
-              <p className="text-muted-foreground text-lg">
-                Haz clic en el botón para continuar con tu solicitud en WhatsApp
-              </p>
-            </div>
-
-            <Card className="p-8 space-y-6 border-2 bg-gradient-to-br from-success/5 to-primary/5">
-              <div className="text-center space-y-4">
-                <p className="text-foreground text-lg">
-                  Tu navegador bloqueó la redirección automática.
-                </p>
-                <p className="text-muted-foreground">
-                  No te preocupes, usa el botón de abajo para abrir WhatsApp manualmente.
-                </p>
-              </div>
-              
-              <ModernButton
-                variant="primary"
-                onClick={() => {
-                  window.location.href = whatsappUrl;
-                }}
-                className="w-full h-16 px-12 text-lg rounded-full"
-              >
-                Abrir WhatsApp
-              </ModernButton>
-            </Card>
-          </div>
         ) : (
           <>
         {/* Step 1: Title & Date */}
@@ -1064,11 +1009,11 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
               <ModernButton
                 variant="primary"
                 size="xl"
-                onClick={handleSubmit}
+                onClick={handleShowConfirmation}
                 disabled={!canProceedToNextStep() || isSubmitting}
                 className="h-16 px-12 text-lg rounded-full transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-xl shadow-lg"
               >
-                {isSubmitting ? "Procesando..." : "Confirmar servicio"}
+                Confirmar servicio
               </ModernButton>
             )}
           </div>

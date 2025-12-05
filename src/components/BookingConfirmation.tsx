@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ModernButton } from "@/components/ui/modern-button";
-import { Card } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Check, MapPin, Calendar, FileText, Image, ArrowLeft } from "lucide-react";
+import { Check, MapPin, Calendar, FileText, Image, Clock } from "lucide-react";
 
 interface BookingConfirmationProps {
   service: string;
@@ -14,6 +11,7 @@ interface BookingConfirmationProps {
   photoCount: number;
   onConfirm: () => void;
   onGoBack: () => void;
+  isSubmitting?: boolean;
 }
 
 export const BookingConfirmation = ({
@@ -25,21 +23,22 @@ export const BookingConfirmation = ({
   photoCount,
   onConfirm,
   onGoBack,
+  isSubmitting = false,
 }: BookingConfirmationProps) => {
   const [countdown, setCountdown] = useState(15);
   const [progressValue, setProgressValue] = useState(0);
 
   useEffect(() => {
-    // Update progress bar
+    if (isSubmitting) return;
+
     const progressInterval = setInterval(() => {
       setProgressValue((prev) => {
-        const increment = (100 / 15) / 10; // Update 10 times per second over 15 seconds
+        const increment = (100 / 15) / 10;
         if (prev >= 100) return 100;
         return prev + increment;
       });
     }, 100);
 
-    // Update countdown
     const countdownInterval = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
@@ -56,112 +55,122 @@ export const BookingConfirmation = ({
       clearInterval(countdownInterval);
       clearInterval(progressInterval);
     };
-  }, [onConfirm]);
+  }, [onConfirm, isSubmitting]);
+
+  const formatCountdown = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   return (
-    <div className="w-full max-w-3xl mx-auto space-y-8 animate-fade-in">
-      <div className="text-center space-y-4">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-success/10 mx-auto mb-4">
-          <Check className="w-8 h-8 text-success" />
-        </div>
-        <h1 className="text-4xl font-bold text-foreground font-['Made_Dillan']">
-          Revisa tu solicitud
+    <div className="w-full max-w-xl mx-auto space-y-6 animate-fade-in">
+      {/* Header */}
+      <div className="text-center space-y-2 pb-4">
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground font-['Made_Dillan']">
+          Preparando tu solicitud...
         </h1>
-        <p className="text-muted-foreground text-lg">
-          Confirma que toda la información sea correcta antes de enviar
+        <p className="text-muted-foreground">
+          Verifica que todo esté correcto
         </p>
       </div>
 
-      <Card className="p-6 space-y-6 border-2">
-        <div className="space-y-4">
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+      {/* Summary Card - Uber Style */}
+      <div className="bg-card border-2 border-border rounded-2xl overflow-hidden shadow-lg">
+        {/* Service Header */}
+        <div className="bg-primary/5 px-6 py-4 border-b border-border">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
               <Check className="w-5 h-5 text-primary" />
             </div>
             <div className="flex-1">
-              <p className="text-sm text-muted-foreground font-medium">Servicio</p>
-              <p className="text-base font-semibold text-foreground mt-1">{service}</p>
+              <p className="text-sm text-muted-foreground">Servicio</p>
+              <p className="font-semibold text-foreground">{service}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Details List */}
+        <div className="divide-y divide-border">
+          {/* Date */}
+          <div className="px-6 py-4 flex items-center gap-4">
+            <Calendar className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-muted-foreground">Fecha</p>
+              <p className="font-medium text-foreground">{date}</p>
             </div>
           </div>
 
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <Calendar className="w-5 h-5 text-primary" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm text-muted-foreground font-medium">Fecha y hora</p>
-              <p className="text-base font-semibold text-foreground mt-1">{date}</p>
-              {timePreference !== "Sin preferencia" && (
-                <p className="text-sm text-muted-foreground mt-1">{timePreference}</p>
-              )}
-            </div>
-          </div>
-
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <MapPin className="w-5 h-5 text-primary" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm text-muted-foreground font-medium">Ubicación</p>
-              <p className="text-base font-semibold text-foreground mt-1">{location}</p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <FileText className="w-5 h-5 text-primary" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm text-muted-foreground font-medium">Detalles</p>
-              <p className="text-base text-foreground mt-1 line-clamp-3">{details}</p>
-            </div>
-          </div>
-
-          {photoCount > 0 && (
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <Image className="w-5 h-5 text-primary" />
+          {/* Time */}
+          {timePreference !== "Sin preferencia" && (
+            <div className="px-6 py-4 flex items-center gap-4">
+              <Clock className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-muted-foreground">Horario preferido</p>
+                <p className="font-medium text-foreground">{timePreference}</p>
               </div>
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground font-medium">Fotos adjuntas</p>
-                <p className="text-base font-semibold text-foreground mt-1">
+            </div>
+          )}
+
+          {/* Location */}
+          <div className="px-6 py-4 flex items-center gap-4">
+            <MapPin className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-muted-foreground">Ubicación</p>
+              <p className="font-medium text-foreground truncate">{location}</p>
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="px-6 py-4 flex items-start gap-4">
+            <FileText className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-muted-foreground">Detalles</p>
+              <p className="font-medium text-foreground line-clamp-2">{details}</p>
+            </div>
+          </div>
+
+          {/* Photos */}
+          {photoCount > 0 && (
+            <div className="px-6 py-4 flex items-center gap-4">
+              <Image className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-muted-foreground">Fotos adjuntas</p>
+                <p className="font-medium text-foreground">
                   {photoCount} {photoCount === 1 ? 'foto' : 'fotos'}
                 </p>
               </div>
             </div>
           )}
         </div>
-      </Card>
-
-      {/* Auto-redirect progress */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">
-            Redirigiendo a WhatsApp en {countdown} segundo{countdown !== 1 ? 's' : ''}...
-          </span>
-          <span className="text-primary font-semibold">{Math.round(progressValue)}%</span>
-        </div>
-        <Progress value={progressValue} className="h-2" />
       </div>
 
-      {/* Action buttons */}
-      <div className="flex flex-col sm:flex-row gap-4 pt-4">
+      {/* Action Buttons - Uber Style */}
+      <div className="space-y-3 pt-2">
+        {/* Primary Button with Countdown */}
         <Button
-          variant="outline"
-          onClick={onGoBack}
-          className="h-14 px-8 rounded-full text-base flex items-center gap-2"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          Volver y editar
-        </Button>
-        
-        <ModernButton
-          variant="primary"
           onClick={onConfirm}
-          className="h-14 px-8 rounded-full text-base flex-1"
+          disabled={isSubmitting}
+          className="w-full h-14 rounded-full text-base font-semibold bg-foreground text-background hover:bg-foreground/90 transition-all"
         >
-          Todo correcto - Enviar ahora
-        </ModernButton>
+          {isSubmitting ? (
+            <span className="flex items-center gap-2">
+              <span className="w-5 h-5 border-2 border-background/30 border-t-background rounded-full animate-spin" />
+              Enviando...
+            </span>
+          ) : (
+            `Todo listo (${formatCountdown(countdown)})`
+          )}
+        </Button>
+
+        {/* Go Back Link */}
+        <button
+          onClick={onGoBack}
+          disabled={isSubmitting}
+          className="w-full py-3 text-muted-foreground hover:text-foreground transition-colors text-sm font-medium disabled:opacity-50"
+        >
+          Volver y editar
+        </button>
       </div>
     </div>
   );
