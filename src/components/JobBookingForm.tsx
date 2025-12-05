@@ -524,11 +524,11 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
 
       console.log('✅ Job created successfully:', newJob.id);
 
-      // Send WhatsApp notification
+      // Send WhatsApp notification to company
       try {
         await supabase.functions.invoke('send-whatsapp-notification', {
           body: { 
-            jobId: newJob.id,
+            job_id: newJob.id,
             type: 'new_job_request' 
           }
         });

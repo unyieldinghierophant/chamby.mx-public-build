@@ -9,8 +9,11 @@ interface WhatsAppNotificationRequest {
   reschedule_id?: string;
   booking_id?: string;
   job_id?: string;
-  type: 'reschedule_request' | 'job_reminder' | 'transfer_warning' | 'new_job_available';
+  type: 'reschedule_request' | 'job_reminder' | 'transfer_warning' | 'new_job_available' | 'new_job_request';
 }
+
+// Company phone number for job request notifications
+const COMPANY_PHONE = '523325520551';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -29,7 +32,132 @@ Deno.serve(async (req) => {
     let message: string;
     let linkUrl: string;
 
-    if (type === 'reschedule_request' && reschedule_id) {
+    if (type === 'new_job_request' && job_id) {
+      // Handle new job request notification to company
+      console.log('Processing new_job_request for job_id:', job_id);
+
+      // Fetch job details with client info
+      const { data: job, error: jobError } = await supabase
+        .from('jobs')
+        .select('*')
+        .eq('id', job_id)
+        .single();
+
+      if (jobError || !job) {
+        console.error('Error fetching job:', jobError);
+        throw new Error('Job not found');
+      }
+
+      console.log('Job found:', job);
+
+      // Fetch client info
+      const { data: client, error: clientError } = await supabase
+        .from('users')
+        .select('full_name, phone, email')
+        .eq('id', job.client_id)
+        .single();
+
+      if (clientError) {
+        console.error('Error fetching client:', clientError);
+      }
+
+      console.log('Client found:', client);
+
+      // Shorten photo URLs if any
+      const shortenedPhotos: string[] = [];
+      if (job.photos && job.photos.length > 0) {
+        for (const photoUrl of job.photos) {
+          try {
+            // Generate short code
+            const { data: shortCode, error: codeError } = await supabase
+              .rpc('generate_short_code');
+
+            if (codeError || !shortCode) {
+              console.error('Error generating short code:', codeError);
+              shortenedPhotos.push(photoUrl); // Fallback to full URL
+              continue;
+            }
+
+            // Insert into photo_short_links
+            const { error: insertError } = await supabase
+              .from('photo_short_links')
+              .insert({
+                full_url: photoUrl,
+                short_code: shortCode,
+              });
+
+            if (insertError) {
+              console.error('Error inserting short link:', insertError);
+              shortenedPhotos.push(photoUrl);
+            } else {
+              shortenedPhotos.push(`https://chamby.mx/p/${shortCode}`);
+            }
+          } catch (e) {
+            console.error('Error shortening URL:', e);
+            shortenedPhotos.push(photoUrl);
+          }
+        }
+      }
+
+      // Format date
+      let formattedDate = 'No especificada';
+      if (job.scheduled_at) {
+        const date = new Date(job.scheduled_at);
+        formattedDate = date.toLocaleDateString('es-MX', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        });
+      }
+
+      // Format time preference
+      let timeInfo = job.time_preference || 'No especificado';
+      if (job.exact_time) {
+        timeInfo = job.exact_time;
+      }
+
+      // Build the message
+      const clientName = client?.full_name || 'No disponible';
+      const clientPhone = client?.phone || 'No disponible';
+      const clientEmail = client?.email || 'No disponible';
+
+      message = `🔔 *NUEVA SOLICITUD DE TRABAJO*
+
+📋 *Servicio:* ${job.title || 'Sin título'}
+📁 *Categoría:* ${job.category || 'Sin categoría'}
+
+📝 *Descripción:*
+${job.description || job.problem || 'Sin descripción'}
+
+📅 *Fecha:* ${formattedDate}
+⏰ *Horario:* ${timeInfo}
+
+📍 *Ubicación:*
+${job.location || 'No especificada'}
+
+👤 *Cliente:* ${clientName}
+📱 *Teléfono:* ${clientPhone}
+📧 *Email:* ${clientEmail}`;
+
+      // Add photos section if any
+      if (shortenedPhotos.length > 0) {
+        message += `\n\n📷 *Fotos:* ${shortenedPhotos.length}`;
+        shortenedPhotos.forEach((url, index) => {
+          message += `\n• ${url}`;
+        });
+      }
+
+      // Add urgency if applicable
+      if (job.urgent) {
+        message = `🚨 *URGENTE* 🚨\n\n` + message;
+      }
+
+      phoneNumber = COMPANY_PHONE;
+      console.log('Sending WhatsApp to:', phoneNumber);
+      console.log('Message:', message);
+
+    } else if (type === 'reschedule_request' && reschedule_id) {
       // Get reschedule request details
       const { data: reschedule, error: rescheduleError } = await supabase
         .from('booking_reschedules')
