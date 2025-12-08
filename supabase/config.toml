@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.send-confirmation-email]
 verify_jwt = false
+
+[functions.create-connect-account]
+verify_jwt = true
