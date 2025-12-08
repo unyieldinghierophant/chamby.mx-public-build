@@ -50,6 +50,100 @@ export type Database = {
         }
         Relationships: []
       }
+      invoice_items: {
+        Row: {
+          created_at: string | null
+          description: string
+          id: string
+          invoice_id: string
+          quantity: number
+          total: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          id?: string
+          invoice_id: string
+          quantity?: number
+          total?: number
+          unit_price?: number
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          id?: string
+          invoice_id?: string
+          quantity?: number
+          total?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          chamby_commission_amount: number
+          created_at: string | null
+          id: string
+          job_id: string
+          pdf_url: string | null
+          provider_id: string
+          provider_notes: string | null
+          status: string
+          stripe_payment_intent_id: string | null
+          subtotal_provider: number
+          total_customer_amount: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          chamby_commission_amount?: number
+          created_at?: string | null
+          id?: string
+          job_id: string
+          pdf_url?: string | null
+          provider_id: string
+          provider_notes?: string | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          subtotal_provider?: number
+          total_customer_amount?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          chamby_commission_amount?: number
+          created_at?: string | null
+          id?: string
+          job_id?: string
+          pdf_url?: string | null
+          provider_id?: string
+          provider_notes?: string | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          subtotal_provider?: number
+          total_customer_amount?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       jobs: {
         Row: {
           amount_booking_fee: number | null
@@ -77,11 +171,13 @@ export type Database = {
           scheduled_at: string | null
           service_type: string | null
           status: string | null
+          stripe_visit_payment_intent_id: string | null
           time_preference: string | null
           title: string
           total_amount: number | null
           updated_at: string | null
           urgent: boolean | null
+          visit_fee_amount: number | null
           visit_fee_paid: boolean | null
         }
         Insert: {
@@ -110,11 +206,13 @@ export type Database = {
           scheduled_at?: string | null
           service_type?: string | null
           status?: string | null
+          stripe_visit_payment_intent_id?: string | null
           time_preference?: string | null
           title: string
           total_amount?: number | null
           updated_at?: string | null
           urgent?: boolean | null
+          visit_fee_amount?: number | null
           visit_fee_paid?: boolean | null
         }
         Update: {
@@ -143,11 +241,13 @@ export type Database = {
           scheduled_at?: string | null
           service_type?: string | null
           status?: string | null
+          stripe_visit_payment_intent_id?: string | null
           time_preference?: string | null
           title?: string
           total_amount?: number | null
           updated_at?: string | null
           urgent?: boolean | null
+          visit_fee_amount?: number | null
           visit_fee_paid?: boolean | null
         }
         Relationships: []
@@ -370,6 +470,7 @@ export type Database = {
           rating: number | null
           skills: string[] | null
           specialty: string | null
+          stripe_account_id: string | null
           total_reviews: number | null
           updated_at: string | null
           user_id: string
@@ -391,6 +492,7 @@ export type Database = {
           rating?: number | null
           skills?: string[] | null
           specialty?: string | null
+          stripe_account_id?: string | null
           total_reviews?: number | null
           updated_at?: string | null
           user_id: string
@@ -412,6 +514,7 @@ export type Database = {
           rating?: number | null
           skills?: string[] | null
           specialty?: string | null
+          stripe_account_id?: string | null
           total_reviews?: number | null
           updated_at?: string | null
           user_id?: string
@@ -566,6 +669,7 @@ export type Database = {
           full_name: string | null
           id: string
           phone: string | null
+          stripe_customer_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -576,6 +680,7 @@ export type Database = {
           full_name?: string | null
           id: string
           phone?: string | null
+          stripe_customer_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -586,6 +691,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           phone?: string | null
+          stripe_customer_id?: string | null
           updated_at?: string | null
         }
         Relationships: []
