@@ -38,3 +38,6 @@ verify_jwt = false
 
 [functions.create-connect-account]
 verify_jwt = true
+
+[functions.create-visit-authorization]
+verify_jwt = true
