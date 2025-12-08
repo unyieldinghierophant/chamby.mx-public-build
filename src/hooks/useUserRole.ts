@@ -70,6 +70,9 @@ export const useUserRole = (): UserRole => {
   }, [user]);
 
   const isAdmin = roles.includes('admin');
+  
+  // Debug logging
+  console.log('[useUserRole] roles:', roles, 'isAdmin:', isAdmin, 'loading:', loading);
 
   return { role, roles, isAdmin, loading, error };
 };
