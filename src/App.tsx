@@ -62,6 +62,7 @@ import Blog from "./pages/Blog";
 import HelpCenter from "./pages/HelpCenter";
 import ActiveJobs from "./pages/ActiveJobs";
 import FindingProvider from "./pages/FindingProvider";
+import AdminDashboard from "./pages/AdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -260,6 +261,16 @@ const App = () => {
 
               {/* Photo short link redirect */}
               <Route path="/p/:shortCode" element={<PhotoRedirect />} />
+
+              {/* Admin Dashboard */}
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute requireAdmin>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
 
               <Route path="*" element={<NotFound />} />
             </Routes>

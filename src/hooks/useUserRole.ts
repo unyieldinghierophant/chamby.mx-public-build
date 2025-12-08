@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 interface UserRole {
   role: 'client' | 'provider' | null;
   roles: string[];
+  isAdmin: boolean;
   loading: boolean;
   error: string | null;
 }
@@ -68,5 +69,7 @@ export const useUserRole = (): UserRole => {
     fetchUserRole();
   }, [user]);
 
-  return { role, roles, loading, error };
+  const isAdmin = roles.includes('admin');
+
+  return { role, roles, isAdmin, loading, error };
 };
