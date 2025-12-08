@@ -508,7 +508,8 @@ export default function ProviderOnboardingWizard() {
       case 4:
         return selectedSkills.length > 0;
       case 5:
-        return workZone.trim().length > 0;
+        // Allow advancing if we have valid coordinates (zone name is optional - geocoding may fail)
+        return workZoneCoords !== null && (workZoneCoords.lat !== 0 || workZoneCoords.lng !== 0);
       case 6:
         // Documents step is optional, always allow to proceed
         return true;

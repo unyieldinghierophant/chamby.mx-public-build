@@ -38,19 +38,25 @@ export function WorkZonePicker({
     onZoneChangeRef.current = onZoneChange;
   }, [onZoneChange]);
 
-  // Reverse geocode to get zone name
+  // Reverse geocode to get zone name (with fallback if it fails)
   useEffect(() => {
     const fetchZoneName = async () => {
       try {
         const response = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${center[0]}&lon=${center[1]}&zoom=10`
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${center[0]}&lon=${center[1]}&zoom=10`,
+          { 
+            headers: { 'User-Agent': 'Chamby.mx/1.0' },
+            signal: AbortSignal.timeout(5000) // 5 second timeout
+          }
         );
+        if (!response.ok) throw new Error('Geocoding failed');
         const data = await response.json();
         const city = data.address?.city || data.address?.town || data.address?.municipality || data.address?.state || '';
-        setZoneName(city);
+        setZoneName(city || 'Zona personalizada');
       } catch (error) {
         console.error('Error fetching zone name:', error);
-        setZoneName('');
+        // Set fallback zone name so user can still proceed
+        setZoneName('Zona personalizada');
       }
     };
     
