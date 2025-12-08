@@ -1,7 +1,9 @@
 import { Facebook, Instagram, Mail, Phone, MapPin } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { useUserRole } from "@/hooks/useUserRole";
 
 const Footer = () => {
+  const { isAdmin } = useUserRole();
   const navigate = useNavigate();
   return <footer className="bg-muted/30 text-foreground border-t">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -105,9 +107,11 @@ const Footer = () => {
               <a href="#" className="hover:text-primary transition-colors">Términos de servicio</a>
               <a href="#" className="hover:text-primary transition-colors">Política de privacidad</a>
               <a href="#" className="hover:text-primary transition-colors">Política de cookies</a>
-              <Link to="/admin" className="hover:text-primary transition-colors font-medium text-primary/70">
-                Admin
-              </Link>
+              {isAdmin && (
+                <Link to="/admin" className="hover:text-primary transition-colors font-medium text-primary/70">
+                  Admin
+                </Link>
+              )}
             </div>
           </div>
         </div>

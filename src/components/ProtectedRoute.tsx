@@ -1,4 +1,4 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { ROUTES } from '@/constants/routes';
@@ -18,6 +18,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 }) => {
   const { user, loading: authLoading } = useAuth();
   const { roles, loading: roleLoading } = useUserRole();
+  const location = useLocation();
+
+  // Helper to store intended destination before redirecting to login
+  const storeReturnPath = () => {
+    const returnPath = location.pathname;
+    sessionStorage.setItem('auth_return_to', returnPath);
+    localStorage.setItem('auth_return_to', returnPath);
+  };
 
   // Show loading while checking auth and roles
   if (authLoading || ((requireProvider || requireAdmin) && roleLoading)) {
@@ -33,12 +41,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Redirect to login if auth is required and user is not logged in
   if (requireAuth && !user) {
+    storeReturnPath();
     return <Navigate to={ROUTES.USER_AUTH} replace />;
   }
 
   // For admin-only routes
   if (requireAdmin) {
     if (!user) {
+      storeReturnPath();
       return <Navigate to={ROUTES.USER_AUTH} replace />;
     }
     
@@ -55,6 +65,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // For provider-only routes, verify user has provider or admin role in database
   if (requireProvider) {
     if (!user) {
+      storeReturnPath();
       return <Navigate to={ROUTES.PROVIDER_AUTH} replace />;
     }
     
