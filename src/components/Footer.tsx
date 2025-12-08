@@ -101,11 +101,13 @@ const Footer = () => {
         <div className="border-t border-border mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="text-muted-foreground text-sm mb-4 md:mb-0">© 2025 Chamby.mx. Todos los derechos reservados.</div>
-            <div className="flex space-x-6 text-sm text-muted-foreground">
+            <div className="flex flex-wrap justify-center md:justify-end gap-4 md:gap-6 text-sm text-muted-foreground">
               <a href="#" className="hover:text-primary transition-colors">Términos de servicio</a>
               <a href="#" className="hover:text-primary transition-colors">Política de privacidad</a>
               <a href="#" className="hover:text-primary transition-colors">Política de cookies</a>
-              <Link to="/admin" className="hover:text-primary transition-colors">Admin</Link>
+              <Link to="/admin" className="hover:text-primary transition-colors font-medium text-primary/70">
+                Admin
+              </Link>
             </div>
           </div>
         </div>
