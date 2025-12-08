@@ -7,7 +7,7 @@ import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, LogOut, User, Settings, CreditCard, Shield, Users } from "lucide-react";
+import { TrendingUp, LogOut, User, Settings, CreditCard, Shield, Users, LayoutDashboard } from "lucide-react";
 import { AISearchBar } from "@/components/AISearchBar";
 import { CategoryCard } from "@/components/CategoryCard";
 import logo from "@/assets/chamby-logo-text.png";
@@ -27,6 +27,7 @@ const UserLanding = () => {
   } = useAuth();
   const {
     role,
+    isAdmin,
     loading: roleLoading
   } = useUserRole();
   const {
@@ -149,6 +150,12 @@ const UserLanding = () => {
                     <span>Portal de Proveedores</span>
                   </DropdownMenuItem>
                 )}
+                {isAdmin && (
+                  <DropdownMenuItem onClick={() => navigate("/admin")}>
+                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                    <span>Admin Dashboard</span>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} disabled={isLoggingOut}>
                   <LogOut className="mr-2 h-4 w-4" />
@@ -203,6 +210,12 @@ const UserLanding = () => {
                   <DropdownMenuItem onClick={() => navigate("/provider-portal")}>
                     <TrendingUp className="mr-2 h-4 w-4" />
                     <span>Portal de Proveedores</span>
+                  </DropdownMenuItem>
+                )}
+                {isAdmin && (
+                  <DropdownMenuItem onClick={() => navigate("/admin")}>
+                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                    <span>Admin Dashboard</span>
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
