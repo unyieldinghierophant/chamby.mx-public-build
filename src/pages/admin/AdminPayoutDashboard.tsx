@@ -294,7 +294,8 @@ const AdminPayoutDashboard = () => {
                 {filteredPayouts.map((payout) => (
                   <div 
                     key={payout.id} 
-                    className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
+                    className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors cursor-pointer"
+                    onClick={() => navigate(`/admin/payouts/${payout.id}`)}
                   >
                     <div className="flex items-center gap-4">
                       <div className={`p-2 rounded-full ${
@@ -339,7 +340,10 @@ const AdminPayoutDashboard = () => {
                         <Button 
                           size="sm" 
                           variant="outline"
-                          onClick={() => openMarkPaidDialog(payout.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openMarkPaidDialog(payout.id);
+                          }}
                         >
                           <Check className="h-4 w-4 mr-1" />
                           Marcar Pagado

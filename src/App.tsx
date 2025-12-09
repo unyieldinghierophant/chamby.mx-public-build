@@ -69,8 +69,10 @@ import InvoicePreviewPage from "./pages/provider/InvoicePreviewPage";
 import ProviderInvoiceListPage from "./pages/provider/ProviderInvoiceListPage";
 import ProviderEarningsPage from "./pages/provider/ProviderEarningsPage";
 import ProviderPayoutsPage from "./pages/provider/ProviderPayoutsPage";
+import ProviderPayoutDetailPage from "./pages/provider/ProviderPayoutDetailPage";
 import ClientInvoiceListPage from "./pages/client/ClientInvoiceListPage";
 import AdminPayoutDashboard from "./pages/admin/AdminPayoutDashboard";
+import AdminPayoutDetailPage from "./pages/admin/AdminPayoutDetailPage";
 
 const queryClient = new QueryClient();
 
@@ -350,12 +352,32 @@ const App = () => {
                 }
               />
 
+              {/* Provider Payout Detail Page */}
+              <Route
+                path="/provider/payouts/:payoutId"
+                element={
+                  <ProtectedRoute requireProvider>
+                    <ProviderPayoutDetailPage />
+                  </ProtectedRoute>
+                }
+              />
+
               {/* Admin Payout Dashboard */}
               <Route
                 path="/admin/payouts"
                 element={
                   <ProtectedRoute requireAdmin>
                     <AdminPayoutDashboard />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Admin Payout Detail Page */}
+              <Route
+                path="/admin/payouts/:payoutId"
+                element={
+                  <ProtectedRoute requireAdmin>
+                    <AdminPayoutDetailPage />
                   </ProtectedRoute>
                 }
               />
