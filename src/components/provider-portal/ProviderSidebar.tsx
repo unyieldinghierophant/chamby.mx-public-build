@@ -4,7 +4,7 @@ import {
   Briefcase,
   Calendar,
   Map,
-  CreditCard,
+  Receipt,
   ShieldCheck,
   User,
   HeadphonesIcon,
@@ -28,6 +28,7 @@ import { useAvailableJobsCount } from "@/hooks/useAvailableJobsCount";
 const menuItems = [
   { title: "Dashboard", url: "/provider-portal", icon: LayoutDashboard, end: true },
   { title: "Trabajos", url: "/provider-portal/jobs", icon: Briefcase },
+  { title: "Facturas", url: "/provider/invoices", icon: Receipt },
   { title: "Calendario", url: "/provider-portal/calendar", icon: Calendar },
   { title: "Mapa", url: "/provider-portal/map", icon: Map },
   { title: "Verificación", url: "/provider-portal/verification", icon: ShieldCheck },

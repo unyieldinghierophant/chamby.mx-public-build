@@ -53,3 +53,6 @@ verify_jwt = true
 
 [functions.send-invoice-to-client]
 verify_jwt = true
+
+[functions.list-provider-invoices]
+verify_jwt = true

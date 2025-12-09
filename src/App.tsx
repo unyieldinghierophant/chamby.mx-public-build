@@ -66,6 +66,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import InvoicePayPage from "./pages/InvoicePayPage";
 import InvoiceBuilderPage from "./pages/provider/InvoiceBuilderPage";
 import InvoicePreviewPage from "./pages/provider/InvoicePreviewPage";
+import ProviderInvoiceListPage from "./pages/provider/ProviderInvoiceListPage";
 
 const queryClient = new QueryClient();
 
@@ -305,12 +306,12 @@ const App = () => {
                 }
               />
 
-              {/* Provider Invoices List (placeholder route for now) */}
+              {/* Provider Invoices List */}
               <Route
                 path="/provider/invoices"
                 element={
                   <ProtectedRoute requireProvider>
-                    <Navigate to="/provider-portal/jobs" replace />
+                    <ProviderInvoiceListPage />
                   </ProtectedRoute>
                 }
               />
