@@ -67,6 +67,7 @@ import InvoicePayPage from "./pages/InvoicePayPage";
 import InvoiceBuilderPage from "./pages/provider/InvoiceBuilderPage";
 import InvoicePreviewPage from "./pages/provider/InvoicePreviewPage";
 import ProviderInvoiceListPage from "./pages/provider/ProviderInvoiceListPage";
+import ClientInvoiceListPage from "./pages/client/ClientInvoiceListPage";
 
 const queryClient = new QueryClient();
 
@@ -272,6 +273,16 @@ const App = () => {
                 element={
                   <ProtectedRoute requireAdmin>
                     <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Client Invoice List */}
+              <Route
+                path="/invoices"
+                element={
+                  <ProtectedRoute>
+                    <ClientInvoiceListPage />
                   </ProtectedRoute>
                 }
               />

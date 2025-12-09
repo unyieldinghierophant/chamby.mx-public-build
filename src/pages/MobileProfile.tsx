@@ -57,16 +57,16 @@ const MobileProfile = () => {
       title: "Pagos & Facturación",
       items: [
         {
+          icon: Receipt,
+          label: "Mis Facturas",
+          href: "/invoices",
+          description: "Ver y pagar facturas"
+        },
+        {
           icon: CreditCard,
           label: "Métodos de Pago",
           href: "/profile/payments",
           description: "Tarjetas y billeteras"
-        },
-        {
-          icon: Receipt,
-          label: "Historial de Pagos",
-          href: "/profile/payments",
-          description: "Recibos y facturas"
         }
       ]
     },

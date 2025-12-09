@@ -1,5 +1,8 @@
 project_id = "uiyjmjibshnkhwewtkoz"
 
+[functions.list-client-invoices]
+verify_jwt = true
+
 [functions.send-otp]
 verify_jwt = false
 

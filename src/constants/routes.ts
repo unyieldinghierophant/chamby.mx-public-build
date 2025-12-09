@@ -37,6 +37,7 @@ export const ROUTES = {
   CALLBACK: '/callback',
   BROWSE_TASKS: '/browse-tasks',
   ACTIVE_JOBS: '/active-jobs',
+  INVOICES: '/invoices',
   FINDING_PROVIDER: '/finding-provider',
   BLOG: '/blog',
   HELP_CENTER: '/help-center',
