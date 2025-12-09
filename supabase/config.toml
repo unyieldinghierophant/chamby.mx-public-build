@@ -62,3 +62,18 @@ verify_jwt = true
 
 [functions.list-provider-earnings]
 verify_jwt = true
+
+[functions.list-provider-payouts]
+verify_jwt = true
+
+[functions.admin-create-payout]
+verify_jwt = true
+
+[functions.admin-mark-payout-paid]
+verify_jwt = true
+
+[functions.admin-list-all-payouts]
+verify_jwt = true
+
+[functions.admin-list-paid-invoices]
+verify_jwt = true
