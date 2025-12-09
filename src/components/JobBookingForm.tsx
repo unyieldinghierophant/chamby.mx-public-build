@@ -22,6 +22,7 @@ import { AuthModal } from './AuthModal';
 import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { BookingConfirmation } from './BookingConfirmation';
 import { JobSuccessScreen } from './JobSuccessScreen';
+import { VisitFeeAuthorizationSection } from './payments/VisitFeeAuthorizationSection';
 
 // Input validation schema
 const jobRequestSchema = z.object({
@@ -183,6 +184,8 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showVisitFeeAuth, setShowVisitFeeAuth] = useState(false);
+  const [visitFeeAuthorized, setVisitFeeAuthorized] = useState(false);
   const [createdJobId, setCreatedJobId] = useState<string | null>(null);
   const [isLoadingForm, setIsLoadingForm] = useState(true);
   const { toast } = useToast();
@@ -530,10 +533,10 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
       // Clear saved form data
       clearFormData();
       
-      // Store job ID and show success screen
+      // Store job ID and show visit fee authorization step
       setCreatedJobId(newJob.id);
       setShowConfirmation(false);
-      setShowSuccess(true);
+      setShowVisitFeeAuth(true);
 
     } catch (error: any) {
       console.error('Error submitting task:', error);
@@ -588,9 +591,38 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
     setDetails("");
     setUploadedFiles([]);
     setShowSuccess(false);
+    setShowVisitFeeAuth(false);
+    setVisitFeeAuthorized(false);
     
     // Navigate to waiting page
     navigate(`/esperando-proveedor?job_id=${createdJobId}`);
+  };
+
+  const handleVisitFeeAuthorized = () => {
+    setVisitFeeAuthorized(true);
+    setShowVisitFeeAuth(false);
+    setShowSuccess(true);
+    toast({
+      title: "Visita asegurada",
+      description: "Tu pago de visita ha sido preautorizado correctamente.",
+    });
+  };
+
+  const handleVisitFeeFailed = (error: string) => {
+    // Keep on the authorization page but show the error
+    // The component itself shows error state
+    console.error('Visit fee authorization failed:', error);
+  };
+
+  const handleSkipVisitFee = () => {
+    // Allow user to continue without authorization
+    setShowVisitFeeAuth(false);
+    setShowSuccess(true);
+    toast({
+      title: "Solicitud creada",
+      description: "Tu solicitud ha sido creada. Podrás asegurar el pago de visita más tarde.",
+      variant: "default",
+    });
   };
 
   const handleGoBack = () => {
@@ -700,6 +732,23 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
             jobId={createdJobId}
             onNavigate={handleSuccessNavigate}
           />
+        ) : showVisitFeeAuth && createdJobId ? (
+          <div className="space-y-6 animate-fade-in">
+            <div className="text-center space-y-2">
+              <h1 className="text-3xl font-bold text-foreground font-['Made_Dillan']">
+                ¡Solicitud creada!
+              </h1>
+              <p className="text-muted-foreground">
+                Ahora asegura tu visita para continuar
+              </p>
+            </div>
+            <VisitFeeAuthorizationSection
+              jobId={createdJobId}
+              onAuthorized={handleVisitFeeAuthorized}
+              onFailed={handleVisitFeeFailed}
+              onSkip={handleSkipVisitFee}
+            />
+          </div>
         ) : showConfirmation ? (
           <BookingConfirmation
             service={taskDescription}
