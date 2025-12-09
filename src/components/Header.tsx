@@ -152,6 +152,10 @@ const Header = ({
                     <User className="mr-2 h-4 w-4" />
                     <span>Perfil</span>
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/invoices')}>
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    <span>Facturas</span>
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate(ROUTES.PROFILE_SETTINGS)}>
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Configuración</span>
