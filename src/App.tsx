@@ -64,6 +64,7 @@ import ActiveJobs from "./pages/ActiveJobs";
 import FindingProvider from "./pages/FindingProvider";
 import AdminDashboard from "./pages/AdminDashboard";
 import InvoicePayPage from "./pages/InvoicePayPage";
+import InvoiceBuilderPage from "./pages/provider/InvoiceBuilderPage";
 
 const queryClient = new QueryClient();
 
@@ -279,6 +280,16 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <InvoicePayPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Provider Invoice Builder */}
+              <Route
+                path="/provider/invoices/create/:jobId"
+                element={
+                  <ProtectedRoute requireProvider>
+                    <InvoiceBuilderPage />
                   </ProtectedRoute>
                 }
               />
