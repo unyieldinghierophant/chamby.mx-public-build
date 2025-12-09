@@ -63,6 +63,7 @@ import HelpCenter from "./pages/HelpCenter";
 import ActiveJobs from "./pages/ActiveJobs";
 import FindingProvider from "./pages/FindingProvider";
 import AdminDashboard from "./pages/AdminDashboard";
+import InvoicePayPage from "./pages/InvoicePayPage";
 
 const queryClient = new QueryClient();
 
@@ -268,6 +269,16 @@ const App = () => {
                 element={
                   <ProtectedRoute requireAdmin>
                     <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Invoice Payment Page */}
+              <Route
+                path="/invoice/:invoiceId"
+                element={
+                  <ProtectedRoute>
+                    <InvoicePayPage />
                   </ProtectedRoute>
                 }
               />

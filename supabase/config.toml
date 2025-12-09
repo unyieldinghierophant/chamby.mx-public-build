@@ -47,3 +47,6 @@ verify_jwt = true
 
 [functions.create-or-get-invoice]
 verify_jwt = true
+
+[functions.get-invoice]
+verify_jwt = true
