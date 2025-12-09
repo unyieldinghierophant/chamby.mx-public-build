@@ -65,6 +65,7 @@ import FindingProvider from "./pages/FindingProvider";
 import AdminDashboard from "./pages/AdminDashboard";
 import InvoicePayPage from "./pages/InvoicePayPage";
 import InvoiceBuilderPage from "./pages/provider/InvoiceBuilderPage";
+import InvoicePreviewPage from "./pages/provider/InvoicePreviewPage";
 
 const queryClient = new QueryClient();
 
@@ -290,6 +291,26 @@ const App = () => {
                 element={
                   <ProtectedRoute requireProvider>
                     <InvoiceBuilderPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Provider Invoice Preview */}
+              <Route
+                path="/provider/invoices/preview/:invoiceId"
+                element={
+                  <ProtectedRoute requireProvider>
+                    <InvoicePreviewPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Provider Invoices List (placeholder route for now) */}
+              <Route
+                path="/provider/invoices"
+                element={
+                  <ProtectedRoute requireProvider>
+                    <Navigate to="/provider-portal/jobs" replace />
                   </ProtectedRoute>
                 }
               />
