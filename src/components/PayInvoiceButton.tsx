@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Loader2, CreditCard, CheckCircle, AlertCircle } from "lucide-react";
+import { Loader2, CreditCard, CheckCircle, AlertCircle, ShieldCheck } from "lucide-react";
 import { confirmInvoicePayment, ConfirmPaymentResult } from "@/utils/confirmInvoicePayment";
+import { cn } from "@/lib/utils";
 
 interface PayInvoiceButtonProps {
   clientSecret: string;
@@ -16,7 +17,7 @@ interface PayInvoiceButtonProps {
 export const PayInvoiceButton = ({
   clientSecret,
   amount,
-  currency = "USD",
+  currency = "MXN",
   onSuccess,
   onError,
   disabled = false,
@@ -28,9 +29,9 @@ export const PayInvoiceButton = ({
 
   const handlePayment = async () => {
     if (!clientSecret) {
-      setErrorMessage("No payment information available");
+      setErrorMessage("No hay información de pago disponible");
       setStatus("error");
-      onError?.("No payment information available");
+      onError?.("No hay información de pago disponible");
       return;
     }
 
@@ -46,11 +47,11 @@ export const PayInvoiceButton = ({
         onSuccess?.(result);
       } else {
         setStatus("error");
-        setErrorMessage(result.error || "Payment failed");
-        onError?.(result.error || "Payment failed");
+        setErrorMessage(result.error || "El pago ha fallado");
+        onError?.(result.error || "El pago ha fallado");
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "An unexpected error occurred";
+      const message = err instanceof Error ? err.message : "Ha ocurrido un error inesperado";
       setStatus("error");
       setErrorMessage(message);
       onError?.(message);
@@ -60,46 +61,78 @@ export const PayInvoiceButton = ({
   };
 
   const formatAmount = (amt: number) => {
-    return amt.toLocaleString("en-US", {
-      style: "currency",
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
       currency: currency,
-    });
+    }).format(amt);
   };
 
   if (status === "success") {
     return (
-      <div className="flex items-center gap-2 text-success">
-        <CheckCircle className="h-5 w-5" />
-        <span className="font-medium">Payment Successful!</span>
+      <div className={cn(
+        "flex flex-col items-center gap-3 p-6 bg-green-50 rounded-xl border border-green-200 animate-in fade-in zoom-in duration-300",
+        className
+      )}>
+        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+          <CheckCircle className="h-6 w-6 text-green-600" />
+        </div>
+        <div className="text-center">
+          <p className="font-semibold text-green-800">¡Pago exitoso!</p>
+          <p className="text-sm text-green-600">Tu pago ha sido procesado</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-2">
+    <div className={cn("space-y-3", className)}>
       <Button
         onClick={handlePayment}
         disabled={disabled || loading || !clientSecret}
-        className={className}
         size="lg"
+        className={cn(
+          "w-full h-14 text-base font-semibold transition-all duration-200",
+          "bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl",
+          loading && "opacity-90"
+        )}
       >
         {loading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Processing...
-          </>
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span>Procesando pago...</span>
+          </div>
         ) : (
-          <>
-            <CreditCard className="mr-2 h-4 w-4" />
-            Pay {formatAmount(amount)}
-          </>
+          <div className="flex items-center gap-2">
+            <CreditCard className="h-5 w-5" />
+            <span>Pagar {formatAmount(amount)}</span>
+          </div>
         )}
       </Button>
 
+      {/* Stripe Trust Badge */}
+      {status !== "error" && (
+        <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+          <ShieldCheck className="h-3.5 w-3.5 text-green-600" />
+          <span>Pago seguro con Stripe</span>
+        </div>
+      )}
+
+      {/* Error State */}
       {status === "error" && errorMessage && (
-        <div className="flex items-center gap-2 text-sm text-destructive">
-          <AlertCircle className="h-4 w-4" />
-          <span>{errorMessage}</span>
+        <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-100 rounded-xl animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <AlertCircle className="h-4 w-4 text-red-600" />
+          </div>
+          <div className="flex-1">
+            <p className="font-medium text-red-800 text-sm">Error en el pago</p>
+            <p className="text-sm text-red-600 mt-0.5">{errorMessage}</p>
+            <button
+              onClick={handlePayment}
+              className="text-sm text-red-700 hover:text-red-800 font-medium mt-2 underline underline-offset-2"
+            >
+              Intentar de nuevo
+            </button>
+          </div>
         </div>
       )}
     </div>
