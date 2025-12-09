@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Phone, Mail, MapPin, Calendar, Clock, Search, Image } from 'lucide-react';
+import { ArrowLeft, Phone, Mail, MapPin, Calendar, Clock, Search, Image, Wallet } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -135,9 +135,20 @@ const AdminDashboard = () => {
                 <p className="text-sm text-muted-foreground">Solicitudes de trabajo</p>
               </div>
             </div>
-            <Badge variant="outline" className="text-xs">
-              {filteredJobs.length} solicitudes
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => navigate('/admin/payouts')}
+                className="flex items-center gap-2"
+              >
+                <Wallet className="h-4 w-4" />
+                Payouts
+              </Button>
+              <Badge variant="outline" className="text-xs">
+                {filteredJobs.length} solicitudes
+              </Badge>
+            </div>
           </div>
         </div>
       </header>
