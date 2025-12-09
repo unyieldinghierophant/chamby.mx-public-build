@@ -67,6 +67,7 @@ import InvoicePayPage from "./pages/InvoicePayPage";
 import InvoiceBuilderPage from "./pages/provider/InvoiceBuilderPage";
 import InvoicePreviewPage from "./pages/provider/InvoicePreviewPage";
 import ProviderInvoiceListPage from "./pages/provider/ProviderInvoiceListPage";
+import ProviderEarningsPage from "./pages/provider/ProviderEarningsPage";
 import ClientInvoiceListPage from "./pages/client/ClientInvoiceListPage";
 
 const queryClient = new QueryClient();
@@ -323,6 +324,16 @@ const App = () => {
                 element={
                   <ProtectedRoute requireProvider>
                     <ProviderInvoiceListPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Provider Earnings Dashboard */}
+              <Route
+                path="/provider/earnings"
+                element={
+                  <ProtectedRoute requireProvider>
+                    <ProviderEarningsPage />
                   </ProtectedRoute>
                 }
               />
