@@ -41,3 +41,6 @@ verify_jwt = true
 
 [functions.create-visit-authorization]
 verify_jwt = true
+
+[functions.complete-first-visit]
+verify_jwt = true
