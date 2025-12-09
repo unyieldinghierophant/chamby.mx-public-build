@@ -12,7 +12,9 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
   console.log(`[CREATE-OR-GET-INVOICE] ${step}${detailsStr}`);
 };
 
-const CHAMBY_COMMISSION_RATE = 0.15; // 15% commission
+const PROVIDER_FEE_RATE = 0.10; // 10% from provider
+const CUSTOMER_FEE_RATE = 0.10; // 10% from customer
+// Total Chamby commission = 20% (10% + 10%)
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -153,10 +155,23 @@ serve(async (req) => {
       throw new Error("Invoice total must be greater than zero");
     }
 
-    const chambyCommission = Math.round(subtotalProvider * CHAMBY_COMMISSION_RATE * 100) / 100;
-    const totalCustomerAmount = subtotalProvider + chambyCommission;
+    // Commission model: Provider pays 10%, Customer pays 10%, Chamby keeps 20% total
+    const subtotal = subtotalProvider; // The raw line item total
+    const providerFee = Math.round(subtotal * PROVIDER_FEE_RATE * 100) / 100;
+    const customerFee = Math.round(subtotal * CUSTOMER_FEE_RATE * 100) / 100;
+    
+    const chambyCommission = providerFee + customerFee; // Total 20%
+    const totalCustomerAmount = subtotal + customerFee; // Customer pays subtotal + 10%
+    const subtotalProviderNet = subtotal - providerFee; // Provider receives subtotal - 10%
 
-    logStep("Totals calculated", { subtotalProvider, chambyCommission, totalCustomerAmount });
+    logStep("Totals calculated", { 
+      subtotal, 
+      providerFee, 
+      customerFee, 
+      chambyCommission, 
+      totalCustomerAmount, 
+      subtotalProviderNet 
+    });
 
     // Create invoice record
     const { data: newInvoice, error: invoiceError } = await supabaseClient
@@ -165,7 +180,7 @@ serve(async (req) => {
         job_id: jobId,
         provider_id: provider.id,
         user_id: job.client_id,
-        subtotal_provider: subtotalProvider,
+        subtotal_provider: subtotalProviderNet,
         chamby_commission_amount: chambyCommission,
         total_customer_amount: totalCustomerAmount,
         status: "pending_payment",
@@ -288,7 +303,7 @@ serve(async (req) => {
           job_id: newInvoice.job_id,
           provider_id: newInvoice.provider_id,
           user_id: newInvoice.user_id,
-          subtotal_provider: subtotalProvider,
+          subtotal_provider: subtotalProviderNet,
           chamby_commission_amount: chambyCommission,
           total_customer_amount: totalCustomerAmount,
           status: "pending_payment",
