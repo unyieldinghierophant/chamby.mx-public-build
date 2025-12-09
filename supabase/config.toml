@@ -44,3 +44,6 @@ verify_jwt = true
 
 [functions.complete-first-visit]
 verify_jwt = true
+
+[functions.create-or-get-invoice]
+verify_jwt = true
