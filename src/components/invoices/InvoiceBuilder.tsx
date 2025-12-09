@@ -139,8 +139,8 @@ export function InvoiceBuilder({ jobId, jobTitle, clientName }: InvoiceBuilderPr
         description: `Factura creada por $${formatCurrency(commissionBreakdown.totalCustomerAmount)} MXN`,
       });
 
-      // Navigate to invoice preview/payment page
-      navigate(`/invoice/${result.invoice.id}`);
+      // Navigate to invoice preview page (provider reviews before sending)
+      navigate(`/provider/invoices/preview/${result.invoice.id}`);
     } else {
       toast({
         title: "Error",

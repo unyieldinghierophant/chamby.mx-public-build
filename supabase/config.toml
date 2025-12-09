@@ -50,3 +50,6 @@ verify_jwt = true
 
 [functions.get-invoice]
 verify_jwt = true
+
+[functions.send-invoice-to-client]
+verify_jwt = true
