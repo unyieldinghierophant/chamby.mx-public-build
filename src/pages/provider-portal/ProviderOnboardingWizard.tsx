@@ -186,7 +186,7 @@ export default function ProviderOnboardingWizard() {
         
         // If user has provider or admin role, redirect to portal immediately
         if (isProvider || isAdmin) {
-          navigate(ROUTES.PROVIDER_PORTAL);
+          navigate(ROUTES.PROVIDER_PORTAL, { replace: true });
           setCheckingStatus(false);
           return;
         }
