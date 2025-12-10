@@ -91,8 +91,16 @@ serve(async (req) => {
       );
     }
 
-    if (job.visit_fee_paid) {
+    // Only block if there's BOTH visit_fee_paid AND an actual PaymentIntent
+    if (job.visit_fee_paid && job.stripe_visit_payment_intent_id) {
       throw new Error("Visit fee has already been paid for this job");
+    }
+
+    // Auto-fix corrupt data: if visit_fee_paid is true but no PaymentIntent, reset it
+    if (job.visit_fee_paid && !job.stripe_visit_payment_intent_id) {
+      logStep("Found corrupt data: visit_fee_paid=true but no PaymentIntent, resetting...");
+      await supabaseClient.from("jobs").update({ visit_fee_paid: false }).eq("id", jobId);
+      logStep("Reset visit_fee_paid to false");
     }
 
     const visitFeeAmount = job.visit_fee_amount || 350;

@@ -20,12 +20,12 @@ const EsperandoProveedor = () => {
       return;
     }
 
-    verifyPaymentAndUpdateJob();
+    verifyPaymentStatus();
   }, [jobId]);
 
-  const verifyPaymentAndUpdateJob = async () => {
+  const verifyPaymentStatus = async () => {
     try {
-      console.log('🔵 [ESPERANDO] Verifying payment for job:', jobId);
+      console.log('🔵 [ESPERANDO] Verifying payment status for job:', jobId);
       
       // Fetch the job to check payment status
       const { data: jobData, error: jobError } = await supabase
@@ -42,47 +42,35 @@ const EsperandoProveedor = () => {
       console.log('✅ [ESPERANDO] Job fetched:', {
         jobId: jobData.id,
         status: jobData.status,
-        visit_fee_paid: jobData.visit_fee_paid
+        visit_fee_paid: jobData.visit_fee_paid,
+        stripe_visit_payment_intent_id: jobData.stripe_visit_payment_intent_id
       });
 
-      // If payment not yet marked as active, update it
-      // (Webhook should have already done this, but this is a safety net)
-      if (!jobData.visit_fee_paid || jobData.status !== 'active') {
-        console.log('⚠️ [ESPERANDO] Job not active, updating...', {
-          current_status: jobData.status,
-          current_visit_fee_paid: jobData.visit_fee_paid
-        });
+      // CRITICAL FIX: Only show success if there's an actual PaymentIntent ID
+      // OR if the job status is already 'active' (payment confirmed by webhook)
+      const hasValidPayment = jobData.stripe_visit_payment_intent_id || 
+                              (jobData.visit_fee_paid && jobData.status === 'active');
 
-        const { data: updatedJobData, error: updateError } = await supabase
-          .from("jobs")
-          .update({
-            visit_fee_paid: true,
-            status: "active", // Trigger notify_providers_new_job
-            updated_at: new Date().toISOString()
-          })
-          .eq("id", jobId)
-          .select()
-          .single();
-
-        if (updateError) {
-          console.error("❌ [ESPERANDO] Error updating job:", updateError);
-        } else {
-          console.log("✅ [ESPERANDO] Job updated to active:", {
-            jobId: updatedJobData.id,
-            status: updatedJobData.status,
-            visit_fee_paid: updatedJobData.visit_fee_paid
-          });
-          setJob(updatedJobData);
-        }
-      } else {
-        console.log('✅ [ESPERANDO] Job already active, no update needed');
-        setJob(jobData);
+      if (!hasValidPayment) {
+        console.log('⚠️ [ESPERANDO] No valid payment found, redirecting to payment page');
+        toast.info("Aún no has completado el pago de visita");
+        navigate(`/job/${jobId}/payment`);
+        return;
       }
 
-      toast.success("¡Pago confirmado exitosamente!");
+      // Payment is valid, show success page
+      setJob(jobData);
+      
+      // Only show success toast if payment was actually made
+      if (jobData.visit_fee_paid) {
+        toast.success("¡Pago confirmado exitosamente!");
+      } else {
+        toast.info("Tu pago está siendo procesado");
+      }
     } catch (error) {
       console.error("❌ [ESPERANDO] Error:", error);
       toast.error("Error al verificar el pago");
+      navigate("/user-landing");
     } finally {
       setVerifying(false);
     }
