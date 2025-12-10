@@ -14,7 +14,8 @@ import {
   Mail,
   Eye,
   EyeOff,
-  LogIn
+  LogIn,
+  X
 } from 'lucide-react';
 import chambyLogo from '@/assets/chamby-logo-new.png';
 import ufoCharacter from '@/assets/ufo-chamby-final.png';
@@ -427,7 +428,15 @@ export default function UserOnboardingWizard() {
     return (
       <div className="min-h-screen bg-primary flex flex-col">
         {/* Mobile Welcome */}
-        <div className="flex-1 flex flex-col items-center justify-center px-8 py-12 text-center md:hidden">
+        <div className="flex-1 flex flex-col items-center justify-center px-8 py-12 text-center md:hidden relative">
+          {/* Exit Button */}
+          <button 
+            onClick={() => navigate(ROUTES.HOME)}
+            className="absolute top-4 right-4 p-2 text-primary-foreground/70 hover:text-primary-foreground"
+            title="Salir"
+          >
+            <X className="w-6 h-6" />
+          </button>
           <img 
             src={ufoCharacter} 
             alt="Chamby" 
@@ -462,7 +471,15 @@ export default function UserOnboardingWizard() {
 
         {/* Desktop Welcome */}
         <div className="hidden md:flex min-h-screen items-center justify-center p-8">
-          <Card className="w-full max-w-lg p-12 text-center">
+          <Card className="w-full max-w-lg p-12 text-center relative">
+            {/* Exit Button */}
+            <button 
+              onClick={() => navigate(ROUTES.HOME)}
+              className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted transition-colors"
+              title="Salir"
+            >
+              <X className="w-5 h-5" />
+            </button>
             <img 
               src={chambyLogo} 
               alt="Chamby" 
@@ -518,7 +535,13 @@ export default function UserOnboardingWizard() {
             <ArrowLeft className="w-6 h-6" />
           </button>
           <img src={chambyLogo} alt="Chamby" className="h-20" />
-          <div className="w-10" />
+          <button 
+            onClick={() => navigate(ROUTES.HOME)}
+            className="p-2 -mr-2 text-muted-foreground hover:text-foreground"
+            title="Salir"
+          >
+            <X className="w-6 h-6" />
+          </button>
         </div>
 
         {/* Progress Track */}
@@ -568,8 +591,19 @@ export default function UserOnboardingWizard() {
             />
           </div>
           
+          {/* Desktop Header with Exit */}
+          <div className="flex items-center justify-end px-8 pt-6">
+            <button 
+              onClick={() => navigate(ROUTES.HOME)}
+              className="p-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted transition-colors"
+              title="Salir"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
           {/* Desktop Content */}
-          <div className="p-8 min-h-[500px]">
+          <div className="p-8 pt-4 min-h-[500px]">
             {renderStepContent()}
           </div>
 
