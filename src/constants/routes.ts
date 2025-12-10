@@ -20,7 +20,7 @@ export const ROUTES = {
   PROVIDER_PROFILE: '/provider-portal/profile',
   PROVIDER_VERIFICATION: '/provider-portal/verification',
   PROVIDER_NOTIFICATIONS: '/provider-portal/notifications',
-  BECOME_PROVIDER: '/become-provider',
+  
   PROFILE: '/profile',
   PROFILE_SETTINGS: '/profile/settings',
   PROFILE_SECURITY: '/profile/security',

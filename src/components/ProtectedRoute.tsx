@@ -74,8 +74,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     const hasAdminRole = roles.includes('admin');
     
     if (!hasProviderRole && !hasAdminRole) {
-      console.log('[ProtectedRoute] User lacks provider/admin role, redirecting to /become-provider');
-      return <Navigate to={ROUTES.BECOME_PROVIDER} replace />;
+      console.log('[ProtectedRoute] User lacks provider/admin role, redirecting to provider auth');
+      return <Navigate to={ROUTES.PROVIDER_AUTH} replace />;
     }
     
     console.log('[ProtectedRoute] User has required provider role, allowing access');
