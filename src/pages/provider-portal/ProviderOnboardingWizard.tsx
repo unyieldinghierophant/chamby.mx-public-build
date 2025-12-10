@@ -105,7 +105,7 @@ export default function ProviderOnboardingWizard() {
   const { user, signUp, signIn, signInWithGoogle, resetPassword } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(2);
   const [slideDirection, setSlideDirection] = useState<'forward' | 'backward'>('forward');
   const [saving, setSaving] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -544,87 +544,7 @@ export default function ProviderOnboardingWizard() {
     </svg>
   );
 
-  // Step 1: Welcome Screen (Full-screen Chamby blue)
-  if (currentStep === 1) {
-    return (
-      <div className="min-h-screen bg-primary flex flex-col">
-        {/* Mobile Welcome */}
-        <div className="flex-1 flex flex-col items-center justify-center px-8 py-12 text-center md:hidden">
-          <img 
-            src={providerCharacter} 
-            alt="Chamby Provider" 
-            className="w-48 h-48 object-contain mb-8 animate-bounce-subtle"
-          />
-          <h1 className="text-3xl font-bold text-primary-foreground mb-3">
-            ¡Bienvenido!
-          </h1>
-          <p className="text-primary-foreground/80 text-lg mb-10 max-w-xs">
-            Estás a unos pasos de comenzar a recibir trabajos
-          </p>
-          
-          <div className="w-full space-y-3 max-w-sm">
-            <Button 
-              className="w-full py-6 bg-white text-primary font-semibold text-lg rounded-xl hover:bg-white/90 shadow-lg"
-              onClick={goToNext}
-            >
-              Comenzar
-            </Button>
-            <Button 
-              variant="ghost"
-              className="w-full py-6 text-primary-foreground font-medium text-lg rounded-xl bg-transparent hover:bg-transparent hover:text-primary-foreground/80"
-              onClick={() => {
-                setAuthMode('login');
-                goToNext();
-              }}
-            >
-              Ya tengo cuenta
-            </Button>
-          </div>
-        </div>
-
-        {/* Desktop Welcome */}
-        <div className="hidden md:flex min-h-screen items-center justify-center p-8">
-          <Card className="w-full max-w-lg p-12 text-center">
-            <img 
-              src={chambyLogo} 
-              alt="Chamby" 
-              className="h-16 mx-auto mb-8"
-            />
-            <img 
-              src={providerCharacter} 
-              alt="Chamby Provider" 
-              className="w-40 h-40 object-contain mx-auto mb-6"
-            />
-            <h1 className="text-3xl font-bold text-foreground mb-3">
-              ¡Bienvenido a Chamby!
-            </h1>
-            <p className="text-muted-foreground text-lg mb-8">
-              Estás a unos pasos de comenzar a recibir trabajos
-            </p>
-            <div className="space-y-3">
-              <Button 
-                className="w-full py-6 text-lg bg-primary text-white hover:bg-primary/90 shadow-lg"
-                onClick={goToNext}
-              >
-                Comenzar
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-              <Button 
-                variant="ghost"
-                className="w-full py-5 text-muted-foreground hover:text-foreground hover:bg-transparent"
-                onClick={() => {
-                  setAuthMode('login');
-                  goToNext();
-                }}
-              >
-                Ya tengo cuenta
-              </Button>
-            </div>
-          </Card>
-        </div>
-      </div>
-    );
-  }
+  // Step 1 removed - now starts at step 2 (auth)
 
   // Main wizard layout for steps 2-7
   return (
