@@ -731,6 +731,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
           <JobSuccessScreen
             jobId={createdJobId}
             onNavigate={handleSuccessNavigate}
+            visitFeeAuthorized={visitFeeAuthorized}
           />
         ) : showVisitFeeAuth && createdJobId ? (
           <div className="space-y-6 animate-fade-in">
