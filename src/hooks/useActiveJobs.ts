@@ -15,10 +15,16 @@ export interface ActiveJob {
   status: string;
   category: string;
   created_at: string;
+  // Payment status fields
+  stripe_visit_payment_intent_id: string | null;
+  visit_fee_paid: boolean | null;
   client?: {
     full_name: string | null;
     phone: string | null;
   };
+  invoice?: {
+    status: string;
+  } | null;
 }
 
 interface UseActiveJobsResult {
@@ -47,7 +53,7 @@ export const useActiveJobs = (): UseActiveJobsResult => {
 
       const { data: jobsData, error: fetchError } = await supabase
         .from('jobs')
-        .select('*')
+        .select('*, invoices(status)')
         .eq('provider_id', user.id)
         .in('status', ['assigned', 'in_progress', 'scheduled'])
         .order('scheduled_at', { ascending: true });
@@ -61,11 +67,18 @@ export const useActiveJobs = (): UseActiveJobsResult => {
             .from('users')
             .select('full_name, phone')
             .eq('id', job.client_id)
-            .single();
+            .maybeSingle();
+
+          // Get the first invoice if exists (from the joined data)
+          const invoices = (job as any).invoices;
+          const invoice = Array.isArray(invoices) && invoices.length > 0 
+            ? invoices[0] 
+            : null;
 
           return {
             ...job,
-            client: clientData || { full_name: 'Cliente', phone: '' }
+            client: clientData || { full_name: 'Cliente', phone: '' },
+            invoice
           };
         })
       );
