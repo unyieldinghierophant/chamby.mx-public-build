@@ -1,20 +1,17 @@
-import { useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, Navigate } from "react-router-dom";
 import { ProviderSidebar } from "@/components/provider-portal/ProviderSidebar";
 import { ProviderTopBar } from "@/components/provider-portal/ProviderTopBar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
-import { Navigate } from "react-router-dom";
-import { useProfile } from "@/hooks/useProfile";
-import { supabase } from "@/integrations/supabase/client";
+import { useUserRole } from "@/hooks/useUserRole";
 import { ROUTES } from "@/constants/routes";
 
 const ProviderPortal = () => {
   const { user, loading: authLoading } = useAuth();
-  const { profile, loading: profileLoading } = useProfile();
+  const { roles, loading: roleLoading } = useUserRole();
 
-  // Show loading state while checking auth
-  if (authLoading || profileLoading) {
+  // Show loading state while checking auth and roles
+  if (authLoading || roleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
@@ -27,26 +24,13 @@ const ProviderPortal = () => {
     return <Navigate to={ROUTES.PROVIDER_AUTH} replace />;
   }
 
-  // Check if user has provider role
-  const loginContext = localStorage.getItem('login_context');
-  const hasProviderRole = async () => {
-    const { data } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .eq('role', 'provider')
-      .single();
-    
-    return !!data;
-  };
+  // Check if user has provider or admin role
+  const hasProviderRole = roles.includes('provider');
+  const hasAdminRole = roles.includes('admin');
 
-  // If not a provider and not in provider login context, redirect
-  if (loginContext !== 'provider' && profile) {
-    hasProviderRole().then(isProvider => {
-      if (!isProvider) {
-        window.location.href = ROUTES.PROVIDER_AUTH;
-      }
-    });
+  // If user doesn't have provider/admin role, redirect to provider auth
+  if (!hasProviderRole && !hasAdminRole) {
+    return <Navigate to={ROUTES.PROVIDER_AUTH} replace />;
   }
 
   return (
