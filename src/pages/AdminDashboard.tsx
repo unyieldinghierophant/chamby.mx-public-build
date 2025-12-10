@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { PaymentStatusBadge } from '@/components/PaymentStatusBadge';
+import { getVisitFeeStatus, getInvoiceStatus } from '@/utils/jobPaymentStatus';
 import { ArrowLeft, Phone, Mail, MapPin, Calendar, Clock, Search, Image, Wallet } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -28,11 +30,17 @@ interface JobWithClient {
   created_at: string | null;
   client_id: string;
   provider_id: string | null;
+  // Payment status fields
+  stripe_visit_payment_intent_id: string | null;
+  visit_fee_paid: boolean | null;
   client?: {
     full_name: string | null;
     email: string | null;
     phone: string | null;
   };
+  invoice?: {
+    status: string;
+  } | null;
 }
 
 const AdminDashboard = () => {
@@ -54,7 +62,7 @@ const AdminDashboard = () => {
       // Fetch all jobs
       const { data: jobsData, error: jobsError } = await supabase
         .from('jobs')
-        .select('*')
+        .select('*, invoices(status)')
         .order('created_at', { ascending: false });
 
       if (jobsError) throw jobsError;
@@ -66,11 +74,18 @@ const AdminDashboard = () => {
             .from('users')
             .select('full_name, email, phone')
             .eq('id', job.client_id)
-            .single();
+            .maybeSingle();
+
+          // Get the first invoice if exists (from the joined data)
+          const invoices = (job as any).invoices;
+          const invoice = Array.isArray(invoices) && invoices.length > 0 
+            ? invoices[0] 
+            : null;
 
           return {
             ...job,
-            client: clientData || undefined
+            client: clientData || undefined,
+            invoice
           };
         })
       );
@@ -202,6 +217,13 @@ const AdminDashboard = () => {
                       </p>
                     </div>
                     {getStatusBadge(job.status)}
+                  </div>
+                  {/* Payment Status Badges */}
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    <PaymentStatusBadge type="visit_fee" status={getVisitFeeStatus(job)} role="customer" />
+                    {getInvoiceStatus(job.invoice) !== 'none' && (
+                      <PaymentStatusBadge type="invoice" status={getInvoiceStatus(job.invoice)} role="customer" />
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">

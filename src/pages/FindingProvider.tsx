@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Search, CheckCircle2, Clock, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { PaymentStatusBadge } from "@/components/PaymentStatusBadge";
+import { getVisitFeeStatus, getInvoiceStatus } from "@/utils/jobPaymentStatus";
 import Header from "@/components/Header";
 import { toast } from "sonner";
 
@@ -186,6 +188,16 @@ const FindingProvider = () => {
             <Card className="bg-gradient-glass border-0">
               <CardContent className="p-6">
                 <h3 className="font-semibold mb-4">Detalles de tu solicitud</h3>
+                
+                {/* Payment Status */}
+                <div className="flex flex-wrap gap-1.5 mb-4">
+                  <PaymentStatusBadge 
+                    type="visit_fee" 
+                    status={getVisitFeeStatus(job)} 
+                    role="customer" 
+                  />
+                </div>
+                
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Servicio:</span>

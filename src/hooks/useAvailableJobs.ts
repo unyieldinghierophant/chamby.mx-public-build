@@ -15,7 +15,9 @@ export interface AvailableJob {
   rate: number;
   status: string;
   created_at: string;
+  // Payment status fields
   visit_fee_paid: boolean;
+  stripe_visit_payment_intent_id: string | null;
   problem: string | null;
   urgent: boolean;
   photos: string[] | null;

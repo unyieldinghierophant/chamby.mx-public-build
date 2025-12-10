@@ -2,6 +2,8 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Calendar, Clock, DollarSign, AlertCircle, Image as ImageIcon } from "lucide-react";
+import { PaymentStatusBadge } from "@/components/PaymentStatusBadge";
+import { getVisitFeeStatus } from "@/utils/jobPaymentStatus";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { AvailableJob } from "@/hooks/useAvailableJobs";
@@ -27,7 +29,7 @@ export const JobCardAvailable = ({ job, onAccept }: JobCardAvailableProps) => {
   };
 
   const scheduledDate = job.scheduled_at ? new Date(job.scheduled_at) : null;
-
+  const visitFeeStatus = getVisitFeeStatus(job);
   return (
     <Card className="bg-gradient-card border-border/50 hover:shadow-raised transition-shadow">
       <CardHeader>
@@ -114,9 +116,7 @@ export const JobCardAvailable = ({ job, onAccept }: JobCardAvailableProps) => {
 
         {/* Payment status */}
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className="bg-green-500/10 text-green-700">
-            ✓ Pago autorizado
-          </Badge>
+          <PaymentStatusBadge type="visit_fee" status={visitFeeStatus} role="provider" />
         </div>
       </CardContent>
 

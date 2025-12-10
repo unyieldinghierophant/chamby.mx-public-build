@@ -8,6 +8,8 @@ import { ArrowLeft, Calendar, XCircle, Plus, Phone, MessageCircle, MapPin, Clock
 import { JobTrackingMap } from "@/components/JobTrackingMap";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { PaymentStatusBadge } from "@/components/PaymentStatusBadge";
+import { getVisitFeeStatus, getInvoiceStatus } from "@/utils/jobPaymentStatus";
 import Header from "@/components/Header";
 import { toast } from "sonner";
 
@@ -21,6 +23,9 @@ interface ActiveJob {
   rate: number;
   scheduled_at: string | null;
   provider_id: string | null;
+  // Payment status fields
+  stripe_visit_payment_intent_id: string | null;
+  visit_fee_paid: boolean | null;
   provider?: {
     full_name: string;
     phone: string;
@@ -30,6 +35,9 @@ interface ActiveJob {
     rating: number;
     total_reviews: number;
   };
+  invoice?: {
+    status: string;
+  } | null;
 }
 
 const ActiveJobs = () => {
@@ -53,7 +61,7 @@ const ActiveJobs = () => {
 
       const { data: jobsData, error: jobsError } = await supabase
         .from("jobs")
-        .select("*")
+        .select("*, invoices(status)")
         .eq("client_id", user.id)
         .in("status", ["active", "assigned", "in_progress", "scheduled"])
         .order("created_at", { ascending: false });
@@ -62,28 +70,35 @@ const ActiveJobs = () => {
 
       const jobsWithProviders = await Promise.all(
         (jobsData || []).map(async (job) => {
+          // Get the first invoice if exists (from the joined data)
+          const invoices = (job as any).invoices;
+          const invoice = Array.isArray(invoices) && invoices.length > 0 
+            ? invoices[0] 
+            : null;
+
           if (job.provider_id) {
             const { data: userData } = await supabase
               .from("users")
               .select("full_name, phone, avatar_url")
               .eq("id", job.provider_id)
-              .single();
+              .maybeSingle();
 
             const { data: providerData } = await supabase
               .from("providers")
               .select("current_latitude, current_longitude, rating, total_reviews")
               .eq("user_id", job.provider_id)
-              .single();
+              .maybeSingle();
 
             return {
               ...job,
+              invoice,
               provider: {
                 ...userData,
                 ...providerData,
               },
             };
           }
-          return job;
+          return { ...job, invoice };
         })
       );
 
@@ -177,40 +192,54 @@ const ActiveJobs = () => {
         <div className="grid md:grid-cols-3 gap-6">
           {/* Jobs List */}
           <div className="md:col-span-1 space-y-4">
-            {jobs.map((job) => (
-              <Card
-                key={job.id}
-                className={`cursor-pointer transition-all ${
-                  selectedJob?.id === job.id
-                    ? "border-primary shadow-lg"
-                    : "hover:border-primary/50"
-                }`}
-                onClick={() => setSelectedJob(job)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-semibold">{job.title}</h3>
-                    <Badge variant={job.provider_id ? "default" : "secondary"}>
-                      {job.status}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-2">{job.category}</p>
-                  {job.provider && (
-                    <div className="flex items-center gap-2 mt-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={job.provider.avatar_url} />
-                        <AvatarFallback>
-                          {job.provider.full_name?.charAt(0) || "P"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-sm font-medium">
-                        {job.provider.full_name}
-                      </span>
+            {jobs.map((job) => {
+              const visitFeeStatus = getVisitFeeStatus(job);
+              const invoiceStatus = getInvoiceStatus(job.invoice);
+              
+              return (
+                <Card
+                  key={job.id}
+                  className={`cursor-pointer transition-all ${
+                    selectedJob?.id === job.id
+                      ? "border-primary shadow-lg"
+                      : "hover:border-primary/50"
+                  }`}
+                  onClick={() => setSelectedJob(job)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="font-semibold">{job.title}</h3>
+                      <Badge variant={job.provider_id ? "default" : "secondary"}>
+                        {job.status}
+                      </Badge>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
+                    <p className="text-sm text-muted-foreground mb-2">{job.category}</p>
+                    
+                    {/* Payment Status Badges */}
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      <PaymentStatusBadge type="visit_fee" status={visitFeeStatus} role="customer" />
+                      {invoiceStatus !== 'none' && (
+                        <PaymentStatusBadge type="invoice" status={invoiceStatus} role="customer" />
+                      )}
+                    </div>
+                    
+                    {job.provider && (
+                      <div className="flex items-center gap-2 mt-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={job.provider.avatar_url} />
+                          <AvatarFallback>
+                            {job.provider.full_name?.charAt(0) || "P"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm font-medium">
+                          {job.provider.full_name}
+                        </span>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
 
           {/* Job Details */}

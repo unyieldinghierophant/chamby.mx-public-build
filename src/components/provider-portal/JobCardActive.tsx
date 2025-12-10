@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MapPin, Calendar, Clock, DollarSign, User, Phone, MessageSquare, CheckCircle, Navigation } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
+import { PaymentStatusBadge } from "@/components/PaymentStatusBadge";
+import { getVisitFeeStatus, getInvoiceStatus } from "@/utils/jobPaymentStatus";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { ActiveJob } from "@/hooks/useActiveJobs";
@@ -46,6 +48,9 @@ export const JobCardActive = ({ job, onComplete }: JobCardActiveProps) => {
 
   const scheduledDate = job.scheduled_at ? new Date(job.scheduled_at) : new Date();
 
+  const visitFeeStatus = getVisitFeeStatus(job);
+  const invoiceStatus = getInvoiceStatus(job.invoice);
+
   return (
     <Card className="bg-gradient-card border-border/50 hover:shadow-raised transition-shadow">
       <CardHeader>
@@ -57,6 +62,13 @@ export const JobCardActive = ({ job, onComplete }: JobCardActiveProps) => {
             </p>
           </div>
           <StatusBadge status={job.status} size="sm" />
+        </div>
+        {/* Payment Status Badges */}
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          <PaymentStatusBadge type="visit_fee" status={visitFeeStatus} role="provider" />
+          {invoiceStatus !== 'none' && (
+            <PaymentStatusBadge type="invoice" status={invoiceStatus} role="provider" />
+          )}
         </div>
       </CardHeader>
 
