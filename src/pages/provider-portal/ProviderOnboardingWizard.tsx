@@ -165,22 +165,38 @@ export default function ProviderOnboardingWizard() {
     }
   }, [searchParams, user]);
 
+  // Track if user has provider role (allows skipping onboarding)
+  const [hasProviderRole, setHasProviderRole] = useState(false);
+  const [checkingStatus, setCheckingStatus] = useState(false);
+
   useEffect(() => {
     if (user) {
-      // Check if provider has completed onboarding (has skills)
       const checkOnboardingStatus = async () => {
+        setCheckingStatus(true);
+        
+        // Check if user has provider role in user_roles table
+        const { data: roles } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id);
+        
+        const isProvider = roles?.some(r => r.role === 'provider');
+        const isAdmin = roles?.some(r => r.role === 'admin');
+        setHasProviderRole(isProvider || isAdmin);
+        
+        // Check provider profile status
         const { data: provider } = await supabase
           .from('providers')
           .select('skills, zone_served')
           .eq('user_id', user.id)
           .maybeSingle();
         
-        // If provider has skills and zone, they've completed onboarding - redirect to portal
         const hasCompletedOnboarding = provider?.skills?.length > 0 && provider?.zone_served;
         
-        // If user logged in (not signing up) AND has completed onboarding, redirect to portal
-        if (authMode === 'login' && hasCompletedOnboarding) {
+        // If user logged in (not signup) AND either has completed onboarding OR has provider/admin role, redirect to portal
+        if (authMode === 'login' && (hasCompletedOnboarding || isProvider || isAdmin)) {
           navigate(ROUTES.PROVIDER_PORTAL);
+          setCheckingStatus(false);
           return;
         }
         
@@ -205,6 +221,7 @@ export default function ProviderOnboardingWizard() {
             phone: userData.phone || ''
           }));
         }
+        setCheckingStatus(false);
       };
 
       checkOnboardingStatus();
@@ -623,7 +640,13 @@ export default function ProviderOnboardingWizard() {
             <ArrowLeft className="w-6 h-6" />
           </button>
           <img src={chambyLogo} alt="Chamby" className="h-20" />
-          <div className="w-10" />
+          <button 
+            onClick={() => navigate(hasProviderRole ? ROUTES.PROVIDER_PORTAL : ROUTES.HOME)}
+            className="p-2 -mr-2 text-muted-foreground hover:text-foreground"
+            title="Salir"
+          >
+            <X className="w-6 h-6" />
+          </button>
         </div>
 
         {/* Progress Track */}
@@ -681,8 +704,20 @@ export default function ProviderOnboardingWizard() {
             />
           </div>
           
+          {/* Desktop Header with Exit */}
+          <div className="flex items-center justify-between px-8 pt-6">
+            <div /> {/* Spacer */}
+            <button 
+              onClick={() => navigate(hasProviderRole ? ROUTES.PROVIDER_PORTAL : ROUTES.HOME)}
+              className="p-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted transition-colors"
+              title="Salir"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
           {/* Desktop Content */}
-          <div className="p-8 min-h-[500px]">
+          <div className="p-8 pt-4 min-h-[500px]">
             {renderStepContent()}
           </div>
 
@@ -1023,6 +1058,23 @@ export default function ProviderOnboardingWizard() {
             Este nombre aparecerá en tu perfil profesional
           </p>
         </div>
+
+        {/* Skip to portal option for existing providers */}
+        {hasProviderRole && (
+          <div className="bg-accent/20 border border-accent rounded-xl p-4 mb-4">
+            <p className="text-sm text-foreground mb-3">
+              Ya tienes una cuenta de proveedor. Puedes completar tu perfil ahora o hacerlo después.
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate(ROUTES.PROVIDER_PORTAL)}
+              className="w-full"
+            >
+              Ir al portal sin completar
+            </Button>
+          </div>
+        )}
         
         <div className="space-y-5">
           <div className="space-y-2">
