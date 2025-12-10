@@ -73,6 +73,7 @@ import ProviderPayoutDetailPage from "./pages/provider/ProviderPayoutDetailPage"
 import ClientInvoiceListPage from "./pages/client/ClientInvoiceListPage";
 import AdminPayoutDashboard from "./pages/admin/AdminPayoutDashboard";
 import AdminPayoutDetailPage from "./pages/admin/AdminPayoutDetailPage";
+import VisitFeePaymentPage from "./pages/VisitFeePaymentPage";
 
 const queryClient = new QueryClient();
 
@@ -378,6 +379,16 @@ const App = () => {
                 element={
                   <ProtectedRoute requireAdmin>
                     <AdminPayoutDetailPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Visit Fee Payment Page (customer fallback) */}
+              <Route
+                path="/job/:jobId/payment"
+                element={
+                  <ProtectedRoute>
+                    <VisitFeePaymentPage />
                   </ProtectedRoute>
                 }
               />
