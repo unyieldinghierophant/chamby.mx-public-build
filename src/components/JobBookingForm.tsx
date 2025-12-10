@@ -594,8 +594,14 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
     setShowVisitFeeAuth(false);
     setVisitFeeAuthorized(false);
     
-    // Navigate to waiting page
-    navigate(`/esperando-proveedor?job_id=${createdJobId}`);
+    // Navigate based on payment status
+    if (visitFeeAuthorized) {
+      // Payment was authorized, go to waiting page
+      navigate(`/esperando-proveedor?job_id=${createdJobId}`);
+    } else {
+      // Payment was skipped, go to payment page
+      navigate(`/job/${createdJobId}/payment`);
+    }
   };
 
   const handleVisitFeeAuthorized = () => {
