@@ -184,23 +184,14 @@ export default function ProviderOnboardingWizard() {
         const isAdmin = roles?.some(r => r.role === 'admin');
         setHasProviderRole(isProvider || isAdmin);
         
-        // Check provider profile status
-        const { data: provider } = await supabase
-          .from('providers')
-          .select('skills, zone_served')
-          .eq('user_id', user.id)
-          .maybeSingle();
-        
-        const hasCompletedOnboarding = provider?.skills?.length > 0 && provider?.zone_served;
-        
-        // If user logged in (not signup) AND either has completed onboarding OR has provider/admin role, redirect to portal
-        if (authMode === 'login' && (hasCompletedOnboarding || isProvider || isAdmin)) {
+        // If user has provider or admin role, redirect to portal immediately
+        if (isProvider || isAdmin) {
           navigate(ROUTES.PROVIDER_PORTAL);
           setCheckingStatus(false);
           return;
         }
         
-        // Otherwise, continue with wizard
+        // New user without provider role - continue with onboarding wizard
         setCurrentStep(3);
         
         const { data: userData } = await supabase
