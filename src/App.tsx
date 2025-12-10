@@ -56,7 +56,7 @@ import ProviderSkillsSelection from "./pages/provider-portal/ProviderSkillsSelec
 // Provider notifications disabled during cleanup
 import RescheduleRequest from "./pages/provider-portal/RescheduleRequest";
 import AvailableJobs from "./pages/provider-portal/AvailableJobs";
-import BecomeProvider from "./pages/BecomeProvider";
+
 import RoleSelection from "./pages/RoleSelection";
 import Blog from "./pages/Blog";
 import HelpCenter from "./pages/HelpCenter";
@@ -143,7 +143,7 @@ const App = () => {
               <Route path={ROUTES.BOOK_JOB} element={<BookJob />} />
               <Route path={ROUTES.USER_AUTH} element={<UserOnboardingWizard />} />
               <Route path={ROUTES.PROVIDER_AUTH} element={<ProviderOnboardingWizard />} />
-              <Route path={ROUTES.BECOME_PROVIDER} element={<BecomeProvider />} />
+              
               <Route path={ROUTES.CHOOSE_ROLE} element={<RoleSelection />} />
               <Route path={ROUTES.AUTH_CALLBACK} element={<AuthCallback />} />
               <Route path={ROUTES.CALLBACK} element={<AuthCallback />} />

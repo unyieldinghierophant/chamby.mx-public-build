@@ -44,7 +44,7 @@ const ProviderPortal = () => {
   if (loginContext !== 'provider' && profile) {
     hasProviderRole().then(isProvider => {
       if (!isProvider) {
-        window.location.href = ROUTES.BECOME_PROVIDER;
+        window.location.href = ROUTES.PROVIDER_AUTH;
       }
     });
   }

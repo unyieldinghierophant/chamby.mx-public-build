@@ -54,7 +54,7 @@ const ProviderLanding = () => {
       if (role === 'provider') {
         navigate('/provider-portal');
       } else {
-        navigate('/become-provider');
+        navigate('/auth/provider');
       }
     } else {
       // Usuario no logueado - llevar a registro con tab de signup
@@ -67,8 +67,8 @@ const ProviderLanding = () => {
       // No logueado - llevar a registro
       navigate('/auth/provider?tab=signup');
     } else if (role !== 'provider') {
-      // Logueado pero no es proveedor - llevar a onboarding
-      navigate('/become-provider');
+      // Logueado pero no es proveedor - llevar a auth
+      navigate('/auth/provider');
     } else if (!isVerified) {
       // Es provider pero no verificado - llevar a verificación
       navigate('/provider-verification');

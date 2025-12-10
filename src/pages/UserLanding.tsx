@@ -7,7 +7,8 @@ import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, LogOut, User, Settings, CreditCard, Shield, Users, LayoutDashboard } from "lucide-react";
+import { TrendingUp, LogOut, User, Settings, CreditCard, Shield, LayoutDashboard } from "lucide-react";
+import { ROUTES } from "@/constants/routes";
 import { AISearchBar } from "@/components/AISearchBar";
 import { CategoryCard } from "@/components/CategoryCard";
 import logo from "@/assets/chamby-logo-text.png";
@@ -345,7 +346,7 @@ const UserLanding = () => {
               <p className="text-muted-foreground mb-4">
                 Únete como proveedor y empieza a ganar dinero hoy
               </p>
-              <Button onClick={() => navigate("/become-provider")} className="bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant">
+              <Button onClick={() => navigate(ROUTES.PROVIDER_AUTH)} className="bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant">
                 Convertirse en Proveedor
               </Button>
             </CardContent>
