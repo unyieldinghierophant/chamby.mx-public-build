@@ -150,6 +150,7 @@ export type Database = {
           amount_service_total: number | null
           budget: string | null
           category: string
+          client_confirmed_visit: boolean | null
           client_id: string
           created_at: string | null
           description: string | null
@@ -162,6 +163,7 @@ export type Database = {
           photo_count: number | null
           photos: string[] | null
           problem: string | null
+          provider_confirmed_visit: boolean | null
           provider_id: string | null
           provider_visited: boolean | null
           rate: number
@@ -177,6 +179,9 @@ export type Database = {
           total_amount: number | null
           updated_at: string | null
           urgent: boolean | null
+          visit_confirmation_deadline: string | null
+          visit_dispute_reason: string | null
+          visit_dispute_status: string | null
           visit_fee_amount: number | null
           visit_fee_paid: boolean | null
         }
@@ -185,6 +190,7 @@ export type Database = {
           amount_service_total?: number | null
           budget?: string | null
           category: string
+          client_confirmed_visit?: boolean | null
           client_id: string
           created_at?: string | null
           description?: string | null
@@ -197,6 +203,7 @@ export type Database = {
           photo_count?: number | null
           photos?: string[] | null
           problem?: string | null
+          provider_confirmed_visit?: boolean | null
           provider_id?: string | null
           provider_visited?: boolean | null
           rate: number
@@ -212,6 +219,9 @@ export type Database = {
           total_amount?: number | null
           updated_at?: string | null
           urgent?: boolean | null
+          visit_confirmation_deadline?: string | null
+          visit_dispute_reason?: string | null
+          visit_dispute_status?: string | null
           visit_fee_amount?: number | null
           visit_fee_paid?: boolean | null
         }
@@ -220,6 +230,7 @@ export type Database = {
           amount_service_total?: number | null
           budget?: string | null
           category?: string
+          client_confirmed_visit?: boolean | null
           client_id?: string
           created_at?: string | null
           description?: string | null
@@ -232,6 +243,7 @@ export type Database = {
           photo_count?: number | null
           photos?: string[] | null
           problem?: string | null
+          provider_confirmed_visit?: boolean | null
           provider_id?: string | null
           provider_visited?: boolean | null
           rate?: number
@@ -247,6 +259,9 @@ export type Database = {
           total_amount?: number | null
           updated_at?: string | null
           urgent?: boolean | null
+          visit_confirmation_deadline?: string | null
+          visit_dispute_reason?: string | null
+          visit_dispute_status?: string | null
           visit_fee_amount?: number | null
           visit_fee_paid?: boolean | null
         }

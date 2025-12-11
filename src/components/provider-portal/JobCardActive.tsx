@@ -1,30 +1,41 @@
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, Calendar, Clock, DollarSign, User, Phone, MessageSquare, CheckCircle, Navigation } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { MapPin, Calendar, Clock, DollarSign, User, Phone, MessageSquare, CheckCircle, Navigation, Loader2, HourglassIcon } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { PaymentStatusBadge } from "@/components/PaymentStatusBadge";
 import { getVisitFeeStatus, getInvoiceStatus } from "@/utils/jobPaymentStatus";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { ActiveJob } from "@/hooks/useActiveJobs";
 import { toast } from "sonner";
+import { useCompleteFirstVisit } from "@/hooks/useCompleteFirstVisit";
 
 interface JobCardActiveProps {
-  job: ActiveJob;
+  job: ActiveJob & {
+    provider_confirmed_visit?: boolean;
+    client_confirmed_visit?: boolean;
+    visit_confirmation_deadline?: string | null;
+    visit_dispute_status?: string | null;
+  };
   onComplete: (jobId: string) => Promise<{ error: any }>;
 }
 
 export const JobCardActive = ({ job, onComplete }: JobCardActiveProps) => {
-  const handleComplete = async () => {
-    const { error } = await onComplete(job.id);
-    if (error) {
-      toast.error('Error al completar el trabajo', {
-        description: error.message
+  const { providerConfirmVisit, loading } = useCompleteFirstVisit();
+
+  const handleConfirmVisit = async () => {
+    const result = await providerConfirmVisit(job.id);
+    if (result.success) {
+      toast.success('¡Visita confirmada!', {
+        description: 'El cliente tiene 48 horas para confirmar. Una vez que confirme, recibirás el pago.'
       });
+      // Trigger a refresh
+      await onComplete(job.id);
     } else {
-      toast.success('¡Trabajo completado!', {
-        description: 'El trabajo ha sido marcado como completado'
+      toast.error('Error al confirmar la visita', {
+        description: result.message
       });
     }
   };
@@ -47,9 +58,66 @@ export const JobCardActive = ({ job, onComplete }: JobCardActiveProps) => {
   };
 
   const scheduledDate = job.scheduled_at ? new Date(job.scheduled_at) : new Date();
-
   const visitFeeStatus = getVisitFeeStatus(job);
   const invoiceStatus = getInvoiceStatus(job.invoice);
+
+  // Determine confirmation status
+  const providerConfirmed = job.provider_confirmed_visit === true;
+  const clientConfirmed = job.client_confirmed_visit === true;
+  const hasDispute = job.visit_dispute_status !== null && job.visit_dispute_status !== undefined;
+  const deadline = job.visit_confirmation_deadline ? new Date(job.visit_confirmation_deadline) : null;
+
+  // Render confirmation status section
+  const renderConfirmationStatus = () => {
+    if (clientConfirmed) {
+      return (
+        <div className="flex items-center gap-2 p-3 bg-success/10 rounded-lg border border-success/20">
+          <CheckCircle className="h-5 w-5 text-success" />
+          <span className="text-sm text-success font-medium">
+            Visita confirmada por ambas partes
+          </span>
+        </div>
+      );
+    }
+
+    if (hasDispute) {
+      const isPending = job.visit_dispute_status === "pending_support";
+      return (
+        <div className={`flex items-center gap-2 p-3 rounded-lg border ${
+          isPending ? "bg-warning/10 border-warning/20" : "bg-muted"
+        }`}>
+          <HourglassIcon className={`h-5 w-5 ${isPending ? "text-warning" : "text-muted-foreground"}`} />
+          <span className={`text-sm font-medium ${isPending ? "text-warning" : "text-muted-foreground"}`}>
+            {isPending ? "En revisión por soporte" : "Caso resuelto"}
+          </span>
+        </div>
+      );
+    }
+
+    if (providerConfirmed) {
+      const timeRemaining = deadline 
+        ? formatDistanceToNow(deadline, { locale: es, addSuffix: true })
+        : null;
+      
+      return (
+        <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg border border-primary/20">
+          <div className="flex items-center gap-2">
+            <Clock className="h-5 w-5 text-primary" />
+            <span className="text-sm text-primary font-medium">
+              Esperando confirmación del cliente
+            </span>
+          </div>
+          {timeRemaining && (
+            <Badge variant="outline" className="text-xs">
+              {timeRemaining}
+            </Badge>
+          )}
+        </div>
+      );
+    }
+
+    return null;
+  };
 
   return (
     <Card className="bg-gradient-card border-border/50 hover:shadow-raised transition-shadow">
@@ -73,6 +141,9 @@ export const JobCardActive = ({ job, onComplete }: JobCardActiveProps) => {
       </CardHeader>
 
       <CardContent className="space-y-3">
+        {/* Confirmation Status */}
+        {renderConfirmationStatus()}
+
         {/* Customer Info */}
         {job.client && (
           <div className="flex items-center justify-between">
@@ -151,13 +222,22 @@ export const JobCardActive = ({ job, onComplete }: JobCardActiveProps) => {
             Chat
           </Button>
         </div>
-        <Button 
-          onClick={handleComplete}
-          className="w-full bg-success hover:bg-success/90 text-success-foreground gap-2"
-        >
-          <CheckCircle className="w-4 h-4" />
-          Marcar como Completado
-        </Button>
+        
+        {/* Show confirm button only if not already confirmed and no dispute */}
+        {!providerConfirmed && !hasDispute && (
+          <Button 
+            onClick={handleConfirmVisit}
+            disabled={loading}
+            className="w-full bg-success hover:bg-success/90 text-success-foreground gap-2"
+          >
+            {loading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <CheckCircle className="w-4 h-4" />
+            )}
+            Confirmar Visita Completada
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );

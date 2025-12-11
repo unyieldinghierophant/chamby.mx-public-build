@@ -9,6 +9,7 @@ import { JobTrackingMap } from "@/components/JobTrackingMap";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { PaymentStatusBadge } from "@/components/PaymentStatusBadge";
+import { ClientVisitConfirmation } from "@/components/ClientVisitConfirmation";
 import { getVisitFeeStatus, getInvoiceStatus } from "@/utils/jobPaymentStatus";
 import Header from "@/components/Header";
 import { toast } from "sonner";
@@ -26,6 +27,12 @@ interface ActiveJob {
   // Payment status fields
   stripe_visit_payment_intent_id: string | null;
   visit_fee_paid: boolean | null;
+  // Double confirmation fields
+  provider_confirmed_visit: boolean;
+  client_confirmed_visit: boolean;
+  visit_confirmation_deadline: string | null;
+  visit_dispute_status: string | null;
+  visit_dispute_reason: string | null;
   provider?: {
     full_name: string;
     phone: string;
@@ -133,6 +140,16 @@ const ActiveJobs = () => {
     }
   };
 
+  // Check if job needs client confirmation
+  const needsClientConfirmation = (job: ActiveJob) => {
+    return job.provider_confirmed_visit && 
+           !job.client_confirmed_visit && 
+           !job.visit_dispute_status;
+  };
+
+  // Jobs pending client confirmation
+  const pendingConfirmationJobs = jobs.filter(needsClientConfirmation);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-main">
@@ -189,12 +206,36 @@ const ActiveJobs = () => {
 
         <h1 className="text-3xl font-bold mb-6">Trabajos Activos</h1>
 
+        {/* Pending Confirmations Alert */}
+        {pendingConfirmationJobs.length > 0 && (
+          <Card className="mb-6 border-primary/50 bg-primary/5">
+            <CardContent className="p-4">
+              <h3 className="font-semibold text-primary mb-3">
+                ⏳ {pendingConfirmationJobs.length} visita{pendingConfirmationJobs.length > 1 ? 's' : ''} pendiente{pendingConfirmationJobs.length > 1 ? 's' : ''} de confirmación
+              </h3>
+              <div className="space-y-3">
+                {pendingConfirmationJobs.map((job) => (
+                  <ClientVisitConfirmation 
+                    key={job.id}
+                    job={{
+                      ...job,
+                      provider: job.provider ? { full_name: job.provider.full_name } : undefined
+                    }}
+                    onConfirmed={fetchActiveJobs}
+                  />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <div className="grid md:grid-cols-3 gap-6">
           {/* Jobs List */}
           <div className="md:col-span-1 space-y-4">
             {jobs.map((job) => {
               const visitFeeStatus = getVisitFeeStatus(job);
               const invoiceStatus = getInvoiceStatus(job.invoice);
+              const needsConfirm = needsClientConfirmation(job);
               
               return (
                 <Card
@@ -202,6 +243,8 @@ const ActiveJobs = () => {
                   className={`cursor-pointer transition-all ${
                     selectedJob?.id === job.id
                       ? "border-primary shadow-lg"
+                      : needsConfirm
+                      ? "border-warning/50 hover:border-warning"
                       : "hover:border-primary/50"
                   }`}
                   onClick={() => setSelectedJob(job)}
@@ -209,9 +252,16 @@ const ActiveJobs = () => {
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-2">
                       <h3 className="font-semibold">{job.title}</h3>
-                      <Badge variant={job.provider_id ? "default" : "secondary"}>
-                        {job.status}
-                      </Badge>
+                      <div className="flex items-center gap-1">
+                        {needsConfirm && (
+                          <Badge variant="outline" className="text-warning border-warning text-xs">
+                            Confirmar
+                          </Badge>
+                        )}
+                        <Badge variant={job.provider_id ? "default" : "secondary"}>
+                          {job.status}
+                        </Badge>
+                      </div>
                     </div>
                     <p className="text-sm text-muted-foreground mb-2">{job.category}</p>
                     
@@ -245,6 +295,17 @@ const ActiveJobs = () => {
           {/* Job Details */}
           {selectedJob && (
             <div className="md:col-span-2 space-y-6">
+              {/* Client Visit Confirmation - Show at top if needed */}
+              {needsClientConfirmation(selectedJob) && (
+                <ClientVisitConfirmation 
+                  job={{
+                    ...selectedJob,
+                    provider: selectedJob.provider ? { full_name: selectedJob.provider.full_name } : undefined
+                  }}
+                  onConfirmed={fetchActiveJobs}
+                />
+              )}
+
               {/* Map */}
               {selectedJob.provider && (
                 <Card>
@@ -277,9 +338,9 @@ const ActiveJobs = () => {
                           {selectedJob.provider.full_name}
                         </h4>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <span>⭐ {selectedJob.provider.rating.toFixed(1)}</span>
+                          <span>⭐ {selectedJob.provider.rating?.toFixed(1) || "N/A"}</span>
                           <span>•</span>
-                          <span>{selectedJob.provider.total_reviews} reseñas</span>
+                          <span>{selectedJob.provider.total_reviews || 0} reseñas</span>
                         </div>
                       </div>
                     </div>

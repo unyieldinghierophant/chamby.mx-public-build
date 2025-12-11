@@ -1,6 +1,15 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+type VisitAction = 
+  | "capture" 
+  | "release" 
+  | "provider_confirm" 
+  | "client_confirm" 
+  | "client_dispute"
+  | "admin_resolve_capture"
+  | "admin_resolve_release";
+
 interface CompleteFirstVisitResult {
   success: boolean;
   message: string;
@@ -8,10 +17,17 @@ interface CompleteFirstVisitResult {
   payment_intent_id?: string;
   payment_intent_status?: string;
   already_completed?: boolean;
+  already_confirmed?: boolean;
+  confirmation_deadline?: string;
 }
 
 interface UseCompleteFirstVisitReturn {
-  completeFirstVisit: (jobId: string, action?: "capture" | "release") => Promise<CompleteFirstVisitResult>;
+  completeFirstVisit: (jobId: string, action?: VisitAction, disputeReason?: string) => Promise<CompleteFirstVisitResult>;
+  providerConfirmVisit: (jobId: string) => Promise<CompleteFirstVisitResult>;
+  clientConfirmVisit: (jobId: string) => Promise<CompleteFirstVisitResult>;
+  clientDisputeVisit: (jobId: string, reason: string) => Promise<CompleteFirstVisitResult>;
+  adminResolveCapture: (jobId: string) => Promise<CompleteFirstVisitResult>;
+  adminResolveRelease: (jobId: string) => Promise<CompleteFirstVisitResult>;
   loading: boolean;
   error: string | null;
 }
@@ -22,7 +38,8 @@ export const useCompleteFirstVisit = (): UseCompleteFirstVisitReturn => {
 
   const completeFirstVisit = async (
     jobId: string, 
-    action: "capture" | "release" = "capture"
+    action: VisitAction = "capture",
+    disputeReason?: string
   ): Promise<CompleteFirstVisitResult> => {
     setLoading(true);
     setError(null);
@@ -31,7 +48,7 @@ export const useCompleteFirstVisit = (): UseCompleteFirstVisitReturn => {
       const { data, error: invokeError } = await supabase.functions.invoke(
         "complete-first-visit",
         {
-          body: { jobId, action },
+          body: { jobId, action, disputeReason },
         }
       );
 
@@ -50,6 +67,8 @@ export const useCompleteFirstVisit = (): UseCompleteFirstVisitReturn => {
         payment_intent_id: data.payment_intent_id,
         payment_intent_status: data.payment_intent_status,
         already_completed: data.already_completed,
+        already_confirmed: data.already_confirmed,
+        confirmation_deadline: data.confirmation_deadline,
       };
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "An error occurred";
@@ -63,8 +82,33 @@ export const useCompleteFirstVisit = (): UseCompleteFirstVisitReturn => {
     }
   };
 
+  const providerConfirmVisit = async (jobId: string) => {
+    return completeFirstVisit(jobId, "provider_confirm");
+  };
+
+  const clientConfirmVisit = async (jobId: string) => {
+    return completeFirstVisit(jobId, "client_confirm");
+  };
+
+  const clientDisputeVisit = async (jobId: string, reason: string) => {
+    return completeFirstVisit(jobId, "client_dispute", reason);
+  };
+
+  const adminResolveCapture = async (jobId: string) => {
+    return completeFirstVisit(jobId, "admin_resolve_capture");
+  };
+
+  const adminResolveRelease = async (jobId: string) => {
+    return completeFirstVisit(jobId, "admin_resolve_release");
+  };
+
   return {
     completeFirstVisit,
+    providerConfirmVisit,
+    clientConfirmVisit,
+    clientDisputeVisit,
+    adminResolveCapture,
+    adminResolveRelease,
     loading,
     error,
   };
