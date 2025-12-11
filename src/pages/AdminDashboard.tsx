@@ -2,16 +2,20 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { PaymentStatusBadge } from '@/components/PaymentStatusBadge';
 import { getVisitFeeStatus, getInvoiceStatus } from '@/utils/jobPaymentStatus';
-import { ArrowLeft, Phone, Mail, MapPin, Calendar, Clock, Search, Image, Wallet } from 'lucide-react';
-import { format } from 'date-fns';
+import { useCompleteFirstVisit } from '@/hooks/useCompleteFirstVisit';
+import { ArrowLeft, Phone, Mail, MapPin, Calendar, Clock, Search, Image, Wallet, AlertTriangle, CheckCircle, XCircle, Loader2, User, DollarSign } from 'lucide-react';
+import { format, formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { toast } from 'sonner';
 
 interface JobWithClient {
   id: string;
@@ -33,10 +37,21 @@ interface JobWithClient {
   // Payment status fields
   stripe_visit_payment_intent_id: string | null;
   visit_fee_paid: boolean | null;
+  // Double confirmation fields
+  provider_confirmed_visit: boolean | null;
+  client_confirmed_visit: boolean | null;
+  visit_confirmation_deadline: string | null;
+  visit_dispute_status: string | null;
+  visit_dispute_reason: string | null;
   client?: {
     full_name: string | null;
     email: string | null;
     phone: string | null;
+  };
+  provider?: {
+    display_name: string | null;
+    business_email: string | null;
+    business_phone: string | null;
   };
   invoice?: {
     status: string;
@@ -47,12 +62,18 @@ const AdminDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [jobs, setJobs] = useState<JobWithClient[]>([]);
+  const [disputedJobs, setDisputedJobs] = useState<JobWithClient[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState('jobs');
+  const [resolvingJobId, setResolvingJobId] = useState<string | null>(null);
+  
+  const { adminResolveCapture, adminResolveRelease } = useCompleteFirstVisit();
 
   useEffect(() => {
     fetchJobs();
+    fetchDisputedJobs();
   }, []);
 
   const fetchJobs = async () => {
@@ -95,6 +116,77 @@ const AdminDashboard = () => {
       console.error('Error fetching jobs:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchDisputedJobs = async () => {
+    try {
+      // Fetch jobs with pending disputes
+      const { data: disputeData, error: disputeError } = await supabase
+        .from('jobs')
+        .select('*')
+        .eq('visit_dispute_status', 'pending_support')
+        .order('created_at', { ascending: false });
+
+      if (disputeError) throw disputeError;
+
+      // Fetch client and provider info for each disputed job
+      const jobsWithDetails = await Promise.all(
+        (disputeData || []).map(async (job) => {
+          const [clientResult, providerResult] = await Promise.all([
+            supabase.from('users').select('full_name, email, phone').eq('id', job.client_id).maybeSingle(),
+            job.provider_id 
+              ? supabase.from('providers').select('display_name, business_email, business_phone').eq('user_id', job.provider_id).maybeSingle()
+              : Promise.resolve({ data: null })
+          ]);
+
+          return {
+            ...job,
+            client: clientResult.data || undefined,
+            provider: providerResult.data || undefined
+          };
+        })
+      );
+
+      setDisputedJobs(jobsWithDetails);
+    } catch (error) {
+      console.error('Error fetching disputed jobs:', error);
+    }
+  };
+
+  const handleResolveCapture = async (jobId: string) => {
+    setResolvingJobId(jobId);
+    try {
+      await adminResolveCapture(jobId);
+      toast.success('Pago capturado exitosamente', {
+        description: 'Los $350 MXN han sido cobrados al cliente.'
+      });
+      // Refresh disputed jobs
+      fetchDisputedJobs();
+    } catch (error) {
+      toast.error('Error al capturar el pago', {
+        description: error instanceof Error ? error.message : 'Intenta de nuevo'
+      });
+    } finally {
+      setResolvingJobId(null);
+    }
+  };
+
+  const handleResolveRelease = async (jobId: string) => {
+    setResolvingJobId(jobId);
+    try {
+      await adminResolveRelease(jobId);
+      toast.success('Pago liberado exitosamente', {
+        description: 'Los fondos han sido devueltos al cliente.'
+      });
+      // Refresh disputed jobs
+      fetchDisputedJobs();
+    } catch (error) {
+      toast.error('Error al liberar el pago', {
+        description: error instanceof Error ? error.message : 'Intenta de nuevo'
+      });
+    } finally {
+      setResolvingJobId(null);
     }
   };
 
@@ -146,8 +238,8 @@ const AdminDashboard = () => {
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <div>
-                <h1 className="text-2xl font-bold">Panel de Administración</h1>
-                <p className="text-sm text-muted-foreground">Solicitudes de trabajo</p>
+                <h1 className="text-xl sm:text-2xl font-bold">Panel de Administración</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground">Gestión de trabajos y disputas</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -158,176 +250,363 @@ const AdminDashboard = () => {
                 className="flex items-center gap-2"
               >
                 <Wallet className="h-4 w-4" />
-                Payouts
+                <span className="hidden sm:inline">Payouts</span>
               </Button>
-              <Badge variant="outline" className="text-xs">
-                {filteredJobs.length} solicitudes
-              </Badge>
+              {disputedJobs.length > 0 && (
+                <Badge variant="destructive" className="animate-pulse">
+                  {disputedJobs.length} disputas
+                </Badge>
+              )}
             </div>
           </div>
         </div>
       </header>
 
-      {/* Filters */}
+      {/* Tabs */}
       <div className="container mx-auto px-4 py-4">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por título, cliente, ubicación..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="Filtrar por estado" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="pending">Pendiente</SelectItem>
-              <SelectItem value="active">Activo</SelectItem>
-              <SelectItem value="in_progress">En Progreso</SelectItem>
-              <SelectItem value="completed">Completado</SelectItem>
-              <SelectItem value="cancelled">Cancelado</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsTrigger value="jobs" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              <span>Trabajos</span>
+              <Badge variant="secondary" className="ml-1 text-xs">{filteredJobs.length}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="disputes" className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" />
+              <span>Disputas</span>
+              {disputedJobs.length > 0 && (
+                <Badge variant="destructive" className="ml-1 text-xs">{disputedJobs.length}</Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
 
-      {/* Jobs List */}
-      <div className="container mx-auto px-4 pb-8">
-        <div className="space-y-4">
-          {filteredJobs.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <p className="text-muted-foreground">No se encontraron solicitudes</p>
-              </CardContent>
-            </Card>
-          ) : (
-            filteredJobs.map((job) => (
-              <Card key={job.id} className="overflow-hidden">
-                <CardHeader className="pb-2">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-lg">{job.title}</CardTitle>
-                      <p className="text-sm text-muted-foreground">
-                        {job.category} {job.service_type && `• ${job.service_type}`}
-                      </p>
-                    </div>
-                    {getStatusBadge(job.status)}
-                  </div>
-                  {/* Payment Status Badges */}
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    <PaymentStatusBadge type="visit_fee" status={getVisitFeeStatus(job)} role="customer" />
-                    {getInvoiceStatus(job.invoice) !== 'none' && (
-                      <PaymentStatusBadge type="invoice" status={getInvoiceStatus(job.invoice)} role="customer" />
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Client Info */}
-                  <div className="bg-muted/50 rounded-lg p-3 space-y-2">
-                    <p className="font-medium text-sm">Cliente</p>
-                    <div className="grid gap-1 text-sm">
-                      <p className="font-semibold">{job.client?.full_name || 'Sin nombre'}</p>
-                      {job.client?.phone && (
-                        <a 
-                          href={`tel:${job.client.phone}`}
-                          className="flex items-center gap-2 text-primary hover:underline"
-                        >
-                          <Phone className="h-3 w-3" />
-                          {job.client.phone}
-                        </a>
+          {/* Jobs Tab */}
+          <TabsContent value="jobs" className="space-y-4">
+            {/* Filters */}
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por título, cliente, ubicación..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Filtrar por estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="pending">Pendiente</SelectItem>
+                  <SelectItem value="active">Activo</SelectItem>
+                  <SelectItem value="in_progress">En Progreso</SelectItem>
+                  <SelectItem value="completed">Completado</SelectItem>
+                  <SelectItem value="cancelled">Cancelado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Jobs List */}
+            <div className="space-y-4">
+              {filteredJobs.length === 0 ? (
+                <Card>
+                  <CardContent className="py-12 text-center">
+                    <p className="text-muted-foreground">No se encontraron solicitudes</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                filteredJobs.map((job) => (
+                  <Card key={job.id} className="overflow-hidden">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle className="text-base sm:text-lg">{job.title}</CardTitle>
+                          <p className="text-xs sm:text-sm text-muted-foreground">
+                            {job.category} {job.service_type && `• ${job.service_type}`}
+                          </p>
+                        </div>
+                        {getStatusBadge(job.status)}
+                      </div>
+                      {/* Payment Status Badges */}
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        <PaymentStatusBadge type="visit_fee" status={getVisitFeeStatus(job)} role="customer" />
+                        {getInvoiceStatus(job.invoice) !== 'none' && (
+                          <PaymentStatusBadge type="invoice" status={getInvoiceStatus(job.invoice)} role="customer" />
+                        )}
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-3 sm:space-y-4">
+                      {/* Client Info */}
+                      <div className="bg-muted/50 rounded-lg p-3 space-y-2">
+                        <p className="font-medium text-xs sm:text-sm">Cliente</p>
+                        <div className="grid gap-1 text-xs sm:text-sm">
+                          <p className="font-semibold">{job.client?.full_name || 'Sin nombre'}</p>
+                          {job.client?.phone && (
+                            <a 
+                              href={`tel:${job.client.phone}`}
+                              className="flex items-center gap-2 text-primary hover:underline"
+                            >
+                              <Phone className="h-3 w-3" />
+                              {job.client.phone}
+                            </a>
+                          )}
+                          {job.client?.email && (
+                            <a 
+                              href={`mailto:${job.client.email}`}
+                              className="flex items-center gap-2 text-primary hover:underline truncate"
+                            >
+                              <Mail className="h-3 w-3 flex-shrink-0" />
+                              <span className="truncate">{job.client.email}</span>
+                            </a>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Description */}
+                      {(job.description || job.problem) && (
+                        <div>
+                          <p className="font-medium text-xs sm:text-sm mb-1">Descripción</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">
+                            {job.description || job.problem}
+                          </p>
+                        </div>
                       )}
-                      {job.client?.email && (
-                        <a 
-                          href={`mailto:${job.client.email}`}
-                          className="flex items-center gap-2 text-primary hover:underline"
-                        >
-                          <Mail className="h-3 w-3" />
-                          {job.client.email}
-                        </a>
+
+                      {/* Location */}
+                      {job.location && (
+                        <div className="flex items-start gap-2">
+                          <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                          <p className="text-xs sm:text-sm">{job.location}</p>
+                        </div>
                       )}
-                    </div>
-                  </div>
 
-                  {/* Description */}
-                  {(job.description || job.problem) && (
-                    <div>
-                      <p className="font-medium text-sm mb-1">Descripción</p>
-                      <p className="text-sm text-muted-foreground">
-                        {job.description || job.problem}
-                      </p>
-                    </div>
-                  )}
+                      {/* Schedule */}
+                      <div className="flex flex-wrap gap-3 sm:gap-4 text-xs sm:text-sm">
+                        {job.scheduled_at && (
+                          <div className="flex items-center gap-1.5 sm:gap-2">
+                            <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+                            <span>
+                              {format(new Date(job.scheduled_at), "d MMM yyyy", { locale: es })}
+                            </span>
+                          </div>
+                        )}
+                        {(job.time_preference || job.exact_time) && (
+                          <div className="flex items-center gap-1.5 sm:gap-2">
+                            <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+                            <span>{job.exact_time || job.time_preference}</span>
+                          </div>
+                        )}
+                      </div>
 
-                  {/* Location */}
-                  {job.location && (
-                    <div className="flex items-start gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-                      <p className="text-sm">{job.location}</p>
-                    </div>
-                  )}
+                      {/* Photos */}
+                      {job.photos && job.photos.length > 0 && (
+                        <div>
+                          <p className="font-medium text-xs sm:text-sm mb-2 flex items-center gap-2">
+                            <Image className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                            Fotos ({job.photos.length})
+                          </p>
+                          <div className="flex gap-2 overflow-x-auto pb-2">
+                            {job.photos.map((photo, index) => (
+                              <a
+                                key={index}
+                                href={photo}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="shrink-0"
+                              >
+                                <img
+                                  src={photo}
+                                  alt={`Foto ${index + 1}`}
+                                  className="h-16 w-16 sm:h-20 sm:w-20 object-cover rounded-lg border hover:opacity-80 transition-opacity"
+                                />
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
-                  {/* Schedule */}
-                  <div className="flex flex-wrap gap-4 text-sm">
-                    {job.scheduled_at && (
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                      {/* Metadata */}
+                      <div className="flex items-center justify-between pt-2 border-t text-xs text-muted-foreground">
                         <span>
-                          {format(new Date(job.scheduled_at), "EEEE, d 'de' MMMM yyyy", { locale: es })}
+                          Creado: {job.created_at && format(new Date(job.created_at), "d MMM yyyy, HH:mm", { locale: es })}
                         </span>
+                        <span className="font-mono">{job.id.slice(0, 8)}</span>
                       </div>
-                    )}
-                    {(job.time_preference || job.exact_time) && (
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <span>{job.exact_time || job.time_preference}</span>
-                      </div>
-                    )}
-                  </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </TabsContent>
 
-                  {/* Photos */}
-                  {job.photos && job.photos.length > 0 && (
-                    <div>
-                      <p className="font-medium text-sm mb-2 flex items-center gap-2">
-                        <Image className="h-4 w-4" />
-                        Fotos ({job.photos.length})
-                      </p>
-                      <div className="flex gap-2 overflow-x-auto pb-2">
-                        {job.photos.map((photo, index) => (
-                          <a
-                            key={index}
-                            href={photo}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="shrink-0"
-                          >
-                            <img
-                              src={photo}
-                              alt={`Foto ${index + 1}`}
-                              className="h-20 w-20 object-cover rounded-lg border hover:opacity-80 transition-opacity"
-                            />
-                          </a>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Metadata */}
-                  <div className="flex items-center justify-between pt-2 border-t text-xs text-muted-foreground">
-                    <span>
-                      Creado: {job.created_at && format(new Date(job.created_at), "d MMM yyyy, HH:mm", { locale: es })}
-                    </span>
-                    <span className="font-mono">{job.id.slice(0, 8)}</span>
-                  </div>
+          {/* Disputes Tab */}
+          <TabsContent value="disputes" className="space-y-4">
+            {disputedJobs.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <CheckCircle className="h-12 w-12 text-success mx-auto mb-4 opacity-50" />
+                  <p className="text-muted-foreground font-medium">No hay disputas pendientes</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Todas las visitas han sido confirmadas correctamente
+                  </p>
                 </CardContent>
               </Card>
-            ))
-          )}
-        </div>
+            ) : (
+              disputedJobs.map((job) => (
+                <Card key={job.id} className="border-amber-200 dark:border-amber-800 overflow-hidden">
+                  <CardHeader className="bg-amber-50 dark:bg-amber-950/30 pb-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <AlertTriangle className="h-4 w-4 text-amber-600 flex-shrink-0" />
+                          <CardTitle className="text-base sm:text-lg truncate">{job.title}</CardTitle>
+                        </div>
+                        <CardDescription className="text-xs sm:text-sm">
+                          {job.category} • ID: {job.id.slice(0, 8)}
+                        </CardDescription>
+                      </div>
+                      <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-xs flex-shrink-0">
+                        Pendiente Soporte
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-4 space-y-4">
+                    {/* Dispute Reason */}
+                    {job.visit_dispute_reason && (
+                      <Alert variant="destructive" className="bg-red-50 dark:bg-red-950/30 border-red-200">
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertDescription className="text-xs sm:text-sm">
+                          <strong>Razón de la disputa:</strong> {job.visit_dispute_reason}
+                        </AlertDescription>
+                      </Alert>
+                    )}
+
+                    {/* Client & Provider Info */}
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {/* Client */}
+                      <div className="bg-muted/50 rounded-lg p-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          <p className="font-medium text-xs sm:text-sm">Cliente</p>
+                        </div>
+                        <div className="space-y-1 text-xs sm:text-sm">
+                          <p className="font-semibold">{job.client?.full_name || 'Sin nombre'}</p>
+                          {job.client?.phone && (
+                            <a href={`tel:${job.client.phone}`} className="flex items-center gap-1.5 text-primary hover:underline">
+                              <Phone className="h-3 w-3" />
+                              {job.client.phone}
+                            </a>
+                          )}
+                          {job.client?.email && (
+                            <a href={`mailto:${job.client.email}`} className="flex items-center gap-1.5 text-primary hover:underline truncate">
+                              <Mail className="h-3 w-3 flex-shrink-0" />
+                              <span className="truncate">{job.client.email}</span>
+                            </a>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Provider */}
+                      <div className="bg-muted/50 rounded-lg p-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <User className="h-4 w-4 text-primary" />
+                          <p className="font-medium text-xs sm:text-sm">Proveedor</p>
+                        </div>
+                        <div className="space-y-1 text-xs sm:text-sm">
+                          <p className="font-semibold">{job.provider?.display_name || 'Sin asignar'}</p>
+                          {job.provider?.business_phone && (
+                            <a href={`tel:${job.provider.business_phone}`} className="flex items-center gap-1.5 text-primary hover:underline">
+                              <Phone className="h-3 w-3" />
+                              {job.provider.business_phone}
+                            </a>
+                          )}
+                          {job.provider?.business_email && (
+                            <a href={`mailto:${job.provider.business_email}`} className="flex items-center gap-1.5 text-primary hover:underline truncate">
+                              <Mail className="h-3 w-3 flex-shrink-0" />
+                              <span className="truncate">{job.provider.business_email}</span>
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Job Details */}
+                    <div className="space-y-2 text-xs sm:text-sm">
+                      {job.location && (
+                        <div className="flex items-start gap-2">
+                          <MapPin className="h-3.5 w-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                          <span className="text-muted-foreground">{job.location}</span>
+                        </div>
+                      )}
+                      {job.scheduled_at && (
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                          <span className="text-muted-foreground">
+                            Programado: {format(new Date(job.scheduled_at), "d 'de' MMMM yyyy", { locale: es })}
+                          </span>
+                        </div>
+                      )}
+                      {job.visit_confirmation_deadline && (
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-3.5 w-3.5 text-amber-600" />
+                          <span className="text-amber-600">
+                            Deadline expiró: {formatDistanceToNow(new Date(job.visit_confirmation_deadline), { locale: es, addSuffix: true })}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Amount Info */}
+                    <div className="flex items-center justify-between p-3 bg-primary/5 rounded-lg border border-primary/10">
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-medium">Monto preautorizado</span>
+                      </div>
+                      <span className="text-lg font-bold text-primary">$350 MXN</span>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                      <Button
+                        onClick={() => handleResolveCapture(job.id)}
+                        disabled={resolvingJobId === job.id}
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-white h-10 sm:h-11"
+                      >
+                        {resolvingJobId === job.id ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                        )}
+                        <span>Cobrar al cliente</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => handleResolveRelease(job.id)}
+                        disabled={resolvingJobId === job.id}
+                        className="flex-1 border-red-300 text-red-600 hover:bg-red-50 h-10 sm:h-11"
+                      >
+                        {resolvingJobId === job.id ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <XCircle className="h-4 w-4 mr-2" />
+                        )}
+                        <span>Liberar fondos</span>
+                      </Button>
+                    </div>
+
+                    {/* Help text */}
+                    <p className="text-xs text-muted-foreground text-center">
+                      <strong>Cobrar:</strong> El proveedor completó la visita correctamente. 
+                      <strong className="ml-2">Liberar:</strong> El cliente tiene razón, devolver fondos.
+                    </p>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
