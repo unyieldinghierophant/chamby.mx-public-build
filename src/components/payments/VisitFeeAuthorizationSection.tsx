@@ -31,6 +31,7 @@ const VisitFeeForm = ({
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isElementReady, setIsElementReady] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -136,6 +137,8 @@ const VisitFeeForm = ({
           options={{
             layout: "tabs",
           }}
+          onReady={() => setIsElementReady(true)}
+          onLoadError={(error) => console.error('PaymentElement load error:', error)}
         />
       </div>
 
@@ -143,12 +146,17 @@ const VisitFeeForm = ({
         type="submit"
         variant="primary"
         className="w-full h-14 rounded-xl"
-        disabled={!stripe || isProcessing}
+        disabled={!stripe || !isElementReady || isProcessing}
       >
         {isProcessing ? (
           <>
             <Loader2 className="w-5 h-5 mr-2 animate-spin" />
             Autorizando...
+          </>
+        ) : !isElementReady ? (
+          <>
+            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+            Cargando...
           </>
         ) : (
           <>
