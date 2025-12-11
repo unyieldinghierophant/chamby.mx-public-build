@@ -61,12 +61,8 @@ const VisitPaymentForm = ({
       return;
     }
 
-    // Get the PaymentElement to verify it's mounted
-    const paymentElement = elements.getElement('payment');
-    if (!paymentElement) {
-      setErrorMessage("El formulario de pago no se ha cargado correctamente. Por favor recarga la página.");
-      return;
-    }
+    // Note: PaymentElement doesn't return a reference via getElement,
+    // we rely on onReady callback and timeout fallback instead
 
     setIsProcessing(true);
     setErrorMessage(null);
