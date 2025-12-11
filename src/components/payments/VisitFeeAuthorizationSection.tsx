@@ -9,7 +9,7 @@ import { Loader2, ShieldCheck, CreditCard, CheckCircle, AlertCircle, RefreshCw, 
 import { useVisitAuthorization } from "@/hooks/useVisitAuthorization";
 
 // Stripe publishable key for Chamby (LIVE mode)
-const STRIPE_PUBLISHABLE_KEY = "pk_live_51RRBQ1RwXHQJiN84LxJOOY7p8s1eCMsDBd1W38VNjDECgJH5f4zLqyR0f1cqjXMfmBx5r2qM3Df3qNl0cqO1eL8400qK3sMxKt";
+const STRIPE_PUBLISHABLE_KEY = "pk_live_51S97FmEZPwoUz41xy5reckT8yeYIP9xrJp1PRzJfarAIt5W57Y3ezZH09REHJNIbNK1oSvb8aHbdMEOad8ZraLq800FTBvPswi";
 
 const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
 
