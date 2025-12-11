@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Check, MapPin, Calendar, FileText, Image, Clock } from "lucide-react";
+import toolsPatternBg from "@/assets/tools-pattern-bg.png";
 
 interface BookingConfirmationProps {
   service: string;
@@ -64,16 +65,29 @@ export const BookingConfirmation = ({
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto space-y-6 animate-fade-in">
-      {/* Header */}
-      <div className="text-center space-y-2 pb-4">
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground font-['Made_Dillan']">
-          Preparando tu solicitud...
-        </h1>
-        <p className="text-muted-foreground">
-          Verifica que todo esté correcto
-        </p>
-      </div>
+    <div className="fixed inset-0 z-50 flex flex-col">
+      {/* Background Pattern */}
+      <div 
+        className="absolute inset-0 bg-blue-50"
+        style={{
+          backgroundImage: `url(${toolsPatternBg})`,
+          backgroundSize: '400px',
+          backgroundRepeat: 'repeat',
+        }}
+      />
+      
+      {/* Card Container */}
+      <div className="flex-1 flex items-end sm:items-center justify-center p-4">
+        <div className="w-full max-w-xl bg-card rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden animate-slide-in-from-bottom relative z-10">
+          {/* Header inside card */}
+          <div className="text-center space-y-1 px-6 pt-6 pb-4">
+            <h1 className="text-xl md:text-2xl font-bold text-foreground font-['Made_Dillan']">
+              Preparando tu solicitud...
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Verifica que todo esté correcto
+            </p>
+          </div>
 
       {/* Summary Card - Uber Style */}
       <div className="bg-card border-2 border-border rounded-2xl overflow-hidden shadow-lg">
@@ -146,7 +160,7 @@ export const BookingConfirmation = ({
       </div>
 
       {/* Action Buttons - Uber Style */}
-      <div className="space-y-3 pt-2">
+      <div className="px-6 pb-6 space-y-3 pt-2">
         {/* Primary Button with Countdown */}
         <Button
           onClick={onConfirm}
@@ -171,6 +185,8 @@ export const BookingConfirmation = ({
         >
           Volver y editar
         </button>
+      </div>
+        </div>
       </div>
     </div>
   );
