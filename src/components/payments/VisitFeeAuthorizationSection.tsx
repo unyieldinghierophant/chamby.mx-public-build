@@ -53,10 +53,27 @@ const VisitFeeForm = ({
       return;
     }
 
+    // Get the PaymentElement to verify it's mounted
+    const paymentElement = elements.getElement('payment');
+    if (!paymentElement) {
+      setStatus("error");
+      setErrorMessage("El formulario de pago no se ha cargado correctamente. Por favor recarga la página.");
+      return;
+    }
+
     setIsProcessing(true);
     setErrorMessage(null);
 
     try {
+      // Submit the elements first to ensure they're ready
+      const { error: submitError } = await elements.submit();
+      if (submitError) {
+        setStatus("error");
+        setErrorMessage(submitError.message || "Error al procesar el formulario");
+        setIsProcessing(false);
+        return;
+      }
+
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         confirmParams: {
