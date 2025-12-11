@@ -170,15 +170,16 @@ serve(async (req) => {
     }
 
     // Step 2: Create PaymentIntent with manual capture
+    // Using MXN (Mexican Pesos) - amount is in centavos
     logStep("Creating PaymentIntent with manual capture", { 
       amount: visitFeeAmount * 100, 
-      currency: "usd",
+      currency: "mxn",
       customerId: stripeCustomerId 
     });
 
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: visitFeeAmount * 100, // Convert to cents (USD)
-      currency: "usd",
+      amount: visitFeeAmount * 100, // Convert to centavos (MXN)
+      currency: "mxn",
       customer: stripeCustomerId,
       capture_method: "manual",
       automatic_payment_methods: { enabled: true },
@@ -214,7 +215,7 @@ serve(async (req) => {
         client_secret: paymentIntent.client_secret,
         payment_intent_id: paymentIntent.id,
         amount: visitFeeAmount,
-        currency: "usd"
+        currency: "mxn"
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
