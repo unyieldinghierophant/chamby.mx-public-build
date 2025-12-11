@@ -110,18 +110,18 @@ const InvoicePayPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
-        <div className="max-w-3xl mx-auto space-y-6">
-          <Skeleton className="h-8 w-32" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 px-3 py-4 sm:p-6 md:p-8">
+        <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6">
+          <Skeleton className="h-8 w-24 sm:w-32" />
           <Card className="border-0 shadow-xl">
-            <CardContent className="p-8 space-y-6">
-              <div className="flex justify-between">
-                <Skeleton className="h-10 w-40" />
-                <Skeleton className="h-6 w-24" />
+            <CardContent className="p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6">
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-3">
+                <Skeleton className="h-8 sm:h-10 w-32 sm:w-40" />
+                <Skeleton className="h-6 w-20 sm:w-24" />
               </div>
-              <Skeleton className="h-20 w-full" />
-              <Skeleton className="h-40 w-full" />
-              <Skeleton className="h-32 w-full" />
+              <Skeleton className="h-16 sm:h-20 w-full" />
+              <Skeleton className="h-32 sm:h-40 w-full" />
+              <Skeleton className="h-24 sm:h-32 w-full" />
             </CardContent>
           </Card>
         </div>
@@ -131,29 +131,29 @@ const InvoicePayPage = () => {
 
   if (error || !invoice) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 px-3 py-4 sm:p-6 md:p-8">
         <div className="max-w-3xl mx-auto">
           <Button
             variant="ghost"
             onClick={() => navigate(-1)}
-            className="mb-6"
+            className="mb-4 sm:mb-6 -ml-2"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Volver
           </Button>
           
           <Card className="border-destructive/20 shadow-xl">
-            <CardContent className="flex flex-col items-center justify-center py-16">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                <AlertCircle className="h-8 w-8 text-red-500" />
+            <CardContent className="flex flex-col items-center justify-center py-10 sm:py-16 px-4">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                <AlertCircle className="h-7 w-7 sm:h-8 sm:w-8 text-red-500" />
               </div>
-              <h2 className="text-xl font-semibold mb-2">Error al cargar la factura</h2>
-              <p className="text-muted-foreground text-center max-w-md">
+              <h2 className="text-lg sm:text-xl font-semibold mb-2 text-center">Error al cargar la factura</h2>
+              <p className="text-muted-foreground text-center text-sm sm:text-base max-w-md">
                 {error || "No se pudo encontrar la factura solicitada."}
               </p>
               <Button
                 onClick={() => refetch()}
-                className="mt-6"
+                className="mt-4 sm:mt-6 w-full sm:w-auto"
               >
                 Intentar de nuevo
               </Button>
@@ -165,13 +165,13 @@ const InvoicePayPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
-      <div className="max-w-3xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 px-3 py-4 sm:p-6 md:p-8">
+      <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6">
         {/* Back Button */}
         <Button
           variant="ghost"
           onClick={() => navigate(-1)}
-          className="mb-2"
+          className="mb-1 sm:mb-2 -ml-2"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Volver
@@ -180,48 +180,48 @@ const InvoicePayPage = () => {
         {/* Main Invoice Card */}
         <Card className="border-0 shadow-xl overflow-hidden">
           {/* Invoice Header */}
-          <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground p-6 md:p-8">
-            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+          <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground p-4 sm:p-6 md:p-8">
+            <div className="flex flex-col gap-3 sm:gap-4">
               <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                    <FileText className="h-5 w-5" />
+                <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                    <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
-                  <h1 className="text-2xl md:text-3xl font-bold">Factura</h1>
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Factura</h1>
                 </div>
-                <p className="text-primary-foreground/80 font-mono text-sm">
+                <p className="text-primary-foreground/80 font-mono text-xs sm:text-sm">
                   {shortenId(invoice.id)}
                 </p>
               </div>
-              <div className="text-left md:text-right">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 {getStatusBadge(paymentIntentStatus || invoice.status)}
-                <p className="text-primary-foreground/80 text-sm mt-2 flex items-center md:justify-end gap-1.5">
-                  <Calendar className="h-4 w-4" />
+                <p className="text-primary-foreground/80 text-xs sm:text-sm flex items-center gap-1.5">
+                  <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   {format(new Date(invoice.created_at), "d 'de' MMMM, yyyy", { locale: es })}
                 </p>
               </div>
             </div>
           </div>
 
-          <CardContent className="p-6 md:p-8 space-y-8">
+          <CardContent className="p-4 sm:p-6 md:p-8 space-y-5 sm:space-y-8">
             {/* Provider & Job Info */}
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid gap-3 sm:gap-4 md:grid-cols-2 md:gap-6">
               {/* Provider Info */}
               {provider && (
-                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+                <div className="p-3 sm:p-4 bg-slate-50 rounded-xl border border-slate-100">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 sm:mb-3">
                     Proveedor
                   </p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                      <User className="h-5 w-5 text-primary" />
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                      <User className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                     </div>
-                    <div>
-                      <p className="font-semibold text-foreground">
+                    <div className="min-w-0">
+                      <p className="font-semibold text-foreground text-sm sm:text-base truncate">
                         {provider.full_name || "Proveedor"}
                       </p>
                       {provider.email && (
-                        <p className="text-sm text-muted-foreground">{provider.email}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground truncate">{provider.email}</p>
                       )}
                     </div>
                   </div>
@@ -230,16 +230,16 @@ const InvoicePayPage = () => {
 
               {/* Job Info */}
               {job && (
-                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+                <div className="p-3 sm:p-4 bg-slate-50 rounded-xl border border-slate-100">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 sm:mb-3">
                     Trabajo
                   </p>
-                  <p className="font-semibold text-foreground mb-1">{job.title}</p>
-                  <p className="text-sm text-muted-foreground mb-2">{job.category}</p>
+                  <p className="font-semibold text-foreground text-sm sm:text-base mb-1">{job.title}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-2">{job.category}</p>
                   {job.location && (
-                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                      <MapPin className="h-3.5 w-3.5" />
-                      <span>{job.location}</span>
+                    <div className="flex items-start gap-1.5 text-xs sm:text-sm text-muted-foreground">
+                      <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5 mt-0.5 flex-shrink-0" />
+                      <span className="line-clamp-2">{job.location}</span>
                     </div>
                   )}
                 </div>
@@ -248,12 +248,12 @@ const InvoicePayPage = () => {
 
             {/* Invoice Items Table */}
             <div>
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-4">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3 sm:mb-4">
                 Detalle de servicios
               </p>
               <div className="border rounded-xl overflow-hidden">
-                {/* Table Header */}
-                <div className="hidden md:grid md:grid-cols-12 gap-4 bg-slate-50 p-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                {/* Table Header - Hidden on mobile */}
+                <div className="hidden md:grid md:grid-cols-12 gap-4 bg-slate-50 p-3 sm:p-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   <div className="col-span-6">Descripción</div>
                   <div className="col-span-2 text-center">Cantidad</div>
                   <div className="col-span-2 text-right">Precio Unit.</div>
@@ -265,21 +265,23 @@ const InvoicePayPage = () => {
                   {invoiceItems.map((item) => (
                     <div
                       key={item.id}
-                      className="grid md:grid-cols-12 gap-2 md:gap-4 p-4 items-center"
+                      className="p-3 sm:p-4 md:grid md:grid-cols-12 md:gap-4 md:items-center"
                     >
+                      {/* Mobile layout */}
                       <div className="md:col-span-6">
-                        <p className="font-medium text-foreground">{item.description}</p>
-                        <p className="text-sm text-muted-foreground md:hidden">
+                        <p className="font-medium text-foreground text-sm sm:text-base">{item.description}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground md:hidden mt-0.5">
                           {item.quantity} × {formatCurrency(item.unit_price)}
                         </p>
                       </div>
+                      {/* Desktop columns */}
                       <div className="hidden md:block md:col-span-2 text-center text-muted-foreground">
                         {item.quantity}
                       </div>
                       <div className="hidden md:block md:col-span-2 text-right text-muted-foreground">
                         {formatCurrency(item.unit_price)}
                       </div>
-                      <div className="md:col-span-2 text-right font-semibold">
+                      <div className="text-right font-semibold text-sm sm:text-base mt-2 md:mt-0 md:col-span-2">
                         {formatCurrency(item.total)}
                       </div>
                     </div>
@@ -290,19 +292,19 @@ const InvoicePayPage = () => {
 
             {/* Totals Section */}
             <div className="flex justify-end">
-              <div className="w-full md:w-80 space-y-3 bg-slate-50 rounded-xl p-5 border border-slate-100">
-                <div className="flex justify-between text-sm">
+              <div className="w-full sm:w-auto sm:min-w-72 md:w-80 space-y-2 sm:space-y-3 bg-slate-50 rounded-xl p-4 sm:p-5 border border-slate-100">
+                <div className="flex justify-between text-xs sm:text-sm">
                   <span className="text-muted-foreground">Subtotal</span>
                   <span className="font-medium">{formatCurrency(invoice.subtotal_provider)}</span>
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-xs sm:text-sm">
                   <span className="text-muted-foreground">Comisión Chamby (20%)</span>
                   <span className="font-medium">{formatCurrency(invoice.chamby_commission_amount)}</span>
                 </div>
                 <Separator className="my-2" />
                 <div className="flex justify-between items-center">
-                  <span className="font-semibold text-foreground">Total a pagar</span>
-                  <span className="text-xl font-bold text-primary">
+                  <span className="font-semibold text-foreground text-sm sm:text-base">Total a pagar</span>
+                  <span className="text-lg sm:text-xl font-bold text-primary">
                     {formatCurrency(invoice.total_customer_amount)}
                   </span>
                 </div>
@@ -311,35 +313,35 @@ const InvoicePayPage = () => {
 
             {/* Provider Notes */}
             {invoice.provider_notes && (
-              <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl">
-                <p className="text-xs font-medium text-amber-700 uppercase tracking-wider mb-2">
+              <div className="p-3 sm:p-4 bg-amber-50 border border-amber-100 rounded-xl">
+                <p className="text-xs font-medium text-amber-700 uppercase tracking-wider mb-1.5 sm:mb-2">
                   Notas del proveedor
                 </p>
-                <p className="text-sm text-amber-900">{invoice.provider_notes}</p>
+                <p className="text-xs sm:text-sm text-amber-900">{invoice.provider_notes}</p>
               </div>
             )}
 
             {/* Payment Section */}
             {canPay && clientSecret && (
-              <div className="border-t border-dashed pt-8">
-                <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl p-6 md:p-8">
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+              <div className="border-t border-dashed pt-5 sm:pt-8">
+                <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8">
+                  <div className="flex flex-col gap-4 sm:gap-6">
                     <div>
-                      <h3 className="text-lg font-semibold text-foreground mb-1">
+                      <h3 className="text-base sm:text-lg font-semibold text-foreground mb-1">
                         Completa tu pago
                       </h3>
-                      <p className="text-sm text-muted-foreground mb-3">
+                      <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">
                         Pago seguro procesado por Stripe
                       </p>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Shield className="h-3.5 w-3.5 text-green-600" />
+                      <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-muted-foreground">
+                        <Shield className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-green-600" />
                         <span>Transacción encriptada y protegida</span>
                       </div>
                     </div>
-                    <div className="flex flex-col items-center md:items-end gap-3">
-                      <div className="text-center md:text-right">
-                        <p className="text-sm text-muted-foreground">Total</p>
-                        <p className="text-2xl font-bold text-primary">
+                    <div className="flex flex-col gap-3 sm:gap-4">
+                      <div className="flex items-center justify-between sm:justify-start sm:flex-col sm:items-start gap-1">
+                        <p className="text-xs sm:text-sm text-muted-foreground">Total a pagar</p>
+                        <p className="text-xl sm:text-2xl font-bold text-primary">
                           {formatCurrency(invoice.total_customer_amount)}
                         </p>
                       </div>
@@ -349,7 +351,7 @@ const InvoicePayPage = () => {
                         currency="MXN"
                         onSuccess={handlePaymentSuccess}
                         onError={handlePaymentError}
-                        className="w-full md:w-auto min-w-48"
+                        className="w-full"
                       />
                     </div>
                   </div>
@@ -359,19 +361,19 @@ const InvoicePayPage = () => {
 
             {/* Already Paid Message */}
             {isPaid && (
-              <div className="border-t border-dashed pt-8">
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8 text-center">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <CheckCircle className="h-8 w-8 text-green-600" />
+              <div className="border-t border-dashed pt-5 sm:pt-8">
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl sm:rounded-2xl p-5 sm:p-8 text-center">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                    <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
                   </div>
-                  <h3 className="text-xl font-semibold text-green-800 mb-2">
+                  <h3 className="text-lg sm:text-xl font-semibold text-green-800 mb-2">
                     ¡Pago recibido!
                   </h3>
-                  <p className="text-green-700 mb-4">
+                  <p className="text-sm sm:text-base text-green-700 mb-3 sm:mb-4">
                     Gracias por tu pago. Esta factura ha sido procesada exitosamente.
                   </p>
                   {provider && (
-                    <p className="text-sm text-green-600">
+                    <p className="text-xs sm:text-sm text-green-600">
                       El proveedor <strong>{provider.full_name}</strong> ha sido notificado.
                     </p>
                   )}
@@ -382,7 +384,7 @@ const InvoicePayPage = () => {
         </Card>
 
         {/* Footer Note */}
-        <p className="text-center text-xs text-muted-foreground">
+        <p className="text-center text-xs text-muted-foreground px-2">
           ¿Tienes preguntas sobre esta factura? Contacta a soporte en{" "}
           <a href="mailto:soporte@chamby.mx" className="text-primary hover:underline">
             soporte@chamby.mx

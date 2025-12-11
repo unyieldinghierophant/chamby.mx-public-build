@@ -116,20 +116,20 @@ const VisitFeeForm = ({
 
   if (status === "success") {
     return (
-      <div className="text-center py-8 space-y-4">
-        <div className="w-16 h-16 rounded-full bg-success/20 flex items-center justify-center mx-auto">
-          <CheckCircle className="w-8 h-8 text-success" />
+      <div className="text-center py-6 sm:py-8 space-y-3 sm:space-y-4">
+        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-success/20 flex items-center justify-center mx-auto">
+          <CheckCircle className="w-7 h-7 sm:w-8 sm:h-8 text-success" />
         </div>
-        <div className="space-y-2">
-          <h3 className="text-lg font-semibold text-foreground">
+        <div className="space-y-1.5 sm:space-y-2">
+          <h3 className="text-base sm:text-lg font-semibold text-foreground">
             Pago de visita preautorizado correctamente
           </h3>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground px-2">
             $350 MXN han sido preautorizados en tu tarjeta. No se ha realizado ningún cargo todavía.
           </p>
         </div>
-        <Badge variant="outline" className="bg-success/10 text-success border-success/20">
-          <ShieldCheck className="w-4 h-4 mr-1" />
+        <Badge variant="outline" className="bg-success/10 text-success border-success/20 text-xs sm:text-sm">
+          <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
           Visita asegurada
         </Badge>
       </div>
@@ -137,16 +137,16 @@ const VisitFeeForm = ({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
       {status === "error" && errorMessage && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription className="flex items-center justify-between">
-            <span>{errorMessage}</span>
+          <AlertDescription className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <span className="text-xs sm:text-sm">{errorMessage}</span>
             <button
               type="button"
               onClick={handleRetry}
-              className="flex items-center gap-1 text-sm font-medium hover:underline"
+              className="flex items-center gap-1 text-xs sm:text-sm font-medium hover:underline self-start sm:self-auto"
             >
               <RefreshCw className="w-3 h-3" />
               Reintentar
@@ -155,7 +155,7 @@ const VisitFeeForm = ({
         </Alert>
       )}
 
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         <PaymentElement 
           options={{
             layout: "tabs",
@@ -168,28 +168,28 @@ const VisitFeeForm = ({
       <ModernButton
         type="submit"
         variant="primary"
-        className="w-full h-14 rounded-xl"
+        className="w-full h-12 sm:h-14 rounded-xl text-sm sm:text-base"
         disabled={!stripe || !isElementReady || isProcessing}
       >
         {isProcessing ? (
           <>
-            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-            Autorizando...
+            <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-spin" />
+            <span>Autorizando...</span>
           </>
         ) : !isElementReady ? (
           <>
-            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-            Cargando...
+            <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-spin" />
+            <span>Cargando...</span>
           </>
         ) : (
           <>
-            <Lock className="w-5 h-5 mr-2" />
-            Autorizar $350 MXN
+            <Lock className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+            <span>Autorizar $350 MXN</span>
           </>
         )}
       </ModernButton>
 
-      <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+      <div className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs text-muted-foreground">
         <Lock className="w-3 h-3" />
         <span>Pago seguro procesado por Stripe</span>
       </div>
@@ -230,10 +230,10 @@ export const VisitFeeAuthorizationSection = ({
   if (isInitializing || authLoading) {
     return (
       <Card className="border-primary/20 bg-card">
-        <CardContent className="py-12">
-          <div className="flex flex-col items-center justify-center gap-4">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            <p className="text-muted-foreground">Preparando la autorización de pago...</p>
+        <CardContent className="py-8 sm:py-12">
+          <div className="flex flex-col items-center justify-center gap-3 sm:gap-4">
+            <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 animate-spin text-primary" />
+            <p className="text-sm sm:text-base text-muted-foreground text-center">Preparando la autorización de pago...</p>
           </div>
         </CardContent>
       </Card>
@@ -243,24 +243,24 @@ export const VisitFeeAuthorizationSection = ({
   if (initError || authError) {
     return (
       <Card className="border-destructive/20 bg-card">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-destructive">
-            <AlertCircle className="w-5 h-5" />
+        <CardHeader className="pb-3 sm:pb-4">
+          <CardTitle className="flex items-center gap-2 text-destructive text-base sm:text-lg">
+            <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5" />
             Error de autorización
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3 sm:space-y-4">
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
+            <AlertDescription className="text-xs sm:text-sm">
               {initError || authError || "No se pudo asegurar el pago de la visita. Intenta con otra tarjeta o método de pago."}
             </AlertDescription>
           </Alert>
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <ModernButton
               variant="outline"
               onClick={() => window.location.reload()}
-              className="flex-1"
+              className="flex-1 h-10 sm:h-11 text-sm"
             >
               <RefreshCw className="w-4 h-4 mr-2" />
               Reintentar
@@ -269,7 +269,7 @@ export const VisitFeeAuthorizationSection = ({
               <ModernButton
                 variant="outline"
                 onClick={onSkip}
-                className="flex-1 text-muted-foreground"
+                className="flex-1 h-10 sm:h-11 text-sm text-muted-foreground"
               >
                 Continuar sin pagar
               </ModernButton>
@@ -286,19 +286,19 @@ export const VisitFeeAuthorizationSection = ({
 
   return (
     <Card className="border-primary/20 bg-card overflow-hidden">
-      <CardHeader className="bg-primary/5 border-b border-primary/10">
-        <CardTitle className="flex items-center gap-2">
-          <CreditCard className="w-5 h-5 text-primary" />
+      <CardHeader className="bg-primary/5 border-b border-primary/10 py-3 sm:py-4 px-3 sm:px-6">
+        <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+          <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
           Asegurar tu visita
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-6 space-y-6">
+      <CardContent className="pt-4 sm:pt-6 space-y-4 sm:space-y-6 px-3 sm:px-6">
         {/* Explanation */}
-        <div className="bg-muted/50 rounded-xl p-4 space-y-2">
-          <div className="flex items-start gap-3">
-            <ShieldCheck className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+        <div className="bg-muted/50 rounded-xl p-3 sm:p-4 space-y-2">
+          <div className="flex items-start gap-2 sm:gap-3">
+            <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-primary mt-0.5 flex-shrink-0" />
             <div className="space-y-1">
-              <p className="text-sm font-medium text-foreground">
+              <p className="text-xs sm:text-sm font-medium text-foreground">
                 Para asegurar tu visita, vamos a preautorizar $350 MXN en tu tarjeta.
               </p>
               <p className="text-xs text-muted-foreground">
