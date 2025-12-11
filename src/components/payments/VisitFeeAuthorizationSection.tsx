@@ -35,6 +35,17 @@ const VisitFeeForm = ({
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Timeout fallback: if element doesn't report ready after 8 seconds, enable the button anyway
+  useEffect(() => {
+    if (stripe && elements && !isElementReady) {
+      const timeout = setTimeout(() => {
+        console.log('[VisitFeeForm] Timeout reached, enabling button as fallback');
+        setIsElementReady(true);
+      }, 8000);
+      return () => clearTimeout(timeout);
+    }
+  }, [stripe, elements, isElementReady]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
