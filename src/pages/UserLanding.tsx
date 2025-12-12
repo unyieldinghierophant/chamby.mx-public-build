@@ -230,17 +230,17 @@ const UserLanding = () => {
         </div>
       </header>
       
-      <main className="container mx-auto px-4 pt-24 pb-24">
+      <main className="container mx-auto px-4 pt-20 md:pt-24 pb-24">
         {/* Welcome Section with Blue Card */}
-        <div className="mb-8 text-center pt-[10%] md:pt-[5%]">
-          <h1 className="text-3xl md:text-4xl font-['Made_Dillan'] text-foreground mb-6">
-            ¡Bienvenido de vuelta{profile?.full_name ? `, ${profile.full_name.split(' ')[0]}` : ''}!
+        <div className="mb-6 md:mb-8 text-center pt-4 md:pt-[5%]">
+          <h1 className="text-2xl md:text-4xl font-['Made_Dillan'] text-foreground mb-4 md:mb-6">
+            ¡Hola{profile?.full_name ? `, ${profile.full_name.split(' ')[0]}` : ''}!
           </h1>
           
           {/* Blue Card with Stars - matching landing page */}
-          <div className="relative bg-gradient-to-br from-[#1e3a8a] to-[#1e40af] rounded-[1.5rem] md:rounded-[2.5rem] p-6 md:p-8 lg:p-10 shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] border border-white/10 max-w-4xl mx-auto">
-            {/* Shiny Stars Background - SVG Stars */}
-            <div className="absolute inset-0 pointer-events-none">
+          <div className="relative bg-gradient-to-br from-[#1e3a8a] to-[#1e40af] rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 lg:p-10 shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] border border-white/10 max-w-4xl mx-auto">
+            {/* Shiny Stars Background - Hidden on mobile for cleaner look */}
+            <div className="absolute inset-0 pointer-events-none hidden md:block">
               <svg className="absolute top-[8%] left-[12%] w-6 h-6 text-white animate-[pulse_2s_ease-in-out_infinite]" style={{ animationDelay: '0s', filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.8))' }} viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
               </svg>
@@ -259,8 +259,8 @@ const UserLanding = () => {
             </div>
             
             {/* Content */}
-            <div className="relative z-10 space-y-4">
-              <p className="text-white text-lg md:text-xl mb-4">
+            <div className="relative z-10 space-y-3 md:space-y-4">
+              <p className="text-white text-base md:text-xl mb-2 md:mb-4">
                 ¿Qué necesitas hoy?
               </p>
               
@@ -270,45 +270,47 @@ const UserLanding = () => {
           </div>
         </div>
 
-        {/* Category Tabs with Service Pills - Same as Landing Page */}
-        <div className="mb-12 w-[96%] md:w-[98%] mx-auto">
+        {/* Category Tabs with Service Pills - Mobile First */}
+        <div className="mb-8 md:mb-12 -mx-4 md:mx-0">
           <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
-            {/* Category Tabs */}
-            <TabsList className="w-full h-auto bg-background/50 backdrop-blur-sm p-4 rounded-2xl grid grid-cols-4 gap-4">
-              {categoryTabsData.map((category) => (
-                <TabsTrigger
-                  key={category.id}
-                  value={category.id}
-                  className="flex flex-col items-center gap-4 p-5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary rounded-xl transition-all h-auto"
-                >
-                  <div className="w-20 h-20 md:w-24 md:h-24 flex items-center justify-center">
-                    <img 
-                      src={category.icon} 
-                      alt={category.name} 
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                  <span className="text-base md:text-lg font-medium whitespace-nowrap">
-                    {category.name}
-                  </span>
-                </TabsTrigger>
-              ))}
-            </TabsList>
+            {/* Category Tabs - Horizontal scroll on mobile */}
+            <div className="overflow-x-auto scrollbar-hide px-4 md:px-0">
+              <TabsList className="w-max md:w-full h-auto bg-background/50 backdrop-blur-sm p-2 md:p-4 rounded-xl md:rounded-2xl flex md:grid md:grid-cols-4 gap-2 md:gap-4">
+                {categoryTabsData.map((category) => (
+                  <TabsTrigger
+                    key={category.id}
+                    value={category.id}
+                    className="flex flex-col items-center gap-1.5 md:gap-4 p-2.5 md:p-5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary rounded-lg md:rounded-xl transition-all h-auto min-w-[72px] md:min-w-0"
+                  >
+                    <div className="w-10 h-10 md:w-20 md:h-20 flex items-center justify-center">
+                      <img 
+                        src={category.icon} 
+                        alt={category.name} 
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <span className="text-xs md:text-base font-medium whitespace-nowrap">
+                      {category.name}
+                    </span>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
 
             {/* Service Pills for Each Category */}
             {categoryTabsData.map((category) => (
               <TabsContent 
                 key={category.id} 
                 value={category.id}
-                className="mt-10 animate-in fade-in-50 duration-300"
+                className="mt-4 md:mt-10 animate-in fade-in-50 duration-300 px-4 md:px-0"
               >
-                <div className="flex flex-wrap gap-4 justify-center pb-7">
+                <div className="flex flex-wrap gap-2 md:gap-4 justify-start md:justify-center pb-4 md:pb-7">
                   {services.map((service) => (
                     <Button
                       key={service.name}
                       onClick={() => handleServiceClick(service.name, service.description)}
                       variant="outline"
-                      className="rounded-full px-7 py-4 h-auto text-base md:text-lg bg-background/50 backdrop-blur-sm hover:bg-primary/10 hover:text-primary hover:border-primary transition-all"
+                      className="rounded-full px-4 py-2 md:px-7 md:py-4 h-auto text-sm md:text-lg bg-background/50 backdrop-blur-sm hover:bg-primary/10 hover:text-primary hover:border-primary transition-all"
                     >
                       {service.name}
                     </Button>
@@ -320,17 +322,17 @@ const UserLanding = () => {
         </div>
 
         {/* Recent Activity Section */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-semibold text-foreground mb-4">
+        <div className="mb-6 md:mb-8">
+          <h2 className="text-lg md:text-2xl font-semibold text-foreground mb-3 md:mb-4">
             Actividad Reciente
           </h2>
           <Card className="bg-gradient-card border-white/20">
-            <CardContent className="py-12 text-center">
-              <TrendingUp className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">
+            <CardContent className="py-8 md:py-12 text-center">
+              <TrendingUp className="w-10 h-10 md:w-12 md:h-12 text-muted-foreground mx-auto mb-3 md:mb-4" />
+              <p className="text-sm md:text-base text-muted-foreground">
                 No tienes actividad reciente todavía
               </p>
-              <Button onClick={() => navigate("/book-job")} className="mt-4 bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant">
+              <Button onClick={() => navigate("/book-job")} className="mt-3 md:mt-4 bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant text-sm md:text-base">
                 Buscar Servicios
               </Button>
             </CardContent>
@@ -338,15 +340,15 @@ const UserLanding = () => {
         </div>
 
         {/* Become Provider CTA */}
-        {role === "client" && <Card className="bg-gradient-to-br from-primary/10 to-purple-500/10 border-primary/20">
-            <CardContent className="py-8 text-center">
-              <h3 className="text-xl font-semibold text-foreground mb-2">
+        {role === "client" && <Card className="bg-gradient-to-br from-primary/10 to-purple-500/10 border-primary/20 mb-4">
+            <CardContent className="py-6 md:py-8 text-center">
+              <h3 className="text-base md:text-xl font-semibold text-foreground mb-1.5 md:mb-2">
                 ¿Quieres ofrecer tus servicios?
               </h3>
-              <p className="text-muted-foreground mb-4">
-                Únete como proveedor y empieza a ganar dinero hoy
+              <p className="text-sm md:text-base text-muted-foreground mb-3 md:mb-4">
+                Únete como proveedor y empieza a ganar dinero
               </p>
-              <Button onClick={() => navigate(ROUTES.PROVIDER_AUTH)} className="bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant">
+              <Button onClick={() => navigate(ROUTES.PROVIDER_AUTH)} className="bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant text-sm md:text-base">
                 Convertirse en Proveedor
               </Button>
             </CardContent>
