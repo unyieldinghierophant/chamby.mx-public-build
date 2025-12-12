@@ -270,47 +270,51 @@ const UserLanding = () => {
           </div>
         </div>
 
-        {/* Category Tabs with Service Pills - Mobile First */}
-        <div className="mb-8 md:mb-12 -mx-4 md:mx-0">
+        {/* Category Tabs with Service Pills - Mobile First Grid 2x2 */}
+        <div className="mb-8 md:mb-12">
           <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
-            {/* Category Tabs - Horizontal scroll on mobile */}
-            <div className="overflow-x-auto scrollbar-hide px-4 md:px-0">
-              <TabsList className="w-max md:w-full h-auto bg-background/50 backdrop-blur-sm p-2 md:p-4 rounded-xl md:rounded-2xl flex md:grid md:grid-cols-4 gap-2 md:gap-4">
-                {categoryTabsData.map((category) => (
-                  <TabsTrigger
-                    key={category.id}
-                    value={category.id}
-                    className="flex flex-col items-center gap-1.5 md:gap-4 p-2.5 md:p-5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary rounded-lg md:rounded-xl transition-all h-auto min-w-[72px] md:min-w-0"
-                  >
-                    <div className="w-10 h-10 md:w-20 md:h-20 flex items-center justify-center">
-                      <img 
-                        src={category.icon} 
-                        alt={category.name} 
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                    <span className="text-xs md:text-base font-medium whitespace-nowrap">
+            {/* Category Tabs - Grid 2x2 on mobile, 4 cols on desktop */}
+            <TabsList className="w-full h-auto bg-card/80 backdrop-blur-sm p-3 md:p-4 rounded-2xl grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+              {categoryTabsData.map((category) => (
+                <TabsTrigger
+                  key={category.id}
+                  value={category.id}
+                  className="flex flex-col items-center gap-2 md:gap-4 p-4 md:p-5 data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:shadow-md rounded-xl transition-all h-auto"
+                >
+                  <div className="w-12 h-12 md:w-20 md:h-20 flex items-center justify-center">
+                    <img 
+                      src={category.icon} 
+                      alt={category.name} 
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <span className="text-sm md:text-base font-medium text-center leading-tight">
+                    {/* Abbreviated text for mobile */}
+                    <span className="md:hidden">
+                      {category.id === 'auto' ? 'Auto' : category.name}
+                    </span>
+                    <span className="hidden md:inline">
                       {category.name}
                     </span>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </div>
+                  </span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
 
             {/* Service Pills for Each Category */}
             {categoryTabsData.map((category) => (
               <TabsContent 
                 key={category.id} 
                 value={category.id}
-                className="mt-4 md:mt-10 animate-in fade-in-50 duration-300 px-4 md:px-0"
+                className="mt-5 md:mt-10 animate-in fade-in-50 duration-300"
               >
-                <div className="flex flex-wrap gap-2 md:gap-4 justify-start md:justify-center pb-4 md:pb-7">
+                <div className="flex flex-wrap gap-2 md:gap-4 justify-center pb-4 md:pb-7">
                   {services.map((service) => (
                     <Button
                       key={service.name}
                       onClick={() => handleServiceClick(service.name, service.description)}
                       variant="outline"
-                      className="rounded-full px-4 py-2 md:px-7 md:py-4 h-auto text-sm md:text-lg bg-background/50 backdrop-blur-sm hover:bg-primary/10 hover:text-primary hover:border-primary transition-all"
+                      className="rounded-full px-3 py-1.5 md:px-7 md:py-4 h-auto text-xs md:text-lg bg-background/50 backdrop-blur-sm hover:bg-primary/10 hover:text-primary hover:border-primary transition-all"
                     >
                       {service.name}
                     </Button>
