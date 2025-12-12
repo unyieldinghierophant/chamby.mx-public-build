@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useProfile } from "@/hooks/useProfile";
@@ -10,16 +10,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, LogOut, User, Settings, CreditCard, Shield, LayoutDashboard } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
 import { AISearchBar } from "@/components/AISearchBar";
-import { CategoryCard } from "@/components/CategoryCard";
 import logo from "@/assets/chamby-logo-text.png";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import categoryAuto from "@/assets/category-auto.png";
-import categoryPlumbing from "@/assets/category-plumbing.png";
-import categoryElectrician from "@/assets/category-electrician.png";
-import categoryHandyman from "@/assets/category-handyman.png";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { categoryServicesMap } from "@/data/categoryServices";
+import { CategoryTabs } from "@/components/CategoryTabs";
 const UserLanding = () => {
   const {
     user,
@@ -36,7 +30,6 @@ const UserLanding = () => {
   } = useProfile();
   const navigate = useNavigate();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string>('handyman');
   const handleSignOut = async () => {
     setIsLoggingOut(true);
     await signOut();
@@ -71,29 +64,6 @@ const UserLanding = () => {
   if (!user) {
     return null;
   }
-
-  const categoryTabsData = [
-    { id: 'handyman', name: 'Handyman', icon: categoryHandyman, dataKey: 'Handyman' },
-    { id: 'electrician', name: 'Electricidad', icon: categoryElectrician, dataKey: 'Electricidad' },
-    { id: 'plumbing', name: 'Fontanería', icon: categoryPlumbing, dataKey: 'Fontanería' },
-    { id: 'auto', name: 'Auto y Lavado', icon: categoryAuto, dataKey: 'Auto y Lavado' },
-  ];
-
-  const currentCategory = categoryTabsData.find(cat => cat.id === selectedCategory);
-  const services = currentCategory ? categoryServicesMap[currentCategory.dataKey] || [] : [];
-
-  const handleServiceClick = (serviceName: string, description: string) => {
-    localStorage.removeItem('chamby_form_job-booking');
-    sessionStorage.removeItem('chamby_form_job-booking');
-    navigate(`/book-job?new=${Date.now()}`, {
-      state: {
-        category: currentCategory?.dataKey || 'General',
-        service: serviceName,
-        description: description,
-        forceNew: true
-      }
-    });
-  };
   return <div className="min-h-screen bg-gradient-subtle">
       {/* Simple Header matching home page */}
       <header className="fixed top-0 left-0 right-0 bg-background border-b border-border z-50">
@@ -270,55 +240,9 @@ const UserLanding = () => {
           </div>
         </div>
 
-        {/* Category Tabs with Service Pills - Mobile First */}
-        <div className="mb-8 md:mb-12 -mx-4 md:mx-0">
-          <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
-            {/* Category Tabs - Horizontal scroll on mobile */}
-            <div className="overflow-x-auto scrollbar-hide px-4 md:px-0">
-              <TabsList className="w-max md:w-full h-auto bg-background/50 backdrop-blur-sm p-2 md:p-4 rounded-xl md:rounded-2xl flex md:grid md:grid-cols-4 gap-2 md:gap-4">
-                {categoryTabsData.map((category) => (
-                  <TabsTrigger
-                    key={category.id}
-                    value={category.id}
-                    className="flex flex-col items-center gap-1.5 md:gap-4 p-2.5 md:p-5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary rounded-lg md:rounded-xl transition-all h-auto min-w-[72px] md:min-w-0"
-                  >
-                    <div className="w-10 h-10 md:w-20 md:h-20 flex items-center justify-center">
-                      <img 
-                        src={category.icon} 
-                        alt={category.name} 
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                    <span className="text-xs md:text-base font-medium whitespace-nowrap">
-                      {category.name}
-                    </span>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </div>
-
-            {/* Service Pills for Each Category */}
-            {categoryTabsData.map((category) => (
-              <TabsContent 
-                key={category.id} 
-                value={category.id}
-                className="mt-4 md:mt-10 animate-in fade-in-50 duration-300 px-4 md:px-0"
-              >
-                <div className="flex flex-wrap gap-2 md:gap-4 justify-start md:justify-center pb-4 md:pb-7">
-                  {services.map((service) => (
-                    <Button
-                      key={service.name}
-                      onClick={() => handleServiceClick(service.name, service.description)}
-                      variant="outline"
-                      className="rounded-full px-4 py-2 md:px-7 md:py-4 h-auto text-sm md:text-lg bg-background/50 backdrop-blur-sm hover:bg-primary/10 hover:text-primary hover:border-primary transition-all"
-                    >
-                      {service.name}
-                    </Button>
-                  ))}
-                </div>
-              </TabsContent>
-            ))}
-          </Tabs>
+        {/* Category Tabs - Using shared component */}
+        <div className="mb-8 md:mb-12">
+          <CategoryTabs />
         </div>
 
         {/* Recent Activity Section */}
