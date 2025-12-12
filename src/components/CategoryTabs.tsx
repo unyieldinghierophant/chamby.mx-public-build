@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { categoryServicesMap } from '@/data/categoryServices';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import { useNavigate } from 'react-router-dom';
 import categoryHandyman from '@/assets/category-handyman.png';
 import categoryElectrician from '@/assets/category-electrician.png';
@@ -39,15 +38,17 @@ export const CategoryTabs = () => {
   const services = currentCategory ? categoryServicesMap[currentCategory.dataKey] || [] : [];
 
   const handleServiceClick = (serviceName: string, description: string) => {
+    // Clear any saved form data to start fresh
     localStorage.removeItem('chamby_form_job-booking');
     sessionStorage.removeItem('chamby_form_job-booking');
     
+    // Navigate to booking with force-new flag to ensure fresh form
     navigate(`/book-job?new=${Date.now()}`, {
       state: {
         category: currentCategory?.dataKey || 'General',
         service: serviceName,
         description: description,
-        forceNew: true
+        forceNew: true // Flag to force fresh form
       }
     });
   };
@@ -55,83 +56,53 @@ export const CategoryTabs = () => {
   return (
     <div className="w-full mx-auto">
       <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
-        {/* Mobile: Carousel | Desktop: Grid */}
-        <div className="md:hidden">
-          <Carousel
-            opts={{
-              align: "start",
-              loop: false,
-            }}
-            className="w-full"
-          >
-            <CarouselContent className="-ml-2">
-              {categories.map((category) => (
-                <CarouselItem key={category.id} className="pl-2 basis-1/3">
-                  <TabsList className="w-full h-auto bg-transparent p-0">
-                    <TabsTrigger
-                      value={category.id}
-                      className="w-full flex flex-col items-center gap-1.5 p-2 data-[state=active]:bg-primary/15 data-[state=active]:text-primary rounded-xl transition-all duration-200 h-auto"
-                    >
-                      <div className="w-10 h-10 flex items-center justify-center">
-                        <img
-                          src={category.icon}
-                          alt={category.name}
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                      <span className="text-[10px] font-medium text-center leading-tight">
-                        {category.id === "electrician"
-                          ? "Luz"
-                          : category.id === "plumbing"
-                          ? "Agua"
-                          : category.id === "auto"
-                          ? "Auto"
-                          : category.id === "medusa"
-                          ? "Medusa"
-                          : category.name}
-                      </span>
-                    </TabsTrigger>
-                  </TabsList>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-          </Carousel>
-        </div>
-
-        {/* Desktop: Grid layout */}
-        <TabsList className="hidden md:grid w-full h-auto bg-card/80 backdrop-blur-sm p-4 rounded-2xl grid-cols-5 gap-4">
+        {/* Category Tabs - Mobile-first grid 2x2, 5 cols on desktop */}
+        <TabsList className="w-full h-auto bg-card/80 backdrop-blur-sm p-3 md:p-4 rounded-2xl grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
           {categories.map((category) => (
             <TabsTrigger
               key={category.id}
               value={category.id}
-              className="flex flex-col items-center gap-3 p-4 data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:shadow-md rounded-xl transition-all duration-300 h-auto"
+              className="flex flex-col items-center gap-2 md:gap-4 p-4 md:p-5 data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:shadow-md rounded-xl transition-all duration-300 h-auto"
             >
-              <div className="w-16 h-16 flex items-center justify-center">
+              <div className="w-12 h-12 md:w-24 md:h-24 flex items-center justify-center transition-transform duration-300">
                 <img
                   src={category.icon}
                   alt={category.name}
                   className="w-full h-full object-contain"
                 />
               </div>
-              <span className="text-sm font-medium text-center">{category.name}</span>
+              <span className="text-sm md:text-lg font-medium text-center leading-tight">
+                {/* Nombre abreviado en móvil para evitar que se encime */}
+                <span className="md:hidden">
+                  {category.id === "electrician"
+                    ? "Luz"
+                    : category.id === "plumbing"
+                    ? "Agua"
+                    : category.id === "auto"
+                    ? "Auto"
+                    : category.name}
+                </span>
+                <span className="hidden md:inline">{category.name}</span>
+              </span>
             </TabsTrigger>
           ))}
         </TabsList>
 
-        {/* Service Pills */}
+        {/* Service Pills for Each Category */}
         {categories.map((category) => (
           <TabsContent 
             key={category.id} 
             value={category.id}
-            className="mt-4 md:mt-8 animate-fade-in"
+            className="mt-8 animate-fade-in"
           >
-            <div className="flex flex-wrap gap-1.5 md:gap-2 mb-4 md:mb-6">
+            {/* Service pills - wrapping layout */}
+            <div className="flex flex-wrap gap-2 md:gap-3 mb-6 animate-fade-in" style={{ animationDelay: '100ms' }}>
               {services.map((service) => (
                 <Button
                   key={service.name}
                   onClick={() => handleServiceClick(service.name, service.description)}
                   variant="outline"
-                  className="rounded-full px-2.5 py-1 md:px-4 md:py-2 h-auto text-[11px] md:text-sm bg-background/50 backdrop-blur-sm hover:bg-primary/10 hover:text-primary hover:border-primary transition-all duration-200"
+                  className="rounded-full px-4 py-2 md:px-5 md:py-2.5 h-auto text-sm md:text-base bg-background/50 backdrop-blur-sm hover:bg-primary/10 hover:text-primary hover:border-primary transition-all duration-300 hover:scale-105"
                 >
                   {service.name}
                 </Button>
