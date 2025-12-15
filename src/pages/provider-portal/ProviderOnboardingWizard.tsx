@@ -60,11 +60,7 @@ const signupSchema = z.object({
       message: 'El teléfono debe tener exactamente 10 dígitos'
     }),
   password: z.string()
-    .min(8, 'La contraseña debe tener al menos 8 caracteres')
-    .regex(/[A-Z]/, 'Debe contener al menos una mayúscula')
-    .regex(/[a-z]/, 'Debe contener al menos una minúscula')
-    .regex(/[0-9]/, 'Debe contener al menos un número')
-    .regex(/[^a-zA-Z0-9\s]/, 'Debe contener al menos un caracter especial'),
+    .min(6, 'La contraseña debe tener al menos 6 caracteres'),
   confirmPassword: z.string()
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Las contraseñas no coinciden",
@@ -260,11 +256,18 @@ export default function ProviderOnboardingWizard() {
 
     if (error) {
       let errorMessage = error.message;
-      if (error.message.includes('already registered') || error.message.includes('already exists')) {
+      let errorField = 'email';
+      
+      if (error.message.toLowerCase().includes('weak') || error.message.toLowerCase().includes('password') || error.message.toLowerCase().includes('easy to guess')) {
+        errorMessage = 'La contraseña es muy común o fácil de adivinar. Elige una diferente.';
+        errorField = 'password';
+      } else if (error.message.includes('already registered') || error.message.includes('already exists')) {
         errorMessage = 'Este email ya está registrado. Intenta iniciar sesión.';
+        errorField = 'email';
       }
+      
       toast.error('Error en el registro', { description: errorMessage });
-      setSignupErrors({ email: errorMessage });
+      setSignupErrors({ [errorField]: errorMessage });
       setSaving(false);
       return;
     }
