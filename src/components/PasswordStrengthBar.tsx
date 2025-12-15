@@ -14,11 +14,7 @@ interface Requirement {
 
 export function PasswordStrengthBar({ password, className }: PasswordStrengthBarProps) {
   const requirements: Requirement[] = useMemo(() => [
-    { label: 'Mínimo 8 caracteres', met: password.length >= 8 },
-    { label: 'Al menos una mayúscula (A-Z)', met: /[A-Z]/.test(password) },
-    { label: 'Al menos una minúscula (a-z)', met: /[a-z]/.test(password) },
-    { label: 'Al menos un número (0-9)', met: /[0-9]/.test(password) },
-    { label: 'Al menos un caracter especial', met: /[^a-zA-Z0-9\s]/.test(password) },
+    { label: 'Mínimo 6 caracteres', met: password.length >= 6 },
   ], [password]);
 
   const strength = useMemo(() => {
