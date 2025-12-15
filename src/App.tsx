@@ -74,6 +74,7 @@ import ClientInvoiceListPage from "./pages/client/ClientInvoiceListPage";
 import AdminPayoutDashboard from "./pages/admin/AdminPayoutDashboard";
 import AdminPayoutDetailPage from "./pages/admin/AdminPayoutDetailPage";
 import VisitFeePaymentPage from "./pages/VisitFeePaymentPage";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -147,6 +148,7 @@ const App = () => {
               <Route path={ROUTES.CHOOSE_ROLE} element={<RoleSelection />} />
               <Route path={ROUTES.AUTH_CALLBACK} element={<AuthCallback />} />
               <Route path={ROUTES.CALLBACK} element={<AuthCallback />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path={ROUTES.DASHBOARD_USER} element={<Navigate to={ROUTES.USER_LANDING} replace />} />
               <Route path="/provider-landing-legacy" element={<ProviderLanding />} />
               <Route path="/booking/datetime/:providerId" element={<BookingDateTime />} />
