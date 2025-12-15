@@ -1,11 +1,10 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Webhook } from "https://esm.sh/standardwebhooks@1.0.0";
-import { Resend } from "npm:resend@4.0.0";
 import React from "npm:react@18.3.1";
 import { renderAsync } from "npm:@react-email/components@0.0.22";
 import { ConfirmationEmail } from "./_templates/confirmation.tsx";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY") as string);
+const POSTMARK_API_KEY = Deno.env.get("POSTMARK_API_KEY") as string;
 const hookSecret = (Deno.env.get("SEND_EMAIL_HOOK_SECRET") as string).replace("v1,whsec_", "");
 
 const corsHeaders = {
@@ -95,33 +94,36 @@ Si no solicitaste esta cuenta, puedes ignorar este correo de forma segura.
 © 2025 Chamby - Conectando profesionales con clientes
 chamby.mx`;
 
-    // Send email via Resend with both HTML and plain text
-    const { data: emailData, error } = await resend.emails.send({
-      from: "Chamby <notificaciones@chamby.mx>",
-      to: [user.email],
-      subject: "Confirma tu correo - Chamby",
-      html,
-      text,
+    // Send email via Postmark
+    const emailResponse = await fetch("https://api.postmarkapp.com/email", {
+      method: "POST",
       headers: {
-        'X-Entity-Ref-ID': `user-${user.email}`,
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "X-Postmark-Server-Token": POSTMARK_API_KEY,
       },
-      tags: [
-        {
-          name: 'category',
-          value: 'email_confirmation',
-        },
-      ],
+      body: JSON.stringify({
+        From: "Chamby <notificaciones@chamby.mx>",
+        To: user.email,
+        Subject: "Confirma tu correo - Chamby",
+        HtmlBody: html,
+        TextBody: text,
+        MessageStream: "outbound",
+        Tag: "email_confirmation",
+      }),
     });
 
-    if (error) {
-      console.error("Resend error:", error);
-      throw error;
+    const emailData = await emailResponse.json();
+
+    if (!emailResponse.ok) {
+      console.error("Postmark error:", emailData);
+      throw new Error(emailData.Message || "Failed to send email via Postmark");
     }
 
     console.log("Email sent successfully:", emailData);
 
     return new Response(
-      JSON.stringify({ success: true, emailId: emailData?.id }),
+      JSON.stringify({ success: true, messageId: emailData.MessageID }),
       {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

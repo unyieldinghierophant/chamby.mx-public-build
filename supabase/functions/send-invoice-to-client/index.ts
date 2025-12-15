@@ -140,9 +140,9 @@ serve(async (req) => {
       logStep("Notification created for client");
     }
 
-    // Try to send email notification using Resend (if configured)
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
-    if (resendApiKey) {
+    // Send email notification using Postmark
+    const postmarkApiKey = Deno.env.get("POSTMARK_API_KEY");
+    if (postmarkApiKey) {
       try {
         // Fetch client email
         const { data: clientData } = await supabaseClient
@@ -152,47 +152,68 @@ serve(async (req) => {
           .maybeSingle();
 
         if (clientData?.email) {
-          const invoiceUrl = `${Deno.env.get("SUPABASE_URL")?.replace('.supabase.co', '.lovable.app') || 'https://chamby.lovable.app'}/invoice/${invoiceId}`;
+          const invoiceUrl = `https://chamby.mx/invoice/${invoiceId}`;
           
-          const emailResponse = await fetch("https://api.resend.com/emails", {
+          const emailHtml = `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <h1 style="color: #1a1a1a; font-size: 24px; margin-bottom: 16px;">Nueva factura recibida</h1>
+              <p style="color: #666; font-size: 16px; line-height: 1.6;">
+                Hola ${clientData.full_name || 'Cliente'},
+              </p>
+              <p style="color: #666; font-size: 16px; line-height: 1.6;">
+                ${providerInfo?.full_name || 'Tu proveedor'} te ha enviado una factura${job ? ` por el trabajo "${job.title}"` : ''}.
+              </p>
+              <div style="background: #f4f4f5; border-radius: 12px; padding: 24px; margin: 24px 0;">
+                <p style="margin: 0; color: #666; font-size: 14px;">Monto a pagar:</p>
+                <p style="margin: 8px 0 0; color: #1a1a1a; font-size: 32px; font-weight: bold;">$${invoice.total_customer_amount.toFixed(2)} MXN</p>
+              </div>
+              <a href="${invoiceUrl}" style="display: inline-block; background: #7c3aed; color: white; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                Ver y pagar factura
+              </a>
+              <p style="color: #999; font-size: 14px; margin-top: 32px;">
+                Si tienes preguntas sobre esta factura, contacta directamente a tu proveedor.
+              </p>
+            </div>
+          `;
+
+          const emailText = `Nueva factura recibida
+
+Hola ${clientData.full_name || 'Cliente'},
+
+${providerInfo?.full_name || 'Tu proveedor'} te ha enviado una factura${job ? ` por el trabajo "${job.title}"` : ''}.
+
+Monto a pagar: $${invoice.total_customer_amount.toFixed(2)} MXN
+
+Ver y pagar factura: ${invoiceUrl}
+
+Si tienes preguntas sobre esta factura, contacta directamente a tu proveedor.
+
+© 2025 Chamby - chamby.mx`;
+
+          const emailResponse = await fetch("https://api.postmarkapp.com/email", {
             method: "POST",
             headers: {
+              "Accept": "application/json",
               "Content-Type": "application/json",
-              "Authorization": `Bearer ${resendApiKey}`,
+              "X-Postmark-Server-Token": postmarkApiKey,
             },
             body: JSON.stringify({
-              from: "Chamby <noreply@resend.dev>",
-              to: [clientData.email],
-              subject: `Nueva factura de ${providerInfo?.full_name || 'tu proveedor'} - $${invoice.total_customer_amount.toFixed(2)} MXN`,
-              html: `
-                <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                  <h1 style="color: #1a1a1a; font-size: 24px; margin-bottom: 16px;">Nueva factura recibida</h1>
-                  <p style="color: #666; font-size: 16px; line-height: 1.6;">
-                    Hola ${clientData.full_name || 'Cliente'},
-                  </p>
-                  <p style="color: #666; font-size: 16px; line-height: 1.6;">
-                    ${providerInfo?.full_name || 'Tu proveedor'} te ha enviado una factura${job ? ` por el trabajo "${job.title}"` : ''}.
-                  </p>
-                  <div style="background: #f4f4f5; border-radius: 12px; padding: 24px; margin: 24px 0;">
-                    <p style="margin: 0; color: #666; font-size: 14px;">Monto a pagar:</p>
-                    <p style="margin: 8px 0 0; color: #1a1a1a; font-size: 32px; font-weight: bold;">$${invoice.total_customer_amount.toFixed(2)} MXN</p>
-                  </div>
-                  <a href="${invoiceUrl}" style="display: inline-block; background: #7c3aed; color: white; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; font-size: 16px;">
-                    Ver y pagar factura
-                  </a>
-                  <p style="color: #999; font-size: 14px; margin-top: 32px;">
-                    Si tienes preguntas sobre esta factura, contacta directamente a tu proveedor.
-                  </p>
-                </div>
-              `,
+              From: "Chamby <notificaciones@chamby.mx>",
+              To: clientData.email,
+              Subject: `Nueva factura de ${providerInfo?.full_name || 'tu proveedor'} - $${invoice.total_customer_amount.toFixed(2)} MXN`,
+              HtmlBody: emailHtml,
+              TextBody: emailText,
+              MessageStream: "outbound",
+              Tag: "invoice_notification",
             }),
           });
 
+          const emailData = await emailResponse.json();
+
           if (emailResponse.ok) {
-            logStep("Email notification sent to client", { email: clientData.email });
+            logStep("Email notification sent to client via Postmark", { email: clientData.email, messageId: emailData.MessageID });
           } else {
-            const errorText = await emailResponse.text();
-            logStep("Warning: Email send failed", { error: errorText });
+            logStep("Warning: Postmark email send failed", { error: emailData.Message });
           }
         }
       } catch (emailError) {
@@ -200,7 +221,7 @@ serve(async (req) => {
         // Don't throw - email is optional
       }
     } else {
-      logStep("Resend API key not configured, skipping email");
+      logStep("Postmark API key not configured, skipping email");
     }
 
     logStep("Invoice sent successfully");
