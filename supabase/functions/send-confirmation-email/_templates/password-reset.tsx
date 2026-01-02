@@ -9,12 +9,10 @@ import {
   Text,
   Section,
   Img,
-  Row,
-  Column,
 } from 'npm:@react-email/components@0.0.22'
 import * as React from 'npm:react@18.3.1'
 
-interface ConfirmationEmailProps {
+interface PasswordResetEmailProps {
   supabase_url: string
   email_action_type: string
   redirect_to: string
@@ -23,20 +21,20 @@ interface ConfirmationEmailProps {
   user_email: string
 }
 
-export const ConfirmationEmail = ({
+export const PasswordResetEmail = ({
   token,
   supabase_url,
   email_action_type,
   redirect_to,
   token_hash,
   user_email,
-}: ConfirmationEmailProps) => (
+}: PasswordResetEmailProps) => (
   <Html>
     <Head>
       <meta name="color-scheme" content="light" />
       <meta name="supported-color-schemes" content="light" />
     </Head>
-    <Preview>¡Bienvenido a Chamby! Confirma tu correo para comenzar</Preview>
+    <Preview>Restablece tu contraseña de Chamby</Preview>
     <Body style={main}>
       <Container style={container}>
         {/* Branded Header with Gradient */}
@@ -54,21 +52,21 @@ export const ConfirmationEmail = ({
         {/* Main Content Card */}
         <Section style={card}>
           <Section style={iconContainer}>
-            <Text style={emailIcon}>✉️</Text>
+            <Text style={emailIcon}>🔐</Text>
           </Section>
           
-          <Heading style={h1}>Confirma tu correo electrónico</Heading>
+          <Heading style={h1}>Restablece tu contraseña</Heading>
           
           <Text style={text}>
             ¡Hola! 👋
           </Text>
           
           <Text style={text}>
-            Gracias por unirte a <strong style={brandText}>Chamby</strong>. Estás a un paso de conectar con los mejores profesionales verificados cerca de ti.
+            Recibimos una solicitud para restablecer la contraseña de tu cuenta en <strong style={brandText}>Chamby</strong>.
           </Text>
           
           <Text style={text}>
-            Para activar tu cuenta, haz clic en el siguiente botón:
+            Para crear una nueva contraseña, haz clic en el siguiente botón:
           </Text>
           
           <Section style={buttonSection}>
@@ -76,7 +74,7 @@ export const ConfirmationEmail = ({
               href={`${supabase_url}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(redirect_to)}`}
               style={button}
             >
-              Confirmar mi correo electrónico
+              Restablecer mi contraseña
             </Link>
           </Section>
           
@@ -89,32 +87,16 @@ export const ConfirmationEmail = ({
           </Section>
           
           <Text style={expiryText}>
-            ⏱️ Este código expira en 24 horas
+            ⏱️ Este enlace expira en 1 hora
           </Text>
           
           <Section style={divider} />
           
-          {/* Features Section */}
-          <Text style={featuresTitle}>¿Qué puedes hacer en Chamby?</Text>
-          
-          <Section style={featureRow}>
-            <Text style={featureItem}>✓ Encuentra profesionales verificados cerca de ti</Text>
+          <Section style={warningSection}>
+            <Text style={warningText}>
+              🛡️ <strong>Nota de seguridad:</strong> Si no solicitaste restablecer tu contraseña, puedes ignorar este mensaje de forma segura. Tu cuenta sigue protegida.
+            </Text>
           </Section>
-          <Section style={featureRow}>
-            <Text style={featureItem}>✓ Agenda servicios de forma rápida y segura</Text>
-          </Section>
-          <Section style={featureRow}>
-            <Text style={featureItem}>✓ Paga de manera protegida</Text>
-          </Section>
-          <Section style={featureRow}>
-            <Text style={featureItem}>✓ Califica y comparte tu experiencia</Text>
-          </Section>
-          
-          <Section style={divider} />
-          
-          <Text style={smallText}>
-            Si no creaste una cuenta en Chamby, puedes ignorar este mensaje de forma segura.
-          </Text>
         </Section>
         
         {/* Footer */}
@@ -143,7 +125,7 @@ export const ConfirmationEmail = ({
   </Html>
 )
 
-export default ConfirmationEmail
+export default PasswordResetEmail
 
 // Chamby Brand Colors
 const chambyBlue = '#1565C0'
@@ -225,7 +207,7 @@ const buttonSection = {
 }
 
 const button = {
-  backgroundColor: chambyBlue,
+  backgroundColor: '#F97316',
   borderRadius: '10px',
   color: '#ffffff',
   fontSize: '16px',
@@ -234,7 +216,7 @@ const button = {
   textAlign: 'center' as const,
   display: 'inline-block',
   padding: '16px 40px',
-  boxShadow: `0 4px 14px ${chambyBlue}40`,
+  boxShadow: '0 4px 14px rgba(249, 115, 22, 0.4)',
 }
 
 const orText = {
@@ -256,8 +238,8 @@ const code = {
   padding: '18px 32px',
   backgroundColor: '#f8fafc',
   borderRadius: '10px',
-  border: `2px solid ${chambyBlueLight}40`,
-  color: chambyBlue,
+  border: '2px solid rgba(249, 115, 22, 0.4)',
+  color: '#F97316',
   fontSize: '28px',
   fontWeight: 'bold' as const,
   letterSpacing: '6px',
@@ -277,29 +259,16 @@ const divider = {
   margin: '32px 0',
 }
 
-const featuresTitle = {
-  color: '#1a1a1a',
-  fontSize: '15px',
-  fontWeight: 'bold',
-  margin: '0 0 16px',
-  textAlign: 'center' as const,
+const warningSection = {
+  backgroundColor: '#fffbeb',
+  borderRadius: '8px',
+  padding: '16px',
+  border: '1px solid #fcd34d',
 }
 
-const featureRow = {
-  margin: '8px 0',
-}
-
-const featureItem = {
-  color: '#475569',
+const warningText = {
+  color: '#92400e',
   fontSize: '14px',
-  lineHeight: '1.5',
-  margin: '0',
-  paddingLeft: '8px',
-}
-
-const smallText = {
-  color: '#94a3b8',
-  fontSize: '13px',
   lineHeight: '1.5',
   margin: '0',
   textAlign: 'center' as const,
