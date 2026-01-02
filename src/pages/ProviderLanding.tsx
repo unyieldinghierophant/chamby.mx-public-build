@@ -29,10 +29,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useVerificationStatus } from "@/hooks/useVerificationStatus";
 import { useProfile } from "@/hooks/useProfile";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import logo from "@/assets/chamby-logo-text.png";
 import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
+import InteractiveHeroBackground from "@/components/provider-portal/InteractiveHeroBackground";
 
 const ProviderLanding = () => {
   const navigate = useNavigate();
@@ -41,6 +42,11 @@ const ProviderLanding = () => {
   const { isVerified } = useVerificationStatus();
   const { profile } = useProfile();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [ctaPulse, setCtaPulse] = useState(false);
+
+  const handleJobCardVisible = useCallback((visible: boolean) => {
+    setCtaPulse(visible);
+  }, []);
 
   const handleSignOut = async () => {
     setIsLoggingOut(true);
@@ -208,26 +214,31 @@ const ProviderLanding = () => {
         </div>
       </header>
       
-      {/* Hero Section - Matching main landing style */}
-      <section className="relative min-h-[90vh] flex items-center justify-center pt-24 pb-12 overflow-hidden bg-primary">
+      {/* Hero Section with Interactive Background */}
+      <section className="relative min-h-[90vh] flex items-center justify-center pt-24 pb-12 overflow-hidden">
+        {/* Interactive animated background */}
+        <InteractiveHeroBackground onJobCardVisible={handleJobCardVisible} />
+        
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-5xl mx-auto text-center space-y-8">
-            <Badge className="bg-white/10 text-white border-white/20 text-sm font-medium px-4 py-2 inline-flex items-center gap-2">
+            <Badge className="bg-white/10 text-white border-white/20 text-sm font-medium px-4 py-2 inline-flex items-center gap-2 backdrop-blur-sm">
               🚀 Únete a más de 500+ profesionales
             </Badge>
             
-            <h1 className="font-dillan text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-white leading-[1.1] tracking-wide">
+            <h1 className="font-dillan text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-white leading-[1.1] tracking-wide drop-shadow-lg">
               SÉ TU PROPIO JEFE
             </h1>
             
-            <p className="text-lg md:text-xl text-white/80 leading-relaxed max-w-2xl mx-auto">
+            <p className="text-lg md:text-xl text-white/90 leading-relaxed max-w-2xl mx-auto drop-shadow-md">
               Con Chamby si no ganas, no pagas.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <ModernButton 
                 size="xl" 
-                className="bg-white text-primary hover:bg-white/90 font-semibold px-8 py-4 text-lg shadow-elegant"
+                className={`bg-white text-primary hover:bg-white/90 font-semibold px-8 py-4 text-lg shadow-elegant transition-all duration-300 ${
+                  ctaPulse ? 'animate-pulse shadow-[0_0_30px_rgba(255,255,255,0.5)]' : ''
+                }`}
                 onClick={handleGetStarted}
               >
                 Comenzar Ahora
@@ -235,7 +246,7 @@ const ProviderLanding = () => {
               </ModernButton>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 text-sm text-white/80">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 text-sm text-white/90">
               <div className="flex items-center space-x-2">
                 <CheckCircle className="h-5 w-5 text-white" />
                 <span>Sin costos ocultos</span>
