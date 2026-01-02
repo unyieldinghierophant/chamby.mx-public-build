@@ -3,6 +3,7 @@ import { Webhook } from "https://esm.sh/standardwebhooks@1.0.0";
 import React from "npm:react@18.3.1";
 import { renderAsync } from "npm:@react-email/components@0.0.22";
 import { ConfirmationEmail } from "./_templates/confirmation.tsx";
+import { PasswordResetEmail } from "./_templates/password-reset.tsx";
 
 const POSTMARK_API_KEY = Deno.env.get("POSTMARK_API_KEY") as string;
 const hookSecret = (Deno.env.get("SEND_EMAIL_HOOK_SECRET") as string).replace("v1,whsec_", "");
@@ -54,24 +55,48 @@ serve(async (req) => {
       throw new Error("User email not found in webhook payload");
     }
 
-    console.log(`Sending confirmation email to: ${user.email}`);
+    console.log(`Processing ${email_action_type} email for: ${user.email}`);
 
-    // Render the email template
-    const html = await renderAsync(
-      React.createElement(ConfirmationEmail, {
-        supabase_url: Deno.env.get("SUPABASE_URL") ?? "",
-        token,
-        token_hash,
-        redirect_to,
-        email_action_type,
-        user_email: user.email,
-      })
-    );
+    // Determine email template, subject, and content based on action type
+    let EmailComponent: React.FC<any>;
+    let subject: string;
+    let textContent: string;
+    let tag: string;
 
-    // Create plain text version for better deliverability
-    // URL-encode redirect_to to preserve query params like login_context
     const confirmationUrl = `${Deno.env.get("SUPABASE_URL")}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(redirect_to)}`;
-    const text = `¡Bienvenido a Chamby!
+
+    switch (email_action_type) {
+      case 'recovery':
+        EmailComponent = PasswordResetEmail;
+        subject = 'Restablece tu contraseña - Chamby';
+        tag = 'password_reset';
+        textContent = `Restablece tu contraseña de Chamby
+
+Hola,
+
+Recibimos una solicitud para restablecer la contraseña de tu cuenta en Chamby.
+
+Para crear una nueva contraseña, haz clic en el siguiente enlace:
+
+${confirmationUrl}
+
+O usa este código de verificación: ${token}
+
+Este enlace expira en 1 hora.
+
+Nota de seguridad: Si no solicitaste restablecer tu contraseña, puedes ignorar este mensaje de forma segura. Tu cuenta sigue protegida.
+
+© 2025 Chamby - Conectando profesionales con clientes
+chamby.mx`;
+        break;
+
+      case 'signup':
+      case 'email_change':
+      default:
+        EmailComponent = ConfirmationEmail;
+        subject = 'Confirma tu correo - Chamby';
+        tag = 'email_confirmation';
+        textContent = `¡Bienvenido a Chamby!
 
 Gracias por registrarte en Chamby, tu plataforma de confianza para conectar con profesionales verificados.
 
@@ -93,6 +118,22 @@ Si no solicitaste esta cuenta, puedes ignorar este correo de forma segura.
 
 © 2025 Chamby - Conectando profesionales con clientes
 chamby.mx`;
+        break;
+    }
+
+    // Render the email template
+    const html = await renderAsync(
+      React.createElement(EmailComponent, {
+        supabase_url: Deno.env.get("SUPABASE_URL") ?? "",
+        token,
+        token_hash,
+        redirect_to,
+        email_action_type,
+        user_email: user.email,
+      })
+    );
+
+    console.log(`Sending ${tag} email to: ${user.email}`);
 
     // Send email via Postmark
     const emailResponse = await fetch("https://api.postmarkapp.com/email", {
@@ -105,11 +146,11 @@ chamby.mx`;
       body: JSON.stringify({
         From: "Chamby <notificaciones@chamby.mx>",
         To: user.email,
-        Subject: "Confirma tu correo - Chamby",
+        Subject: subject,
         HtmlBody: html,
-        TextBody: text,
+        TextBody: textContent,
         MessageStream: "outbound",
-        Tag: "email_confirmation",
+        Tag: tag,
       }),
     });
 
