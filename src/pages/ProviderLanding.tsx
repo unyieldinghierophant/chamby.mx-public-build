@@ -34,6 +34,7 @@ import logo from "@/assets/chamby-logo-text.png";
 import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import InteractiveHeroBackground from "@/components/provider-portal/InteractiveHeroBackground";
+import { useScrollParallax } from "@/hooks/useScrollParallax";
 
 const ProviderLanding = () => {
   const navigate = useNavigate();
@@ -43,6 +44,9 @@ const ProviderLanding = () => {
   const { profile } = useProfile();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [ctaPulse, setCtaPulse] = useState(false);
+  
+  // Parallax scroll effect
+  const { scrollY, parallaxOffset, dotOpacity, cardOpacity, mapOpacity, heroOpacity } = useScrollParallax(500);
 
   const handleJobCardVisible = useCallback((visible: boolean) => {
     setCtaPulse(visible);
@@ -215,9 +219,25 @@ const ProviderLanding = () => {
       </header>
       
       {/* Hero Section with Interactive Background */}
-      <section className="relative min-h-[90vh] flex items-center justify-center pt-24 pb-12 overflow-hidden">
-        {/* Interactive animated background */}
-        <InteractiveHeroBackground onJobCardVisible={handleJobCardVisible} />
+      <section className="relative min-h-[70vh] md:min-h-[80vh] lg:min-h-[90vh] flex items-center justify-center pt-24 pb-12 overflow-hidden">
+        {/* Interactive animated background with parallax */}
+        <InteractiveHeroBackground 
+          onJobCardVisible={handleJobCardVisible}
+          scrollY={scrollY}
+          parallaxOffset={parallaxOffset}
+          dotOpacity={dotOpacity}
+          cardOpacity={cardOpacity}
+          mapOpacity={mapOpacity}
+        />
+        
+        {/* Hero content with fade effect on scroll */}
+        <div 
+          className="absolute inset-0 pointer-events-none"
+          style={{ 
+            opacity: heroOpacity,
+            transition: 'opacity 0.1s ease-out'
+          }}
+        />
         
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-5xl mx-auto text-center space-y-8">

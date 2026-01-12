@@ -30,10 +30,11 @@ const JOB_TYPES = [
 ];
 
 // Mexico map SVG path (simplified outline)
-const MexicoMapPath = memo(() => (
+const MexicoMapPath = memo(({ opacity }: { opacity: number }) => (
   <svg
     viewBox="0 0 800 500"
-    className="absolute inset-0 w-full h-full opacity-20"
+    className="absolute inset-0 w-full h-full transition-opacity duration-500"
+    style={{ opacity }}
     preserveAspectRatio="xMidYMid slice"
   >
     <defs>
@@ -93,15 +94,15 @@ const GridPattern = memo(() => (
 
 GridPattern.displayName = 'GridPattern';
 
-// Single glowing dot component
-const GlowingDot = memo(({ dot }: { dot: JobDot }) => (
+// Single glowing dot component with parallax
+const GlowingDot = memo(({ dot, parallaxOffset, baseOpacity }: { dot: JobDot; parallaxOffset: number; baseOpacity: number }) => (
   <div
     className="absolute pointer-events-none"
     style={{
       left: `${dot.x}%`,
       top: `${dot.y}%`,
-      opacity: dot.opacity,
-      transform: `scale(${dot.scale})`,
+      opacity: dot.opacity * baseOpacity,
+      transform: `scale(${dot.scale}) translateY(${parallaxOffset * 0.3}px)`,
       transition: 'opacity 1.5s ease-in-out, transform 0.5s ease-out',
     }}
   >
@@ -114,25 +115,25 @@ const GlowingDot = memo(({ dot }: { dot: JobDot }) => (
 
 GlowingDot.displayName = 'GlowingDot';
 
-// Floating job card component
-const FloatingJobCard = memo(({ card }: { card: FloatingCard }) => (
+// Floating job card component with parallax
+const FloatingJobCard = memo(({ card, parallaxOffset, baseOpacity, isMobile }: { card: FloatingCard; parallaxOffset: number; baseOpacity: number; isMobile: boolean }) => (
   <div
     className="absolute pointer-events-none"
     style={{
       left: `${card.x}%`,
       top: `${card.y}%`,
-      opacity: card.opacity,
-      transform: 'translate(-50%, -50%)',
-      transition: 'opacity 0.8s ease-in-out',
+      opacity: card.opacity * baseOpacity,
+      transform: `translate(-50%, -50%) translateY(${parallaxOffset * 0.4}px)`,
+      transition: 'opacity 0.8s ease-in-out, transform 0.3s ease-out',
     }}
   >
-    <div className="relative flex items-center gap-2 px-3 py-2 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 shadow-lg">
+    <div className={`relative flex items-center gap-2 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 shadow-lg ${isMobile ? 'px-2 py-1.5' : 'px-3 py-2'}`}>
       {/* Yellow indicator dot */}
-      <div className="w-2 h-2 bg-yellow-400 rounded-full shadow-[0_0_6px_rgba(250,204,21,0.6)]" />
-      <div className="text-white text-sm font-medium whitespace-nowrap">
+      <div className={`bg-yellow-400 rounded-full shadow-[0_0_6px_rgba(250,204,21,0.6)] ${isMobile ? 'w-1.5 h-1.5' : 'w-2 h-2'}`} />
+      <div className={`text-white font-medium whitespace-nowrap ${isMobile ? 'text-xs' : 'text-sm'}`}>
         {card.service} · <span className="text-white/90">{card.price}</span>
       </div>
-      <div className="text-white/60 text-xs">{card.city}</div>
+      <div className={`text-white/60 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>{card.city}</div>
     </div>
   </div>
 ));
@@ -141,14 +142,35 @@ FloatingJobCard.displayName = 'FloatingJobCard';
 
 interface InteractiveHeroBackgroundProps {
   onJobCardVisible?: (visible: boolean) => void;
+  scrollY?: number;
+  parallaxOffset?: number;
+  dotOpacity?: number;
+  cardOpacity?: number;
+  mapOpacity?: number;
 }
 
-const InteractiveHeroBackground = ({ onJobCardVisible }: InteractiveHeroBackgroundProps) => {
+const InteractiveHeroBackground = ({ 
+  onJobCardVisible,
+  scrollY = 0,
+  parallaxOffset = 0,
+  dotOpacity = 0.6,
+  cardOpacity = 0.5,
+  mapOpacity = 0.2
+}: InteractiveHeroBackgroundProps) => {
   const [dots, setDots] = useState<JobDot[]>([]);
   const [cards, setCards] = useState<FloatingCard[]>([]);
   const [isHovered, setIsHovered] = useState(false);
   const [dotIdCounter, setDotIdCounter] = useState(0);
   const [cardIdCounter, setCardIdCounter] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Generate random position within safe bounds
   const getRandomPosition = useCallback(() => ({
@@ -209,8 +231,9 @@ const InteractiveHeroBackground = ({ onJobCardVisible }: InteractiveHeroBackgrou
     
     setCardIdCounter(prev => prev + 1);
     setCards(prev => {
-      // Max 2 cards at a time
-      const newCards = prev.length >= 2 ? prev.slice(1) : prev;
+      // Max 2 cards at a time (1 on mobile)
+      const maxCards = isMobile ? 1 : 2;
+      const newCards = prev.length >= maxCards ? prev.slice(1) : prev;
       return [...newCards, newCard];
     });
     
@@ -241,45 +264,48 @@ const InteractiveHeroBackground = ({ onJobCardVisible }: InteractiveHeroBackgrou
         return filtered;
       });
     }, 3300);
-  }, [cardIdCounter, getRandomPosition, onJobCardVisible]);
+  }, [cardIdCounter, getRandomPosition, onJobCardVisible, isMobile]);
 
   // Initialize dots and set up intervals
   useEffect(() => {
-    // Add initial dots
-    const initialDots = Array.from({ length: 8 }, (_, i) => {
+    // Add initial dots (fewer on mobile)
+    const initialCount = isMobile ? 4 : 8;
+    const initialDots = Array.from({ length: initialCount }, (_, i) => {
       const pos = getRandomPosition();
       return {
         id: i,
         x: pos.x,
         y: pos.y,
-        opacity: 0.6 + Math.random() * 0.4,
+        opacity: 0.4 + Math.random() * 0.3, // Start more subtle
         scale: 0.8 + Math.random() * 0.4,
       };
     });
     setDots(initialDots);
-    setDotIdCounter(8);
+    setDotIdCounter(initialCount);
 
-    // Add new dots every 2-4 seconds
+    // Add new dots every 3-5 seconds (slower on mobile)
+    const dotIntervalTime = isMobile ? 4000 + Math.random() * 2000 : 2500 + Math.random() * 1500;
     const dotInterval = setInterval(() => {
       addDot();
-    }, 2000 + Math.random() * 2000);
+    }, dotIntervalTime);
 
-    // Add new cards every 4-6 seconds
+    // Add new cards every 5-7 seconds (slower intervals)
+    const cardIntervalTime = isMobile ? 6000 + Math.random() * 2000 : 4500 + Math.random() * 1500;
     const cardInterval = setInterval(() => {
       addCard();
-    }, 4000 + Math.random() * 2000);
+    }, cardIntervalTime);
 
-    // Initial card after 1 second
+    // Initial card after 2 seconds (delayed start)
     const initialCardTimeout = setTimeout(() => {
       addCard();
-    }, 1000);
+    }, 2000);
 
     return () => {
       clearInterval(dotInterval);
       clearInterval(cardInterval);
       clearTimeout(initialCardTimeout);
     };
-  }, [addDot, addCard, getRandomPosition]);
+  }, [addDot, addCard, getRandomPosition, isMobile]);
 
   return (
     <div 
@@ -296,28 +322,47 @@ const InteractiveHeroBackground = ({ onJobCardVisible }: InteractiveHeroBackgrou
       {/* Grid pattern */}
       <GridPattern />
       
-      {/* Mexico map outline */}
-      <MexicoMapPath />
+      {/* Mexico map outline with parallax */}
+      <div 
+        className="absolute inset-0 transition-transform duration-100"
+        style={{ transform: `translateY(${parallaxOffset * 0.2}px)` }}
+      >
+        <MexicoMapPath opacity={mapOpacity} />
+      </div>
       
-      {/* Glowing dots layer */}
+      {/* Glowing dots layer with parallax */}
       <div 
         className="absolute inset-0 transition-opacity duration-300"
         style={{ opacity: isHovered ? 1 : 0.85 }}
       >
         {dots.map(dot => (
-          <GlowingDot key={dot.id} dot={dot} />
+          <GlowingDot 
+            key={dot.id} 
+            dot={dot} 
+            parallaxOffset={parallaxOffset}
+            baseOpacity={dotOpacity}
+          />
         ))}
       </div>
       
-      {/* Floating job cards layer */}
+      {/* Floating job cards layer with parallax */}
       <div className="absolute inset-0">
         {cards.map(card => (
-          <FloatingJobCard key={card.id} card={card} />
+          <FloatingJobCard 
+            key={card.id} 
+            card={card}
+            parallaxOffset={parallaxOffset}
+            baseOpacity={cardOpacity}
+            isMobile={isMobile}
+          />
         ))}
       </div>
       
       {/* Subtle vignette for focus */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(0,0,0,0.15)_100%)]" />
+      
+      {/* Bottom gradient transition */}
+      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background/20 to-transparent pointer-events-none" />
     </div>
   );
 };
