@@ -188,6 +188,14 @@ export default {
             transform: "translateX(0)",
             opacity: "1"
           }
+        },
+        "slow-glow": {
+          "0%, 100%": {
+            boxShadow: "0 0 20px rgba(255,255,255,0.2), 0 0 40px rgba(255,255,255,0.1)"
+          },
+          "50%": {
+            boxShadow: "0 0 30px rgba(255,255,255,0.4), 0 0 60px rgba(255,255,255,0.2)"
+          }
         }
       },
       animation: {
@@ -199,6 +207,7 @@ export default {
         "bounce-subtle": "bounce-subtle 0.6s ease-in-out",
         "slide-in-right": "slide-in-right 0.4s ease-out",
         "slide-in-left": "slide-in-left 0.4s ease-out",
+        "slow-glow": "slow-glow 4s ease-in-out infinite",
       },
     },
   },
