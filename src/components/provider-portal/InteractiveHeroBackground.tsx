@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, memo } from 'react';
+import { useState, useEffect, useCallback, memo, useRef } from 'react';
 
 interface JobDot {
   id: number;
@@ -104,6 +104,7 @@ const GlowingDot = memo(({ dot, parallaxOffset, baseOpacity }: { dot: JobDot; pa
       opacity: dot.opacity * baseOpacity,
       transform: `scale(${dot.scale}) translateY(${parallaxOffset * 0.3}px)`,
       transition: 'opacity 1.5s ease-in-out, transform 0.5s ease-out',
+      willChange: 'opacity, transform',
     }}
   >
     {/* Outer glow */}
@@ -124,7 +125,8 @@ const FloatingJobCard = memo(({ card, parallaxOffset, baseOpacity, isMobile }: {
       top: `${card.y}%`,
       opacity: card.opacity * baseOpacity,
       transform: `translate(-50%, -50%) translateY(${parallaxOffset * 0.4}px)`,
-      transition: 'opacity 0.8s ease-in-out, transform 0.3s ease-out',
+      transition: 'opacity 1s ease-in-out, transform 0.3s ease-out',
+      willChange: 'opacity, transform',
     }}
   >
     <div className={`relative flex items-center gap-2 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 shadow-lg ${isMobile ? 'px-2 py-1.5' : 'px-3 py-2'}`}>
@@ -178,7 +180,7 @@ const InteractiveHeroBackground = ({
     y: 25 + Math.random() * 50, // 25-75% vertical
   }), []);
 
-  // Add a new dot
+  // Add a new dot with smoother animation
   const addDot = useCallback(() => {
     const pos = getRandomPosition();
     const newDot: JobDot = {
@@ -192,19 +194,23 @@ const InteractiveHeroBackground = ({
     setDotIdCounter(prev => prev + 1);
     setDots(prev => [...prev.slice(-15), newDot]); // Keep max 15 dots
     
-    // Fade in
+    // Fade in with requestAnimationFrame for smoother rendering
     setTimeout(() => {
-      setDots(prev => 
-        prev.map(d => d.id === newDot.id ? { ...d, opacity: 1, scale: 1 } : d)
-      );
-    }, 50);
+      requestAnimationFrame(() => {
+        setDots(prev => 
+          prev.map(d => d.id === newDot.id ? { ...d, opacity: 1, scale: 1 } : d)
+        );
+      });
+    }, 150); // Increased from 50ms to 150ms
     
     // Fade out after 3-6 seconds
     const fadeOutTime = 3000 + Math.random() * 3000;
     setTimeout(() => {
-      setDots(prev => 
-        prev.map(d => d.id === newDot.id ? { ...d, opacity: 0, scale: 0.5 } : d)
-      );
+      requestAnimationFrame(() => {
+        setDots(prev => 
+          prev.map(d => d.id === newDot.id ? { ...d, opacity: 0, scale: 0.5 } : d)
+        );
+      });
     }, fadeOutTime);
     
     // Remove after fade out
@@ -213,7 +219,7 @@ const InteractiveHeroBackground = ({
     }, fadeOutTime + 1500);
   }, [dotIdCounter, getRandomPosition]);
 
-  // Add a floating card
+  // Add a floating card with smoother animation
   const addCard = useCallback(() => {
     const jobType = JOB_TYPES[Math.floor(Math.random() * JOB_TYPES.length)];
     const city = jobType.cities[Math.floor(Math.random() * jobType.cities.length)];
@@ -240,18 +246,22 @@ const InteractiveHeroBackground = ({
     // Notify parent that a card is visible
     onJobCardVisible?.(true);
     
-    // Fade in
+    // Fade in with requestAnimationFrame for smoother rendering
     setTimeout(() => {
-      setCards(prev => 
-        prev.map(c => c.id === newCard.id ? { ...c, opacity: 1 } : c)
-      );
-    }, 50);
+      requestAnimationFrame(() => {
+        setCards(prev => 
+          prev.map(c => c.id === newCard.id ? { ...c, opacity: 1 } : c)
+        );
+      });
+    }, 150); // Increased from 50ms to 150ms
     
     // Fade out after 2.5 seconds
     setTimeout(() => {
-      setCards(prev => 
-        prev.map(c => c.id === newCard.id ? { ...c, opacity: 0 } : c)
-      );
+      requestAnimationFrame(() => {
+        setCards(prev => 
+          prev.map(c => c.id === newCard.id ? { ...c, opacity: 0 } : c)
+        );
+      });
     }, 2500);
     
     // Remove after fade out
@@ -266,7 +276,16 @@ const InteractiveHeroBackground = ({
     }, 3300);
   }, [cardIdCounter, getRandomPosition, onJobCardVisible, isMobile]);
 
-  // Initialize dots and set up intervals
+  // Use refs to avoid interval recreation
+  const addDotRef = useRef(addDot);
+  const addCardRef = useRef(addCard);
+  
+  useEffect(() => {
+    addDotRef.current = addDot;
+    addCardRef.current = addCard;
+  });
+
+  // Initialize dots and set up intervals with stable refs
   useEffect(() => {
     // Add initial dots (fewer on mobile)
     const initialCount = isMobile ? 4 : 8;
@@ -283,21 +302,21 @@ const InteractiveHeroBackground = ({
     setDots(initialDots);
     setDotIdCounter(initialCount);
 
-    // Add new dots every 3-5 seconds (slower on mobile)
+    // Add new dots every 3-5 seconds (slower on mobile) - use refs for stable intervals
     const dotIntervalTime = isMobile ? 4000 + Math.random() * 2000 : 2500 + Math.random() * 1500;
     const dotInterval = setInterval(() => {
-      addDot();
+      addDotRef.current();
     }, dotIntervalTime);
 
-    // Add new cards every 5-7 seconds (slower intervals)
+    // Add new cards every 5-7 seconds (slower intervals) - use refs for stable intervals
     const cardIntervalTime = isMobile ? 6000 + Math.random() * 2000 : 4500 + Math.random() * 1500;
     const cardInterval = setInterval(() => {
-      addCard();
+      addCardRef.current();
     }, cardIntervalTime);
 
     // Initial card after 2 seconds (delayed start)
     const initialCardTimeout = setTimeout(() => {
-      addCard();
+      addCardRef.current();
     }, 2000);
 
     return () => {
@@ -305,7 +324,7 @@ const InteractiveHeroBackground = ({
       clearInterval(cardInterval);
       clearTimeout(initialCardTimeout);
     };
-  }, [addDot, addCard, getRandomPosition, isMobile]);
+  }, [getRandomPosition, isMobile]); // Removed addDot and addCard from deps
 
   return (
     <div 
