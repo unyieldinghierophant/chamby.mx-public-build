@@ -207,7 +207,7 @@ export default {
         "bounce-subtle": "bounce-subtle 0.6s ease-in-out",
         "slide-in-right": "slide-in-right 0.4s ease-out",
         "slide-in-left": "slide-in-left 0.4s ease-out",
-        "slow-glow": "slow-glow 7s ease-in-out infinite",
+        "slow-glow": "slow-glow 12s ease-in-out infinite",
       },
     },
   },
