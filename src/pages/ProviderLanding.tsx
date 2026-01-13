@@ -256,9 +256,7 @@ const ProviderLanding = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <ModernButton 
                 size="xl" 
-                className={`bg-white text-primary hover:bg-white/90 font-semibold px-8 py-4 text-lg shadow-elegant transition-shadow duration-1000 ${
-                  ctaPulse ? 'animate-slow-glow' : ''
-                }`}
+                className="bg-white text-primary hover:bg-white/90 font-semibold px-8 py-4 text-lg shadow-elegant animate-slow-glow"
                 onClick={handleGetStarted}
               >
                 Comenzar Ahora
