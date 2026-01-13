@@ -254,14 +254,14 @@ const ProviderLanding = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <ModernButton 
-                size="xl" 
-                className="bg-white text-primary hover:bg-white/90 font-semibold px-8 py-4 text-lg shadow-elegant animate-slow-glow"
+              <Button 
+                size="lg"
+                className="bg-white text-primary hover:bg-white/90 font-semibold px-8 py-4 text-lg rounded-xl animate-slow-glow"
                 onClick={handleGetStarted}
               >
                 Comenzar Ahora
                 <ArrowRight className="ml-2 h-5 w-5" />
-              </ModernButton>
+              </Button>
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 text-sm text-white/90">
