@@ -256,7 +256,7 @@ const ProviderLanding = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
                 size="lg"
-                className="bg-white text-primary hover:bg-white/90 font-semibold px-8 py-4 text-lg rounded-xl animate-slow-glow"
+                className="bg-white text-primary hover:bg-white/90 font-semibold px-8 py-4 text-lg rounded-xl shadow-elegant"
                 onClick={handleGetStarted}
               >
                 Comenzar Ahora
