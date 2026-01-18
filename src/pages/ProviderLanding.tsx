@@ -254,10 +254,12 @@ const ProviderLanding = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <div className="p-[2px] rounded-xl bg-gradient-to-r from-white/80 via-white to-white/80 shadow-elegant">
+              <div className="relative p-[2px] rounded-xl shadow-elegant overflow-hidden">
+                {/* Rotating gradient border */}
+                <div className="absolute inset-[-50%] animate-rotate-gradient bg-[conic-gradient(from_0deg,#ffffff,#a855f7,#3b82f6,#22c55e,#eab308,#ef4444,#ffffff)]" />
                 <Button 
                   size="lg"
-                  className="bg-white text-primary hover:bg-white/90 font-semibold px-8 py-4 text-lg rounded-[10px]"
+                  className="relative bg-white text-primary hover:bg-white/90 font-semibold px-8 py-4 text-lg rounded-[10px]"
                   onClick={handleGetStarted}
                 >
                   Comenzar Ahora

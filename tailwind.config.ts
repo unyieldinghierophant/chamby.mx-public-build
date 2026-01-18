@@ -196,6 +196,14 @@ export default {
           "50%": {
             boxShadow: "0 4px 20px 4px rgba(255, 255, 255, 0.3), 0 0 40px rgba(255, 255, 255, 0.15)"
           }
+        },
+        "rotate-gradient": {
+          "0%": {
+            transform: "rotate(0deg)"
+          },
+          "100%": {
+            transform: "rotate(360deg)"
+          }
         }
       },
       animation: {
@@ -208,6 +216,7 @@ export default {
         "slide-in-right": "slide-in-right 0.4s ease-out",
         "slide-in-left": "slide-in-left 0.4s ease-out",
         "slow-glow": "slow-glow 20s ease-in-out infinite",
+        "rotate-gradient": "rotate-gradient 3s linear infinite",
       },
     },
   },
