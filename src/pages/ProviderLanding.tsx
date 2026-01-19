@@ -253,20 +253,19 @@ const ProviderLanding = () => {
               Con Chamby si no ganas, no pagas.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <div className="relative p-[2px] rounded-[12px] shadow-elegant overflow-hidden">
-                {/* Rotating gradient border */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <div className="relative w-fit p-[3px] rounded-[14px] shadow-elegant overflow-hidden">
+                {/* Rotating gradient border - hugs button tightly */}
                 <div className="absolute inset-0">
                   <div className="absolute inset-[-100%] animate-rotate-gradient bg-[conic-gradient(from_0deg,hsl(214_80%_41%),hsl(210_20%_85%),hsl(214_80%_55%),hsl(214_80%_30%),hsl(210_20%_85%),hsl(214_80%_41%))]" />
                 </div>
-                <Button 
-                  size="lg"
-                  className="relative bg-white text-primary hover:bg-white/90 font-semibold px-8 py-4 text-lg rounded-[10px]"
+                <button 
+                  className="relative inline-flex items-center justify-center bg-white text-primary hover:bg-white/90 font-semibold px-8 py-4 text-lg rounded-[10px] whitespace-nowrap"
                   onClick={handleGetStarted}
                 >
                   Comenzar Ahora
                   <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
+                </button>
               </div>
             </div>
 
