@@ -454,6 +454,28 @@ export default function ProviderOnboardingWizard() {
 
     setSaving(true);
     try {
+      // 🔥 CRITICAL: Ensure provider role exists before anything else
+      const { data: existingRoles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id);
+      
+      const hasProviderRole = existingRoles?.some(r => r.role === 'provider');
+      
+      if (!hasProviderRole) {
+        console.log('[ProviderOnboarding] Creating missing provider role...');
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .insert({ user_id: user.id, role: 'provider' });
+        
+        if (roleError && roleError.code !== '23505') { // 23505 = duplicate key
+          console.error('[ProviderOnboarding] Error creating provider role:', roleError);
+          // Don't throw - continue with profile update, role might be created elsewhere
+        } else {
+          console.log('[ProviderOnboarding] Provider role created successfully');
+        }
+      }
+
       const { error: providerError } = await supabase
         .from('providers')
         .update({
@@ -478,6 +500,9 @@ export default function ProviderOnboardingWizard() {
         .eq('id', user.id);
 
       if (userError) throw userError;
+
+      // Set selected role in localStorage for proper redirection
+      localStorage.setItem('selected_role', 'provider');
 
       toast.success('¡Perfil completado!', {
         description: 'Tu cuenta está lista para recibir trabajos'
