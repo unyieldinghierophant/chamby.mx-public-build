@@ -1,13 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useProfile } from "@/hooks/useProfile";
+import { useScrollParallax } from "@/hooks/useScrollParallax";
 import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
+import InteractiveHeroBackground from "@/components/provider-portal/InteractiveHeroBackground";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, LogOut, User, Settings, CreditCard, Shield, LayoutDashboard, Plus } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { TrendingUp, LogOut, User, Settings, CreditCard, Shield, LayoutDashboard, Plus, CheckCircle } from "lucide-react";
 import { 
   Accordion, 
   AccordionContent, 
@@ -55,6 +58,14 @@ const UserLanding = () => {
   } = useProfile();
   const navigate = useNavigate();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [ctaPulse, setCtaPulse] = useState(false);
+  
+  const { scrollY, parallaxOffset, dotOpacity, cardOpacity, mapOpacity, heroOpacity } = useScrollParallax(500);
+  
+  const handleJobCardVisible = useCallback((visible: boolean) => {
+    setCtaPulse(visible);
+  }, []);
+  
   const handleSignOut = async () => {
     setIsLoggingOut(true);
     await signOut();
@@ -225,48 +236,67 @@ const UserLanding = () => {
         </div>
       </header>
       
-      <main className="container mx-auto px-4 pt-20 md:pt-24 pb-24">
-        {/* Welcome Section with Blue Card */}
-        <div className="mb-6 md:mb-8 text-center pt-4 md:pt-[5%]">
-          <h1 className="text-2xl md:text-4xl font-['Made_Dillan'] text-foreground mb-4 md:mb-6">
-            ¡Hola{profile?.full_name ? `, ${profile.full_name.split(' ')[0]}` : ''}!
-          </h1>
-          
-          {/* Blue Card with Stars - matching landing page */}
-          <div className="relative bg-gradient-to-br from-[#1e3a8a] to-[#1e40af] rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 lg:p-10 shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] border border-white/10 max-w-4xl mx-auto">
-            {/* Shiny Stars Background - Hidden on mobile for cleaner look */}
-            <div className="absolute inset-0 pointer-events-none hidden md:block">
-              <svg className="absolute top-[8%] left-[12%] w-6 h-6 text-white animate-[pulse_2s_ease-in-out_infinite]" style={{ animationDelay: '0s', filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.8))' }} viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-              </svg>
-              <svg className="absolute top-[15%] right-[18%] w-5 h-5 text-white animate-[pulse_2.5s_ease-in-out_infinite]" style={{ animationDelay: '0.5s', filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.9))' }} viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-              </svg>
-              <svg className="absolute bottom-[12%] left-[8%] w-4 h-4 text-white animate-[pulse_3s_ease-in-out_infinite]" style={{ animationDelay: '1s', filter: 'drop-shadow(0 0 5px rgba(255,255,255,0.7))' }} viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-              </svg>
-              <svg className="absolute top-[55%] right-[12%] w-6 h-6 text-white animate-[pulse_2s_ease-in-out_infinite]" style={{ animationDelay: '1.5s', filter: 'drop-shadow(0 0 7px rgba(255,255,255,0.85))' }} viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-              </svg>
-              <svg className="absolute bottom-[22%] right-[22%] w-5 h-5 text-white animate-[pulse_2.5s_ease-in-out_infinite]" style={{ animationDelay: '2s', filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.8))' }} viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-              </svg>
-            </div>
+      {/* Hero Section with Interactive Background - matching Provider Landing */}
+      <section className="relative min-h-[60vh] md:min-h-[70vh] lg:min-h-[80vh] flex items-center justify-center pt-20 pb-12 overflow-hidden">
+        {/* Interactive animated background with parallax */}
+        <InteractiveHeroBackground 
+          onJobCardVisible={handleJobCardVisible}
+          scrollY={scrollY}
+          parallaxOffset={parallaxOffset}
+          dotOpacity={dotOpacity}
+          cardOpacity={cardOpacity}
+          mapOpacity={mapOpacity}
+        />
+        
+        {/* Hero content with fade effect on scroll */}
+        <div 
+          className="absolute inset-0 pointer-events-none"
+          style={{ 
+            opacity: heroOpacity,
+            transition: 'opacity 0.1s ease-out'
+          }}
+        />
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-4xl mx-auto text-center space-y-6">
+            <Badge className="bg-white/10 text-white border-white/20 text-sm font-medium px-4 py-2 inline-flex items-center gap-2 backdrop-blur-sm">
+              👋 ¡Hola{profile?.full_name ? `, ${profile.full_name.split(' ')[0]}` : ''}!
+            </Badge>
             
-            {/* Content */}
-            <div className="relative z-10 space-y-3 md:space-y-4">
-              <p className="text-white text-base md:text-xl mb-2 md:mb-4">
-                ¿Qué necesitas hoy?
-              </p>
-              
-              {/* AI Search Bar */}
-              <AISearchBar className="max-w-2xl mx-auto" />
+            <h1 className="font-dillan text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white leading-[1.1] tracking-wide drop-shadow-lg">
+              ¿QUÉ NECESITAS HOY?
+            </h1>
+            
+            <p className="text-lg md:text-xl text-white/90 leading-relaxed max-w-2xl mx-auto drop-shadow-md">
+              Conectamos contigo a los mejores profesionales verificados
+            </p>
+
+            {/* AI Search Bar - centered and prominent */}
+            <div className="max-w-2xl mx-auto pt-2">
+              <AISearchBar className="w-full" />
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 text-sm text-white/90 pt-4">
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-5 w-5 text-white" />
+                <span>Proveedores verificados</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-5 w-5 text-white" />
+                <span>Pagos seguros</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-5 w-5 text-white" />
+                <span>Garantía de calidad</span>
+              </div>
             </div>
           </div>
         </div>
+      </section>
 
+      <main className="container mx-auto px-4 pb-24">
         {/* Category Tabs - Using shared component */}
-        <div className="mb-8 md:mb-12">
+        <div className="mb-8 md:mb-12 -mt-8">
           <CategoryTabs />
         </div>
 
