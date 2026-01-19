@@ -254,9 +254,9 @@ const ProviderLanding = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <div className="relative p-[2px] rounded-xl shadow-elegant">
+              <div className="relative p-[2px] rounded-[12px] shadow-elegant overflow-hidden">
                 {/* Rotating gradient border */}
-                <div className="absolute inset-0 rounded-xl overflow-hidden">
+                <div className="absolute inset-0">
                   <div className="absolute inset-[-100%] animate-rotate-gradient bg-[conic-gradient(from_0deg,hsl(214_80%_41%),hsl(210_20%_85%),hsl(214_80%_55%),hsl(214_80%_30%),hsl(210_20%_85%),hsl(214_80%_41%))]" />
                 </div>
                 <Button 
