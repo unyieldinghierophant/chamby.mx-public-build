@@ -96,7 +96,20 @@ export const DocumentCaptureDialog = ({
       }
     } catch (error: any) {
       console.error('Camera error:', error);
-      setCameraError('No se pudo acceder a la cámara. Por favor permite el acceso o sube una imagen.');
+      // Mensaje más claro y accionable según el tipo de error
+      if (error.name === 'NotAllowedError') {
+        setCameraError('Permiso de cámara denegado. Por favor permite el acceso en la configuración de tu navegador, o usa el botón "Subir Imagen" para continuar.');
+      } else if (error.name === 'NotFoundError') {
+        setCameraError('No se detectó ninguna cámara. Por favor usa el botón "Subir Imagen" para subir una foto desde tu galería.');
+      } else if (error.name === 'NotReadableError') {
+        setCameraError('La cámara está siendo usada por otra aplicación. Ciérrala e intenta de nuevo, o sube una imagen.');
+      } else {
+        setCameraError('No se pudo acceder a la cámara. Usa el botón "Subir Imagen" para continuar.');
+      }
+      // Toast adicional para mayor visibilidad
+      toast.error('No se pudo acceder a la cámara', {
+        description: 'Usa el botón "Subir Imagen" para continuar'
+      });
     }
   }, [facingMode]);
 
@@ -128,14 +141,37 @@ export const DocumentCaptureDialog = ({
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setCapturedImage(event.target?.result as string);
-        setMode('preview');
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+    
+    // Validar tipo de archivo
+    if (!file.type.startsWith('image/')) {
+      toast.error('Archivo inválido', {
+        description: 'Por favor selecciona una imagen (JPG, PNG, HEIC, etc.)'
+      });
+      return;
     }
+    
+    // Validar tamaño (máx 15MB para acomodar fotos de alta resolución)
+    const maxSizeMB = 15;
+    if (file.size > maxSizeMB * 1024 * 1024) {
+      toast.error('Imagen muy grande', {
+        description: `El archivo debe ser menor a ${maxSizeMB}MB. Intenta con otra imagen.`
+      });
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onerror = () => {
+      console.error('FileReader error:', reader.error);
+      toast.error('Error al leer imagen', {
+        description: 'No se pudo cargar la imagen. Intenta con otra foto o usa la cámara.'
+      });
+    };
+    reader.onload = (event) => {
+      setCapturedImage(event.target?.result as string);
+      setMode('preview');
+    };
+    reader.readAsDataURL(file);
   };
 
   const retake = () => {

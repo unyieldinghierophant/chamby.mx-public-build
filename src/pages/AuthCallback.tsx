@@ -137,8 +137,17 @@ const AuthCallback = () => {
                 role: 'provider'
               });
 
-            if (insertError && insertError.code !== '23505') { // Ignore duplicate error
-              console.error('[AuthCallback] Error creating provider role:', insertError);
+            if (insertError) {
+              if (insertError.code === '23505') {
+                // Duplicate - role already exists, this is fine
+                console.log('[AuthCallback] Provider role already exists');
+                roles.push('provider');
+              } else if (insertError.code === '42501') {
+                // RLS permission denied - role will be created during onboarding completion
+                console.warn('[AuthCallback] RLS blocked role insert - will be created in onboarding handleFinish()');
+              } else {
+                console.error('[AuthCallback] Error creating provider role:', insertError);
+              }
             } else {
               // Add to roles array
               roles.push('provider');
