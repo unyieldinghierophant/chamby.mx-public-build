@@ -22,8 +22,15 @@ import {
   User,
   Settings,
   CreditCard,
-  TrendingUp
+  TrendingUp,
+  Plus
 } from "lucide-react";
+import { 
+  Accordion, 
+  AccordionContent, 
+  AccordionItem, 
+  AccordionTrigger 
+} from "@/components/ui/accordion";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -429,16 +436,23 @@ const ProviderLanding = () => {
             </p>
           </div>
 
-          <div className="max-w-3xl mx-auto space-y-4">
+          <Accordion type="single" collapsible className="max-w-3xl mx-auto space-y-4">
             {faqs.map((faq, index) => (
-              <Card key={index} className="bg-card border border-border">
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-bold text-foreground mb-3">{faq.question}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{faq.answer}</p>
-                </CardContent>
-              </Card>
+              <AccordionItem 
+                key={index} 
+                value={`faq-${index}`}
+                className="bg-card border border-border rounded-lg px-6 data-[state=open]:shadow-md transition-shadow"
+              >
+                <AccordionTrigger className="text-lg font-bold text-foreground hover:no-underline py-6 [&>svg]:hidden gap-4">
+                  <span className="text-left flex-1">{faq.question}</span>
+                  <Plus className="h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-200" />
+                </AccordionTrigger>
+                <AccordionContent className="text-sm text-muted-foreground leading-relaxed pb-6">
+                  {faq.answer}
+                </AccordionContent>
+              </AccordionItem>
             ))}
-          </div>
+          </Accordion>
         </div>
       </section>
 
