@@ -436,18 +436,20 @@ const ProviderLanding = () => {
             </p>
           </div>
 
-          <Accordion type="single" collapsible className="max-w-3xl mx-auto space-y-4">
+          <Accordion type="single" collapsible className="max-w-3xl mx-auto space-y-3">
             {faqs.map((faq, index) => (
               <AccordionItem 
                 key={index} 
                 value={`faq-${index}`}
-                className="bg-card border border-border rounded-lg px-6 data-[state=open]:shadow-md transition-shadow"
+                className="group bg-card border border-border/50 rounded-xl px-6 overflow-hidden data-[state=open]:shadow-lg transition-all duration-300"
               >
-                <AccordionTrigger className="text-lg font-bold text-foreground hover:no-underline py-6 [&>svg]:hidden gap-4">
-                  <span className="text-left flex-1">{faq.question}</span>
-                  <Plus className="h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-200" />
+                <AccordionTrigger className="text-base sm:text-lg font-semibold text-foreground hover:no-underline py-5 [&>svg]:hidden">
+                  <span className="text-left flex-1 pr-4">{faq.question}</span>
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 shrink-0">
+                    <Plus className="h-4 w-4 text-primary transition-transform duration-300 group-data-[state=open]:rotate-45" />
+                  </div>
                 </AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground leading-relaxed pb-6">
+                <AccordionContent className="text-sm sm:text-base text-muted-foreground leading-relaxed pb-5">
                   {faq.answer}
                 </AccordionContent>
               </AccordionItem>
