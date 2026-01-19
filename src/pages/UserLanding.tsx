@@ -7,13 +7,38 @@ import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, LogOut, User, Settings, CreditCard, Shield, LayoutDashboard } from "lucide-react";
+import { TrendingUp, LogOut, User, Settings, CreditCard, Shield, LayoutDashboard, Plus } from "lucide-react";
+import { 
+  Accordion, 
+  AccordionContent, 
+  AccordionItem, 
+  AccordionTrigger 
+} from "@/components/ui/accordion";
 import { ROUTES } from "@/constants/routes";
 import { AISearchBar } from "@/components/AISearchBar";
 import logo from "@/assets/chamby-logo-text.png";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CategoryTabs } from "@/components/CategoryTabs";
+const faqs = [
+  {
+    question: "¿Cómo funciona Chamby?",
+    answer: "Chamby te conecta con profesionales verificados para todo tipo de servicios del hogar. Simplemente describe lo que necesitas, recibe cotizaciones y elige al mejor proveedor."
+  },
+  {
+    question: "¿Cómo se garantiza la calidad del servicio?",
+    answer: "Todos nuestros proveedores pasan por un proceso de verificación. Además, puedes ver las reseñas y calificaciones de otros usuarios antes de contratar."
+  },
+  {
+    question: "¿Cuáles son los métodos de pago aceptados?",
+    answer: "Aceptamos tarjetas de crédito, débito y otros métodos de pago electrónico para tu comodidad y seguridad."
+  },
+  {
+    question: "¿Qué pasa si no estoy satisfecho con el servicio?",
+    answer: "Tu satisfacción es nuestra prioridad. Si tienes algún problema, nuestro equipo de soporte está disponible para ayudarte a resolverlo."
+  }
+];
+
 const UserLanding = () => {
   const {
     user,
@@ -277,6 +302,38 @@ const UserLanding = () => {
               </Button>
             </CardContent>
           </Card>}
+
+        {/* FAQ Section */}
+        <section className="py-12 md:py-16">
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="font-['Made_Dillan'] text-2xl sm:text-3xl md:text-4xl text-foreground mb-3">
+              PREGUNTAS FRECUENTES
+            </h2>
+            <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
+              Resolvemos tus dudas más comunes
+            </p>
+          </div>
+
+          <Accordion type="single" collapsible className="max-w-3xl mx-auto space-y-3">
+            {faqs.map((faq, index) => (
+              <AccordionItem 
+                key={index} 
+                value={`faq-${index}`}
+                className="group bg-card border border-border/50 rounded-xl px-6 overflow-hidden data-[state=open]:shadow-lg transition-all duration-300"
+              >
+                <AccordionTrigger className="text-base sm:text-lg font-semibold text-foreground hover:no-underline py-5 [&>svg]:hidden">
+                  <span className="text-left flex-1 pr-4">{faq.question}</span>
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 shrink-0">
+                    <Plus className="h-4 w-4 text-primary transition-transform duration-300 group-data-[state=open]:rotate-45" />
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="text-sm sm:text-base text-muted-foreground leading-relaxed pb-5">
+                  {faq.answer}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </section>
       </main>
 
       <Footer />
