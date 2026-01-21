@@ -23,71 +23,19 @@ const Hero = () => {
         <div className="text-center space-y-6">
           {/* Floating Blue Card Container */}
           <div className="relative bg-gradient-to-br from-[#1e3a8a] to-[#1e40af] rounded-[1.5rem] md:rounded-[2.5rem] p-6 md:p-8 lg:p-10 xl:p-12 shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] border border-white/10">
-            {/* Shiny Stars Background - SVG Stars */}
-            <div className="absolute inset-0 pointer-events-none">
-              {/* Large stars */}
-              <svg className="absolute top-[8%] left-[12%] w-6 h-6 text-white animate-[pulse_2s_ease-in-out_infinite]" style={{
-              animationDelay: '0s',
-              filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.8))'
-            }} viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-              </svg>
-              <svg className="absolute top-[15%] right-[18%] w-5 h-5 text-white animate-[pulse_2.5s_ease-in-out_infinite]" style={{
-              animationDelay: '0.5s',
-              filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.9))'
-            }} viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-              </svg>
-              <svg className="absolute bottom-[12%] left-[8%] w-4 h-4 text-white animate-[pulse_3s_ease-in-out_infinite]" style={{
-              animationDelay: '1s',
-              filter: 'drop-shadow(0 0 5px rgba(255,255,255,0.7))'
-            }} viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-              </svg>
-              <svg className="absolute top-[55%] right-[12%] w-6 h-6 text-white animate-[pulse_2s_ease-in-out_infinite]" style={{
-              animationDelay: '1.5s',
-              filter: 'drop-shadow(0 0 7px rgba(255,255,255,0.85))'
-            }} viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-              </svg>
-              <svg className="absolute bottom-[22%] right-[22%] w-5 h-5 text-white animate-[pulse_2.5s_ease-in-out_infinite]" style={{
-              animationDelay: '2s',
-              filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.8))'
-            }} viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-              </svg>
-              <svg className="absolute top-[38%] left-[16%] w-4 h-4 text-white animate-[pulse_3s_ease-in-out_infinite]" style={{
-              animationDelay: '2.5s',
-              filter: 'drop-shadow(0 0 5px rgba(255,255,255,0.75))'
-            }} viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-              </svg>
-              {/* Small sparkle stars */}
-              <svg className="absolute top-[25%] left-[25%] w-3 h-3 text-white/80 animate-[pulse_2.2s_ease-in-out_infinite]" style={{
-              animationDelay: '0.3s',
-              filter: 'drop-shadow(0 0 3px rgba(255,255,255,0.6))'
-            }} viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-              </svg>
-              <svg className="absolute bottom-[35%] right-[8%] w-3 h-3 text-white/80 animate-[pulse_2.8s_ease-in-out_infinite]" style={{
-              animationDelay: '1.2s',
-              filter: 'drop-shadow(0 0 3px rgba(255,255,255,0.6))'
-            }} viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-              </svg>
-            </div>
+            {/* Clean background - stars removed for readability */}
             {/* Main Content - Single Column Layout */}
             <div className="relative z-10 space-y-6 md:space-y-8">
-              {/* Text Content with transforms */}
-              <div className="space-y-4 md:space-y-6">
-                <h1 className="font-dillan text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-white leading-[1.1] uppercase tracking-wide px-2">
-
-HOGAR FUERA
-
-                <span className="block text-center">HOGAR FUERA</span>
-                  
+              {/* Text Content - Clean Layout with Animation */}
+              <div className="space-y-4 md:space-y-6 animate-fade-in">
+                <h1 className="font-dillan text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-white leading-[1.1] uppercase tracking-wide px-2 text-center"
+                    style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3)' }}>
+                  SERVICIOS DEL
+                  <span className="block">HOGAR FUERA</span>
+                  <span className="block">DE ESTE MUNDO.</span>
                 </h1>
-                <p className="text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed max-w-3xl mx-auto px-4 pt-2 font-medium text-white">
+                <p className="text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed max-w-3xl mx-auto px-4 pt-2 font-medium text-white text-center"
+                   style={{ textShadow: '0 2px 10px rgba(0,0,0,0.4)' }}>
                   Soluciona en minutos no en días
                 </p>
               </div>
