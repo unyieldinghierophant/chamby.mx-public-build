@@ -257,17 +257,24 @@ const UserLanding = () => {
           }}
         />
         
+        {/* Dark overlay to improve text readability over stars */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/20 pointer-events-none z-[1]" />
+        
         <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-4xl mx-auto text-center space-y-6">
+          <div className="max-w-4xl mx-auto text-center space-y-6 animate-fade-in">
             <Badge className="bg-white/10 text-white border-white/20 text-sm font-medium px-4 py-2 inline-flex items-center gap-2 backdrop-blur-sm">
               👋 ¡Hola{profile?.full_name ? `, ${profile.full_name.split(' ')[0]}` : ''}!
             </Badge>
             
-            <h1 className="font-dillan text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white leading-[1.1] tracking-wide drop-shadow-lg">
-              ¿QUÉ NECESITAS HOY?
+            <h1 className="font-dillan text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white leading-[1.1] tracking-wide uppercase"
+                style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3)' }}>
+              SOLUCIONA EN
+              <span className="block">MINUTOS NO</span>
+              <span className="block">EN DÍAS.</span>
             </h1>
             
-            <p className="text-lg md:text-xl text-white/90 leading-relaxed max-w-2xl mx-auto drop-shadow-md">
+            <p className="text-lg md:text-xl text-white/90 leading-relaxed max-w-2xl mx-auto"
+               style={{ textShadow: '0 2px 10px rgba(0,0,0,0.4)' }}>
               Conectamos contigo a los mejores profesionales verificados
             </p>
 
@@ -277,16 +284,16 @@ const UserLanding = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 text-sm text-white/90 pt-4">
-              <div className="flex items-center space-x-2">
-                <CheckCircle className="h-5 w-5 text-white" />
+              <div className="flex items-center space-x-2" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.3)' }}>
+                <CheckCircle className="h-5 w-5 text-white drop-shadow-md" />
                 <span>Proveedores verificados</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <CheckCircle className="h-5 w-5 text-white" />
+              <div className="flex items-center space-x-2" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.3)' }}>
+                <CheckCircle className="h-5 w-5 text-white drop-shadow-md" />
                 <span>Pagos seguros</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <CheckCircle className="h-5 w-5 text-white" />
+              <div className="flex items-center space-x-2" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.3)' }}>
+                <CheckCircle className="h-5 w-5 text-white drop-shadow-md" />
                 <span>Garantía de calidad</span>
               </div>
             </div>
