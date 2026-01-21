@@ -80,123 +80,14 @@ const Hero = () => {
             <div className="relative z-10 space-y-6 md:space-y-8">
               {/* Text Content with transforms */}
               <div className="space-y-4 md:space-y-6">
-                <h1 className="font-hero text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-white leading-[0.9] uppercase tracking-tight px-2" style={{
-                transform: 'perspective(800px) rotateX(-8deg) rotateZ(5deg)',
-                transformStyle: 'preserve-3d',
-                wordSpacing: '0.3em'
-              }}>
-                <span className="inline-block" style={{
-                  transform: 'scale(0.82) translateY(12px) rotateZ(-8deg)'
-                }}>S</span>
-                <span className="inline-block" style={{
-                  transform: 'scale(0.88) translateY(8px) rotateZ(-5deg)'
-                }}>E</span>
-                <span className="inline-block" style={{
-                  transform: 'scale(0.93) translateY(5px) rotateZ(-3deg)'
-                }}>R</span>
-                <span className="inline-block" style={{
-                  transform: 'scale(0.98) translateY(2px) rotateZ(-1deg)'
-                }}>V</span>
-                <span className="inline-block" style={{
-                  transform: 'scale(1.03) translateY(-1px) rotateZ(1deg)'
-                }}>I</span>
-                <span className="inline-block" style={{
-                  transform: 'scale(1.06) translateY(-3px) rotateZ(2deg)'
-                }}>C</span>
-                <span className="inline-block" style={{
-                  transform: 'scale(1.03) translateY(-1px) rotateZ(1deg)'
-                }}>I</span>
-                <span className="inline-block" style={{
-                  transform: 'scale(0.98) translateY(2px) rotateZ(-1deg)'
-                }}>O</span>
-                <span className="inline-block" style={{
-                  transform: 'scale(0.93) translateY(5px) rotateZ(-3deg)'
-                }}>S</span>
-                {' '}
-                <span className="inline-block" style={{
-                  transform: 'scale(0.88) translateY(8px) rotateZ(-5deg)'
-                }}>D</span>
-                <span className="inline-block" style={{
-                  transform: 'scale(0.82) translateY(12px) rotateZ(-8deg)'
-                }}>E</span>
-                <span className="inline-block" style={{
-                  transform: 'scale(0.88) translateY(8px) rotateZ(-5deg)'
-                }}>L</span>
-                <span className="block mt-1 sm:mt-2 text-white">
-                  <span className="inline-block" style={{
-                    transform: 'scale(0.82) translateY(12px) rotateZ(-8deg)'
-                  }}>H</span>
-                  <span className="inline-block" style={{
-                    transform: 'scale(0.88) translateY(8px) rotateZ(-5deg)'
-                  }}>O</span>
-                  <span className="inline-block" style={{
-                    transform: 'scale(0.93) translateY(5px) rotateZ(-3deg)'
-                  }}>G</span>
-                  <span className="inline-block" style={{
-                    transform: 'scale(0.98) translateY(2px) rotateZ(-1deg)'
-                  }}>A</span>
-                  <span className="inline-block" style={{
-                    transform: 'scale(1.03) translateY(-1px) rotateZ(1deg)'
-                  }}>R</span>
-                  {' '}
-                  <span className="inline-block" style={{
-                    transform: 'scale(1.06) translateY(-3px) rotateZ(2deg)'
-                  }}>F</span>
-                  <span className="inline-block" style={{
-                    transform: 'scale(1.03) translateY(-1px) rotateZ(1deg)'
-                  }}>U</span>
-                  <span className="inline-block" style={{
-                    transform: 'scale(0.98) translateY(2px) rotateZ(-1deg)'
-                  }}>E</span>
-                  <span className="inline-block" style={{
-                    transform: 'scale(0.93) translateY(5px) rotateZ(-3deg)'
-                  }}>R</span>
-                  <span className="inline-block" style={{
-                    transform: 'scale(0.9) translateY(6px) rotateZ(-4deg)'
-                  }}>A</span>
-                </span>
-                <span className="block text-white mt-1 sm:mt-2">
-                  <span className="inline-block" style={{
-                    transform: 'scale(0.87) translateY(9px) rotateZ(-6deg)'
-                  }}>D</span>
-                  <span className="inline-block" style={{
-                    transform: 'scale(0.84) translateY(11px) rotateZ(-7deg)'
-                  }}>E</span>
-                  {' '}
-                  <span className="inline-block" style={{
-                    transform: 'scale(0.82) translateY(12px) rotateZ(-8deg)'
-                  }}>E</span>
-                  <span className="inline-block" style={{
-                    transform: 'scale(0.80) translateY(14px) rotateZ(-9deg)'
-                  }}>S</span>
-                  <span className="inline-block" style={{
-                    transform: 'scale(0.78) translateY(15px) rotateZ(-10deg)'
-                  }}>T</span>
-                  <span className="inline-block" style={{
-                    transform: 'scale(0.76) translateY(17px) rotateZ(-11deg)'
-                  }}>E</span>
-                  {' '}
-                  <span className="inline-block" style={{
-                    transform: 'scale(0.82) translateY(12px) rotateZ(-8deg)'
-                  }}>M</span>
-                  <span className="inline-block" style={{
-                    transform: 'scale(0.88) translateY(8px) rotateZ(-5deg)'
-                  }}>U</span>
-                  <span className="inline-block" style={{
-                    transform: 'scale(0.93) translateY(5px) rotateZ(-3deg)'
-                  }}>N</span>
-                  <span className="inline-block" style={{
-                    transform: 'scale(0.98) translateY(2px) rotateZ(-1deg)'
-                  }}>D</span>
-                  <span className="inline-block" style={{
-                    transform: 'scale(1.03) translateY(-1px) rotateZ(1deg)'
-                  }}>O</span>
-                  <span className="inline-block" style={{
-                    transform: 'scale(1.06) translateY(-3px) rotateZ(2deg)'
-                  }}>.</span>
-                </span>
+                <h1 className="font-dillan text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-white leading-[1.1] uppercase tracking-wide px-2">
+                  SERVICIOS DEL
+                  <span className="block">HOGAR FUERA</span>
+                  <span className="block">DE ESTE MUNDO.</span>
                 </h1>
-                <p className="text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed max-w-3xl mx-auto px-4 pt-2 font-medium text-white">Soluciona en minutos no en dias</p>
+                <p className="text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed max-w-3xl mx-auto px-4 pt-2 font-medium text-white">
+                  Soluciona en minutos no en días
+                </p>
               </div>
               
               {/* Search Bar Section - Isolated from transforms */}
