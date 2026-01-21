@@ -81,8 +81,10 @@ const Hero = () => {
               {/* Text Content with transforms */}
               <div className="space-y-4 md:space-y-6">
                 <h1 className="font-dillan text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-white leading-[1.1] uppercase tracking-wide px-2">
-                  SERVICIOS DEL
-                  <span className="block">HOGAR FUERA</span>
+
+HOGAR FUERA
+
+                <span className="block text-center">HOGAR FUERA</span>
                   <span className="block">DE ESTE MUNDO.</span>
                 </h1>
                 <p className="text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed max-w-3xl mx-auto px-4 pt-2 font-medium text-white">
@@ -91,7 +93,9 @@ const Hero = () => {
               </div>
               
               {/* Search Bar Section - Isolated from transforms */}
-              <div className="max-w-sm sm:max-w-md md:max-w-xl lg:max-w-2xl mx-auto px-2 sm:px-4" style={{ transform: 'none' }}>
+              <div className="max-w-sm sm:max-w-md md:max-w-xl lg:max-w-2xl mx-auto px-2 sm:px-4" style={{
+              transform: 'none'
+            }}>
                 <AISearchBar className="w-full" />
                 
                 {/* Gana dinero CTA */}
