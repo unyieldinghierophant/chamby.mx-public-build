@@ -85,7 +85,7 @@ const Hero = () => {
 HOGAR FUERA
 
                 <span className="block text-center">HOGAR FUERA</span>
-                  <span className="block">DE ESTE MUNDO.</span>
+                  
                 </h1>
                 <p className="text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed max-w-3xl mx-auto px-4 pt-2 font-medium text-white">
                   Soluciona en minutos no en días
