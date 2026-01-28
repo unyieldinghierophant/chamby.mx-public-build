@@ -80,19 +80,17 @@ export const CategoryTabs = () => {
         <div className="w-full">
           <TabsList className="w-full h-auto bg-background/50 backdrop-blur-sm p-3 md:p-4 rounded-2xl grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
             {categories.map((category, index) => {
-              // Staggered parallax offset for each card
-              const parallaxOffset = (1 - scrollY) * (20 + index * 8);
-              const opacity = Math.min(1, 0.3 + scrollY * 0.7);
-              const scale = 0.9 + scrollY * 0.1;
+              // Staggered parallax offset for each card (translateY only, no scale to avoid blur)
+              const parallaxOffset = (1 - scrollY) * (15 + index * 6);
+              const opacity = Math.min(1, 0.4 + scrollY * 0.6);
               
               return (
                 <TabsTrigger
                   key={category.id}
                   value={category.id}
                   style={{
-                    transform: `translateY(${parallaxOffset}px) scale(${scale})`,
+                    transform: `translateY(${parallaxOffset}px)`,
                     opacity,
-                    transition: 'transform 0.1s ease-out, opacity 0.2s ease-out',
                   }}
                   className={cn(
                     "flex flex-col items-center gap-2 md:gap-4 p-3 md:p-5",
