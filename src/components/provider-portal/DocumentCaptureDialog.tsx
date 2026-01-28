@@ -218,13 +218,19 @@ export const DocumentCaptureDialog = ({
       
       const { error: uploadError } = await supabase.storage
         .from("user-documents")
-        .upload(fileName, blob, { contentType: 'image/jpeg' });
+        .upload(fileName, blob, { contentType: 'image/jpeg', upsert: true });
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
+      // Create signed URL since bucket is private (valid for 1 year)
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
         .from("user-documents")
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 60 * 60 * 24 * 365); // 1 year
+
+      if (signedUrlError) throw signedUrlError;
+
+      const fileUrl = signedUrlData?.signedUrl;
+      if (!fileUrl) throw new Error('No se pudo generar la URL del documento');
 
       // Create document record
       const { error: dbError } = await supabase
@@ -232,7 +238,7 @@ export const DocumentCaptureDialog = ({
         .insert({
           provider_id: user.id,
           doc_type: docType,
-          file_url: publicUrl,
+          file_url: fileUrl,
           verification_status: "pending",
         });
 

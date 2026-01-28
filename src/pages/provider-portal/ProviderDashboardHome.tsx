@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import {
   Calendar,
@@ -12,6 +13,8 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
+  Settings,
+  BadgeCheck,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -157,17 +160,86 @@ const ProviderDashboardHome = () => {
     return <ProviderDashboardSkeleton />;
   }
 
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   return (
     <div className="container mx-auto p-4 lg:p-6 space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">
-          ¡Hola, {profile?.full_name || "Chambynauta"}!
-        </h1>
-        <p className="text-muted-foreground">
-          Aquí está tu resumen de actividad
-        </p>
-      </div>
+      {/* Provider Profile Hero */}
+      <Card className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-accent/10 border-primary/20">
+        <CardContent className="pt-8 pb-6">
+          <div className="flex flex-col items-center text-center space-y-4">
+            {/* Avatar */}
+            <div className="relative">
+              <Avatar className="w-24 h-24 md:w-32 md:h-32 border-4 border-background shadow-lg">
+                <AvatarImage 
+                  src={providerProfile?.avatar_url || profile?.avatar_url} 
+                  alt={profile?.full_name || 'Provider'} 
+                />
+                <AvatarFallback className="text-2xl md:text-3xl font-bold bg-primary/10 text-primary">
+                  {getInitials(profile?.full_name || providerProfile?.display_name || 'CH')}
+                </AvatarFallback>
+              </Avatar>
+              {providerProfile?.verification_status === 'verified' && (
+                <div className="absolute -bottom-1 -right-1 bg-background rounded-full p-0.5">
+                  <BadgeCheck className="w-6 h-6 md:w-8 md:h-8 text-primary fill-primary/20" />
+                </div>
+              )}
+            </div>
+
+            {/* Name & Role */}
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+                ¡Hola, {profile?.full_name?.split(' ')[0] || providerProfile?.display_name || "Chambynauta"}!
+              </h1>
+              <p className="text-muted-foreground mt-1">
+                {providerProfile?.specialty || 'Chambynauta profesional'}
+              </p>
+            </div>
+
+            {/* Quick Stats Row */}
+            <div className="flex items-center gap-6 pt-2">
+              <div className="flex items-center gap-2">
+                <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                <span className="font-semibold">{stats.rating.toFixed(1)}</span>
+                <span className="text-muted-foreground text-sm">({stats.totalReviews})</span>
+              </div>
+              <div className="h-4 w-px bg-border" />
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                <span className="font-semibold">{stats.completedJobs}</span>
+                <span className="text-muted-foreground text-sm">trabajos</span>
+              </div>
+              {providerProfile?.zone_served && (
+                <>
+                  <div className="h-4 w-px bg-border hidden md:block" />
+                  <div className="hidden md:flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-primary" />
+                    <span className="text-muted-foreground text-sm">{providerProfile.zone_served}</span>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Edit Profile Button */}
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => navigate("/provider-portal/profile")}
+              className="mt-2"
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Editar Perfil
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

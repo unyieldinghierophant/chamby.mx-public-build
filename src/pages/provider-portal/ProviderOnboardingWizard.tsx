@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate, useSearchParams, useBlocker } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -51,6 +51,9 @@ import { isValidMexicanPhone, formatPhoneForStorage } from '@/utils/phoneValidat
 import { WorkZonePicker } from '@/components/WorkZonePicker';
 import { PasswordStrengthBar } from '@/components/PasswordStrengthBar';
 import { DocumentsStep } from '@/components/provider-portal/DocumentsStep';
+import { useFormPersistence } from '@/hooks/useFormPersistence';
+
+const FORM_STORAGE_KEY = 'provider_onboarding';
 
 const signupSchema = z.object({
   fullName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
@@ -106,6 +109,10 @@ export default function ProviderOnboardingWizard() {
   const [saving, setSaving] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const hasRestoredForm = useRef(false);
+
+  // Form persistence
+  const { saveFormData, loadFormData, clearFormData } = useFormPersistence(FORM_STORAGE_KEY);
 
   // Auth mode: 'signup' or 'login'
   const [authMode, setAuthMode] = useState<'signup' | 'login'>('signup');
@@ -142,6 +149,76 @@ export default function ProviderOnboardingWizard() {
   const [workZoneCoords, setWorkZoneCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [workZoneRadius, setWorkZoneRadius] = useState(5);
   const [availability, setAvailability] = useState('weekdays-9-5');
+
+  // Block browser back navigation when form has progress (step > 2)
+  const shouldBlock = currentStep > 2 && !saving;
+  
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      shouldBlock && currentLocation.pathname !== nextLocation.pathname
+  );
+
+  // Handle blocker
+  useEffect(() => {
+    if (blocker.state === 'blocked') {
+      const confirmed = window.confirm(
+        '¿Seguro que quieres salir? Tu progreso se guardará automáticamente.'
+      );
+      if (confirmed) {
+        // Save progress before leaving
+        saveFormData({
+          currentStep,
+          profileData,
+          selectedSkills,
+          workZone,
+          workZoneCoords,
+          workZoneRadius,
+          availability,
+        });
+        blocker.proceed();
+      } else {
+        blocker.reset();
+      }
+    }
+  }, [blocker, currentStep, profileData, selectedSkills, workZone, workZoneCoords, workZoneRadius, availability, saveFormData]);
+
+  // Restore form data on mount (once)
+  useEffect(() => {
+    if (hasRestoredForm.current) return;
+    hasRestoredForm.current = true;
+    
+    const savedData = loadFormData();
+    if (savedData) {
+      if (savedData.currentStep && savedData.currentStep > 2) {
+        setCurrentStep(savedData.currentStep);
+      }
+      if (savedData.profileData) setProfileData(savedData.profileData);
+      if (savedData.selectedSkills) setSelectedSkills(savedData.selectedSkills);
+      if (savedData.workZone) setWorkZone(savedData.workZone);
+      if (savedData.workZoneCoords) setWorkZoneCoords(savedData.workZoneCoords);
+      if (savedData.workZoneRadius) setWorkZoneRadius(savedData.workZoneRadius);
+      if (savedData.availability) setAvailability(savedData.availability);
+      
+      toast.info('Progreso restaurado', {
+        description: 'Continuamos donde lo dejaste'
+      });
+    }
+  }, [loadFormData]);
+
+  // Auto-save form data on step change
+  useEffect(() => {
+    if (currentStep > 2) {
+      saveFormData({
+        currentStep,
+        profileData,
+        selectedSkills,
+        workZone,
+        workZoneCoords,
+        workZoneRadius,
+        availability,
+      });
+    }
+  }, [currentStep, profileData, selectedSkills, workZone, workZoneCoords, workZoneRadius, availability, saveFormData]);
 
   const handleWorkZoneChange = useCallback((lat: number, lng: number, radiusKm: number, zoneName: string) => {
     setWorkZoneCoords({ lat, lng });
@@ -537,6 +614,7 @@ export default function ProviderOnboardingWizard() {
       });
 
       localStorage.removeItem('new_provider_signup');
+      clearFormData(); // Clear saved form progress
 
       setTimeout(() => {
         navigate(ROUTES.PROVIDER_PORTAL);
