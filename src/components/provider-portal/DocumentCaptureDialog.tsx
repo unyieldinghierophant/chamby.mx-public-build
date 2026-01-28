@@ -374,31 +374,33 @@ export const DocumentCaptureDialog = ({
               )}
 
               <div className="grid grid-cols-2 gap-3">
-                <Button
-                  variant="outline"
-                  className="h-24 flex-col gap-2"
-                  onClick={startCamera}
-                >
-                  <Camera className="w-8 h-8" />
-                  <span className="text-sm">Usar Cámara</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  className="h-24 flex-col gap-2"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <ImageIcon className="w-8 h-8" />
-                  <span className="text-sm">Subir Imagen</span>
-                </Button>
+                <label className="cursor-pointer">
+                  <div className="h-24 flex flex-col items-center justify-center gap-2 border-2 border-dashed border-border rounded-lg hover:border-primary/50 hover:bg-muted/50 transition-colors">
+                    <Camera className="w-8 h-8 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">Tomar Foto</span>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={handleFileSelect}
+                  />
+                </label>
+                <label className="cursor-pointer">
+                  <div className="h-24 flex flex-col items-center justify-center gap-2 border-2 border-dashed border-border rounded-lg hover:border-primary/50 hover:bg-muted/50 transition-colors">
+                    <ImageIcon className="w-8 h-8 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">Subir Imagen</span>
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleFileSelect}
+                  />
+                </label>
               </div>
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleFileSelect}
-              />
 
               <Button
                 variant="ghost"
