@@ -79,101 +79,7 @@ const ContourLines = memo(({ y, isMobile }: { y: MotionValue<number>; isMobile: 
 
 ContourLines.displayName = 'ContourLines';
 
-// Guadalajara pin with teardrop marker, float animation, ripple, and tooltip
-const GuadalajaraPin = memo(({ prefersReducedMotion, isMobile }: { prefersReducedMotion: boolean; isMobile: boolean }) => {
-  const [showTooltip, setShowTooltip] = useState(false);
-  
-  const handleInteraction = () => {
-    if (isMobile) {
-      setShowTooltip(prev => !prev);
-    }
-  };
-  
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      setShowTooltip(prev => !prev);
-    }
-  };
-  
-  return (
-    <div 
-      className="absolute z-20 cursor-pointer outline-none"
-      style={{ 
-        left: isMobile ? '52%' : '50%', 
-        top: isMobile ? '52%' : '48%', 
-        transform: 'translate(-50%, -50%)' 
-      }}
-      onClick={handleInteraction}
-      onMouseEnter={() => !isMobile && setShowTooltip(true)}
-      onMouseLeave={() => !isMobile && setShowTooltip(false)}
-      onKeyDown={handleKeyDown}
-      tabIndex={0}
-      role="button"
-      aria-label="Guadalajara location marker"
-      aria-expanded={showTooltip}
-    >
-      <svg 
-        viewBox="0 0 60 80" 
-        className="w-10 h-14 md:w-12 md:h-16"
-        aria-hidden="true"
-      >
-        <defs>
-          <filter id="pinShadow" x="-50%" y="-50%" width="200%" height="200%">
-            <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="rgba(0,0,0,0.3)" />
-          </filter>
-        </defs>
-        
-        {/* Ripple circles - multiple for continuous effect */}
-        {!prefersReducedMotion && (
-          <>
-            <circle 
-              cx="30" cy="60" r="15"
-              fill="none"
-              stroke="rgba(255,255,255,0.35)"
-              strokeWidth="2"
-              className="pin-ripple"
-            />
-            <circle 
-              cx="30" cy="60" r="15"
-              fill="none"
-              stroke="rgba(255,255,255,0.25)"
-              strokeWidth="1.5"
-              className="pin-ripple-delayed"
-            />
-          </>
-        )}
-        
-        {/* Teardrop marker with float animation */}
-        <g className={prefersReducedMotion ? '' : 'pin-float'}>
-          <path
-            d="M30,8 C30,8 12,30 12,43 C12,54 20,62 30,62 C40,62 48,54 48,43 C48,30 30,8 30,8 Z"
-            fill="#FACC15"
-            filter="url(#pinShadow)"
-          />
-          {/* White center dot */}
-          <circle cx="30" cy="45" r="5" fill="white" />
-        </g>
-      </svg>
-      
-      {/* Tooltip - glass pill */}
-      <div 
-        className={`
-          absolute top-full left-1/2 -translate-x-1/2 mt-2
-          px-3 py-1.5 rounded-full
-          bg-white/15 backdrop-blur-md border border-white/25
-          text-white text-sm font-medium whitespace-nowrap
-          shadow-lg transition-all duration-200
-          ${showTooltip ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1 pointer-events-none'}
-        `}
-      >
-        Guadalajara
-      </div>
-    </div>
-  );
-});
-
-GuadalajaraPin.displayName = 'GuadalajaraPin';
+// FloatingDots for depth (GuadalajaraPin removed)
 
 // Floating dots for depth
 const FloatingDots = memo(({ y, opacity }: { y: MotionValue<number>; opacity: MotionValue<number> }) => (
@@ -329,7 +235,7 @@ const ParallaxJaliscoBackground = memo(({ className }: ParallaxJaliscoBackground
         <GridMesh />
         <StaticJaliscoSilhouette isMobile={isMobile} />
         <StaticContourLines isMobile={isMobile} />
-        <GuadalajaraPin prefersReducedMotion={true} isMobile={isMobile} />
+        
         <StaticFloatingDots />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,0.2)_100%)]" />
       </div>
@@ -357,9 +263,6 @@ const ParallaxJaliscoBackground = memo(({ className }: ParallaxJaliscoBackground
         
         {/* Layer C: Contour lines */}
         <ContourLines y={contourY} isMobile={isMobile} />
-        
-        {/* Layer D: Guadalajara pin */}
-        <GuadalajaraPin prefersReducedMotion={false} isMobile={isMobile} />
         
         {/* Layer E: Floating dots */}
         <FloatingDots y={dotsY} opacity={dotsOpacity} />
