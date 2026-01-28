@@ -55,9 +55,9 @@ const Index = () => {
         onOpenChange={setCategoriesDialogOpen} 
       />
       <header className="fixed top-0 left-0 right-0 bg-background z-50">
-          <div className="max-w-7xl mx-auto px-4 md:px-8 pt-4 pb-2 md:py-2 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-2 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <img src={logo} alt="Chamby" className="h-40 md:h-48 w-auto" />
+              <img src={logo} alt="Chamby" className="h-24 md:h-28 w-auto -my-4 md:-my-6" />
               <span className="text-xl font-['Made_Dillan'] text-foreground">
             </span>
             </div>
@@ -148,7 +148,7 @@ const Index = () => {
             </Sheet>
           </div>
         </header>
-        <main className="pt-20">
+        <main className="pt-16">
           <div className="animate-fade-in">
             <Hero />
           </div>
