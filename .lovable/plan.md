@@ -1,46 +1,51 @@
 
 
-## Remove Translucent Glass Card from Hero
+## Fix Header Proportions with Large Logo
 
-### Overview
-Remove the frosted glass card (`bg-white/[0.07] backdrop-blur-lg`) that sits behind the hero text, search bar, and CTA button. The content will flow directly over the Jalisco background with just the dark overlay for readability.
+### Problem
+The current logo height (`h-40 md:h-48` = 160px/192px) is expanding the header container, creating excessive white space and pushing the main content down too far.
+
+### Solution
+Use negative margins on the logo to allow it to visually overflow the header without affecting the container's layout height. This technique keeps the logo large and visible while maintaining a compact, proportional header.
 
 ---
 
-### Changes to `src/components/Hero.tsx`
+### Changes to `src/pages/Index.tsx`
 
-**Remove the glass card wrapper (line 34)**
+**Line 58 - Adjust header container padding:**
+```
+Before: pt-4 pb-2 md:py-2
+After:  py-2
+```
+Simplify to consistent vertical padding.
 
-The current structure:
+**Line 60 - Add negative margins to the logo:**
 ```
-Main Content Container (padding)
-  └── Glass Card (bg-white/[0.07] backdrop-blur-lg border) ← REMOVE THIS
-        └── Text Content
-        └── Search Bar Section
-```
-
-Will become:
-```
-Main Content Container (padding)
-  └── Text Content
-  └── Search Bar Section
+Before: className="h-40 md:h-48 w-auto"
+After:  className="h-24 md:h-28 w-auto -my-4 md:-my-6"
 ```
 
-**Specific change:**
-- Remove the `<div className="bg-white/[0.07] backdrop-blur-lg rounded-2xl md:rounded-3xl p-6 md:p-8 lg:p-10 border border-white/15 shadow-2xl max-w-4xl mx-auto">` wrapper
-- Keep the inner content (text, search bar, CTA) with just the `max-w-4xl mx-auto` constraint for centering
+This change:
+- Reduces the logo to a more reasonable size (`h-24 md:h-28` = 96px/112px) while still being prominent
+- Uses negative vertical margins (`-my-4 md:-my-6`) to allow the logo to visually extend beyond the header's natural boundaries without increasing the header height
+- Keeps the header compact at approximately 56-64px height while the logo appears larger
+
+**Line 151 - Adjust main content top padding:**
+```
+Before: className="pt-20"
+After:  className="pt-16"
+```
+Reduce the padding since the header will now be smaller.
 
 ---
 
 ### Visual Result
 
-| Before | After |
-|--------|-------|
-| Glass card with blur effect behind content | Content directly over Jalisco map |
-| White/translucent border visible | No card border |
-| Subtle frosted glass appearance | Clean, open layout |
-
-The dark overlay (`from-black/35 via-black/15 to-black/25`) will still ensure text readability over the background, and the text shadows will maintain legibility.
+| Aspect | Before | After |
+|--------|--------|-------|
+| Header height | ~200px (bloated) | ~56-64px (compact) |
+| Logo visibility | Very large, pushes content | Large but contained |
+| Overall layout | Unbalanced | Clean and proportional |
 
 ---
 
@@ -48,5 +53,5 @@ The dark overlay (`from-black/35 via-black/15 to-black/25`) will still ensure te
 
 | File | Changes |
 |------|---------|
-| `src/components/Hero.tsx` | Remove glass card div wrapper on line 34, keep inner content centered |
+| `src/pages/Index.tsx` | Adjust header padding, add negative margins to logo, reduce main content top padding |
 
