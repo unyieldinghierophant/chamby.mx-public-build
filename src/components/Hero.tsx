@@ -27,9 +27,8 @@ const Hero = () => {
             <div className="relative z-10 p-6 md:p-8 lg:p-10 xl:p-12 max-w-4xl mx-auto">
               {/* Text Content - Clean Layout with Animation */}
               <div className="space-y-4 md:space-y-6 animate-fade-in">
-                <h1 
+              <h1 
                   className="font-dillan text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-white leading-[1.15] uppercase tracking-wide text-center"
-                  style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3)' }}
                 >
                   Encuentra a los mejores
                   <span className="block">profesionales del hogar</span>
