@@ -17,39 +17,50 @@ export function PasswordStrengthBar({ password, className }: PasswordStrengthBar
     { label: 'Mínimo 6 caracteres', met: password.length >= 6 },
   ], [password]);
 
-  const strength = useMemo(() => {
-    const metCount = requirements.filter(r => r.met).length;
-    return metCount;
-  }, [requirements]);
+  // Calculate additional strength factors for better UX
+  const strengthFactors = useMemo(() => {
+    let score = 0;
+    if (password.length >= 6) score += 1;
+    if (password.length >= 8) score += 1;
+    if (/[A-Z]/.test(password)) score += 1;
+    if (/[0-9]/.test(password)) score += 1;
+    if (/[^A-Za-z0-9]/.test(password)) score += 1;
+    return score;
+  }, [password]);
 
-  const strengthPercent = (strength / requirements.length) * 100;
+  // Use strength factors for visual feedback (max 5)
+  const strength = Math.min(strengthFactors, 5);
+  const strengthPercent = (strength / 5) * 100;
 
   const getBarColor = () => {
     if (strength === 0) return 'bg-muted';
-    if (strength === 1) return 'bg-red-500';
-    if (strength === 2) return 'bg-orange-500';
-    if (strength === 3) return 'bg-yellow-500';
-    if (strength === 4) return 'bg-lime-500';
+    if (strength === 1) return 'bg-orange-500';
+    if (strength === 2) return 'bg-yellow-500';
+    if (strength === 3) return 'bg-lime-500';
+    if (strength >= 4) return 'bg-green-500';
     return 'bg-green-500';
   };
 
   const getStrengthLabel = () => {
     if (strength === 0) return '';
-    if (strength === 1) return 'Muy débil';
-    if (strength === 2) return 'Débil';
-    if (strength === 3) return 'Regular';
-    if (strength === 4) return 'Buena';
+    if (strength === 1) return 'Aceptable';
+    if (strength === 2) return 'Regular';
+    if (strength === 3) return 'Buena';
+    if (strength >= 4) return 'Fuerte';
     return 'Fuerte';
   };
 
   const getLabelColor = () => {
     if (strength === 0) return 'text-muted-foreground';
-    if (strength === 1) return 'text-red-500';
-    if (strength === 2) return 'text-orange-500';
-    if (strength === 3) return 'text-yellow-600';
-    if (strength === 4) return 'text-lime-600';
+    if (strength === 1) return 'text-orange-500';
+    if (strength === 2) return 'text-yellow-600';
+    if (strength === 3) return 'text-lime-600';
+    if (strength >= 4) return 'text-green-500';
     return 'text-green-500';
   };
+
+  // Check if password meets minimum requirement
+  const meetsMinimum = password.length >= 6;
 
   if (!password) return null;
 
@@ -75,7 +86,7 @@ export function PasswordStrengthBar({ password, className }: PasswordStrengthBar
       </div>
 
       {/* Requirements Checklist */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+      <div className="space-y-1.5">
         {requirements.map((req, index) => (
           <div
             key={index}
@@ -92,6 +103,20 @@ export function PasswordStrengthBar({ password, className }: PasswordStrengthBar
             <span>{req.label}</span>
           </div>
         ))}
+        
+        {/* Show helpful tips when password is short */}
+        {password.length > 0 && password.length < 6 && (
+          <p className="text-xs text-muted-foreground mt-2">
+            Necesitas {6 - password.length} caracteres más
+          </p>
+        )}
+        
+        {/* Show tips for stronger password when minimum is met */}
+        {meetsMinimum && strength < 3 && (
+          <p className="text-xs text-muted-foreground mt-2">
+            Añade mayúsculas, números o símbolos para mayor seguridad
+          </p>
+        )}
       </div>
     </div>
   );

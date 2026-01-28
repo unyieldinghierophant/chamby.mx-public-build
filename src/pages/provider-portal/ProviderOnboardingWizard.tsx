@@ -259,7 +259,7 @@ export default function ProviderOnboardingWizard() {
       let errorField = 'email';
       
       if (error.message.toLowerCase().includes('weak') || error.message.toLowerCase().includes('password') || error.message.toLowerCase().includes('easy to guess')) {
-        errorMessage = 'La contraseña es muy común o fácil de adivinar. Elige una diferente.';
+        errorMessage = 'Elige una contraseña más única. Prueba añadir números, mayúsculas o símbolos.';
         errorField = 'password';
       } else if (error.message.includes('already registered') || error.message.includes('already exists')) {
         errorMessage = 'Este email ya está registrado. Intenta iniciar sesión.';
