@@ -671,6 +671,18 @@ export default function ProviderOnboardingWizard() {
 
   // Step 1 removed - now starts at step 2 (auth)
 
+  // Show loading state while checking user status
+  if (user && checkingStatus) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Cargando tu perfil...</p>
+        </div>
+      </div>
+    );
+  }
+
   // Main wizard layout for steps 2-7
   return (
     <div className="min-h-screen bg-background md:bg-gradient-to-br md:from-primary/5 md:via-background md:to-accent/10">
