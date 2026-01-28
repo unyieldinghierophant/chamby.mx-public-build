@@ -78,10 +78,11 @@ export const CategoryTabs = () => {
       <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
         {/* Category Tabs - 2 columns grid with parallax effect */}
         <div className="w-full">
-          <TabsList className="w-full h-auto bg-background/50 backdrop-blur-sm p-3 md:p-4 rounded-2xl grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
+          <TabsList className="w-full h-auto bg-background/80 p-3 md:p-4 rounded-2xl grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
             {categories.map((category, index) => {
               // Staggered parallax offset for each card (translateY only, no scale to avoid blur)
-              const parallaxOffset = (1 - scrollY) * (15 + index * 6);
+              // Using integer pixels to avoid subpixel rendering issues
+              const parallaxOffset = Math.round((1 - scrollY) * (15 + index * 6));
               const opacity = Math.min(1, 0.4 + scrollY * 0.6);
               
               return (
@@ -89,22 +90,25 @@ export const CategoryTabs = () => {
                   key={category.id}
                   value={category.id}
                   style={{
-                    transform: `translateY(${parallaxOffset}px)`,
+                    transform: `translate3d(0, ${parallaxOffset}px, 0)`,
                     opacity,
+                    willChange: 'transform, opacity',
+                    backfaceVisibility: 'hidden',
                   }}
                   className={cn(
                     "flex flex-col items-center gap-2 md:gap-4 p-3 md:p-5",
                     "data-[state=active]:bg-primary/10 data-[state=active]:text-primary",
-                    "rounded-xl transition-all duration-300 h-auto",
-                    "hover:scale-105 hover:shadow-md",
+                    "rounded-xl h-auto",
+                    "hover:shadow-md",
                     "border border-transparent data-[state=active]:border-primary/30"
                   )}
                 >
-                  <div className="w-14 h-14 md:w-24 md:h-24 flex items-center justify-center transition-transform duration-300">
+                  <div className="w-14 h-14 md:w-24 md:h-24 flex items-center justify-center">
                     <img 
                       src={category.icon} 
                       alt={category.name} 
-                      className="w-full h-full object-contain transition-transform duration-300 group-data-[state=active]:scale-110"
+                      className="w-full h-full object-contain"
+                      style={{ imageRendering: 'auto' }}
                     />
                   </div>
                   <span className="text-sm md:text-lg font-medium text-center leading-tight">
