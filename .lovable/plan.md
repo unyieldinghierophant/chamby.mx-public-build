@@ -1,152 +1,289 @@
 
-## Enlarge Jalisco Map to Envelop Hero Section
 
-### Problem
-The current Jalisco silhouette is barely visible - appearing as just a small white dot (the Guadalajara pin). The SVG path is too small relative to the viewBox and the opacity is very low.
+## Animated Guadalajara Pin - SVG Implementation
 
-### Solution
-Scale up the Jalisco map significantly so it envelops/wraps around the entire hero section as a prominent background element, while keeping text readable.
+### Overview
+Replace the current div-based pin with a professional SVG pin element positioned at Guadalajara's coordinates within the Jalisco silhouette. The pin will feature a teardrop marker, ripple animation, float effect, and an interactive tooltip.
 
 ---
 
-### Changes to `src/components/ParallaxJaliscoBackground.tsx`
+### 1. Create New SVG Pin Component
 
-**1. Scale up the SVG path using a transform**
-
-Apply a scale transform to make the Jalisco silhouette 2-2.5x larger and reposition it to wrap around the content:
+Replace the current `GuadalajaraPin` component with an inline SVG approach:
 
 ```tsx
-// Current viewBox: "0 0 400 420"
-// New approach: Use a larger viewBox and scale/translate the path
-
-const JaliscoSilhouette = memo(({ y, isMobile }: { y: MotionValue<number>; isMobile: boolean }) => (
-  <motion.svg
-    viewBox="0 0 400 420"
-    className="absolute w-[200%] h-[200%] -left-1/2 -top-1/4"
-    preserveAspectRatio="xMidYMid meet"
-    style={{ y }}
-  >
-    <path
-      d={JALISCO_PATH}
-      transform="translate(-50, -50) scale(1.2)"  // Scale up and recenter
-      fill="url(#jaliscoGradient)"
-      stroke="rgba(255,255,255,0.18)"
-      strokeWidth="2"
-      className="opacity-[0.15]"  // Increased from 0.10
-    />
-  </motion.svg>
-));
+const GuadalajaraPin = memo(({ prefersReducedMotion, isMobile, showTooltip, onToggleTooltip }: {
+  prefersReducedMotion: boolean;
+  isMobile: boolean;
+  showTooltip: boolean;
+  onToggleTooltip: () => void;
+}) => {
+  // Pin will be positioned using SVG coordinates relative to the Jalisco map
+  // Guadalajara location: approximately cx="200" cy="220" in the viewBox
+});
 ```
 
-**2. Increase opacity for visibility**
+---
 
-| Element | Current | New |
-|---------|---------|-----|
-| Jalisco fill gradient | 6-15% white | 10-20% white |
-| Jalisco stroke | 12% white | 18-25% white |
-| Path opacity class | `opacity-[0.10]` | `opacity-[0.18]` |
-| Contour lines | `opacity-[0.03]` | `opacity-[0.06]` |
+### 2. SVG Pin Structure
 
-**3. Make SVG overflow the container**
-
-Instead of constraining to `inset-0`, make the SVG larger than the container:
+The pin will consist of these SVG elements layered z-0 to z-20:
 
 ```tsx
-// Desktop: 180% width/height, offset to center
-// Mobile: 200% width/height, offset to center on GDL region
-
-<motion.svg
-  viewBox="0 0 400 420"
-  className={cn(
-    "absolute pointer-events-none",
-    isMobile 
-      ? "w-[250%] h-[250%] -left-[75%] -top-[40%]"  // Mobile: larger, centered on GDL
-      : "w-[180%] h-[180%] -left-[40%] -top-[20%]"  // Desktop: wrap around
-  )}
-  preserveAspectRatio="xMidYMid meet"
-  style={{ y }}
->
+<svg viewBox="0 0 60 80" className="w-12 h-16">
+  {/* Ripple circle - z-0 (behind marker) */}
+  <circle 
+    cx="30" cy="60" r="20"
+    fill="none"
+    stroke="rgba(255,255,255,0.35)"
+    strokeWidth="2"
+    className="ripple-animation"
+  />
+  
+  {/* Teardrop marker - z-10 */}
+  <path
+    d="M30,5 C30,5 10,28 10,42 C10,55 18,65 30,65 C42,65 50,55 50,42 C50,28 30,5 30,5 Z"
+    fill="#FACC15"
+    filter="url(#pinShadow)"
+    className="marker-float-animation"
+  />
+  
+  {/* White center dot - z-20 */}
+  <circle cx="30" cy="45" r="6" fill="white" />
+</svg>
 ```
 
-**4. Adjust Guadalajara pin position**
+---
 
-Move pin relative to the enlarged map so it stays in the correct geographic position:
+### 3. Animation Keyframes (CSS)
+
+Add these keyframes to `src/index.css`:
+
+```css
+/* Pin marker float animation */
+@keyframes pinFloat {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-2px) scale(1.03);
+  }
+}
+
+/* Ripple expand and fade animation */
+@keyframes pinRipple {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.35;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+```
+
+---
+
+### 4. Pin Component Implementation
 
 ```tsx
-const GuadalajaraPin = memo(({ prefersReducedMotion, isMobile }) => (
-  <div 
-    className="absolute z-20"
-    style={{ 
-      // Position relative to enlarged map
-      left: isMobile ? '55%' : '52%', 
-      top: isMobile ? '48%' : '45%', 
-      transform: 'translate(-50%, -50%)' 
-    }}
-  >
+const GuadalajaraPin = memo(({ prefersReducedMotion, isMobile }: Props) => {
+  const [showTooltip, setShowTooltip] = useState(false);
+  
+  const handleInteraction = () => {
+    if (isMobile) {
+      setShowTooltip(prev => !prev); // Toggle on tap
+    }
+  };
+  
+  return (
+    <div 
+      className="absolute z-20 cursor-pointer"
+      style={{ 
+        left: isMobile ? '52%' : '50%', 
+        top: isMobile ? '52%' : '48%', 
+        transform: 'translate(-50%, -50%)' 
+      }}
+      onClick={handleInteraction}
+      onMouseEnter={() => !isMobile && setShowTooltip(true)}
+      onMouseLeave={() => !isMobile && setShowTooltip(false)}
+    >
+      <svg 
+        viewBox="0 0 60 80" 
+        className="w-10 h-14 md:w-12 md:h-16"
+        aria-label="Guadalajara location marker"
+      >
+        <defs>
+          {/* Shadow filter for teardrop */}
+          <filter id="pinShadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="rgba(0,0,0,0.3)" />
+          </filter>
+        </defs>
+        
+        {/* Ripple circles (multiple for continuous effect) */}
+        {!prefersReducedMotion && (
+          <>
+            <circle 
+              cx="30" cy="60" r="15"
+              fill="none"
+              stroke="rgba(255,255,255,0.35)"
+              strokeWidth="2"
+              style={{
+                animation: 'pinRipple 2s ease-out infinite',
+                transformOrigin: '30px 60px'
+              }}
+            />
+            <circle 
+              cx="30" cy="60" r="15"
+              fill="none"
+              stroke="rgba(255,255,255,0.25)"
+              strokeWidth="1.5"
+              style={{
+                animation: 'pinRipple 2s ease-out infinite 0.8s',
+                transformOrigin: '30px 60px'
+              }}
+            />
+          </>
+        )}
+        
+        {/* Teardrop marker */}
+        <g style={{
+          animation: prefersReducedMotion ? 'none' : 'pinFloat 2s ease-in-out infinite',
+          transformOrigin: '30px 35px'
+        }}>
+          <path
+            d="M30,8 C30,8 12,30 12,43 C12,54 20,62 30,62 C40,62 48,54 48,43 C48,30 30,8 30,8 Z"
+            fill="#FACC15"
+            filter="url(#pinShadow)"
+          />
+          {/* White center dot */}
+          <circle cx="30" cy="45" r="5" fill="white" />
+        </g>
+      </svg>
+      
+      {/* Tooltip - glass pill */}
+      <div 
+        className={`
+          absolute top-full left-1/2 -translate-x-1/2 mt-2
+          px-3 py-1.5 rounded-full
+          bg-white/15 backdrop-blur-md border border-white/25
+          text-white text-sm font-medium whitespace-nowrap
+          shadow-lg transition-all duration-200
+          ${showTooltip ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1 pointer-events-none'}
+        `}
+      >
+        Guadalajara
+      </div>
+    </div>
+  );
+});
 ```
 
-**5. Update gradient for better contrast**
+---
+
+### 5. Accessibility Features
+
+| Feature | Implementation |
+|---------|----------------|
+| `prefers-reduced-motion` | Disable all animations when enabled |
+| `aria-label` | Add descriptive label to SVG |
+| Keyboard focus | Add `tabIndex={0}` and `onKeyDown` handler |
+| Mobile tap | Toggle tooltip on tap instead of hover |
 
 ```tsx
-<defs>
-  <linearGradient id="jaliscoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-    <stop offset="0%" stopColor="rgba(255,255,255,0.22)" />  // Was 0.15
-    <stop offset="50%" stopColor="rgba(255,255,255,0.12)" />
-    <stop offset="100%" stopColor="rgba(255,255,255,0.08)" />  // Was 0.06
-  </linearGradient>
-</defs>
+// Keyboard accessibility
+onKeyDown={(e) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    setShowTooltip(prev => !prev);
+  }
+}}
+tabIndex={0}
+role="button"
+aria-expanded={showTooltip}
 ```
 
-**6. Add subtle glow/shadow to make shape more visible**
+---
 
-```tsx
-<filter id="jaliscoGlow">
-  <feGaussianBlur stdDeviation="8" result="blur" />  // Increased from 3
-  <feFlood floodColor="rgba(255,255,255,0.1)" />
-  <feComposite in2="blur" operator="in" />
-  <feMerge>
-    <feMergeNode />
-    <feMergeNode in="SourceGraphic" />
-  </feMerge>
-</filter>
+### 6. CSS Additions to `src/index.css`
+
+```css
+/* Pin float animation - gentle bob + scale */
+@keyframes pinFloat {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-2px) scale(1.03);
+  }
+}
+
+/* Ripple expanding circle animation */
+@keyframes pinRipple {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.35;
+    stroke-width: 2;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+    stroke-width: 0.5;
+  }
+}
 ```
+
+---
+
+### 7. Layering Structure
+
+| Layer | Element | z-index |
+|-------|---------|---------|
+| Map silhouette | Jalisco SVG | z-0 |
+| Contours | Ellipses | z-0 |
+| Ripple circles | SVG circles | z-10 |
+| Teardrop marker | SVG path | z-15 |
+| White dot | SVG circle | z-18 |
+| Tooltip | Glass pill div | z-20 |
+| Hero content | Text + CTA | z-30 |
+
+---
+
+### 8. Files to Modify
+
+| File | Changes |
+|------|---------|
+| `src/components/ParallaxJaliscoBackground.tsx` | Replace `GuadalajaraPin` with new SVG-based component |
+| `src/index.css` | Add `pinFloat` and `pinRipple` keyframe animations |
 
 ---
 
 ### Visual Result
 
 ```text
-┌─────────────────────────────────────────┐
-│     ╭──────────────────────╮            │
-│   ╭─╯  JALISCO SILHOUETTE  ╰──╮         │
-│  ╭╯    (faded, 18% opacity)    ╰╮       │
-│ ╭╯  ┌────────────────────┐      ╰╮      │
-│╭╯   │   SERVICIOS DEL    │       ╰╮     │
-││    │   HOGAR FUERA      │  •GDL  │     │
-│╰╮   │   DE ESTE MUNDO    │       ╭╯     │
-│ ╰╮  │   [Search Bar]     │      ╭╯      │
-│  ╰╮ │   [CTA Button]     │     ╭╯       │
-│   ╰─┤────────────────────┤───╭╯         │
-│     ╰────────────────────╯               │
-└─────────────────────────────────────────┘
+              ╭─────╮
+             ╱       ╲
+            │    ●    │  ← White center dot
+            │         │
+             ╲       ╱
+              ╰──┬──╯     ← Yellow teardrop (#FACC15)
+                 │           with shadow
+           ○ ○ ○ │ ○ ○ ○  ← Expanding ripple circles
+                 │           (fading white strokes)
+                 ▼
+          ┌───────────┐
+          │Guadalajara│   ← Glass tooltip (on hover/tap)
+          └───────────┘
 ```
 
-The map now wraps around the glass card content, creating a sense of place while maintaining text readability.
-
 ---
 
-### Summary of Changes
+### Animation Timing
 
-| File | Changes |
-|------|---------|
-| `ParallaxJaliscoBackground.tsx` | Scale SVG to 180-250%, increase opacity to 15-20%, enhance glow filter, reposition pin |
+| Animation | Duration | Easing | Loop |
+|-----------|----------|--------|------|
+| Float | 2.0s | ease-in-out | infinite |
+| Scale | 2.0s | ease-in-out | infinite |
+| Ripple 1 | 2.0s | ease-out | infinite |
+| Ripple 2 | 2.0s (0.8s delay) | ease-out | infinite |
 
----
-
-### Technical Notes
-
-- SVG uses percentage-based positioning (`w-[180%] -left-[40%]`) to overflow container
-- Parent container keeps `overflow-hidden` on the rounded card to clip edges nicely
-- Glass card in Hero.tsx remains unchanged - already provides good text contrast
-- Pin repositioned to match new map scale
-- All changes respect `prefers-reduced-motion`
