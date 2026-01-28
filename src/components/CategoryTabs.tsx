@@ -56,23 +56,23 @@ export const CategoryTabs = () => {
   return (
     <div className="w-full mx-auto">
       <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
-        {/* Category Tabs - Horizontal scroll on mobile, grid on desktop */}
-        <div className="w-full overflow-x-auto md:overflow-visible scrollbar-hide">
-          <TabsList className="w-max md:w-full h-auto bg-background/50 backdrop-blur-sm p-3 md:p-4 rounded-2xl flex md:grid md:grid-cols-5 gap-3 md:gap-4">
+        {/* Category Tabs - Grid pattern on all screen sizes */}
+        <div className="w-full">
+          <TabsList className="w-full h-auto bg-background/50 backdrop-blur-sm p-3 md:p-4 rounded-2xl grid grid-cols-3 md:grid-cols-5 gap-2 md:gap-4">
             {categories.map((category) => (
               <TabsTrigger
                 key={category.id}
                 value={category.id}
-                className="flex flex-col items-center gap-2 md:gap-4 p-3 md:p-5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary rounded-xl transition-all duration-300 h-auto min-w-[90px] md:min-w-0 hover:scale-105"
+                className="flex flex-col items-center gap-1.5 md:gap-4 p-2 md:p-5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary rounded-xl transition-all duration-300 h-auto hover:scale-105"
               >
-                <div className="w-14 h-14 md:w-24 md:h-24 flex items-center justify-center transition-transform duration-300">
+                <div className="w-12 h-12 md:w-24 md:h-24 flex items-center justify-center transition-transform duration-300">
                   <img 
                     src={category.icon} 
                     alt={category.name} 
                     className="w-full h-full object-contain transition-transform duration-300 group-data-[state=active]:scale-110"
                   />
                 </div>
-                <span className="text-sm md:text-lg font-medium whitespace-nowrap">
+                <span className="text-xs md:text-lg font-medium text-center leading-tight">
                   {category.name}
                 </span>
               </TabsTrigger>
