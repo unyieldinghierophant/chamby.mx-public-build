@@ -19,7 +19,8 @@ import {
 } from "@/components/ui/accordion";
 import { ROUTES } from "@/constants/routes";
 import { AISearchBar } from "@/components/AISearchBar";
-import logo from "@/assets/chamby-logo-text.png";
+import logo from "@/assets/chamby-logo-new-horizontal.png";
+import { ArrowRight } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CategoryTabs } from "@/components/CategoryTabs";
@@ -103,11 +104,9 @@ const UserLanding = () => {
   return <div className="min-h-screen bg-gradient-subtle">
       {/* Simple Header matching home page */}
       <header className="fixed top-0 left-0 right-0 bg-background border-b border-border z-50">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-2 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-0 flex items-center justify-between">
           <button onClick={() => navigate('/user-landing')} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <img src={logo} alt="Chamby" className="w-40 h-40 -my-16" />
-            <span className="text-xl font-['Made_Dillan'] text-foreground">
-          </span>
+            <img src={logo} alt="Chamby" className="h-48 md:h-56 w-auto -my-16 md:-my-20" />
           </button>
           
           {/* Desktop Profile Menu */}
@@ -237,7 +236,7 @@ const UserLanding = () => {
       </header>
       
       {/* Hero Section with Interactive Background - matching Provider Landing */}
-      <section className="relative min-h-[60vh] md:min-h-[70vh] lg:min-h-[80vh] flex items-center justify-center pt-20 pb-12 overflow-hidden">
+      <section className="relative min-h-[70vh] md:min-h-[80vh] lg:min-h-[90vh] flex items-center justify-center pt-24 pb-12 overflow-hidden">
         {/* Interactive animated background with parallax */}
         <InteractiveHeroBackground 
           onJobCardVisible={handleJobCardVisible}
@@ -257,43 +256,49 @@ const UserLanding = () => {
           }}
         />
         
-        {/* Dark overlay to improve text readability over stars */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/20 pointer-events-none z-[1]" />
-        
         <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-4xl mx-auto text-center space-y-6 animate-fade-in">
+          <div className="max-w-5xl mx-auto text-center space-y-8">
             <Badge className="bg-white/10 text-white border-white/20 text-sm font-medium px-4 py-2 inline-flex items-center gap-2 backdrop-blur-sm">
               👋 ¡Hola{profile?.full_name ? `, ${profile.full_name.split(' ')[0]}` : ''}!
             </Badge>
             
-            <h1 className="font-dillan text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white leading-[1.1] tracking-wide uppercase"
-                style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3)' }}>
+            <h1 className="font-dillan text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-white leading-[1.1] tracking-wide drop-shadow-lg">
               SOLUCIONA EN
               <span className="block">MINUTOS NO</span>
               <span className="block">EN DÍAS.</span>
             </h1>
             
-            <p className="text-lg md:text-xl text-white/90 leading-relaxed max-w-2xl mx-auto"
-               style={{ textShadow: '0 2px 10px rgba(0,0,0,0.4)' }}>
+            <p className="text-lg md:text-xl text-white/90 leading-relaxed max-w-2xl mx-auto drop-shadow-md">
               Conectamos contigo a los mejores profesionales verificados
             </p>
 
-            {/* AI Search Bar - centered and prominent */}
-            <div className="max-w-2xl mx-auto pt-2">
-              <AISearchBar className="w-full" />
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <div className="relative w-fit p-[3px] rounded-[14px] shadow-elegant overflow-hidden">
+                {/* Rotating gradient border - hugs button tightly */}
+                <div className="absolute inset-0">
+                  <div className="absolute inset-[-100%] animate-rotate-gradient bg-[conic-gradient(from_0deg,hsl(214_80%_41%),hsl(210_20%_85%),hsl(214_80%_55%),hsl(214_80%_30%),hsl(210_20%_85%),hsl(214_80%_41%))]" />
+                </div>
+                <button 
+                  className="relative inline-flex items-center justify-center bg-white text-primary hover:bg-white/90 font-semibold px-8 py-4 text-lg rounded-[10px] whitespace-nowrap"
+                  onClick={() => navigate('/book-job')}
+                >
+                  Buscar Servicio
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </button>
+              </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 text-sm text-white/90 pt-4">
-              <div className="flex items-center space-x-2" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.3)' }}>
-                <CheckCircle className="h-5 w-5 text-white drop-shadow-md" />
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 text-sm text-white/90">
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-5 w-5 text-white" />
                 <span>Proveedores verificados</span>
               </div>
-              <div className="flex items-center space-x-2" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.3)' }}>
-                <CheckCircle className="h-5 w-5 text-white drop-shadow-md" />
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-5 w-5 text-white" />
                 <span>Pagos seguros</span>
               </div>
-              <div className="flex items-center space-x-2" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.3)' }}>
-                <CheckCircle className="h-5 w-5 text-white drop-shadow-md" />
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-5 w-5 text-white" />
                 <span>Garantía de calidad</span>
               </div>
             </div>
