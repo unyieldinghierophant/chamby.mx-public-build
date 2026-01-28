@@ -1,63 +1,88 @@
 
 
-## Remove the Unwanted Guadalajara Pin from Hero Background
+## Use Jalisco PNG Image as Hero Background
 
-### Problem Identified
-The white/yellow blot you're seeing is the `GuadalajaraPin` component - a yellow teardrop marker with white pulsing ripple circles positioned at 50% left / 48% top of the hero background. It's appearing directly behind your hero text and search bar, creating visual clutter.
+### Overview
+Replace the current SVG-based Jalisco silhouette with the uploaded PNG image (`jalisco_chamby.png`). This is a temporary solution until you can upload a proper vector SVG.
 
 ---
 
-### Solution
-**Completely remove the GuadalajaraPin component** from the `ParallaxJaliscoBackground.tsx` file. This will eliminate the white blot entirely while keeping the Jalisco map silhouette and other subtle background elements.
+### File Operations
+
+**1. Copy the image to the project**
+```
+Copy: user-uploads://jalisco_chamby.png → src/assets/jalisco-map.png
+```
 
 ---
 
 ### Changes to `src/components/ParallaxJaliscoBackground.tsx`
 
-**1. Remove the GuadalajaraPin component definition (lines 82-176)**
-
-Delete the entire `GuadalajaraPin` component that creates the teardrop marker and ripple effects.
-
-**2. Remove GuadalajaraPin from the rendered output**
-
-Remove these lines from both the static and animated render sections:
+**1. Import the PNG image**
 ```tsx
-// Line 332 - Remove from static version:
-<GuadalajaraPin prefersReducedMotion={true} isMobile={isMobile} />
+import jaliscoMapImage from '@/assets/jalisco-map.png';
+```
 
-// Line 362 - Remove from animated version:
-<GuadalajaraPin prefersReducedMotion={false} isMobile={isMobile} />
+**2. Replace the SVG-based JaliscoSilhouette component**
+
+Create a new image-based component that:
+- Uses the PNG as a centered background image
+- Applies parallax scroll effect using framer-motion
+- Scales appropriately for mobile/desktop
+- Uses `object-fit: contain` to preserve aspect ratio
+- Applies slight opacity for text readability
+
+**3. Remove the old SVG components**
+
+Remove:
+- `JALISCO_PATH` constant (the old SVG path)
+- `JaliscoSilhouette` component (SVG-based)
+- `StaticJaliscoSilhouette` component (SVG-based)
+- `ContourLines` component (no longer needed - the PNG has built-in effects)
+- `StaticContourLines` component
+
+**4. Keep these components**
+- `GridMesh` - subtle grid pattern
+- `FloatingDots` / `StaticFloatingDots` - depth dots (the PNG has stars but we can keep these for extra depth)
+
+---
+
+### New Component Structure
+
+```tsx
+const JaliscoMapImage = memo(({ y, isMobile }: { y: MotionValue<number>; isMobile: boolean }) => (
+  <motion.div
+    className="absolute inset-0 flex items-center justify-center pointer-events-none"
+    style={{ y }}
+  >
+    <img
+      src={jaliscoMapImage}
+      alt=""
+      className={cn(
+        "object-contain opacity-90",
+        isMobile ? "w-[140%] max-w-none" : "w-[120%] max-w-none"
+      )}
+    />
+  </motion.div>
+));
 ```
 
 ---
 
-### Changes to `src/index.css`
+### Visual Result
 
-**Remove the pin animation keyframes** (no longer needed):
-```css
-/* Delete these keyframes */
-@keyframes pinFloat { ... }
-@keyframes pinRipple { ... }
+| Before | After |
+|--------|-------|
+| SVG path-based silhouette | Full PNG image with glowing edges, stars, and network lines |
+| Separate contour lines layer | Built into the PNG |
+| Custom gradient fills | Uses the blue gradient from the image |
 
-/* Delete these classes */
-.pin-float { ... }
-.pin-ripple { ... }
-.pin-ripple-delayed { ... }
-```
-
----
-
-### What Remains After Removal
-
-The hero background will still have:
-- Blue gradient base
-- Subtle Jalisco map silhouette (very faint, wraps around the content)
-- Subtle contour lines/ellipses
-- Floating dots for depth
-- Grid mesh pattern
-- Parallax scroll and tilt effects
-
-**No more white/yellow blot** in the center of your hero.
+The hero will display:
+- Blue gradient base (from the image itself)
+- Glowing Jalisco map outline with internal municipality divisions
+- Scattered star/dot effects
+- Network/connection lines around the edges
+- Parallax scroll and tilt effects preserved
 
 ---
 
@@ -65,6 +90,6 @@ The hero background will still have:
 
 | File | Changes |
 |------|---------|
-| `src/components/ParallaxJaliscoBackground.tsx` | Remove `GuadalajaraPin` component definition and all usages |
-| `src/index.css` | Remove `pinFloat`, `pinRipple` keyframes and related classes |
+| `src/assets/jalisco-map.png` | New file (copied from upload) |
+| `src/components/ParallaxJaliscoBackground.tsx` | Replace SVG components with PNG image |
 
