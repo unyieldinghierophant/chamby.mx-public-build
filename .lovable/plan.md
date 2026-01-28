@@ -1,71 +1,34 @@
 
 
-## Use Jalisco PNG Image as Hero Background
+## Remove Translucent Glass Card from Hero
 
 ### Overview
-Replace the current SVG-based Jalisco silhouette with the uploaded PNG image (`jalisco_chamby.png`). This is a temporary solution until you can upload a proper vector SVG.
+Remove the frosted glass card (`bg-white/[0.07] backdrop-blur-lg`) that sits behind the hero text, search bar, and CTA button. The content will flow directly over the Jalisco background with just the dark overlay for readability.
 
 ---
 
-### File Operations
+### Changes to `src/components/Hero.tsx`
 
-**1. Copy the image to the project**
+**Remove the glass card wrapper (line 34)**
+
+The current structure:
 ```
-Copy: user-uploads://jalisco_chamby.png → src/assets/jalisco-map.png
-```
-
----
-
-### Changes to `src/components/ParallaxJaliscoBackground.tsx`
-
-**1. Import the PNG image**
-```tsx
-import jaliscoMapImage from '@/assets/jalisco-map.png';
+Main Content Container (padding)
+  └── Glass Card (bg-white/[0.07] backdrop-blur-lg border) ← REMOVE THIS
+        └── Text Content
+        └── Search Bar Section
 ```
 
-**2. Replace the SVG-based JaliscoSilhouette component**
-
-Create a new image-based component that:
-- Uses the PNG as a centered background image
-- Applies parallax scroll effect using framer-motion
-- Scales appropriately for mobile/desktop
-- Uses `object-fit: contain` to preserve aspect ratio
-- Applies slight opacity for text readability
-
-**3. Remove the old SVG components**
-
-Remove:
-- `JALISCO_PATH` constant (the old SVG path)
-- `JaliscoSilhouette` component (SVG-based)
-- `StaticJaliscoSilhouette` component (SVG-based)
-- `ContourLines` component (no longer needed - the PNG has built-in effects)
-- `StaticContourLines` component
-
-**4. Keep these components**
-- `GridMesh` - subtle grid pattern
-- `FloatingDots` / `StaticFloatingDots` - depth dots (the PNG has stars but we can keep these for extra depth)
-
----
-
-### New Component Structure
-
-```tsx
-const JaliscoMapImage = memo(({ y, isMobile }: { y: MotionValue<number>; isMobile: boolean }) => (
-  <motion.div
-    className="absolute inset-0 flex items-center justify-center pointer-events-none"
-    style={{ y }}
-  >
-    <img
-      src={jaliscoMapImage}
-      alt=""
-      className={cn(
-        "object-contain opacity-90",
-        isMobile ? "w-[140%] max-w-none" : "w-[120%] max-w-none"
-      )}
-    />
-  </motion.div>
-));
+Will become:
 ```
+Main Content Container (padding)
+  └── Text Content
+  └── Search Bar Section
+```
+
+**Specific change:**
+- Remove the `<div className="bg-white/[0.07] backdrop-blur-lg rounded-2xl md:rounded-3xl p-6 md:p-8 lg:p-10 border border-white/15 shadow-2xl max-w-4xl mx-auto">` wrapper
+- Keep the inner content (text, search bar, CTA) with just the `max-w-4xl mx-auto` constraint for centering
 
 ---
 
@@ -73,23 +36,17 @@ const JaliscoMapImage = memo(({ y, isMobile }: { y: MotionValue<number>; isMobil
 
 | Before | After |
 |--------|-------|
-| SVG path-based silhouette | Full PNG image with glowing edges, stars, and network lines |
-| Separate contour lines layer | Built into the PNG |
-| Custom gradient fills | Uses the blue gradient from the image |
+| Glass card with blur effect behind content | Content directly over Jalisco map |
+| White/translucent border visible | No card border |
+| Subtle frosted glass appearance | Clean, open layout |
 
-The hero will display:
-- Blue gradient base (from the image itself)
-- Glowing Jalisco map outline with internal municipality divisions
-- Scattered star/dot effects
-- Network/connection lines around the edges
-- Parallax scroll and tilt effects preserved
+The dark overlay (`from-black/35 via-black/15 to-black/25`) will still ensure text readability over the background, and the text shadows will maintain legibility.
 
 ---
 
-### Files to Modify
+### File to Modify
 
 | File | Changes |
 |------|---------|
-| `src/assets/jalisco-map.png` | New file (copied from upload) |
-| `src/components/ParallaxJaliscoBackground.tsx` | Replace SVG components with PNG image |
+| `src/components/Hero.tsx` | Remove glass card div wrapper on line 34, keep inner content centered |
 
