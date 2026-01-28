@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate, useSearchParams, useBlocker } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -150,37 +150,8 @@ export default function ProviderOnboardingWizard() {
   const [workZoneRadius, setWorkZoneRadius] = useState(5);
   const [availability, setAvailability] = useState('weekdays-9-5');
 
-  // Block browser back navigation when form has progress (step > 2)
-  const shouldBlock = currentStep > 2 && !saving;
-  
-  const blocker = useBlocker(
-    ({ currentLocation, nextLocation }) =>
-      shouldBlock && currentLocation.pathname !== nextLocation.pathname
-  );
-
-  // Handle blocker
-  useEffect(() => {
-    if (blocker.state === 'blocked') {
-      const confirmed = window.confirm(
-        '¿Seguro que quieres salir? Tu progreso se guardará automáticamente.'
-      );
-      if (confirmed) {
-        // Save progress before leaving
-        saveFormData({
-          currentStep,
-          profileData,
-          selectedSkills,
-          workZone,
-          workZoneCoords,
-          workZoneRadius,
-          availability,
-        });
-        blocker.proceed();
-      } else {
-        blocker.reset();
-      }
-    }
-  }, [blocker, currentStep, profileData, selectedSkills, workZone, workZoneCoords, workZoneRadius, availability, saveFormData]);
+  // Note: useBlocker removed as it requires data router (createBrowserRouter)
+  // Form persistence with auto-save handles progress preservation instead
 
   // Restore form data on mount (once)
   useEffect(() => {
