@@ -37,7 +37,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { useVerificationStatus } from "@/hooks/useVerificationStatus";
 import { useProfile } from "@/hooks/useProfile";
 import { useState, useCallback } from "react";
-import logo from "@/assets/chamby-logo-text.png";
+import logo from "@/assets/chamby-logo-new-horizontal.png";
 import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import InteractiveHeroBackground from "@/components/provider-portal/InteractiveHeroBackground";
@@ -159,9 +159,9 @@ const ProviderLanding = () => {
     <div className="min-h-screen bg-gradient-subtle">
       {/* Simple Header matching user landing page */}
       <header className="fixed top-0 left-0 right-0 bg-background border-b border-border z-50">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-2 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-0 flex items-center justify-between">
           <button onClick={() => navigate('/')} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <img src={logo} alt="Chamby" className="w-40 h-40 -my-16" />
+            <img src={logo} alt="Chamby" className="h-48 md:h-56 w-auto -my-16 md:-my-20" />
           </button>
           
           {user && (
