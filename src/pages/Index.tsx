@@ -57,7 +57,7 @@ const Index = () => {
       <header className="fixed top-0 left-0 right-0 bg-background z-50">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-2 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <img src={logo} alt="Chamby" className="h-24 md:h-28 w-auto -my-4 md:-my-6" />
+              <img src={logo} alt="Chamby" className="h-48 md:h-56 w-auto -my-10 md:-my-14" />
               <span className="text-xl font-['Made_Dillan'] text-foreground">
             </span>
             </div>
