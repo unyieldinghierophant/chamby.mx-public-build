@@ -79,55 +79,99 @@ const ContourLines = memo(({ y, isMobile }: { y: MotionValue<number>; isMobile: 
 
 ContourLines.displayName = 'ContourLines';
 
-// Guadalajara pin with pulse and ripple - repositioned for enlarged map
-const GuadalajaraPin = memo(({ prefersReducedMotion, isMobile }: { prefersReducedMotion: boolean; isMobile: boolean }) => (
-  <div 
-    className="absolute z-20"
-    style={{ 
-      left: isMobile ? '52%' : '50%', 
-      top: isMobile ? '52%' : '48%', 
-      transform: 'translate(-50%, -50%)' 
-    }}
-  >
-    {/* Ripple effects - disabled with prefers-reduced-motion */}
-    {!prefersReducedMotion && (
-      <>
-        <div 
-          className="absolute w-20 h-20 -left-8 -top-8 rounded-full bg-yellow-400/20"
-          style={{ 
-            animation: 'ping 2.5s cubic-bezier(0, 0, 0.2, 1) infinite'
-          }} 
-        />
-        <div 
-          className="absolute w-12 h-12 -left-4 -top-4 rounded-full bg-yellow-400/30"
-          style={{ 
-            animation: 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite',
-            animationDelay: '0.5s'
-          }} 
-        />
-      </>
-    )}
-    
-    {/* Main pin dot */}
-    <div className="relative">
+// Guadalajara pin with teardrop marker, float animation, ripple, and tooltip
+const GuadalajaraPin = memo(({ prefersReducedMotion, isMobile }: { prefersReducedMotion: boolean; isMobile: boolean }) => {
+  const [showTooltip, setShowTooltip] = useState(false);
+  
+  const handleInteraction = () => {
+    if (isMobile) {
+      setShowTooltip(prev => !prev);
+    }
+  };
+  
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setShowTooltip(prev => !prev);
+    }
+  };
+  
+  return (
+    <div 
+      className="absolute z-20 cursor-pointer outline-none"
+      style={{ 
+        left: isMobile ? '52%' : '50%', 
+        top: isMobile ? '52%' : '48%', 
+        transform: 'translate(-50%, -50%)' 
+      }}
+      onClick={handleInteraction}
+      onMouseEnter={() => !isMobile && setShowTooltip(true)}
+      onMouseLeave={() => !isMobile && setShowTooltip(false)}
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+      role="button"
+      aria-label="Guadalajara location marker"
+      aria-expanded={showTooltip}
+    >
+      <svg 
+        viewBox="0 0 60 80" 
+        className="w-10 h-14 md:w-12 md:h-16"
+        aria-hidden="true"
+      >
+        <defs>
+          <filter id="pinShadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="rgba(0,0,0,0.3)" />
+          </filter>
+        </defs>
+        
+        {/* Ripple circles - multiple for continuous effect */}
+        {!prefersReducedMotion && (
+          <>
+            <circle 
+              cx="30" cy="60" r="15"
+              fill="none"
+              stroke="rgba(255,255,255,0.35)"
+              strokeWidth="2"
+              className="pin-ripple"
+            />
+            <circle 
+              cx="30" cy="60" r="15"
+              fill="none"
+              stroke="rgba(255,255,255,0.25)"
+              strokeWidth="1.5"
+              className="pin-ripple-delayed"
+            />
+          </>
+        )}
+        
+        {/* Teardrop marker with float animation */}
+        <g className={prefersReducedMotion ? '' : 'pin-float'}>
+          <path
+            d="M30,8 C30,8 12,30 12,43 C12,54 20,62 30,62 C40,62 48,54 48,43 C48,30 30,8 30,8 Z"
+            fill="#FACC15"
+            filter="url(#pinShadow)"
+          />
+          {/* White center dot */}
+          <circle cx="30" cy="45" r="5" fill="white" />
+        </g>
+      </svg>
+      
+      {/* Tooltip - glass pill */}
       <div 
-        className="w-5 h-5 bg-yellow-400 rounded-full shadow-[0_0_20px_rgba(250,204,21,0.8),0_0_40px_rgba(250,204,21,0.5)]"
-        style={{
-          animation: prefersReducedMotion ? 'none' : 'pulse 2s ease-in-out infinite'
-        }}
-      />
-      {/* Inner bright core */}
-      <div className="absolute inset-1.5 bg-yellow-200 rounded-full" />
-    </div>
-    
-    {/* Label */}
-    <div className="absolute top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
-      <span className="px-3 py-1.5 text-sm font-semibold text-white bg-white/15 backdrop-blur-md rounded-full border border-white/25 shadow-lg">
+        className={`
+          absolute top-full left-1/2 -translate-x-1/2 mt-2
+          px-3 py-1.5 rounded-full
+          bg-white/15 backdrop-blur-md border border-white/25
+          text-white text-sm font-medium whitespace-nowrap
+          shadow-lg transition-all duration-200
+          ${showTooltip ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1 pointer-events-none'}
+        `}
+      >
         Guadalajara
-      </span>
+      </div>
     </div>
-  </div>
-));
+  );
+});
 
 GuadalajaraPin.displayName = 'GuadalajaraPin';
 
