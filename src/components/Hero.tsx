@@ -33,19 +33,13 @@ const Hero = () => {
               {/* Text Content - Clean Layout with Animation */}
               <div className="space-y-4 md:space-y-6 animate-fade-in">
                 <h1 
-                  className="font-dillan text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-white leading-[1.1] uppercase tracking-wide text-center"
+                  className="font-dillan text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-white leading-[1.15] uppercase tracking-wide text-center"
                   style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3)' }}
                 >
-                  SERVICIOS DEL
-                  <span className="block">HOGAR FUERA</span>
-                  <span className="block">DE ESTE MUNDO.</span>
+                  Encuentra a los mejores
+                  <span className="block">profesionales del hogar</span>
+                  <span className="block">en Guadalajara.</span>
                 </h1>
-                <p 
-                  className="text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed max-w-3xl mx-auto pt-2 font-medium text-white/95 text-center"
-                  style={{ textShadow: '0 2px 10px rgba(0,0,0,0.4)' }}
-                >
-                  Soluciona en minutos no en días
-                </p>
               </div>
               
               {/* Search Bar Section */}

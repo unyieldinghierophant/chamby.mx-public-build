@@ -316,9 +316,6 @@ export const AISearchBar = ({ className }: { className?: string }) => {
           )}
         </div>
 
-        <p className="text-[10px] sm:text-xs text-white/80 mt-2 ml-1 px-1">
-          Describe lo que necesitas y nuestra IA te ayudará a encontrar el servicio correcto
-        </p>
       </form>
 
       {/* Autofill Dropdown - Now removed from here */}
