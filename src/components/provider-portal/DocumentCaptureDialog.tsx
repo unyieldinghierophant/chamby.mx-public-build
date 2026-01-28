@@ -80,38 +80,63 @@ export const DocumentCaptureDialog = ({
 
   const startCamera = useCallback(async () => {
     setCameraError(null);
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: facingMode,
-          width: { ideal: 1920 },
-          height: { ideal: 1080 }
+    // First set mode to camera so the video element renders
+    setMode('camera');
+  }, []);
+
+  // Actually start the camera stream when mode is 'camera' and video element exists
+  useEffect(() => {
+    if (mode !== 'camera') return;
+    
+    const initCamera = async () => {
+      try {
+        // Wait a tick for video element to mount
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: facingMode,
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          }
+        });
+        
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          streamRef.current = stream;
+          // Ensure video plays
+          try {
+            await videoRef.current.play();
+          } catch (playError) {
+            console.log('Video autoplay handled by autoPlay attribute');
+          }
+        } else {
+          // Video element not ready, stop the stream
+          stream.getTracks().forEach(track => track.stop());
         }
-      });
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        streamRef.current = stream;
-        setMode('camera');
+      } catch (error: any) {
+        console.error('Camera error:', error);
+        // Return to select mode on error
+        setMode('select');
+        // Mensaje más claro y accionable según el tipo de error
+        if (error.name === 'NotAllowedError') {
+          setCameraError('Permiso de cámara denegado. Por favor permite el acceso en la configuración de tu navegador, o usa el botón "Subir Imagen" para continuar.');
+        } else if (error.name === 'NotFoundError') {
+          setCameraError('No se detectó ninguna cámara. Por favor usa el botón "Subir Imagen" para subir una foto desde tu galería.');
+        } else if (error.name === 'NotReadableError') {
+          setCameraError('La cámara está siendo usada por otra aplicación. Ciérrala e intenta de nuevo, o sube una imagen.');
+        } else {
+          setCameraError('No se pudo acceder a la cámara. Usa el botón "Subir Imagen" para continuar.');
+        }
+        // Toast adicional para mayor visibilidad
+        toast.error('No se pudo acceder a la cámara', {
+          description: 'Usa el botón "Subir Imagen" para continuar'
+        });
       }
-    } catch (error: any) {
-      console.error('Camera error:', error);
-      // Mensaje más claro y accionable según el tipo de error
-      if (error.name === 'NotAllowedError') {
-        setCameraError('Permiso de cámara denegado. Por favor permite el acceso en la configuración de tu navegador, o usa el botón "Subir Imagen" para continuar.');
-      } else if (error.name === 'NotFoundError') {
-        setCameraError('No se detectó ninguna cámara. Por favor usa el botón "Subir Imagen" para subir una foto desde tu galería.');
-      } else if (error.name === 'NotReadableError') {
-        setCameraError('La cámara está siendo usada por otra aplicación. Ciérrala e intenta de nuevo, o sube una imagen.');
-      } else {
-        setCameraError('No se pudo acceder a la cámara. Usa el botón "Subir Imagen" para continuar.');
-      }
-      // Toast adicional para mayor visibilidad
-      toast.error('No se pudo acceder a la cámara', {
-        description: 'Usa el botón "Subir Imagen" para continuar'
-      });
-    }
-  }, [facingMode]);
+    };
+
+    initCamera();
+  }, [mode, facingMode]);
 
   const stopCamera = useCallback(() => {
     if (streamRef.current) {
@@ -184,11 +209,8 @@ export const DocumentCaptureDialog = ({
     setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
   };
 
-  useEffect(() => {
-    if (mode === 'camera' && facingMode) {
-      startCamera();
-    }
-  }, [facingMode]);
+  // When switching cameras, stop current stream and restart
+  // The initCamera effect will handle restarting with new facingMode
 
   useEffect(() => {
     return () => {
