@@ -20,11 +20,8 @@ const Hero = () => {
       
       <div className="w-[96%] md:w-[98%] mx-auto relative z-10 mt-0">
         <div className="text-center space-y-6">
-          {/* Floating Blue Card Container with Parallax Jalisco Background */}
-          <div className="relative rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] border border-white/20 bg-primary/30 backdrop-blur-md">
-            
-            {/* Blue overlay for text readability */}
-            <div className="absolute inset-0 bg-gradient-to-b from-primary/60 via-primary/40 to-primary/50 pointer-events-none z-[1]" />
+          {/* Floating Blue Card Container */}
+          <div className="relative rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] border border-primary-foreground/20 bg-primary">
             
             {/* Main Content */}
             <div className="relative z-10 p-6 md:p-8 lg:p-10 xl:p-12 max-w-4xl mx-auto">
