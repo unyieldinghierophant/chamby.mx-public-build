@@ -1,57 +1,86 @@
 
 
-## Fix Header Proportions with Large Logo
+## Fix Category Cards Visibility - Remove Faded/Grey Filter
 
-### Problem
-The current logo height (`h-40 md:h-48` = 160px/192px) is expanding the header container, creating excessive white space and pushing the main content down too far.
+### Root Causes Identified
+
+I found three issues causing the faded, grey appearance:
+
+| Issue | Location | Effect |
+|-------|----------|--------|
+| Opacity animation starts at 0.4 | Line 86: `opacity = Math.min(1, 0.4 + scrollY * 0.6)` | Cards appear 60% transparent initially |
+| TabsList has muted text color | UI component: `text-muted-foreground` class | All text appears grey |
+| Semi-transparent background | Line 81: `bg-background/80` | Container looks washed out |
+
+---
 
 ### Solution
-Use negative margins on the logo to allow it to visually overflow the header without affecting the container's layout height. This technique keeps the logo large and visible while maintaining a compact, proportional header.
+
+Remove all opacity-reducing effects and ensure full visibility:
+
+**File: `src/components/CategoryTabs.tsx`**
+
+1. **Remove opacity from parallax animation (line 86-94)**
+   - Delete the opacity calculation entirely
+   - Keep only the translateY parallax effect for movement
+   - Remove opacity from the style object
+
+2. **Fix TabsList background (line 81)**
+   - Change `bg-background/80` to `bg-background` (fully opaque)
+
+3. **Add explicit text color to TabsTrigger (line 98-104)**
+   - Add `text-foreground` class to ensure full color visibility
+   - This overrides the inherited `text-muted-foreground` from the parent TabsList
 
 ---
 
-### Changes to `src/pages/Index.tsx`
+### Code Changes
 
-**Line 58 - Adjust header container padding:**
-```
-Before: pt-4 pb-2 md:py-2
-After:  py-2
-```
-Simplify to consistent vertical padding.
+**Before (lines 86-97):**
+```javascript
+const parallaxOffset = Math.round((1 - scrollY) * (15 + index * 6));
+const opacity = Math.min(1, 0.4 + scrollY * 0.6);
 
-**Line 60 - Add negative margins to the logo:**
-```
-Before: className="h-40 md:h-48 w-auto"
-After:  className="h-24 md:h-28 w-auto -my-4 md:-my-6"
+return (
+  <TabsTrigger
+    style={{
+      transform: `translate3d(0, ${parallaxOffset}px, 0)`,
+      opacity,
+      willChange: 'transform, opacity',
+      backfaceVisibility: 'hidden',
+    }}
 ```
 
-This change:
-- Reduces the logo to a more reasonable size (`h-24 md:h-28` = 96px/112px) while still being prominent
-- Uses negative vertical margins (`-my-4 md:-my-6`) to allow the logo to visually extend beyond the header's natural boundaries without increasing the header height
-- Keeps the header compact at approximately 56-64px height while the logo appears larger
+**After:**
+```javascript
+const parallaxOffset = Math.round((1 - scrollY) * (15 + index * 6));
 
-**Line 151 - Adjust main content top padding:**
+return (
+  <TabsTrigger
+    style={{
+      transform: `translate3d(0, ${parallaxOffset}px, 0)`,
+      willChange: 'transform',
+      backfaceVisibility: 'hidden',
+    }}
 ```
-Before: className="pt-20"
-After:  className="pt-16"
+
+**TabsList background (line 81):**
 ```
-Reduce the padding since the header will now be smaller.
+Before: bg-background/80
+After:  bg-background
+```
+
+**TabsTrigger className (line 98):**
+```
+Add: text-foreground
+```
 
 ---
 
-### Visual Result
+### Result
 
-| Aspect | Before | After |
-|--------|--------|-------|
-| Header height | ~200px (bloated) | ~56-64px (compact) |
-| Logo visibility | Very large, pushes content | Large but contained |
-| Overall layout | Unbalanced | Clean and proportional |
-
----
-
-### File to Modify
-
-| File | Changes |
-|------|---------|
-| `src/pages/Index.tsx` | Adjust header padding, add negative margins to logo, reduce main content top padding |
+- Category icons and text will appear at full opacity (100%)
+- Background will be solid, not semi-transparent
+- Text will use foreground color instead of muted grey
+- Parallax movement effect is preserved (just without opacity fade)
 
