@@ -22,8 +22,6 @@ const Hero = () => {
         <div className="text-center space-y-6">
           {/* Floating Blue Card Container with Parallax Jalisco Background */}
           <div className="relative rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] border border-white/20 bg-primary/30 backdrop-blur-md">
-            {/* Parallax Jalisco background */}
-            <ParallaxJaliscoBackground />
             
             {/* Dark overlay for text readability */}
             <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/15 to-black/25 pointer-events-none z-[1]" />
