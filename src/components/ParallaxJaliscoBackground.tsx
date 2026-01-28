@@ -9,23 +9,30 @@ interface ParallaxJaliscoBackgroundProps {
 // Accurate Jalisco state silhouette SVG path (simplified from INEGI data)
 const JALISCO_PATH = `M245,45 L270,48 L295,55 L320,68 L342,85 L358,108 L368,135 L372,165 L370,195 L362,225 L350,255 L335,282 L315,308 L290,330 L262,348 L230,362 L195,370 L160,372 L128,368 L98,358 L72,342 L52,320 L38,295 L30,268 L28,240 L32,212 L42,185 L58,160 L78,138 L102,120 L128,105 L155,92 L183,82 L210,72 L238,58 L245,45 Z`;
 
-// Jalisco silhouette layer
+// Jalisco silhouette layer - enlarged to wrap around hero
 const JaliscoSilhouette = memo(({ y, isMobile }: { y: MotionValue<number>; isMobile: boolean }) => (
   <motion.svg
-    viewBox={isMobile ? "80 120 240 280" : "0 0 400 420"}
-    className="absolute inset-0 w-full h-full"
-    preserveAspectRatio="xMidYMid slice"
+    viewBox="0 0 400 420"
+    className={
+      isMobile 
+        ? "absolute w-[280%] h-[280%] -left-[90%] -top-[50%] pointer-events-none"
+        : "absolute w-[200%] h-[200%] -left-[50%] -top-[25%] pointer-events-none"
+    }
+    preserveAspectRatio="xMidYMid meet"
     style={{ y }}
   >
     <defs>
       <linearGradient id="jaliscoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="rgba(255,255,255,0.15)" />
-        <stop offset="100%" stopColor="rgba(255,255,255,0.06)" />
+        <stop offset="0%" stopColor="rgba(255,255,255,0.25)" />
+        <stop offset="50%" stopColor="rgba(255,255,255,0.15)" />
+        <stop offset="100%" stopColor="rgba(255,255,255,0.10)" />
       </linearGradient>
       <filter id="jaliscoGlow">
-        <feGaussianBlur stdDeviation="3" result="blur" />
+        <feGaussianBlur stdDeviation="6" result="blur" />
+        <feFlood floodColor="rgba(255,255,255,0.08)" />
+        <feComposite in2="blur" operator="in" result="glow" />
         <feMerge>
-          <feMergeNode in="blur" />
+          <feMergeNode in="glow" />
           <feMergeNode in="SourceGraphic" />
         </feMerge>
       </filter>
@@ -33,34 +40,38 @@ const JaliscoSilhouette = memo(({ y, isMobile }: { y: MotionValue<number>; isMob
     <path
       d={JALISCO_PATH}
       fill="url(#jaliscoGradient)"
-      stroke="rgba(255,255,255,0.12)"
-      strokeWidth="1.5"
+      stroke="rgba(255,255,255,0.20)"
+      strokeWidth="2"
       filter="url(#jaliscoGlow)"
-      className="opacity-[0.10]"
+      className="opacity-[0.22]"
     />
   </motion.svg>
 ));
 
 JaliscoSilhouette.displayName = 'JaliscoSilhouette';
 
-// Contour lines layer
-const ContourLines = memo(({ y }: { y: MotionValue<number> }) => (
+// Contour lines layer - enlarged to match silhouette
+const ContourLines = memo(({ y, isMobile }: { y: MotionValue<number>; isMobile: boolean }) => (
   <motion.svg
     viewBox="0 0 400 420"
-    className="absolute inset-0 w-full h-full opacity-[0.03]"
-    preserveAspectRatio="xMidYMid slice"
+    className={
+      isMobile 
+        ? "absolute w-[280%] h-[280%] -left-[90%] -top-[50%] opacity-[0.06] pointer-events-none"
+        : "absolute w-[200%] h-[200%] -left-[50%] -top-[25%] opacity-[0.06] pointer-events-none"
+    }
+    preserveAspectRatio="xMidYMid meet"
     style={{ y }}
   >
     {/* Organic contour ellipses centered around Guadalajara region */}
-    <ellipse cx="200" cy="220" rx="60" ry="45" fill="none" stroke="white" strokeWidth="0.8" strokeDasharray="4 6" />
-    <ellipse cx="200" cy="220" rx="100" ry="75" fill="none" stroke="white" strokeWidth="0.5" strokeDasharray="6 8" />
-    <ellipse cx="200" cy="220" rx="150" ry="110" fill="none" stroke="white" strokeWidth="0.3" strokeDasharray="8 12" />
+    <ellipse cx="200" cy="220" rx="60" ry="45" fill="none" stroke="white" strokeWidth="1" strokeDasharray="4 6" />
+    <ellipse cx="200" cy="220" rx="100" ry="75" fill="none" stroke="white" strokeWidth="0.7" strokeDasharray="6 8" />
+    <ellipse cx="200" cy="220" rx="150" ry="110" fill="none" stroke="white" strokeWidth="0.5" strokeDasharray="8 12" />
     {/* Additional organic blob */}
     <path
       d="M120,180 Q160,150 200,160 Q240,170 260,200 Q280,240 260,280 Q230,310 190,300 Q150,290 130,250 Q110,210 120,180 Z"
       fill="none"
       stroke="white"
-      strokeWidth="0.4"
+      strokeWidth="0.6"
       strokeDasharray="5 10"
     />
   </motion.svg>
@@ -68,13 +79,13 @@ const ContourLines = memo(({ y }: { y: MotionValue<number> }) => (
 
 ContourLines.displayName = 'ContourLines';
 
-// Guadalajara pin with pulse and ripple
+// Guadalajara pin with pulse and ripple - repositioned for enlarged map
 const GuadalajaraPin = memo(({ prefersReducedMotion, isMobile }: { prefersReducedMotion: boolean; isMobile: boolean }) => (
   <div 
     className="absolute z-20"
     style={{ 
-      left: isMobile ? '50%' : '48%', 
-      top: isMobile ? '58%' : '52%', 
+      left: isMobile ? '52%' : '50%', 
+      top: isMobile ? '52%' : '48%', 
       transform: 'translate(-50%, -50%)' 
     }}
   >
@@ -82,13 +93,13 @@ const GuadalajaraPin = memo(({ prefersReducedMotion, isMobile }: { prefersReduce
     {!prefersReducedMotion && (
       <>
         <div 
-          className="absolute w-16 h-16 -left-6 -top-6 rounded-full bg-yellow-400/15"
+          className="absolute w-20 h-20 -left-8 -top-8 rounded-full bg-yellow-400/20"
           style={{ 
             animation: 'ping 2.5s cubic-bezier(0, 0, 0.2, 1) infinite'
           }} 
         />
         <div 
-          className="absolute w-10 h-10 -left-3 -top-3 rounded-full bg-yellow-400/25"
+          className="absolute w-12 h-12 -left-4 -top-4 rounded-full bg-yellow-400/30"
           style={{ 
             animation: 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite',
             animationDelay: '0.5s'
@@ -100,18 +111,18 @@ const GuadalajaraPin = memo(({ prefersReducedMotion, isMobile }: { prefersReduce
     {/* Main pin dot */}
     <div className="relative">
       <div 
-        className="w-4 h-4 bg-yellow-400 rounded-full shadow-[0_0_16px_rgba(250,204,21,0.7),0_0_32px_rgba(250,204,21,0.4)]"
+        className="w-5 h-5 bg-yellow-400 rounded-full shadow-[0_0_20px_rgba(250,204,21,0.8),0_0_40px_rgba(250,204,21,0.5)]"
         style={{
           animation: prefersReducedMotion ? 'none' : 'pulse 2s ease-in-out infinite'
         }}
       />
       {/* Inner bright core */}
-      <div className="absolute inset-1 bg-yellow-200 rounded-full" />
+      <div className="absolute inset-1.5 bg-yellow-200 rounded-full" />
     </div>
     
     {/* Label */}
-    <div className="absolute top-7 left-1/2 -translate-x-1/2 whitespace-nowrap">
-      <span className="px-3 py-1.5 text-xs font-semibold text-white bg-white/10 backdrop-blur-md rounded-full border border-white/20 shadow-lg">
+    <div className="absolute top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
+      <span className="px-3 py-1.5 text-sm font-semibold text-white bg-white/15 backdrop-blur-md rounded-full border border-white/25 shadow-lg">
         Guadalajara
       </span>
     </div>
@@ -153,40 +164,49 @@ const GridMesh = memo(() => (
 
 GridMesh.displayName = 'GridMesh';
 
-// Static versions for reduced motion
+// Static versions for reduced motion - enlarged
 const StaticJaliscoSilhouette = memo(({ isMobile }: { isMobile: boolean }) => (
   <svg
-    viewBox={isMobile ? "80 120 240 280" : "0 0 400 420"}
-    className="absolute inset-0 w-full h-full"
-    preserveAspectRatio="xMidYMid slice"
+    viewBox="0 0 400 420"
+    className={
+      isMobile 
+        ? "absolute w-[280%] h-[280%] -left-[90%] -top-[50%] pointer-events-none"
+        : "absolute w-[200%] h-[200%] -left-[50%] -top-[25%] pointer-events-none"
+    }
+    preserveAspectRatio="xMidYMid meet"
   >
     <defs>
       <linearGradient id="jaliscoGradientStatic" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="rgba(255,255,255,0.15)" />
-        <stop offset="100%" stopColor="rgba(255,255,255,0.06)" />
+        <stop offset="0%" stopColor="rgba(255,255,255,0.25)" />
+        <stop offset="50%" stopColor="rgba(255,255,255,0.15)" />
+        <stop offset="100%" stopColor="rgba(255,255,255,0.10)" />
       </linearGradient>
     </defs>
     <path
       d={JALISCO_PATH}
       fill="url(#jaliscoGradientStatic)"
-      stroke="rgba(255,255,255,0.12)"
-      strokeWidth="1.5"
-      className="opacity-[0.10]"
+      stroke="rgba(255,255,255,0.20)"
+      strokeWidth="2"
+      className="opacity-[0.22]"
     />
   </svg>
 ));
 
 StaticJaliscoSilhouette.displayName = 'StaticJaliscoSilhouette';
 
-const StaticContourLines = memo(() => (
+const StaticContourLines = memo(({ isMobile }: { isMobile: boolean }) => (
   <svg
     viewBox="0 0 400 420"
-    className="absolute inset-0 w-full h-full opacity-[0.03]"
-    preserveAspectRatio="xMidYMid slice"
+    className={
+      isMobile 
+        ? "absolute w-[280%] h-[280%] -left-[90%] -top-[50%] opacity-[0.06] pointer-events-none"
+        : "absolute w-[200%] h-[200%] -left-[50%] -top-[25%] opacity-[0.06] pointer-events-none"
+    }
+    preserveAspectRatio="xMidYMid meet"
   >
-    <ellipse cx="200" cy="220" rx="60" ry="45" fill="none" stroke="white" strokeWidth="0.8" strokeDasharray="4 6" />
-    <ellipse cx="200" cy="220" rx="100" ry="75" fill="none" stroke="white" strokeWidth="0.5" strokeDasharray="6 8" />
-    <ellipse cx="200" cy="220" rx="150" ry="110" fill="none" stroke="white" strokeWidth="0.3" strokeDasharray="8 12" />
+    <ellipse cx="200" cy="220" rx="60" ry="45" fill="none" stroke="white" strokeWidth="1" strokeDasharray="4 6" />
+    <ellipse cx="200" cy="220" rx="100" ry="75" fill="none" stroke="white" strokeWidth="0.7" strokeDasharray="6 8" />
+    <ellipse cx="200" cy="220" rx="150" ry="110" fill="none" stroke="white" strokeWidth="0.5" strokeDasharray="8 12" />
   </svg>
 ));
 
@@ -264,7 +284,7 @@ const ParallaxJaliscoBackground = memo(({ className }: ParallaxJaliscoBackground
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,hsl(221,83%,55%)_0%,transparent_50%)] opacity-30" />
         <GridMesh />
         <StaticJaliscoSilhouette isMobile={isMobile} />
-        <StaticContourLines />
+        <StaticContourLines isMobile={isMobile} />
         <GuadalajaraPin prefersReducedMotion={true} isMobile={isMobile} />
         <StaticFloatingDots />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,0.2)_100%)]" />
@@ -292,7 +312,7 @@ const ParallaxJaliscoBackground = memo(({ className }: ParallaxJaliscoBackground
         <JaliscoSilhouette y={jaliscoY} isMobile={isMobile} />
         
         {/* Layer C: Contour lines */}
-        <ContourLines y={contourY} />
+        <ContourLines y={contourY} isMobile={isMobile} />
         
         {/* Layer D: Guadalajara pin */}
         <GuadalajaraPin prefersReducedMotion={false} isMobile={isMobile} />
