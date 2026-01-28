@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { categoryServicesMap } from '@/data/categoryServices';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ import electricianHero from '@/assets/category-electrician-hero.jpg';
 import plumbingHero from '@/assets/category-plumbing-hero.jpg';
 import autoHero from '@/assets/category-auto-hero.jpg';
 import medusaHero from '@/assets/category-medusa-hero.png';
+import { cn } from '@/lib/utils';
 
 interface Category {
   id: string;
@@ -33,6 +34,25 @@ const categories: Category[] = [
 export const CategoryTabs = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>(categories[0].id);
   const navigate = useNavigate();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scrollY, setScrollY] = useState(0);
+
+  // Parallax scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+        // Calculate how far the element is into the viewport
+        const visibleProgress = Math.max(0, Math.min(1, (windowHeight - rect.top) / (windowHeight + rect.height)));
+        setScrollY(visibleProgress);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // Initial check
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const currentCategory = categories.find(cat => cat.id === selectedCategory);
   const services = currentCategory ? categoryServicesMap[currentCategory.dataKey] || [] : [];
@@ -54,29 +74,47 @@ export const CategoryTabs = () => {
   };
 
   return (
-    <div className="w-full mx-auto">
+    <div ref={containerRef} className="w-full mx-auto">
       <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
-        {/* Category Tabs - Grid pattern on all screen sizes */}
+        {/* Category Tabs - 2 columns grid with parallax effect */}
         <div className="w-full">
-          <TabsList className="w-full h-auto bg-background/50 backdrop-blur-sm p-3 md:p-4 rounded-2xl grid grid-cols-3 md:grid-cols-5 gap-2 md:gap-4">
-            {categories.map((category) => (
-              <TabsTrigger
-                key={category.id}
-                value={category.id}
-                className="flex flex-col items-center gap-1.5 md:gap-4 p-2 md:p-5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary rounded-xl transition-all duration-300 h-auto hover:scale-105"
-              >
-                <div className="w-12 h-12 md:w-24 md:h-24 flex items-center justify-center transition-transform duration-300">
-                  <img 
-                    src={category.icon} 
-                    alt={category.name} 
-                    className="w-full h-full object-contain transition-transform duration-300 group-data-[state=active]:scale-110"
-                  />
-                </div>
-                <span className="text-xs md:text-lg font-medium text-center leading-tight">
-                  {category.name}
-                </span>
-              </TabsTrigger>
-            ))}
+          <TabsList className="w-full h-auto bg-background/50 backdrop-blur-sm p-3 md:p-4 rounded-2xl grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
+            {categories.map((category, index) => {
+              // Staggered parallax offset for each card
+              const parallaxOffset = (1 - scrollY) * (20 + index * 8);
+              const opacity = Math.min(1, 0.3 + scrollY * 0.7);
+              const scale = 0.9 + scrollY * 0.1;
+              
+              return (
+                <TabsTrigger
+                  key={category.id}
+                  value={category.id}
+                  style={{
+                    transform: `translateY(${parallaxOffset}px) scale(${scale})`,
+                    opacity,
+                    transition: 'transform 0.1s ease-out, opacity 0.2s ease-out',
+                  }}
+                  className={cn(
+                    "flex flex-col items-center gap-2 md:gap-4 p-3 md:p-5",
+                    "data-[state=active]:bg-primary/10 data-[state=active]:text-primary",
+                    "rounded-xl transition-all duration-300 h-auto",
+                    "hover:scale-105 hover:shadow-md",
+                    "border border-transparent data-[state=active]:border-primary/30"
+                  )}
+                >
+                  <div className="w-14 h-14 md:w-24 md:h-24 flex items-center justify-center transition-transform duration-300">
+                    <img 
+                      src={category.icon} 
+                      alt={category.name} 
+                      className="w-full h-full object-contain transition-transform duration-300 group-data-[state=active]:scale-110"
+                    />
+                  </div>
+                  <span className="text-sm md:text-lg font-medium text-center leading-tight">
+                    {category.name}
+                  </span>
+                </TabsTrigger>
+              );
+            })}
           </TabsList>
         </div>
 
