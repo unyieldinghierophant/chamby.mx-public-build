@@ -161,8 +161,9 @@ export default function ProviderOnboardingWizard() {
     }
   }, [searchParams, user]);
 
-  // Track if user has provider role (allows skipping onboarding)
+  // Track if user has completed onboarding
   const [hasProviderRole, setHasProviderRole] = useState(false);
+  const [onboardingComplete, setOnboardingComplete] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(false);
 
   useEffect(() => {
@@ -180,14 +181,28 @@ export default function ProviderOnboardingWizard() {
         const isAdmin = roles?.some(r => r.role === 'admin');
         setHasProviderRole(isProvider || isAdmin);
         
-        // If user has provider or admin role, redirect to portal immediately
-        if (isProvider || isAdmin) {
+        // Check if provider profile is ACTUALLY complete (has skills)
+        const { data: providerData } = await supabase
+          .from('providers')
+          .select('skills, zone_served, display_name')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        const hasCompletedProfile = providerData && 
+          providerData.skills && 
+          providerData.skills.length > 0 &&
+          (providerData.zone_served || providerData.display_name);
+        
+        setOnboardingComplete(!!hasCompletedProfile);
+        
+        // Only redirect to portal if user has role AND completed onboarding
+        if ((isProvider || isAdmin) && hasCompletedProfile) {
           navigate(ROUTES.PROVIDER_PORTAL, { replace: true });
           setCheckingStatus(false);
           return;
         }
         
-        // New user without provider role - continue with onboarding wizard
+        // User needs to complete onboarding - continue with wizard
         setCurrentStep(3);
         
         const { data: userData } = await supabase
@@ -208,6 +223,19 @@ export default function ProviderOnboardingWizard() {
             phone: userData.phone || ''
           }));
         }
+        
+        // Pre-populate existing provider data if any
+        if (providerData) {
+          if (providerData.skills) setSelectedSkills(providerData.skills);
+          if (providerData.zone_served) setWorkZone(providerData.zone_served);
+          if (providerData.display_name) {
+            setProfileData(prev => ({
+              ...prev,
+              displayName: providerData.display_name || prev.displayName
+            }));
+          }
+        }
+        
         setCheckingStatus(false);
       };
 

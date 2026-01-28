@@ -1,17 +1,62 @@
-import { Outlet, Navigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Outlet, Navigate, useNavigate } from "react-router-dom";
 import { ProviderSidebar } from "@/components/provider-portal/ProviderSidebar";
 import { ProviderTopBar } from "@/components/provider-portal/ProviderTopBar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { ROUTES } from "@/constants/routes";
+import { supabase } from "@/integrations/supabase/client";
 
 const ProviderPortal = () => {
   const { user, loading: authLoading } = useAuth();
   const { roles, loading: roleLoading } = useUserRole();
+  const navigate = useNavigate();
+  const [checkingOnboarding, setCheckingOnboarding] = useState(true);
+  const [onboardingComplete, setOnboardingComplete] = useState(false);
 
-  // Show loading state while checking auth and roles
-  if (authLoading || roleLoading) {
+  // Check if provider has completed onboarding
+  useEffect(() => {
+    const checkOnboardingStatus = async () => {
+      if (!user || authLoading || roleLoading) {
+        return;
+      }
+
+      const hasProviderRole = roles.includes('provider');
+      const hasAdminRole = roles.includes('admin');
+
+      if (!hasProviderRole && !hasAdminRole) {
+        setCheckingOnboarding(false);
+        return;
+      }
+
+      // Check if provider profile is complete
+      const { data: providerData } = await supabase
+        .from('providers')
+        .select('skills, zone_served, display_name')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      const isComplete = providerData && 
+        providerData.skills && 
+        providerData.skills.length > 0;
+
+      setOnboardingComplete(!!isComplete);
+      
+      // If profile incomplete, redirect to onboarding wizard
+      if (!isComplete) {
+        navigate(ROUTES.PROVIDER_ONBOARDING_WIZARD, { replace: true });
+        return;
+      }
+
+      setCheckingOnboarding(false);
+    };
+
+    checkOnboardingStatus();
+  }, [user, authLoading, roleLoading, roles, navigate]);
+
+  // Show loading state while checking auth, roles, and onboarding
+  if (authLoading || roleLoading || checkingOnboarding) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />

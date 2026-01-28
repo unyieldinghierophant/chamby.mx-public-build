@@ -268,24 +268,39 @@ const AuthCallback = () => {
         return;
       }
 
-      // For NEW provider signups, redirect to onboarding wizard
-      if ((selectedRole === 'provider' || selectedRole === 'admin') && isNewProviderSignup && user) {
-        console.log('[AuthCallback] New provider signup - redirecting to onboarding wizard');
-        navigate(ROUTES.PROVIDER_ONBOARDING_WIZARD, { replace: true });
+      // For providers, check if their profile is actually complete
+      if ((selectedRole === 'provider' || selectedRole === 'admin') && user) {
+        // Check if provider has completed their profile (has skills set)
+        const { data: providerData } = await supabase
+          .from('providers')
+          .select('skills, zone_served')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        const hasCompletedProfile = providerData && 
+          providerData.skills && 
+          providerData.skills.length > 0;
+        
+        // If new signup OR profile incomplete, redirect to onboarding wizard
+        if (isNewProviderSignup || !hasCompletedProfile) {
+          console.log('[AuthCallback] Provider profile incomplete - redirecting to onboarding wizard');
+          navigate(ROUTES.PROVIDER_ONBOARDING_WIZARD, { replace: true });
+          return;
+        }
+        
+        // Profile complete, go to portal
+        console.log('[AuthCallback] Provider profile complete - redirecting to portal');
+        localStorage.removeItem('new_provider_signup');
+        navigate('/provider-portal', { replace: true });
         return;
       }
       
       // Clear the flag
       localStorage.removeItem('new_provider_signup');
 
-      // Redirect based on selected role - ALWAYS provider portal for providers
-      if (selectedRole === 'provider' || selectedRole === 'admin') {
-        console.log('[AuthCallback] Redirecting to provider portal');
-        navigate('/provider-portal', { replace: true });
-      } else {
-        console.log('[AuthCallback] Redirecting to user landing');
-        navigate('/user-landing', { replace: true });
-      }
+      // Redirect based on selected role - clients go to user landing
+      console.log('[AuthCallback] Redirecting to user landing');
+      navigate('/user-landing', { replace: true });
     } catch (error) {
       console.error('[AuthCallback] Error during redirect:', error);
       localStorage.removeItem('new_provider_signup');
