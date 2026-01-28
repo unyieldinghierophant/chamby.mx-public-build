@@ -42,7 +42,7 @@ import BookingDateTime from "./pages/BookingDateTime";
 import BookJob from "./pages/BookJob";
 import EsperandoProveedor from "./pages/EsperandoProveedor";
 import PhotoRedirect from "./pages/PhotoRedirect";
-import ChatBot from "./components/ChatBot";
+
 import ProviderPortal from "./pages/ProviderPortal";
 import ProviderDashboardHome from "./pages/provider-portal/ProviderDashboardHome";
 import ProviderJobs from "./pages/provider-portal/ProviderJobs";
@@ -78,23 +78,6 @@ import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
-// Component to conditionally render ChatBot
-const ConditionalChatBot = () => {
-  const location = useRouterLocation();
-  const hideOnRoutes: string[] = [
-    ROUTES.BOOK_JOB, 
-    ROUTES.SOLICITAR_SERVICIO,
-    ROUTES.PROVIDER_AUTH,
-    ROUTES.PROVIDER_ONBOARDING_WIZARD,
-    ROUTES.USER_AUTH
-  ];
-
-  if (hideOnRoutes.includes(location.pathname)) {
-    return null;
-  }
-
-  return <ChatBot />;
-};
 
 // Component to handle GitHub Pages redirects
 const RedirectHandler = () => {
@@ -135,7 +118,6 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <ConditionalChatBot />
             <RedirectHandler />
             <Routes>
               <Route path={ROUTES.HOME} element={<Index />} />
