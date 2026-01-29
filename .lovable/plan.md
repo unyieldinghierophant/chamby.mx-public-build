@@ -1,186 +1,136 @@
 
+# Plan: Agregar Gradiente Animado Sutil al Hero de /user-landing
 
-# Plan: Arreglar Animaciones y Carga del Landing Page
-
-## Problemas Identificados
-
-| Problema | Causa | Solución |
-|----------|-------|----------|
-| Fuente parpadea/cambia | Sin preload de la fuente Made Dillan | Agregar preload en index.html |
-| Skeleton muy lento (800ms) | Delay artificial innecesario | Reducir a 0ms (sin skeleton artificial) |
-| "Cosa blanca" en esquina | Corner glow effects muy grandes | Eliminar los corner glow effects |
-| Partículas no visibles | Posicionamiento con % no funciona bien | Usar posición absoluta con left/top en px y z-index alto |
-| Animaciones categorías no visibles | Animaciones muy sutiles | Hacer animaciones más obvias con mayor delay y movimiento |
+## Objetivo
+Agregar un gradiente animado sutil en tonos azules de la paleta Chamby al fondo del hero section en la página `/user-landing`, sin reducir la legibilidad del texto blanco.
 
 ---
 
-## Archivos a Modificar
+## Análisis Actual
 
-| Archivo | Cambios |
-|---------|---------|
-| `index.html` | Agregar preload de la fuente Made Dillan |
-| `src/components/Hero.tsx` | Eliminar skeleton artificial, mostrar contenido inmediatamente |
-| `src/components/HeroParticles.tsx` | Rediseñar partículas para que sean visibles, eliminar corner glows |
-| `src/components/CategoryTabs.tsx` | Mejorar animaciones para que sean más obvias |
-| `src/components/LandingPageSkeleton.tsx` | Mantener pero no usar (para futura referencia) |
+El hero section usa el componente `InteractiveHeroBackground` que tiene:
+- Gradiente base: `bg-gradient-to-br from-primary via-primary to-[hsl(221,83%,40%)]`
+- Overlay radial para profundidad
+- Grid pattern sutil
+- Puntos flotantes y tarjetas de trabajo
 
----
-
-## Cambios Detallados
-
-### 1. Preload de Fuente (index.html)
-
-Agregar en el `<head>` para cargar la fuente antes del render:
-```html
-<link rel="preload" href="/fonts/MADE_Dillan_PERSONAL_USE.otf" as="font" type="font/otf" crossorigin>
-```
-
-### 2. Eliminar Skeleton Artificial (Hero.tsx)
-
-Eliminar el estado `isLoading` y el delay de 800ms. La página debe cargar inmediatamente sin esperar artificialmente:
-
-- Eliminar `const [isLoading, setIsLoading] = useState(true);`
-- Eliminar el `useEffect` con el timer
-- Eliminar el `if (isLoading) return <LandingPageSkeleton />;`
-- Eliminar la importación de `LandingPageSkeleton`
-
-### 3. Rediseñar Partículas (HeroParticles.tsx)
-
-Problemas actuales:
-- Corner glows causan la "cosa blanca" en la esquina
-- Las partículas usan posicionamiento % que no se renderiza bien
-- z-index no está definido, quedan detrás del contenido
-
-Nueva implementación:
-- Eliminar TODOS los corner glow effects
-- Usar partículas con posición CSS `left` y `top` en vez de transform
-- Agregar z-index para que aparezcan sobre el fondo pero debajo del texto
-- Reducir blur y aumentar opacidad para mejor visibilidad
-- Usar colores más brillantes (white con mayor opacidad)
-
-```tsx
-export const HeroParticles = () => {
-  const particles = useMemo(() => {
-    return Array.from({ length: 30 }, (_, i) => ({
-      id: i,
-      left: Math.random() * 100,
-      top: Math.random() * 100,
-      size: Math.random() * 8 + 4, // 4-12px
-      duration: Math.random() * 3 + 4, // 4-7s
-      delay: Math.random() * 2,
-    }));
-  }, []);
-
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none z-[1]">
-      {particles.map((p) => (
-        <motion.div
-          key={p.id}
-          className="absolute rounded-full bg-white"
-          style={{
-            left: `${p.left}%`,
-            top: `${p.top}%`,
-            width: p.size,
-            height: p.size,
-            boxShadow: '0 0 8px 2px rgba(255,255,255,0.6)',
-          }}
-          animate={{
-            y: [-10, 10, -10],
-            opacity: [0.4, 0.8, 0.4],
-            scale: [0.8, 1.2, 0.8],
-          }}
-          transition={{
-            duration: p.duration,
-            delay: p.delay,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-      ))}
-    </div>
-  );
-};
-```
-
-### 4. Mejorar Animaciones de Categorías (CategoryTabs.tsx)
-
-Hacer las animaciones más visibles:
-
-- Aumentar el delay entre categorías de `0.1s` a `0.15s`
-- Aumentar el movimiento inicial de `x: -30` a `x: -50`
-- Aumentar `y: 20` a `y: 30`
-- Aumentar duración de `0.5s` a `0.6s`
-- Para los service pills, aumentar `x: -20` a `x: -40`
-
-Cambios en la animación de categorías:
-```tsx
-initial={{ opacity: 0, x: -50, y: 30 }}
-animate={isVisible ? { 
-  opacity: 1, 
-  x: 0, 
-  y: parallaxOffset,
-} : {}}
-transition={{
-  delay: index * 0.15, // Más lento
-  duration: 0.6, // Más duración
-  ease: "easeOut",
-}}
-```
-
-Cambios en service pills:
-```tsx
-variants={{
-  hidden: { opacity: 0, x: -40, scale: 0.85 },
-  visible: { 
-    opacity: 1, 
-    x: 0, 
-    scale: 1,
-    transition: { duration: 0.4, ease: "easeOut" }
-  }
-}}
-```
+**Paleta de Chamby (tonos azules):**
+- Primary: `hsl(214 80% 41%)` - Azul principal
+- Primary Light: `hsl(214 80% 55%)` - Azul claro
+- Primary Dark: `hsl(214 80% 30%)` - Azul oscuro
+- También: `hsl(221 83% 40%)` ya usado en el gradiente actual
 
 ---
 
-## Estructura Visual de las Partículas
+## Cambios Propuestos
+
+### Archivo: `src/components/provider-portal/InteractiveHeroBackground.tsx`
+
+Agregar una capa de gradiente animado sutil entre el gradiente base y los overlays. El gradiente:
+
+1. **Animación suave de 20-30 segundos** - Muy lenta para no distraer
+2. **Baja opacidad (10-20%)** - Para no afectar legibilidad
+3. **Múltiples tonos azules de la paleta** - Primary, primary-light, primary-dark
+4. **Movimiento radial** - Simula una aurora o nebulosa suave
+
+**Nueva capa a agregar (después de línea 336, antes de las overlays):**
+
+```tsx
+{/* Animated gradient overlay - subtle blue aurora effect */}
+<div 
+  className="absolute inset-0 opacity-20 animate-gradient-shift"
+  style={{
+    background: `
+      radial-gradient(ellipse 80% 50% at 20% 40%, hsl(214 80% 55% / 0.4), transparent 50%),
+      radial-gradient(ellipse 60% 40% at 80% 60%, hsl(214 80% 30% / 0.3), transparent 50%),
+      radial-gradient(ellipse 50% 60% at 50% 80%, hsl(221 83% 45% / 0.25), transparent 45%)
+    `,
+    backgroundSize: '200% 200%',
+  }}
+/>
+```
+
+### Archivo: `tailwind.config.ts`
+
+El `animate-gradient-shift` ya existe con duración de `3000s` (línea 214), lo cual es perfecto para una animación muy lenta y sutil.
+
+---
+
+## Visualización del Resultado
 
 ```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                                                                 │
-│       ●            ●                  ●           ●            │
-│                ●          HERO CARD          ●                  │
-│    ●                                                    ●       │
-│          ●    "Encuentra a los mejores..."    ●                │
-│                     ●                                           │
-│     ●                        ●                      ●          │
-│              ●          [Search Bar]        ●                   │
-│                   ●                    ●                        │
-│         ●                 ●                    ●                │
+│    ┌─────────────────────────────────────────────────────────┐  │
+│    │ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │  │
+│    │ ░░░░░▓▓▓▓░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │  │
+│    │ ░░░░▓▓▓▓▓▓░░░ SOLUCIONA EN ░░░░░░░░░░░░░░░░░▒▒▒░░░░░░░ │  │
+│    │ ░░░░░▓▓▓▓░░░░ MINUTOS NO ░░░░░░░░░░░░░░░░░░▒▒▒▒▒░░░░░░ │  │
+│    │ ░░░░░░░░░░░░░░ EN DÍAS. ░░░░░░░░░░░░░░░░░░░░▒▒▒░░░░░░░ │  │
+│    │ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │  │
+│    │ ░░░░░░░░░░░░░ [Buscar Servicio →] ░░░░░░░░░░░░░░░░░░░░░ │  │
+│    │ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │  │
+│    │ ░░░░░░░░░░░░░░░░░░░░░▒▒▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │  │
+│    │ ░░░░░░░░░░░░░░░░░░░░▒▒▒▒▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │  │
+│    │ ░░░░░░░░░░░░░░░░░░░░░▒▒▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │  │
+│    └─────────────────────────────────────────────────────────┘  │
+│                                                                 │
+│    ▓▓▓ = Gradiente azul claro (primary-light) - esquina sup izq│
+│    ▒▒▒ = Gradiente azul oscuro (primary-dark) - zonas sutiles  │
+│    ░░░ = Color base primary                                     │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
-
-● = Partícula flotante blanca con glow suave
-   - Flotan verticalmente arriba/abajo
-   - Pulse de opacidad (más brillantes y menos brillantes)
-   - Distribuidas aleatoriamente por toda el área
 ```
+
+---
+
+## Archivo a Modificar
+
+| Archivo | Cambio |
+|---------|--------|
+| `src/components/provider-portal/InteractiveHeroBackground.tsx` | Agregar capa de gradiente animado sutil entre el gradiente base y los overlays |
+
+---
+
+## Detalles Técnicos
+
+**Posición en el componente (después de línea 336):**
+```tsx
+{/* Deep blue gradient base */}
+<div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-[hsl(221,83%,40%)]" />
+
+{/* NEW: Animated gradient overlay - subtle blue aurora */}
+<div 
+  className="absolute inset-0 opacity-15 pointer-events-none"
+  style={{
+    background: `
+      radial-gradient(ellipse 80% 50% at 20% 40%, hsl(214 80% 55% / 0.5), transparent 50%),
+      radial-gradient(ellipse 60% 40% at 80% 60%, hsl(214 80% 30% / 0.4), transparent 50%),
+      radial-gradient(ellipse 50% 60% at 50% 85%, hsl(221 83% 45% / 0.35), transparent 45%)
+    `,
+    backgroundSize: '200% 200%',
+    animation: 'gradient-shift 25s ease-in-out infinite',
+  }}
+/>
+
+{/* Subtle radial overlay for depth */}
+<div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.2)_100%)]" />
+```
+
+**Propiedades clave:**
+- `opacity-15` - Muy sutil para no afectar legibilidad
+- Tres elipses radiales en diferentes posiciones y tamaños
+- Animación de 25 segundos, muy lenta
+- Usa exactamente los colores de la paleta Chamby
+- `pointer-events-none` para no interferir con interacciones
 
 ---
 
 ## Resultado Esperado
 
-1. **Sin parpadeo de fuente**: La fuente Made Dillan se precarga antes del render
-2. **Carga instantánea**: No hay delay artificial, el contenido aparece inmediatamente
-3. **Partículas visibles**: 30 partículas blancas brillantes flotando sobre el hero card
-4. **Sin "cosa blanca"**: Los corner glow effects eliminados
-5. **Animaciones de categorías obvias**: Las categorías entran una por una de izquierda a derecha con movimiento más pronunciado
-6. **Service pills animados**: Los botones de servicio también entran con animación visible
-
----
-
-## Compatibilidad Mobile/Desktop
-
-- Las partículas usan posicionamiento relativo (%) que funciona en todos los tamaños
-- Las animaciones de framer-motion son consistentes en todos los dispositivos
-- El z-index asegura que las partículas aparezcan correctamente en ambas vistas
+1. **Efecto visual sutil** - Una especie de "aurora" o "nebulosa" muy suave que se mueve lentamente
+2. **Legibilidad intacta** - El texto blanco sigue siendo perfectamente legible
+3. **Consistencia de marca** - Solo usa tonos azules de la paleta Chamby
+4. **Rendimiento** - Animación CSS pura, sin impacto en rendimiento
+5. **Responsivo** - Funciona igual en mobile y desktop
 
