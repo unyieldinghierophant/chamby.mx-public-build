@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { categoryServicesMap } from '@/data/categoryServices';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -34,33 +34,14 @@ const categories: Category[] = [
 
 export const CategoryTabs = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>(categories[0].id);
-  const [isVisible, setIsVisible] = useState(false);
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
-  const [scrollY, setScrollY] = useState(0);
-
-  // Trigger staggered animation on mount
-  useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(true), 100);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Parallax scroll effect
-  useEffect(() => {
-    const handleScroll = () => {
-      if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        const windowHeight = window.innerHeight;
-        // Calculate how far the element is into the viewport
-        const visibleProgress = Math.max(0, Math.min(1, (windowHeight - rect.top) / (windowHeight + rect.height)));
-        setScrollY(visibleProgress);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll(); // Initial check
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  
+  // Use Intersection Observer to detect when categories come into view
+  const isInView = useInView(containerRef, { 
+    once: true, // Only trigger once
+    amount: 0.2 // Trigger when 20% of the element is visible
+  });
 
   const currentCategory = categories.find(cat => cat.id === selectedCategory);
   const services = currentCategory ? categoryServicesMap[currentCategory.dataKey] || [] : [];
@@ -84,65 +65,55 @@ export const CategoryTabs = () => {
   return (
     <div ref={containerRef} className="w-full mx-auto">
       <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
-        {/* Category Tabs - 2 columns grid with parallax and staggered animation */}
+        {/* Category Tabs - 2 columns grid with scroll-triggered rise-up animation */}
         <div className="w-full">
           <TabsList className="w-full h-auto bg-background p-3 md:p-4 rounded-2xl grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
-            <AnimatePresence>
-              {categories.map((category, index) => {
-                // Staggered parallax offset for each card (translateY only, no scale to avoid blur)
-                const parallaxOffset = Math.round((1 - scrollY) * (15 + index * 6));
-                
-                return (
-                  <motion.div
-                    key={category.id}
-                    initial={{ opacity: 0, x: -50, y: 30 }}
-                    animate={isVisible ? { 
-                      opacity: 1, 
-                      x: 0, 
-                      y: parallaxOffset,
-                    } : {}}
-                    transition={{
-                      delay: index * 0.15,
-                      duration: 0.6,
-                      ease: "easeOut",
-                      y: { duration: 0.1 } // Faster y transition for smooth parallax
-                    }}
-                    style={{
-                      willChange: 'transform',
-                      backfaceVisibility: 'hidden',
-                    }}
+            {categories.map((category, index) => (
+              <motion.div
+                key={category.id}
+                initial={{ opacity: 0, y: 50 }}
+                animate={isInView ? { 
+                  opacity: 1, 
+                  y: 0,
+                } : { opacity: 0, y: 50 }}
+                transition={{
+                  delay: index * 0.12,
+                  duration: 0.5,
+                  ease: [0.25, 0.46, 0.45, 0.94], // Custom easing for smooth rise
+                }}
+                style={{
+                  willChange: 'transform, opacity',
+                }}
+              >
+                <TabsTrigger
+                  value={category.id}
+                  className={cn(
+                    "flex flex-col items-center gap-2 md:gap-4 p-3 md:p-5 w-full",
+                    "data-[state=active]:bg-primary/10 data-[state=active]:text-primary",
+                    "text-foreground",
+                    "rounded-xl h-auto",
+                    "hover:shadow-md hover:scale-105 transition-all duration-300",
+                    "border border-transparent data-[state=active]:border-primary/30"
+                  )}
+                >
+                  <motion.div 
+                    className="w-14 h-14 md:w-24 md:h-24 flex items-center justify-center"
+                    whileHover={{ scale: 1.1, rotate: 3 }}
+                    transition={{ type: "spring", stiffness: 300 }}
                   >
-                    <TabsTrigger
-                      value={category.id}
-                      className={cn(
-                        "flex flex-col items-center gap-2 md:gap-4 p-3 md:p-5 w-full",
-                        "data-[state=active]:bg-primary/10 data-[state=active]:text-primary",
-                        "text-foreground",
-                        "rounded-xl h-auto",
-                        "hover:shadow-md hover:scale-105 transition-all duration-300",
-                        "border border-transparent data-[state=active]:border-primary/30"
-                      )}
-                    >
-                      <motion.div 
-                        className="w-14 h-14 md:w-24 md:h-24 flex items-center justify-center"
-                        whileHover={{ scale: 1.1, rotate: 3 }}
-                        transition={{ type: "spring", stiffness: 300 }}
-                      >
-                        <img 
-                          src={category.icon} 
-                          alt={category.name} 
-                          className="w-full h-full object-contain"
-                          style={{ imageRendering: 'auto' }}
-                        />
-                      </motion.div>
-                      <span className="text-sm md:text-lg font-medium text-center leading-tight">
-                        {category.name}
-                      </span>
-                    </TabsTrigger>
+                    <img 
+                      src={category.icon} 
+                      alt={category.name} 
+                      className="w-full h-full object-contain"
+                      style={{ imageRendering: 'auto' }}
+                    />
                   </motion.div>
-                );
-              })}
-            </AnimatePresence>
+                  <span className="text-sm md:text-lg font-medium text-center leading-tight">
+                    {category.name}
+                  </span>
+                </TabsTrigger>
+              </motion.div>
+            ))}
           </TabsList>
         </div>
 
