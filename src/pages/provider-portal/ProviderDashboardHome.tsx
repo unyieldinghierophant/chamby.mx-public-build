@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import {
   Calendar,
@@ -15,6 +17,8 @@ import {
   AlertCircle,
   Settings,
   BadgeCheck,
+  XCircle,
+  FileText,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,6 +27,7 @@ import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { ProviderDashboardSkeleton } from "@/components/skeletons";
+import { cn } from "@/lib/utils";
 
 interface UpcomingJob {
   id: string;
@@ -33,14 +38,17 @@ interface UpcomingJob {
   customer_name: string;
 }
 
+interface VerificationDetails {
+  status: 'none' | 'pending' | 'verified' | 'rejected';
+  admin_notes: string | null;
+  documentsCount: number;
+}
+
 const ProviderDashboardHome = () => {
   const { user } = useAuth();
   const { profile } = useProfile();
   const { profile: providerProfile } = useProviderProfile(user?.id);
   const navigate = useNavigate();
-  
-  // TODO: Re-enable FCM after fixing build issues
-  // useFCMToken();
   
   const [upcomingJobs, setUpcomingJobs] = useState<UpcomingJob[]>([]);
   const [earnings, setEarnings] = useState({ total: 0, pending: 0 });
@@ -51,11 +59,45 @@ const ProviderDashboardHome = () => {
     totalReviews: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [isAvailable, setIsAvailable] = useState(true);
+  const [verificationDetails, setVerificationDetails] = useState<VerificationDetails>({
+    status: 'none',
+    admin_notes: null,
+    documentsCount: 0
+  });
 
   useEffect(() => {
     if (!user) return;
     fetchDashboardData();
+    fetchVerificationDetails();
   }, [user]);
+
+  const fetchVerificationDetails = async () => {
+    if (!user) return;
+    
+    try {
+      // Fetch provider_details for verification status
+      const { data: details } = await supabase
+        .from('provider_details')
+        .select('verification_status, admin_notes')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      // Fetch document count
+      const { data: docs, count } = await supabase
+        .from('documents')
+        .select('id', { count: 'exact' })
+        .eq('provider_id', user.id);
+
+      setVerificationDetails({
+        status: (details?.verification_status as 'none' | 'pending' | 'verified' | 'rejected') || 'none',
+        admin_notes: details?.admin_notes || null,
+        documentsCount: count || 0
+      });
+    } catch (error) {
+      console.error('Error fetching verification details:', error);
+    }
+  };
 
   const fetchDashboardData = async () => {
     try {
@@ -169,6 +211,88 @@ const ProviderDashboardHome = () => {
       .slice(0, 2);
   };
 
+  const renderVerificationCard = () => {
+    const { status, admin_notes, documentsCount } = verificationDetails;
+    
+    // Don't show if verified
+    if (status === 'verified') return null;
+
+    const statusConfig = {
+      none: {
+        title: 'Completa tu Verificación',
+        message: 'Para desbloquear trabajos grandes (> $4,000 MXN) y aumentar tu visibilidad, completa el proceso de verificación.',
+        icon: AlertCircle,
+        iconColor: 'text-yellow-600',
+        borderColor: 'border-yellow-500/50',
+        bgColor: 'bg-yellow-500/5',
+        buttonText: 'Completar Verificación',
+      },
+      pending: {
+        title: 'Verificación en Revisión',
+        message: 'Tu perfil está siendo revisado por el equipo de Chamby. Te notificaremos cuando tengamos una respuesta.',
+        icon: Clock,
+        iconColor: 'text-amber-600',
+        borderColor: 'border-amber-500/50',
+        bgColor: 'bg-amber-500/5',
+        buttonText: 'Ver Detalles',
+      },
+      rejected: {
+        title: 'Verificación Rechazada',
+        message: admin_notes || 'Hay un problema con tus documentos. Por favor revisa y vuelve a subir la información correcta.',
+        icon: XCircle,
+        iconColor: 'text-destructive',
+        borderColor: 'border-destructive/50',
+        bgColor: 'bg-destructive/5',
+        buttonText: 'Corregir Documentos',
+      },
+      verified: {
+        title: '',
+        message: '',
+        icon: CheckCircle,
+        iconColor: '',
+        borderColor: '',
+        bgColor: '',
+        buttonText: '',
+      }
+    };
+
+    const config = statusConfig[status];
+    const Icon = config.icon;
+
+    return (
+      <Card className={cn("border-2", config.borderColor, config.bgColor)}>
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Icon className={cn("h-5 w-5", config.iconColor)} />
+              {config.title}
+            </div>
+            <Badge variant={status === 'rejected' ? 'destructive' : 'secondary'}>
+              {status === 'pending' ? 'En Revisión' : status === 'rejected' ? 'Rechazado' : 'Pendiente'}
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            {config.message}
+          </p>
+          
+          {status === 'pending' && documentsCount > 0 && (
+            <div className="flex items-center gap-2 text-sm">
+              <FileText className="h-4 w-4 text-muted-foreground" />
+              <span>Documentos enviados: {documentsCount}/4</span>
+              {documentsCount >= 4 && <CheckCircle className="h-4 w-4 text-green-600" />}
+            </div>
+          )}
+
+          <Button onClick={() => navigate("/provider-portal/verification")}>
+            {config.buttonText}
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  };
+
   return (
     <div className="container mx-auto p-4 lg:p-6 space-y-6">
       {/* Provider Profile Hero */}
@@ -227,6 +351,20 @@ const ProviderDashboardHome = () => {
               )}
             </div>
 
+            {/* Availability Toggle */}
+            <div className="flex items-center gap-3 mt-4 p-3 bg-background/50 rounded-lg border">
+              <Switch
+                id="availability"
+                checked={isAvailable}
+                onCheckedChange={setIsAvailable}
+              />
+              <Label htmlFor="availability" className="cursor-pointer">
+                <span className={isAvailable ? "text-green-600 font-medium" : "text-muted-foreground"}>
+                  {isAvailable ? "Disponible para trabajos" : "No disponible"}
+                </span>
+              </Label>
+            </div>
+
             {/* Edit Profile Button */}
             <Button 
               variant="outline" 
@@ -240,6 +378,9 @@ const ProviderDashboardHome = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Verification Status Card */}
+      {renderVerificationCard()}
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -308,27 +449,6 @@ const ProviderDashboardHome = () => {
           </CardContent>
         </Card>
       </div>
-
-      {/* Verification Status */}
-      {providerProfile && providerProfile.verification_status !== "verified" && (
-        <Card className="border-yellow-500/50 bg-yellow-500/5">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-yellow-600" />
-              Completa tu verificación
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              Para desbloquear trabajos grandes (&gt; $4,000 MXN) y aumentar tu
-              visibilidad, completa el proceso de verificación.
-            </p>
-            <Button onClick={() => navigate("/provider-portal/verification")}>
-              Completar Verificación
-            </Button>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Upcoming Jobs */}
       <Card>
