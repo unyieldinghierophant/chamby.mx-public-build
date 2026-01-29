@@ -1,187 +1,16 @@
 
-# Plan: Sistema de Verificación de Proveedores con Portal de Admin y Mejoras UX
 
-## Resumen de Requerimientos
+# Plan: Arreglar Animaciones y Carga del Landing Page
 
-El usuario solicita:
-1. **Portal Admin para Verificación**: Cuando un proveedor complete documentos, crear un sistema donde admins puedan revisar, aprobar o rechazar documentos
-2. **Tarjeta de Estado de Verificación**: En el portal de proveedores, mostrar una tarjeta visible con el estado actual de verificación
-3. **Botones de Volver**: En la página de verificación del proveedor, agregar formas claras de salir/volver
-4. **Logo Chamby en TopBar**: Agregar logo de Chamby en la izquierda del top bar del portal de proveedores
-5. **Mover Toggle de Disponibilidad**: Mover el botón de disponibilidad del top bar a la tarjeta de bienvenida/perfil
+## Problemas Identificados
 
----
-
-## Análisis de la Arquitectura Actual
-
-### Tablas Relevantes
-- `provider_details`: Contiene `verification_status` (pending/verified/rejected), `admin_notes`
-- `documents`: Contiene documentos con `verification_status`, `rejection_reason`, `reviewed_by`, `reviewed_at`
-- `providers`: Contiene `verified` boolean
-
-### Páginas Existentes
-- `AdminDashboard.tsx`: Tiene tabs para "Trabajos" y "Disputas" - **agregar tab "Verificaciones"**
-- `ProviderDashboardHome.tsx`: Muestra tarjeta de perfil - **agregar tarjeta de verificación y toggle de disponibilidad**
-- `ProviderTopBar.tsx`: Tiene toggle de disponibilidad y logo - **mover toggle, agregar logo Chamby**
-- `ProviderVerification.tsx`: Página de verificación - **agregar botón de volver**
-
----
-
-## Cambios Detallados
-
-### 1. Admin Dashboard - Nueva Tab "Verificaciones"
-
-**Archivo**: `src/pages/AdminDashboard.tsx`
-
-**Cambios**:
-- Agregar nuevo estado para proveedores pendientes de verificación
-- Agregar nueva tab "Verificaciones" al TabsList
-- Crear contenido de la tab con lista de proveedores pendientes
-- Para cada proveedor, mostrar:
-  - Nombre, email, teléfono
-  - Lista de documentos subidos con botón para ver cada uno
-  - Estado actual de verificación
-  - Botones: "Aprobar", "Rechazar" con campo para notas/razón
-- Implementar funciones para aprobar/rechazar:
-  - Actualizar `provider_details.verification_status`
-  - Actualizar `providers.verified`
-  - Actualizar `documents.verification_status` para cada documento
-  - Guardar `admin_notes` con feedback
-
-**Nuevo estado a agregar**:
-```typescript
-const [pendingProviders, setPendingProviders] = useState<ProviderVerification[]>([]);
-```
-
-**Nueva función fetchPendingVerifications**:
-```typescript
-const fetchPendingVerifications = async () => {
-  const { data } = await supabase
-    .from('provider_details')
-    .select('*, providers!inner(*), users!inner(*)')
-    .eq('verification_status', 'pending');
-    
-  // Fetch documents for each provider
-  for (const provider of data) {
-    const { data: docs } = await supabase
-      .from('documents')
-      .select('*')
-      .eq('provider_id', provider.user_id);
-    provider.documents = docs;
-  }
-};
-```
-
----
-
-### 2. Tarjeta de Estado de Verificación en Portal de Proveedores
-
-**Archivo**: `src/pages/provider-portal/ProviderDashboardHome.tsx`
-
-**Cambios**:
-- Crear nueva tarjeta prominente debajo del hero que muestre:
-  - Estado actual de verificación (Pendiente/Verificado/Rechazado)
-  - Si fue rechazado: mostrar razón del rechazo y botón para corregir documentos
-  - Si está pendiente: mensaje de "En revisión por el equipo Chamby"
-  - Si está verificado: badge verde con check
-- Agregar toggle de disponibilidad a la tarjeta de perfil hero
-
-**Nueva tarjeta de verificación**:
-```tsx
-{/* Verification Status Card */}
-<Card className={cn(
-  "border-2",
-  verificationStatus === 'verified' && "border-green-500/50 bg-green-500/5",
-  verificationStatus === 'pending' && "border-yellow-500/50 bg-yellow-500/5",
-  verificationStatus === 'rejected' && "border-red-500/50 bg-red-500/5"
-)}>
-  <CardHeader>
-    <CardTitle className="flex items-center gap-2">
-      {verificationStatus === 'verified' && <CheckCircle className="text-green-600" />}
-      {verificationStatus === 'pending' && <Clock className="text-yellow-600" />}
-      {verificationStatus === 'rejected' && <XCircle className="text-red-600" />}
-      Estado de Verificación
-    </CardTitle>
-  </CardHeader>
-  <CardContent>
-    {/* Status message and actions */}
-  </CardContent>
-</Card>
-```
-
----
-
-### 3. Toggle de Disponibilidad en Tarjeta de Perfil
-
-**Archivo**: `src/pages/provider-portal/ProviderDashboardHome.tsx`
-
-Agregar dentro de la tarjeta hero de perfil:
-```tsx
-<div className="flex items-center gap-3 mt-4 p-3 bg-background/50 rounded-lg">
-  <Switch
-    id="availability"
-    checked={isAvailable}
-    onCheckedChange={setIsAvailable}
-  />
-  <Label htmlFor="availability" className="cursor-pointer">
-    <span className={isAvailable ? "text-green-600 font-medium" : "text-muted-foreground"}>
-      {isAvailable ? "Disponible para trabajos" : "No disponible"}
-    </span>
-  </Label>
-</div>
-```
-
----
-
-### 4. Logo Chamby en TopBar
-
-**Archivo**: `src/components/provider-portal/ProviderTopBar.tsx`
-
-**Cambios**:
-- Importar logo de Chamby
-- Agregar logo en el lado izquierdo
-- Remover el switch de disponibilidad (se mueve al dashboard)
-
-```tsx
-import chambyLogo from "@/assets/chamby-logo-new-horizontal.png";
-
-// En el return:
-<header className="h-16 border-b border-border bg-card px-4 lg:px-6 flex items-center justify-between sticky top-0 z-10">
-  <div className="flex items-center gap-4">
-    <img src={chambyLogo} alt="Chamby" className="h-10" />
-  </div>
-  {/* Resto del header sin el switch */}
-</header>
-```
-
----
-
-### 5. Botón Volver en Página de Verificación
-
-**Archivo**: `src/pages/provider-portal/ProviderVerification.tsx`
-
-**Cambios**:
-- Agregar botón de volver en el header
-- Importar componente BackButton o crear botón con navegación
-
-```tsx
-import { ArrowLeft } from "lucide-react";
-
-// En el header:
-<div className="flex items-center gap-4">
-  <Button 
-    variant="ghost" 
-    size="icon"
-    onClick={() => navigate('/provider-portal')}
-  >
-    <ArrowLeft className="h-5 w-5" />
-  </Button>
-  <div>
-    <h1 className="text-3xl font-bold text-foreground">Verificación</h1>
-    <p className="text-muted-foreground">...</p>
-  </div>
-</div>
-```
+| Problema | Causa | Solución |
+|----------|-------|----------|
+| Fuente parpadea/cambia | Sin preload de la fuente Made Dillan | Agregar preload en index.html |
+| Skeleton muy lento (800ms) | Delay artificial innecesario | Reducir a 0ms (sin skeleton artificial) |
+| "Cosa blanca" en esquina | Corner glow effects muy grandes | Eliminar los corner glow effects |
+| Partículas no visibles | Posicionamiento con % no funciona bien | Usar posición absoluta con left/top en px y z-index alto |
+| Animaciones categorías no visibles | Animaciones muy sutiles | Hacer animaciones más obvias con mayor delay y movimiento |
 
 ---
 
@@ -189,125 +18,169 @@ import { ArrowLeft } from "lucide-react";
 
 | Archivo | Cambios |
 |---------|---------|
-| `src/pages/AdminDashboard.tsx` | Agregar tab "Verificaciones" con lista de proveedores pendientes, botones aprobar/rechazar |
-| `src/pages/provider-portal/ProviderDashboardHome.tsx` | Agregar tarjeta de estado de verificación, toggle de disponibilidad en hero |
-| `src/components/provider-portal/ProviderTopBar.tsx` | Agregar logo Chamby, remover toggle de disponibilidad |
-| `src/pages/provider-portal/ProviderVerification.tsx` | Agregar botón de volver al dashboard |
+| `index.html` | Agregar preload de la fuente Made Dillan |
+| `src/components/Hero.tsx` | Eliminar skeleton artificial, mostrar contenido inmediatamente |
+| `src/components/HeroParticles.tsx` | Rediseñar partículas para que sean visibles, eliminar corner glows |
+| `src/components/CategoryTabs.tsx` | Mejorar animaciones para que sean más obvias |
+| `src/components/LandingPageSkeleton.tsx` | Mantener pero no usar (para futura referencia) |
 
 ---
 
-## Flujo de Datos
+## Cambios Detallados
 
-```text
-┌─────────────────────────────────────────────────────────────────────┐
-│                    FLUJO DE VERIFICACIÓN                            │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  1. PROVEEDOR COMPLETA ONBOARDING                                   │
-│     └─> Sube documentos (INE, carta, foto)                          │
-│     └─> documents.verification_status = 'pending'                   │
-│     └─> provider_details.verification_status = 'pending'            │
-│                                                                     │
-│  2. ADMIN VE EN DASHBOARD                                           │
-│     └─> Tab "Verificaciones" muestra proveedores pendientes         │
-│     └─> Puede ver cada documento (signed URL)                       │
-│     └─> Botones "Aprobar" / "Rechazar"                              │
-│                                                                     │
-│  3. ADMIN APRUEBA                                                   │
-│     └─> provider_details.verification_status = 'verified'           │
-│     └─> providers.verified = true                                   │
-│     └─> documents.verification_status = 'verified'                  │
-│                                                                     │
-│  4. ADMIN RECHAZA                                                   │
-│     └─> provider_details.verification_status = 'rejected'           │
-│     └─> provider_details.admin_notes = 'razón del rechazo'          │
-│     └─> documents.verification_status = 'rejected'                  │
-│     └─> documents.rejection_reason = 'razón específica'             │
-│                                                                     │
-│  5. PROVEEDOR VE EN SU DASHBOARD                                    │
-│     └─> Tarjeta de verificación muestra estado actual               │
-│     └─> Si rechazado: ve razón y puede corregir                     │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
+### 1. Preload de Fuente (index.html)
+
+Agregar en el `<head>` para cargar la fuente antes del render:
+```html
+<link rel="preload" href="/fonts/MADE_Dillan_PERSONAL_USE.otf" as="font" type="font/otf" crossorigin>
+```
+
+### 2. Eliminar Skeleton Artificial (Hero.tsx)
+
+Eliminar el estado `isLoading` y el delay de 800ms. La página debe cargar inmediatamente sin esperar artificialmente:
+
+- Eliminar `const [isLoading, setIsLoading] = useState(true);`
+- Eliminar el `useEffect` con el timer
+- Eliminar el `if (isLoading) return <LandingPageSkeleton />;`
+- Eliminar la importación de `LandingPageSkeleton`
+
+### 3. Rediseñar Partículas (HeroParticles.tsx)
+
+Problemas actuales:
+- Corner glows causan la "cosa blanca" en la esquina
+- Las partículas usan posicionamiento % que no se renderiza bien
+- z-index no está definido, quedan detrás del contenido
+
+Nueva implementación:
+- Eliminar TODOS los corner glow effects
+- Usar partículas con posición CSS `left` y `top` en vez de transform
+- Agregar z-index para que aparezcan sobre el fondo pero debajo del texto
+- Reducir blur y aumentar opacidad para mejor visibilidad
+- Usar colores más brillantes (white con mayor opacidad)
+
+```tsx
+export const HeroParticles = () => {
+  const particles = useMemo(() => {
+    return Array.from({ length: 30 }, (_, i) => ({
+      id: i,
+      left: Math.random() * 100,
+      top: Math.random() * 100,
+      size: Math.random() * 8 + 4, // 4-12px
+      duration: Math.random() * 3 + 4, // 4-7s
+      delay: Math.random() * 2,
+    }));
+  }, []);
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-[1]">
+      {particles.map((p) => (
+        <motion.div
+          key={p.id}
+          className="absolute rounded-full bg-white"
+          style={{
+            left: `${p.left}%`,
+            top: `${p.top}%`,
+            width: p.size,
+            height: p.size,
+            boxShadow: '0 0 8px 2px rgba(255,255,255,0.6)',
+          }}
+          animate={{
+            y: [-10, 10, -10],
+            opacity: [0.4, 0.8, 0.4],
+            scale: [0.8, 1.2, 0.8],
+          }}
+          transition={{
+            duration: p.duration,
+            delay: p.delay,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+```
+
+### 4. Mejorar Animaciones de Categorías (CategoryTabs.tsx)
+
+Hacer las animaciones más visibles:
+
+- Aumentar el delay entre categorías de `0.1s` a `0.15s`
+- Aumentar el movimiento inicial de `x: -30` a `x: -50`
+- Aumentar `y: 20` a `y: 30`
+- Aumentar duración de `0.5s` a `0.6s`
+- Para los service pills, aumentar `x: -20` a `x: -40`
+
+Cambios en la animación de categorías:
+```tsx
+initial={{ opacity: 0, x: -50, y: 30 }}
+animate={isVisible ? { 
+  opacity: 1, 
+  x: 0, 
+  y: parallaxOffset,
+} : {}}
+transition={{
+  delay: index * 0.15, // Más lento
+  duration: 0.6, // Más duración
+  ease: "easeOut",
+}}
+```
+
+Cambios en service pills:
+```tsx
+variants={{
+  hidden: { opacity: 0, x: -40, scale: 0.85 },
+  visible: { 
+    opacity: 1, 
+    x: 0, 
+    scale: 1,
+    transition: { duration: 0.4, ease: "easeOut" }
+  }
+}}
 ```
 
 ---
 
-## Diseño UI del Admin - Tab Verificaciones
+## Estructura Visual de las Partículas
 
 ```text
-┌────────────────────────────────────────────────────────────────────┐
-│  [← ] Panel de Administración                    [💰 Payouts]      │
-├────────────────────────────────────────────────────────────────────┤
-│                                                                    │
-│  [ Trabajos (45) ] [ Disputas (2) ] [ Verificaciones (3) 🔴 ]      │
-│                                                                    │
-├────────────────────────────────────────────────────────────────────┤
-│                                                                    │
-│  ┌──────────────────────────────────────────────────────────────┐  │
-│  │  👤 Juan Pérez García                              PENDIENTE │  │
-│  │  📧 juan@email.com  📞 33 1234 5678                          │  │
-│  │                                                              │  │
-│  │  Documentos:                                                 │  │
-│  │  ✓ Foto de Rostro         [Ver]                             │  │
-│  │  ✓ INE Frente             [Ver]                             │  │
-│  │  ✓ INE Reverso            [Ver]                             │  │
-│  │  ✓ Carta de Antecedentes  [Ver]                             │  │
-│  │                                                              │  │
-│  │  Notas para el proveedor (opcional):                        │  │
-│  │  ┌────────────────────────────────────────────────────────┐ │  │
-│  │  │                                                        │ │  │
-│  │  └────────────────────────────────────────────────────────┘ │  │
-│  │                                                              │  │
-│  │  [ ✓ Aprobar Proveedor ]    [ ✗ Rechazar ]                  │  │
-│  └──────────────────────────────────────────────────────────────┘  │
-│                                                                    │
-└────────────────────────────────────────────────────────────────────┘
-```
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                 │
+│       ●            ●                  ●           ●            │
+│                ●          HERO CARD          ●                  │
+│    ●                                                    ●       │
+│          ●    "Encuentra a los mejores..."    ●                │
+│                     ●                                           │
+│     ●                        ●                      ●          │
+│              ●          [Search Bar]        ●                   │
+│                   ●                    ●                        │
+│         ●                 ●                    ●                │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 
----
-
-## Diseño UI del Provider Dashboard - Tarjeta de Verificación
-
-```text
-┌────────────────────────────────────────────────────────────────────┐
-│  [Logo Chamby]                           [Avatar ▼ Proveedor]      │
-├────────────────────────────────────────────────────────────────────┤
-│                                                                    │
-│  ┌──────────────────────────────────────────────────────────────┐  │
-│  │                        [Avatar]                              │  │
-│  │                    ¡Hola, Juan! ✓                            │  │
-│  │                 Plomero profesional                          │  │
-│  │                                                              │  │
-│  │     ⭐ 4.8 (23)  |  ✓ 45 trabajos  |  📍 Guadalajara        │  │
-│  │                                                              │  │
-│  │  ┌─────────────────────────────────────────────────────────┐│  │
-│  │  │  [🟢] Disponible para trabajos                          ││  │
-│  │  └─────────────────────────────────────────────────────────┘│  │
-│  │                                                              │  │
-│  │                   [ ⚙️ Editar Perfil ]                       │  │
-│  └──────────────────────────────────────────────────────────────┘  │
-│                                                                    │
-│  ┌──────────────────────────────────────────────────────────────┐  │
-│  │  🕐 Estado de Verificación                         PENDIENTE │  │
-│  ├──────────────────────────────────────────────────────────────┤  │
-│  │  Tu perfil está siendo revisado por el equipo de Chamby.    │  │
-│  │  Te notificaremos cuando tengamos una respuesta.            │  │
-│  │                                                              │  │
-│  │  Documentos enviados: 4/4 ✓                                  │  │
-│  │                                                              │  │
-│  │         [ Ver detalles de verificación → ]                   │  │
-│  └──────────────────────────────────────────────────────────────┘  │
-│                                                                    │
-└────────────────────────────────────────────────────────────────────┘
+● = Partícula flotante blanca con glow suave
+   - Flotan verticalmente arriba/abajo
+   - Pulse de opacidad (más brillantes y menos brillantes)
+   - Distribuidas aleatoriamente por toda el área
 ```
 
 ---
 
 ## Resultado Esperado
 
-1. **Admin puede revisar proveedores**: Nueva tab en Admin Dashboard muestra todos los proveedores pendientes de verificación con sus documentos y permite aprobar/rechazar con feedback
-2. **Proveedor ve su estado**: Tarjeta prominente en su dashboard muestra si está pendiente, verificado o rechazado con razón
-3. **Navegación clara**: Botón de volver en página de verificación para regresar al dashboard
-4. **Logo visible**: Logo de Chamby aparece en el top bar del portal de proveedores
-5. **Toggle de disponibilidad mejor ubicado**: Dentro de la tarjeta de perfil para mayor visibilidad
+1. **Sin parpadeo de fuente**: La fuente Made Dillan se precarga antes del render
+2. **Carga instantánea**: No hay delay artificial, el contenido aparece inmediatamente
+3. **Partículas visibles**: 30 partículas blancas brillantes flotando sobre el hero card
+4. **Sin "cosa blanca"**: Los corner glow effects eliminados
+5. **Animaciones de categorías obvias**: Las categorías entran una por una de izquierda a derecha con movimiento más pronunciado
+6. **Service pills animados**: Los botones de servicio también entran con animación visible
+
+---
+
+## Compatibilidad Mobile/Desktop
+
+- Las partículas usan posicionamiento relativo (%) que funciona en todos los tamaños
+- Las animaciones de framer-motion son consistentes en todos los dispositivos
+- El z-index asegura que las partículas aparezcan correctamente en ambas vistas
+
