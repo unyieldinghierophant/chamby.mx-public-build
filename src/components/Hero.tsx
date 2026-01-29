@@ -1,30 +1,18 @@
 import { ModernButton } from "@/components/ui/modern-button";
 import { Link, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
+import { motion } from "framer-motion";
 import { AISearchBar } from "@/components/AISearchBar";
 import { useAuth } from "@/contexts/AuthContext";
 import { CategoryTabs } from "@/components/CategoryTabs";
 import { SavedJobBanner } from "@/components/SavedJobBanner";
 import { HeroParticles } from "@/components/HeroParticles";
-import { LandingPageSkeleton } from "@/components/LandingPageSkeleton";
 import moneyBagIcon from "@/assets/money-bag-icon.png";
 
 const Hero = () => {
   const [location, setLocation] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { user } = useAuth();
-
-  // Simulate initial loading for skeleton effect
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 800);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (isLoading) {
-    return <LandingPageSkeleton />;
-  }
 
   return (
     <section className="relative min-h-screen bg-background flex items-start justify-center pt-4 md:pt-6 overflow-hidden">

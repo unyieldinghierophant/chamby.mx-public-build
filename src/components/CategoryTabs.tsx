@@ -95,15 +95,15 @@ export const CategoryTabs = () => {
                 return (
                   <motion.div
                     key={category.id}
-                    initial={{ opacity: 0, x: -30, y: 20 }}
+                    initial={{ opacity: 0, x: -50, y: 30 }}
                     animate={isVisible ? { 
                       opacity: 1, 
                       x: 0, 
                       y: parallaxOffset,
                     } : {}}
                     transition={{
-                      delay: index * 0.1,
-                      duration: 0.5,
+                      delay: index * 0.15,
+                      duration: 0.6,
                       ease: "easeOut",
                       y: { duration: 0.1 } // Faster y transition for smooth parallax
                     }}
@@ -169,12 +169,12 @@ export const CategoryTabs = () => {
                 <motion.div
                   key={service.name}
                   variants={{
-                    hidden: { opacity: 0, x: -20, scale: 0.9 },
+                    hidden: { opacity: 0, x: -40, scale: 0.85 },
                     visible: { 
                       opacity: 1, 
                       x: 0, 
                       scale: 1,
-                      transition: { duration: 0.3, ease: "easeOut" }
+                      transition: { duration: 0.4, ease: "easeOut" }
                     }
                   }}
                 >
