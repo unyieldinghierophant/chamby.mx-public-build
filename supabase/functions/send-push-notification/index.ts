@@ -32,10 +32,9 @@ Deno.serve(async (req) => {
     if (job_id && type === 'new_job_available') {
       // Get all verified providers with FCM tokens
       const { data: providers } = await supabase
-        .from('profiles')
-        .select('fcm_token, user_id, full_name')
-        .eq('is_tasker', true)
-        .eq('verification_status', 'verified')
+        .from('providers')
+        .select('fcm_token, user_id, display_name')
+        .eq('verified', true)
         .not('fcm_token', 'is', null);
 
       targetTokens = providers?.map(p => p.fcm_token).filter(Boolean) || [];
@@ -43,7 +42,7 @@ Deno.serve(async (req) => {
     } else if (user_ids) {
       // Get specific users' FCM tokens
       const { data: users } = await supabase
-        .from('profiles')
+        .from('providers')
         .select('fcm_token')
         .in('user_id', user_ids)
         .not('fcm_token', 'is', null);
