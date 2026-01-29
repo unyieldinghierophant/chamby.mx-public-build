@@ -1,191 +1,71 @@
 
-# Plan: Corrección de Errores de Subida de Documentos y Mejoras de UX
+# Plan: Configurar Toasts de Éxito con Duración Corta y Posición Superior
 
-## Resumen del Problema
+## Problema Identificado
 
-He identificado varios problemas que impiden la subida correcta de documentos:
+Los mensajes de éxito (como "¡Email verificado!") permanecen demasiado tiempo en pantalla y aparecen en la parte inferior, bloqueando el botón de avance. El usuario necesita que:
 
-### Causa Raíz del Error "relation profiles does not exist"
+1. Los mensajes duren máximo 2 segundos
+2. Aparezcan en la parte superior de la pantalla  
+3. Se puedan cerrar con un click
 
-El error se produce porque:
+## Causa Raíz
 
-1. **Trigger en la tabla `documents`**: Existe un trigger llamado `update_profile_on_document_insert` que se ejecuta al insertar documentos y llama a la función `update_profile_verification()`, la cual intenta actualizar una tabla `profiles` que NO EXISTE en la base de datos.
-
-2. **Tabla real disponible**: La base de datos tiene las tablas `users` y `providers` pero NO tiene tabla `profiles`.
-
-3. **Flujo del error**:
-   - Usuario sube documento correctamente al storage (verificado: hay archivos recientes en `user-documents`)
-   - Se intenta insertar registro en tabla `documents`
-   - El trigger `update_profile_on_document_insert` se ejecuta
-   - La función llama `UPDATE profiles SET updated_at = now()`
-   - Error: "relation profiles does not exist"
-   - La transacción completa falla y se revierte
-
-### Problemas Adicionales Identificados
-
-| Problema | Descripción |
-|----------|-------------|
-| Toast de progreso restaurado | Aparece desde abajo y bloquea el botón de avanzar |
-| Texto en inglés | "SKILLS" debe ser "HABILIDADES" |
-| Funciones de BD obsoletas | Múltiples funciones refieren a tabla `profiles` inexistente |
-| Edge function obsoleta | `send-push-notification` usa tabla `profiles` |
-| Consultas en ProviderMap | Usa relación `profiles!jobs_customer_id_fkey` inexistente |
-
----
+El componente `Sonner` en `src/components/ui/sonner.tsx` no tiene configurada:
+- La posición (por defecto es `bottom-right`)
+- La duración por defecto (por defecto es ~4 segundos)
+- El botón de cerrar (no está habilitado)
 
 ## Solución
 
-### Paso 1: Eliminar Trigger Problemático (Base de Datos)
-
-Eliminar el trigger que causa el error:
-
-```sql
--- Drop the problematic trigger
-DROP TRIGGER IF EXISTS update_profile_on_document_insert ON documents;
-```
-
-### Paso 2: Actualizar Función de Verificación (Base de Datos)
-
-Actualizar `update_profile_verification()` para usar las tablas correctas:
-
-```sql
-CREATE OR REPLACE FUNCTION public.update_profile_verification()
- RETURNS trigger
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public'
-AS $function$
-BEGIN
-  -- Update provider_details when document is uploaded
-  UPDATE provider_details 
-  SET 
-    updated_at = now(),
-    verification_status = CASE 
-      WHEN verification_status = 'none' THEN 'pending'
-      ELSE verification_status
-    END
-  WHERE user_id = NEW.provider_id;
-  
-  RETURN NEW;
-END;
-$function$;
-```
-
-### Paso 3: Quitar Toast de Progreso Restaurado (Frontend)
-
-En `src/pages/provider-portal/ProviderOnboardingWizard.tsx`, eliminar el toast que bloquea el botón:
-
-**Líneas 173-175** - Eliminar:
-```typescript
-// ELIMINAR estas líneas
-toast.info('Progreso restaurado', {
-  description: 'Continuamos donde lo dejaste'
-});
-```
-
-### Paso 4: Cambiar "SKILLS" a "HABILIDADES" (Frontend)
-
-En `src/pages/provider-portal/ProviderOnboardingWizard.tsx`:
-
-**Línea 98** - Cambiar:
-```typescript
-// ANTES
-{ id: 4, label: 'SKILLS' },
-
-// DESPUÉS  
-{ id: 4, label: 'HABILIDADES' },
-```
-
-### Paso 5: Actualizar Edge Function (Backend)
-
-En `supabase/functions/send-push-notification/index.ts`, cambiar de `profiles` a `providers`:
-
-**Líneas 34-39 y 45-49** - Actualizar queries:
-```typescript
-// ANTES
-const { data: providers } = await supabase
-  .from('profiles')
-  .select('fcm_token, user_id, full_name')
-  .eq('is_tasker', true)
-  .eq('verification_status', 'verified')
-  .not('fcm_token', 'is', null);
-
-// DESPUÉS
-const { data: providers } = await supabase
-  .from('providers')
-  .select('fcm_token, user_id, display_name')
-  .eq('verified', true)
-  .not('fcm_token', 'is', null);
-```
-
-### Paso 6: Corregir ProviderMap.tsx (Frontend)
-
-En `src/pages/provider-portal/ProviderMap.tsx`, corregir las consultas con relación inexistente:
-
-**Líneas 86 y 102** - Cambiar relación:
-```typescript
-// ANTES
-customer:profiles!jobs_customer_id_fkey(full_name)
-
-// DESPUÉS - usar users con client_id
-client:users!jobs_client_id_fkey(full_name)
-```
-
----
-
-## Archivos a Modificar
+### Archivo a Modificar
 
 | Archivo | Cambios |
 |---------|---------|
-| `src/pages/provider-portal/ProviderOnboardingWizard.tsx` | Quitar toast de progreso, cambiar "SKILLS" a "HABILIDADES" |
-| `supabase/functions/send-push-notification/index.ts` | Usar tabla `providers` en lugar de `profiles` |
-| `src/pages/provider-portal/ProviderMap.tsx` | Corregir relación de foreign key |
+| `src/components/ui/sonner.tsx` | Agregar `position`, `duration` y `closeButton` al componente `Sonner` |
 
-## Migraciones de Base de Datos Requeridas
+### Cambios Específicos
 
-1. **DROP TRIGGER**: Eliminar `update_profile_on_document_insert`
-2. **UPDATE FUNCTION**: Actualizar `update_profile_verification()` para usar tablas correctas
+En `src/components/ui/sonner.tsx` líneas 10-24:
 
----
+```typescript
+return (
+  <Sonner
+    theme={theme as ToasterProps["theme"]}
+    className="toaster group"
+    position="top-center"
+    duration={2000}
+    closeButton
+    toastOptions={{
+      classNames: {
+        toast:
+          "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg",
+        description: "group-[.toast]:text-muted-foreground",
+        actionButton: "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
+        cancelButton: "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
+        closeButton: "group-[.toast]:bg-background group-[.toast]:text-foreground",
+      },
+    }}
+    {...props}
+  />
+);
+```
 
-## Detalles Técnicos
+## Parámetros Agregados
 
-### Verificación del Storage (Confirmado Funcionando)
-
-Los archivos se están subiendo correctamente al bucket `user-documents`. Ejemplo de archivo reciente:
-- `636f8f17-f311-4729-b2d4-470164e12778/verification/ine_back_1769705444734.jpg`
-- Subido: 2026-01-29 16:50:46
-
-El problema está en el INSERT a la tabla `documents` que dispara el trigger fallido.
-
-### Funciones de BD Afectadas (Para Limpieza Futura)
-
-Las siguientes funciones también refieren a `profiles` y deberían actualizarse en una limpieza posterior:
-- `get_provider_profile_id()` 
-- `notify_reschedule_request()`
-- `get_top_providers()`
-- `create_job_reminders()`
-- `get_public_provider_profiles()`
-- `audit_security_changes()`
-
----
+| Parámetro | Valor | Descripción |
+|-----------|-------|-------------|
+| `position` | `"top-center"` | Muestra los toasts centrados en la parte superior |
+| `duration` | `2000` | Duración de 2 segundos (2000 ms) |
+| `closeButton` | `true` | Agrega botón X para cerrar manualmente |
 
 ## Resultado Esperado
 
-Después de aplicar estos cambios:
-1. Los documentos se subirán sin error
-2. El registro se guardará correctamente en la tabla `documents`  
-3. El toast de progreso no bloqueará el botón de avanzar
-4. La interfaz mostrará "HABILIDADES" en lugar de "SKILLS"
-5. Las notificaciones push funcionarán con la tabla correcta
+1. Todos los toasts de éxito (`toast.success`) aparecerán arriba de la pantalla, centrados
+2. Se cerrarán automáticamente después de 2 segundos
+3. El usuario podrá cerrarlos inmediatamente haciendo click en la X
+4. Ya no bloquearán el botón de avance en el onboarding wizard
 
----
+## Nota
 
-## Recomendación de Prueba
-
-1. Ir al onboarding wizard como proveedor nuevo
-2. Llegar al paso de documentos
-3. Subir una foto usando "Tomar Foto" o "Subir Imagen"
-4. Verificar que el documento aparece como subido (check verde)
-5. Continuar al siguiente paso sin ver el toast bloqueando
-
+Este cambio afecta globalmente a todos los toasts de la aplicación (éxito, error, info), lo cual es consistente con la experiencia de usuario. Los toasts de error también durarán 2 segundos, pero el usuario puede leerlos rápidamente o hacer click para cerrarlos antes.
