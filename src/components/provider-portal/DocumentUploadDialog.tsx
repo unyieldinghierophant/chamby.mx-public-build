@@ -44,10 +44,25 @@ export const DocumentUploadDialog = ({
   };
 
   const handleUpload = async () => {
-    if (!file || !user) return;
+    if (!file || !user) {
+      toast.error("Error de sesión", {
+        description: "Por favor inicia sesión nuevamente"
+      });
+      return;
+    }
 
     setUploading(true);
     try {
+      // Verify we have a valid session before uploading
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Sesión expirada", {
+          description: "Por favor recarga la página e inicia sesión nuevamente"
+        });
+        setUploading(false);
+        return;
+      }
+
       // Upload file to storage
       const fileExt = file.name.split(".").pop();
       const fileName = `${user.id}/verification/${docType}_${Date.now()}.${fileExt}`;
@@ -58,10 +73,15 @@ export const DocumentUploadDialog = ({
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
+      // Create signed URL since bucket is private (valid for 1 year)
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
         .from("user-documents")
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 60 * 60 * 24 * 365); // 1 year
+
+      if (signedUrlError) throw signedUrlError;
+
+      const fileUrl = signedUrlData?.signedUrl;
+      if (!fileUrl) throw new Error('No se pudo generar la URL del documento');
 
       // Create document record - use provider_id (which is user.id)
       const { error: dbError } = await supabase
@@ -69,7 +89,7 @@ export const DocumentUploadDialog = ({
         .insert({
           provider_id: user.id,
           doc_type: docType,
-          file_url: publicUrl,
+          file_url: fileUrl,
           verification_status: "pending",
         });
 
@@ -88,7 +108,23 @@ export const DocumentUploadDialog = ({
       onOpenChange(false);
     } catch (error: any) {
       console.error("Error uploading document:", error);
-      toast.error("Error al subir documento");
+      
+      // Provide specific error messages based on error type
+      let errorMessage = "Ocurrió un error inesperado";
+      
+      if (error?.message?.includes('Unauthorized') || error?.message?.includes('JWT') || error?.message?.includes('expired')) {
+        errorMessage = "Tu sesión ha expirado. Por favor recarga la página e inicia sesión nuevamente.";
+      } else if (error?.message?.includes('exceeded') || error?.message?.includes('size') || error?.message?.includes('too large')) {
+        errorMessage = "El archivo es demasiado grande. Máximo 5MB permitido.";
+      } else if (error?.message?.includes('policy') || error?.statusCode === 403 || error?.status === 403) {
+        errorMessage = "No tienes permiso para subir este archivo. Intenta cerrar sesión y volver a iniciar.";
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error("Error al subir documento", {
+        description: errorMessage
+      });
     } finally {
       setUploading(false);
     }
