@@ -18,6 +18,7 @@ export default {
         'hero': ['Outfit', 'sans-serif'],
         'urbanist': ['Urbanist', 'sans-serif'],
         'audiowide': ['Audiowide', 'sans-serif'],
+        'sf-pro': ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
