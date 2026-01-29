@@ -24,7 +24,7 @@ export const CategoryCard = ({ image, category, description }: CategoryCardProps
         className="group cursor-pointer hover:shadow-elegant transition-all duration-300 hover:scale-105 bg-gradient-card border-white/20 h-full"
       >
         <CardHeader className="pb-6 flex flex-col items-center text-center">
-          <div className="w-24 h-24 mb-4 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+          <div className="w-72 h-72 mb-4 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
             <img src={image} alt={category} className="w-full h-full object-contain" />
           </div>
           <CardTitle className="text-xl mb-2">{category}</CardTitle>
