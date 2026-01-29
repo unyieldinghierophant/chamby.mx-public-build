@@ -70,6 +70,7 @@ export const DocumentCaptureDialog = ({
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
+  const [showZoom, setShowZoom] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -375,7 +376,7 @@ export const DocumentCaptureDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md p-0 overflow-hidden">
+      <DialogContent className="sm:max-w-md p-0 max-h-[90vh] overflow-y-auto">
         <DialogHeader className="p-4 pb-2">
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
@@ -494,11 +495,21 @@ export const DocumentCaptureDialog = ({
           {/* Mode: Preview */}
           {mode === 'preview' && capturedImage && (
             <div className="relative">
-              <img
-                src={capturedImage}
-                alt="Captured"
-                className="w-full aspect-[3/4] object-cover"
-              />
+              <div 
+                className="relative cursor-pointer"
+                onClick={() => setShowZoom(true)}
+              >
+                <img
+                  src={capturedImage}
+                  alt="Captured"
+                  className="w-full max-h-[50vh] object-contain bg-muted/20"
+                />
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/20">
+                  <span className="text-white text-sm font-medium bg-black/50 px-3 py-1 rounded-full">
+                    Toca para ampliar
+                  </span>
+                </div>
+              </div>
               
               <div className="p-4 space-y-3">
                 <p className="text-sm text-muted-foreground text-center">
@@ -541,6 +552,27 @@ export const DocumentCaptureDialog = ({
         {/* Hidden canvas for capture */}
         <canvas ref={canvasRef} className="hidden" />
       </DialogContent>
+
+      {/* Modal de Zoom */}
+      {showZoom && capturedImage && (
+        <div 
+          className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center"
+          onClick={() => setShowZoom(false)}
+        >
+          <button
+            onClick={() => setShowZoom(false)}
+            className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <img
+            src={capturedImage}
+            alt="Ampliación"
+            className="max-w-full max-h-full object-contain p-4"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </Dialog>
   );
 };
