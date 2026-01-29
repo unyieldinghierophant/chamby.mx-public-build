@@ -1,28 +1,187 @@
 
-# Plan: Mejorar Logo y Vista Previa de Fotos en Onboarding Wizard
+# Plan: Sistema de Verificación de Proveedores con Portal de Admin y Mejoras UX
 
-## Problemas Identificados
+## Resumen de Requerimientos
 
-### 1. Logo Muy Pequeño
-**Ubicación**: `src/pages/provider-portal/ProviderOnboardingWizard.tsx` línea 666
-**Estado actual**: El logo tiene `h-20` (80px)
-**Solución**: Aumentar a `h-32` (128px) para mayor visibilidad
+El usuario solicita:
+1. **Portal Admin para Verificación**: Cuando un proveedor complete documentos, crear un sistema donde admins puedan revisar, aprobar o rechazar documentos
+2. **Tarjeta de Estado de Verificación**: En el portal de proveedores, mostrar una tarjeta visible con el estado actual de verificación
+3. **Botones de Volver**: En la página de verificación del proveedor, agregar formas claras de salir/volver
+4. **Logo Chamby en TopBar**: Agregar logo de Chamby en la izquierda del top bar del portal de proveedores
+5. **Mover Toggle de Disponibilidad**: Mover el botón de disponibilidad del top bar a la tarjeta de bienvenida/perfil
 
-### 2. Texto se Sale de Vista en Previa de Foto
-**Ubicación**: `src/components/provider-portal/DocumentCaptureDialog.tsx` líneas 494-537
-**Problema**: 
-- La imagen tiene `aspect-[3/4]` fijo con `object-cover`
-- En pantallas pequeñas, esto empuja el texto y botones fuera de la vista
-- No hay scroll y el DialogContent no se ajusta al contenido
+---
 
-**Solución**: 
-- Limitar altura máxima de la imagen con `max-h-[50vh]`
-- Usar `object-contain` en lugar de `object-cover` para mostrar toda la imagen
-- Hacer el contenedor scrollable con `overflow-y-auto` y `max-h-[85vh]`
+## Análisis de la Arquitectura Actual
 
-### 3. Falta Funcionalidad de Ampliar Foto
-**Problema**: El usuario no puede hacer click para ampliar la foto capturada
-**Solución**: Agregar un estado y modal para vista ampliada con botón X para cerrar
+### Tablas Relevantes
+- `provider_details`: Contiene `verification_status` (pending/verified/rejected), `admin_notes`
+- `documents`: Contiene documentos con `verification_status`, `rejection_reason`, `reviewed_by`, `reviewed_at`
+- `providers`: Contiene `verified` boolean
+
+### Páginas Existentes
+- `AdminDashboard.tsx`: Tiene tabs para "Trabajos" y "Disputas" - **agregar tab "Verificaciones"**
+- `ProviderDashboardHome.tsx`: Muestra tarjeta de perfil - **agregar tarjeta de verificación y toggle de disponibilidad**
+- `ProviderTopBar.tsx`: Tiene toggle de disponibilidad y logo - **mover toggle, agregar logo Chamby**
+- `ProviderVerification.tsx`: Página de verificación - **agregar botón de volver**
+
+---
+
+## Cambios Detallados
+
+### 1. Admin Dashboard - Nueva Tab "Verificaciones"
+
+**Archivo**: `src/pages/AdminDashboard.tsx`
+
+**Cambios**:
+- Agregar nuevo estado para proveedores pendientes de verificación
+- Agregar nueva tab "Verificaciones" al TabsList
+- Crear contenido de la tab con lista de proveedores pendientes
+- Para cada proveedor, mostrar:
+  - Nombre, email, teléfono
+  - Lista de documentos subidos con botón para ver cada uno
+  - Estado actual de verificación
+  - Botones: "Aprobar", "Rechazar" con campo para notas/razón
+- Implementar funciones para aprobar/rechazar:
+  - Actualizar `provider_details.verification_status`
+  - Actualizar `providers.verified`
+  - Actualizar `documents.verification_status` para cada documento
+  - Guardar `admin_notes` con feedback
+
+**Nuevo estado a agregar**:
+```typescript
+const [pendingProviders, setPendingProviders] = useState<ProviderVerification[]>([]);
+```
+
+**Nueva función fetchPendingVerifications**:
+```typescript
+const fetchPendingVerifications = async () => {
+  const { data } = await supabase
+    .from('provider_details')
+    .select('*, providers!inner(*), users!inner(*)')
+    .eq('verification_status', 'pending');
+    
+  // Fetch documents for each provider
+  for (const provider of data) {
+    const { data: docs } = await supabase
+      .from('documents')
+      .select('*')
+      .eq('provider_id', provider.user_id);
+    provider.documents = docs;
+  }
+};
+```
+
+---
+
+### 2. Tarjeta de Estado de Verificación en Portal de Proveedores
+
+**Archivo**: `src/pages/provider-portal/ProviderDashboardHome.tsx`
+
+**Cambios**:
+- Crear nueva tarjeta prominente debajo del hero que muestre:
+  - Estado actual de verificación (Pendiente/Verificado/Rechazado)
+  - Si fue rechazado: mostrar razón del rechazo y botón para corregir documentos
+  - Si está pendiente: mensaje de "En revisión por el equipo Chamby"
+  - Si está verificado: badge verde con check
+- Agregar toggle de disponibilidad a la tarjeta de perfil hero
+
+**Nueva tarjeta de verificación**:
+```tsx
+{/* Verification Status Card */}
+<Card className={cn(
+  "border-2",
+  verificationStatus === 'verified' && "border-green-500/50 bg-green-500/5",
+  verificationStatus === 'pending' && "border-yellow-500/50 bg-yellow-500/5",
+  verificationStatus === 'rejected' && "border-red-500/50 bg-red-500/5"
+)}>
+  <CardHeader>
+    <CardTitle className="flex items-center gap-2">
+      {verificationStatus === 'verified' && <CheckCircle className="text-green-600" />}
+      {verificationStatus === 'pending' && <Clock className="text-yellow-600" />}
+      {verificationStatus === 'rejected' && <XCircle className="text-red-600" />}
+      Estado de Verificación
+    </CardTitle>
+  </CardHeader>
+  <CardContent>
+    {/* Status message and actions */}
+  </CardContent>
+</Card>
+```
+
+---
+
+### 3. Toggle de Disponibilidad en Tarjeta de Perfil
+
+**Archivo**: `src/pages/provider-portal/ProviderDashboardHome.tsx`
+
+Agregar dentro de la tarjeta hero de perfil:
+```tsx
+<div className="flex items-center gap-3 mt-4 p-3 bg-background/50 rounded-lg">
+  <Switch
+    id="availability"
+    checked={isAvailable}
+    onCheckedChange={setIsAvailable}
+  />
+  <Label htmlFor="availability" className="cursor-pointer">
+    <span className={isAvailable ? "text-green-600 font-medium" : "text-muted-foreground"}>
+      {isAvailable ? "Disponible para trabajos" : "No disponible"}
+    </span>
+  </Label>
+</div>
+```
+
+---
+
+### 4. Logo Chamby en TopBar
+
+**Archivo**: `src/components/provider-portal/ProviderTopBar.tsx`
+
+**Cambios**:
+- Importar logo de Chamby
+- Agregar logo en el lado izquierdo
+- Remover el switch de disponibilidad (se mueve al dashboard)
+
+```tsx
+import chambyLogo from "@/assets/chamby-logo-new-horizontal.png";
+
+// En el return:
+<header className="h-16 border-b border-border bg-card px-4 lg:px-6 flex items-center justify-between sticky top-0 z-10">
+  <div className="flex items-center gap-4">
+    <img src={chambyLogo} alt="Chamby" className="h-10" />
+  </div>
+  {/* Resto del header sin el switch */}
+</header>
+```
+
+---
+
+### 5. Botón Volver en Página de Verificación
+
+**Archivo**: `src/pages/provider-portal/ProviderVerification.tsx`
+
+**Cambios**:
+- Agregar botón de volver en el header
+- Importar componente BackButton o crear botón con navegación
+
+```tsx
+import { ArrowLeft } from "lucide-react";
+
+// En el header:
+<div className="flex items-center gap-4">
+  <Button 
+    variant="ghost" 
+    size="icon"
+    onClick={() => navigate('/provider-portal')}
+  >
+    <ArrowLeft className="h-5 w-5" />
+  </Button>
+  <div>
+    <h1 className="text-3xl font-bold text-foreground">Verificación</h1>
+    <p className="text-muted-foreground">...</p>
+  </div>
+</div>
+```
 
 ---
 
@@ -30,128 +189,125 @@
 
 | Archivo | Cambios |
 |---------|---------|
-| `src/pages/provider-portal/ProviderOnboardingWizard.tsx` | Aumentar tamaño del logo de `h-20` a `h-32` |
-| `src/components/provider-portal/DocumentCaptureDialog.tsx` | Ajustar imagen a pantalla, agregar modal de zoom |
+| `src/pages/AdminDashboard.tsx` | Agregar tab "Verificaciones" con lista de proveedores pendientes, botones aprobar/rechazar |
+| `src/pages/provider-portal/ProviderDashboardHome.tsx` | Agregar tarjeta de estado de verificación, toggle de disponibilidad en hero |
+| `src/components/provider-portal/ProviderTopBar.tsx` | Agregar logo Chamby, remover toggle de disponibilidad |
+| `src/pages/provider-portal/ProviderVerification.tsx` | Agregar botón de volver al dashboard |
 
 ---
 
-## Cambios Detallados
-
-### 1. Logo Más Grande (ProviderOnboardingWizard.tsx)
-
-**Línea 666** - Cambiar:
-```tsx
-// ANTES
-<img src={chambyLogo} alt="Chamby" className="h-20" />
-
-// DESPUÉS
-<img src={chambyLogo} alt="Chamby" className="h-32" />
-```
-
-### 2. Ajustar Vista Previa de Imagen (DocumentCaptureDialog.tsx)
-
-**Línea 378** - Hacer DialogContent scrollable:
-```tsx
-// ANTES
-<DialogContent className="sm:max-w-md p-0 overflow-hidden">
-
-// DESPUÉS  
-<DialogContent className="sm:max-w-md p-0 max-h-[90vh] overflow-y-auto">
-```
-
-**Líneas 495-501** - Ajustar imagen para que quepa en pantalla:
-```tsx
-// ANTES
-{mode === 'preview' && capturedImage && (
-  <div className="relative">
-    <img
-      src={capturedImage}
-      alt="Captured"
-      className="w-full aspect-[3/4] object-cover"
-    />
-
-// DESPUÉS
-{mode === 'preview' && capturedImage && (
-  <div className="relative">
-    <div 
-      className="relative cursor-pointer"
-      onClick={() => setShowZoom(true)}
-    >
-      <img
-        src={capturedImage}
-        alt="Captured"
-        className="w-full max-h-[50vh] object-contain bg-black/5"
-      />
-      <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/20">
-        <span className="text-white text-sm font-medium bg-black/50 px-3 py-1 rounded-full">
-          Toca para ampliar
-        </span>
-      </div>
-    </div>
-```
-
-### 3. Agregar Modal de Zoom (DocumentCaptureDialog.tsx)
-
-Agregar nuevo estado al inicio del componente:
-```tsx
-const [showZoom, setShowZoom] = useState(false);
-```
-
-Agregar modal de zoom al final del componente (antes del cierre de Dialog):
-```tsx
-{/* Modal de Zoom */}
-{showZoom && capturedImage && (
-  <div 
-    className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center"
-    onClick={() => setShowZoom(false)}
-  >
-    <button
-      onClick={() => setShowZoom(false)}
-      className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
-    >
-      <X className="w-6 h-6" />
-    </button>
-    <img
-      src={capturedImage}
-      alt="Ampliación"
-      className="max-w-full max-h-full object-contain p-4"
-      onClick={(e) => e.stopPropagation()}
-    />
-  </div>
-)}
-```
-
----
-
-## Resumen Visual de Cambios
+## Flujo de Datos
 
 ```text
-┌─────────────────────────────────────────┐
-│         ANTES                           │
-├─────────────────────────────────────────┤
-│  Logo pequeño (h-20 = 80px)             │
-│  Imagen fija aspect-[3/4] con overflow  │
-│  Texto y botones fuera de vista         │
-│  No hay opción de ampliar foto          │
-└─────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                    FLUJO DE VERIFICACIÓN                            │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  1. PROVEEDOR COMPLETA ONBOARDING                                   │
+│     └─> Sube documentos (INE, carta, foto)                          │
+│     └─> documents.verification_status = 'pending'                   │
+│     └─> provider_details.verification_status = 'pending'            │
+│                                                                     │
+│  2. ADMIN VE EN DASHBOARD                                           │
+│     └─> Tab "Verificaciones" muestra proveedores pendientes         │
+│     └─> Puede ver cada documento (signed URL)                       │
+│     └─> Botones "Aprobar" / "Rechazar"                              │
+│                                                                     │
+│  3. ADMIN APRUEBA                                                   │
+│     └─> provider_details.verification_status = 'verified'           │
+│     └─> providers.verified = true                                   │
+│     └─> documents.verification_status = 'verified'                  │
+│                                                                     │
+│  4. ADMIN RECHAZA                                                   │
+│     └─> provider_details.verification_status = 'rejected'           │
+│     └─> provider_details.admin_notes = 'razón del rechazo'          │
+│     └─> documents.verification_status = 'rejected'                  │
+│     └─> documents.rejection_reason = 'razón específica'             │
+│                                                                     │
+│  5. PROVEEDOR VE EN SU DASHBOARD                                    │
+│     └─> Tarjeta de verificación muestra estado actual               │
+│     └─> Si rechazado: ve razón y puede corregir                     │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
 
-┌─────────────────────────────────────────┐
-│         DESPUÉS                         │
-├─────────────────────────────────────────┤
-│  Logo grande (h-32 = 128px)             │
-│  Imagen con max-h-[50vh] y contain      │
-│  Todo el contenido visible en pantalla  │
-│  Click en foto abre vista ampliada      │
-│  Botón X para cerrar la ampliación      │
-└─────────────────────────────────────────┘
+---
+
+## Diseño UI del Admin - Tab Verificaciones
+
+```text
+┌────────────────────────────────────────────────────────────────────┐
+│  [← ] Panel de Administración                    [💰 Payouts]      │
+├────────────────────────────────────────────────────────────────────┤
+│                                                                    │
+│  [ Trabajos (45) ] [ Disputas (2) ] [ Verificaciones (3) 🔴 ]      │
+│                                                                    │
+├────────────────────────────────────────────────────────────────────┤
+│                                                                    │
+│  ┌──────────────────────────────────────────────────────────────┐  │
+│  │  👤 Juan Pérez García                              PENDIENTE │  │
+│  │  📧 juan@email.com  📞 33 1234 5678                          │  │
+│  │                                                              │  │
+│  │  Documentos:                                                 │  │
+│  │  ✓ Foto de Rostro         [Ver]                             │  │
+│  │  ✓ INE Frente             [Ver]                             │  │
+│  │  ✓ INE Reverso            [Ver]                             │  │
+│  │  ✓ Carta de Antecedentes  [Ver]                             │  │
+│  │                                                              │  │
+│  │  Notas para el proveedor (opcional):                        │  │
+│  │  ┌────────────────────────────────────────────────────────┐ │  │
+│  │  │                                                        │ │  │
+│  │  └────────────────────────────────────────────────────────┘ │  │
+│  │                                                              │  │
+│  │  [ ✓ Aprobar Proveedor ]    [ ✗ Rechazar ]                  │  │
+│  └──────────────────────────────────────────────────────────────┘  │
+│                                                                    │
+└────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Diseño UI del Provider Dashboard - Tarjeta de Verificación
+
+```text
+┌────────────────────────────────────────────────────────────────────┐
+│  [Logo Chamby]                           [Avatar ▼ Proveedor]      │
+├────────────────────────────────────────────────────────────────────┤
+│                                                                    │
+│  ┌──────────────────────────────────────────────────────────────┐  │
+│  │                        [Avatar]                              │  │
+│  │                    ¡Hola, Juan! ✓                            │  │
+│  │                 Plomero profesional                          │  │
+│  │                                                              │  │
+│  │     ⭐ 4.8 (23)  |  ✓ 45 trabajos  |  📍 Guadalajara        │  │
+│  │                                                              │  │
+│  │  ┌─────────────────────────────────────────────────────────┐│  │
+│  │  │  [🟢] Disponible para trabajos                          ││  │
+│  │  └─────────────────────────────────────────────────────────┘│  │
+│  │                                                              │  │
+│  │                   [ ⚙️ Editar Perfil ]                       │  │
+│  └──────────────────────────────────────────────────────────────┘  │
+│                                                                    │
+│  ┌──────────────────────────────────────────────────────────────┐  │
+│  │  🕐 Estado de Verificación                         PENDIENTE │  │
+│  ├──────────────────────────────────────────────────────────────┤  │
+│  │  Tu perfil está siendo revisado por el equipo de Chamby.    │  │
+│  │  Te notificaremos cuando tengamos una respuesta.            │  │
+│  │                                                              │  │
+│  │  Documentos enviados: 4/4 ✓                                  │  │
+│  │                                                              │  │
+│  │         [ Ver detalles de verificación → ]                   │  │
+│  └──────────────────────────────────────────────────────────────┘  │
+│                                                                    │
+└────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
 ## Resultado Esperado
 
-1. El logo de Chamby será más visible y prominente
-2. La vista previa de la foto se ajustará a la pantalla sin cortar texto ni botones
-3. El usuario podrá hacer click en la foto para ampliarla a pantalla completa
-4. Un botón X claro permitirá cerrar la vista ampliada
-5. Tocar fuera de la imagen también cerrará el zoom
+1. **Admin puede revisar proveedores**: Nueva tab en Admin Dashboard muestra todos los proveedores pendientes de verificación con sus documentos y permite aprobar/rechazar con feedback
+2. **Proveedor ve su estado**: Tarjeta prominente en su dashboard muestra si está pendiente, verificado o rechazado con razón
+3. **Navegación clara**: Botón de volver en página de verificación para regresar al dashboard
+4. **Logo visible**: Logo de Chamby aparece en el top bar del portal de proveedores
+5. **Toggle de disponibilidad mejor ubicado**: Dentro de la tarjeta de perfil para mayor visibilidad
