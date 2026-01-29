@@ -1,127 +1,191 @@
 
-# Plan: Fix Document Upload Error in Provider Onboarding
+# Plan: Corrección de Errores de Subida de Documentos y Mejoras de UX
 
-## Problem Analysis
+## Resumen del Problema
 
-After investigating the codebase and database configuration, I found that:
+He identificado varios problemas que impiden la subida correcta de documentos:
 
-1. **The storage bucket `user-documents` exists** - It was created as a private bucket (correct for sensitive documents like IDs)
-2. **RLS policies exist** for upload, view, update, and delete operations
-3. **The upload code looks correct** - Uses proper file path structure `${user.id}/verification/${docType}_${Date.now()}.jpg`
+### Causa Raíz del Error "relation profiles does not exist"
 
-The error "Error al subir documento" is a generic catch-all message that doesn't show the specific error. The most likely causes are:
+El error se produce porque:
 
-### Root Causes (in order of likelihood)
-1. **Authentication context issue** - The user may not be properly authenticated when trying to upload
-2. **RLS policy mismatch** - The storage policy might not be matching correctly
-3. **Bucket access issue** - There could be an issue with how the bucket is configured
+1. **Trigger en la tabla `documents`**: Existe un trigger llamado `update_profile_on_document_insert` que se ejecuta al insertar documentos y llama a la función `update_profile_verification()`, la cual intenta actualizar una tabla `profiles` que NO EXISTE en la base de datos.
 
----
+2. **Tabla real disponible**: La base de datos tiene las tablas `users` y `providers` pero NO tiene tabla `profiles`.
 
-## Solution
+3. **Flujo del error**:
+   - Usuario sube documento correctamente al storage (verificado: hay archivos recientes en `user-documents`)
+   - Se intenta insertar registro en tabla `documents`
+   - El trigger `update_profile_on_document_insert` se ejecuta
+   - La función llama `UPDATE profiles SET updated_at = now()`
+   - Error: "relation profiles does not exist"
+   - La transacción completa falla y se revierte
 
-### Step 1: Improve Error Logging and Messaging
-Show the actual error message from Supabase so we can diagnose issues better:
+### Problemas Adicionales Identificados
 
-**File: `src/components/provider-portal/DocumentCaptureDialog.tsx`**
-- Update the catch block to display the actual error message from Supabase
-- Add specific handling for common storage errors (auth, policy, size limits)
-
-### Step 2: Add Authentication Check
-Before attempting upload, verify the user is authenticated:
-- Add a check for `user?.id` before uploading
-- Show clear message if user session has expired
-
-### Step 3: Add Retry Logic with Better UX
-- If the upload fails due to auth issues, suggest re-authenticating
-- Add a loading state indicator during upload
-
-### Step 4: Fix DocumentUploadDialog (secondary component)
-The `DocumentUploadDialog.tsx` component also needs the same improvements for consistency.
+| Problema | Descripción |
+|----------|-------------|
+| Toast de progreso restaurado | Aparece desde abajo y bloquea el botón de avanzar |
+| Texto en inglés | "SKILLS" debe ser "HABILIDADES" |
+| Funciones de BD obsoletas | Múltiples funciones refieren a tabla `profiles` inexistente |
+| Edge function obsoleta | `send-push-notification` usa tabla `profiles` |
+| Consultas en ProviderMap | Usa relación `profiles!jobs_customer_id_fkey` inexistente |
 
 ---
 
-## Technical Details
+## Solución
 
-### Changes to `DocumentCaptureDialog.tsx` (lines 279-284)
+### Paso 1: Eliminar Trigger Problemático (Base de Datos)
 
-```typescript
-} catch (error: any) {
-  console.error("Error uploading document:", error);
-  
-  // Provide specific error messages based on error type
-  let errorMessage = "Error al subir documento";
-  
-  if (error?.message?.includes('Unauthorized') || error?.message?.includes('JWT')) {
-    errorMessage = "Tu sesión ha expirado. Por favor recarga la página e inicia sesión nuevamente.";
-  } else if (error?.message?.includes('exceeded') || error?.message?.includes('size')) {
-    errorMessage = "El archivo es demasiado grande. Máximo 5MB permitido.";
-  } else if (error?.message?.includes('policy') || error?.statusCode === '403') {
-    errorMessage = "No tienes permiso para subir este archivo. Intenta cerrar sesión y volver a iniciar.";
-  } else if (error?.message) {
-    errorMessage = error.message;
-  }
-  
-  toast.error("Error al subir documento", {
-    description: errorMessage
-  });
-}
+Eliminar el trigger que causa el error:
+
+```sql
+-- Drop the problematic trigger
+DROP TRIGGER IF EXISTS update_profile_on_document_insert ON documents;
 ```
 
-### Changes to `DocumentUploadDialog.tsx` (lines 89-92)
+### Paso 2: Actualizar Función de Verificación (Base de Datos)
 
-Apply the same error handling pattern for consistency.
+Actualizar `update_profile_verification()` para usar las tablas correctas:
 
-### Add User Verification Before Upload
-
-In both components, add at the start of `handleUpload`:
-
-```typescript
-const handleUpload = async () => {
-  if (!capturedImage || !user) {
-    toast.error("Error de sesión", {
-      description: "Por favor inicia sesión nuevamente"
-    });
-    return;
-  }
+```sql
+CREATE OR REPLACE FUNCTION public.update_profile_verification()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+BEGIN
+  -- Update provider_details when document is uploaded
+  UPDATE provider_details 
+  SET 
+    updated_at = now(),
+    verification_status = CASE 
+      WHEN verification_status = 'none' THEN 'pending'
+      ELSE verification_status
+    END
+  WHERE user_id = NEW.provider_id;
   
-  // Verify we have a valid session
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    toast.error("Sesión expirada", {
-      description: "Por favor recarga la página e inicia sesión nuevamente"
-    });
-    return;
-  }
-  // ... rest of upload logic
-}
+  RETURN NEW;
+END;
+$function$;
+```
+
+### Paso 3: Quitar Toast de Progreso Restaurado (Frontend)
+
+En `src/pages/provider-portal/ProviderOnboardingWizard.tsx`, eliminar el toast que bloquea el botón:
+
+**Líneas 173-175** - Eliminar:
+```typescript
+// ELIMINAR estas líneas
+toast.info('Progreso restaurado', {
+  description: 'Continuamos donde lo dejaste'
+});
+```
+
+### Paso 4: Cambiar "SKILLS" a "HABILIDADES" (Frontend)
+
+En `src/pages/provider-portal/ProviderOnboardingWizard.tsx`:
+
+**Línea 98** - Cambiar:
+```typescript
+// ANTES
+{ id: 4, label: 'SKILLS' },
+
+// DESPUÉS  
+{ id: 4, label: 'HABILIDADES' },
+```
+
+### Paso 5: Actualizar Edge Function (Backend)
+
+En `supabase/functions/send-push-notification/index.ts`, cambiar de `profiles` a `providers`:
+
+**Líneas 34-39 y 45-49** - Actualizar queries:
+```typescript
+// ANTES
+const { data: providers } = await supabase
+  .from('profiles')
+  .select('fcm_token, user_id, full_name')
+  .eq('is_tasker', true)
+  .eq('verification_status', 'verified')
+  .not('fcm_token', 'is', null);
+
+// DESPUÉS
+const { data: providers } = await supabase
+  .from('providers')
+  .select('fcm_token, user_id, display_name')
+  .eq('verified', true)
+  .not('fcm_token', 'is', null);
+```
+
+### Paso 6: Corregir ProviderMap.tsx (Frontend)
+
+En `src/pages/provider-portal/ProviderMap.tsx`, corregir las consultas con relación inexistente:
+
+**Líneas 86 y 102** - Cambiar relación:
+```typescript
+// ANTES
+customer:profiles!jobs_customer_id_fkey(full_name)
+
+// DESPUÉS - usar users con client_id
+client:users!jobs_client_id_fkey(full_name)
 ```
 
 ---
 
-## Files to Modify
+## Archivos a Modificar
 
-| File | Changes |
-|------|---------|
-| `src/components/provider-portal/DocumentCaptureDialog.tsx` | Better error messages, session verification |
-| `src/components/provider-portal/DocumentUploadDialog.tsx` | Same improvements for consistency |
+| Archivo | Cambios |
+|---------|---------|
+| `src/pages/provider-portal/ProviderOnboardingWizard.tsx` | Quitar toast de progreso, cambiar "SKILLS" a "HABILIDADES" |
+| `supabase/functions/send-push-notification/index.ts` | Usar tabla `providers` en lugar de `profiles` |
+| `src/pages/provider-portal/ProviderMap.tsx` | Corregir relación de foreign key |
 
----
+## Migraciones de Base de Datos Requeridas
 
-## Expected Outcome
-
-After these changes:
-1. Users will see clear, actionable error messages explaining what went wrong
-2. If there's a session issue, users will know to re-authenticate
-3. The actual Supabase error will be logged for debugging
-4. Both upload components will have consistent error handling
+1. **DROP TRIGGER**: Eliminar `update_profile_on_document_insert`
+2. **UPDATE FUNCTION**: Actualizar `update_profile_verification()` para usar tablas correctas
 
 ---
 
-## Testing Recommendation
+## Detalles Técnicos
 
-After implementation:
-1. Go to the provider onboarding wizard step for documents
-2. Try uploading a document using "Tomar Foto" or "Subir Imagen"
-3. Verify the upload succeeds or shows a clear error message
-4. Check browser console for detailed error logs if issues persist
+### Verificación del Storage (Confirmado Funcionando)
+
+Los archivos se están subiendo correctamente al bucket `user-documents`. Ejemplo de archivo reciente:
+- `636f8f17-f311-4729-b2d4-470164e12778/verification/ine_back_1769705444734.jpg`
+- Subido: 2026-01-29 16:50:46
+
+El problema está en el INSERT a la tabla `documents` que dispara el trigger fallido.
+
+### Funciones de BD Afectadas (Para Limpieza Futura)
+
+Las siguientes funciones también refieren a `profiles` y deberían actualizarse en una limpieza posterior:
+- `get_provider_profile_id()` 
+- `notify_reschedule_request()`
+- `get_top_providers()`
+- `create_job_reminders()`
+- `get_public_provider_profiles()`
+- `audit_security_changes()`
+
+---
+
+## Resultado Esperado
+
+Después de aplicar estos cambios:
+1. Los documentos se subirán sin error
+2. El registro se guardará correctamente en la tabla `documents`  
+3. El toast de progreso no bloqueará el botón de avanzar
+4. La interfaz mostrará "HABILIDADES" en lugar de "SKILLS"
+5. Las notificaciones push funcionarán con la tabla correcta
+
+---
+
+## Recomendación de Prueba
+
+1. Ir al onboarding wizard como proveedor nuevo
+2. Llegar al paso de documentos
+3. Subir una foto usando "Tomar Foto" o "Subir Imagen"
+4. Verificar que el documento aparece como subido (check verde)
+5. Continuar al siguiente paso sin ver el toast bloqueando
+
