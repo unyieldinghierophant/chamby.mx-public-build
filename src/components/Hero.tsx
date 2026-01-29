@@ -1,17 +1,30 @@
 import { ModernButton } from "@/components/ui/modern-button";
 import { Link, useNavigate } from "react-router-dom";
-import { useState, useCallback } from "react";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { AISearchBar } from "@/components/AISearchBar";
 import { useAuth } from "@/contexts/AuthContext";
 import { CategoryTabs } from "@/components/CategoryTabs";
 import { SavedJobBanner } from "@/components/SavedJobBanner";
+import { HeroParticles } from "@/components/HeroParticles";
+import { LandingPageSkeleton } from "@/components/LandingPageSkeleton";
 import moneyBagIcon from "@/assets/money-bag-icon.png";
-import ParallaxJaliscoBackground from "@/components/ParallaxJaliscoBackground";
 
 const Hero = () => {
   const [location, setLocation] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  // Simulate initial loading for skeleton effect
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return <LandingPageSkeleton />;
+  }
 
   return (
     <section className="relative min-h-screen bg-background flex items-start justify-center pt-4 md:pt-6 overflow-hidden">
@@ -20,28 +33,84 @@ const Hero = () => {
       
       <div className="w-[96%] md:w-[98%] mx-auto relative z-10 mt-0">
         <div className="text-center space-y-6">
-          {/* Floating Blue Card Container */}
-          <div className="relative rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] border border-primary-foreground/20 bg-primary">
+          {/* Floating Blue Card Container with Particles */}
+          <motion.div 
+            initial={{ opacity: 0, y: 30, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="relative rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] border border-primary-foreground/20 bg-primary"
+          >
+            {/* Particles Background */}
+            <HeroParticles />
             
             {/* Main Content */}
             <div className="relative z-10 p-6 md:p-8 lg:p-10 xl:p-12 max-w-4xl mx-auto">
-              {/* Text Content - Clean Layout with Animation */}
-              <div className="space-y-4 md:space-y-6 animate-fade-in">
-              <h1 
+              {/* Text Content - Clean Layout with Staggered Animation */}
+              <motion.div 
+                className="space-y-4 md:space-y-6"
+                initial="hidden"
+                animate="visible"
+                variants={{
+                  hidden: {},
+                  visible: {
+                    transition: {
+                      staggerChildren: 0.15,
+                    },
+                  },
+                }}
+              >
+                <motion.h1 
                   className="font-dillan text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-white leading-[1.15] uppercase tracking-wide text-center"
+                  variants={{
+                    hidden: { opacity: 0, y: 20 },
+                    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+                  }}
                 >
-                  Encuentra a los mejores
-                  <span className="block">profesionales del hogar</span>
-                  <span className="block">en Guadalajara.</span>
-                </h1>
-              </div>
+                  <motion.span
+                    variants={{
+                      hidden: { opacity: 0, y: 20 },
+                      visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+                    }}
+                  >
+                    Encuentra a los mejores
+                  </motion.span>
+                  <motion.span 
+                    className="block"
+                    variants={{
+                      hidden: { opacity: 0, y: 20 },
+                      visible: { opacity: 1, y: 0, transition: { duration: 0.5, delay: 0.1 } },
+                    }}
+                  >
+                    profesionales del hogar
+                  </motion.span>
+                  <motion.span 
+                    className="block"
+                    variants={{
+                      hidden: { opacity: 0, y: 20 },
+                      visible: { opacity: 1, y: 0, transition: { duration: 0.5, delay: 0.2 } },
+                    }}
+                  >
+                    en Guadalajara.
+                  </motion.span>
+                </motion.h1>
+              </motion.div>
               
-              {/* Search Bar Section */}
-              <div className="max-w-sm sm:max-w-md md:max-w-xl lg:max-w-2xl mx-auto px-2 sm:px-4 mt-6 md:mt-8">
+              {/* Search Bar Section with Animation */}
+              <motion.div 
+                className="max-w-sm sm:max-w-md md:max-w-xl lg:max-w-2xl mx-auto px-2 sm:px-4 mt-6 md:mt-8"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.5 }}
+              >
                 <AISearchBar className="w-full" />
                 
                 {/* Gana dinero CTA */}
-                <div className="mt-4">
+                <motion.div 
+                  className="mt-4"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6, duration: 0.4 }}
+                >
                   <Link to="/provider-landing">
                     <ModernButton 
                       variant="outline" 
@@ -51,13 +120,19 @@ const Hero = () => {
                       Gana dinero como Chambynauta
                     </ModernButton>
                   </Link>
-                </div>
-              </div>
+                </motion.div>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
 
-          {/* Categories Section */}
-          <CategoryTabs />
+          {/* Categories Section with Staggered Animation */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7, duration: 0.5 }}
+          >
+            <CategoryTabs />
+          </motion.div>
         </div>
       </div>
     </section>

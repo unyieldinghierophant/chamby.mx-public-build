@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { categoryServicesMap } from '@/data/categoryServices';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -33,9 +34,16 @@ const categories: Category[] = [
 
 export const CategoryTabs = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>(categories[0].id);
+  const [isVisible, setIsVisible] = useState(false);
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollY, setScrollY] = useState(0);
+
+  // Trigger staggered animation on mount
+  useEffect(() => {
+    const timer = setTimeout(() => setIsVisible(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Parallax scroll effect
   useEffect(() => {
@@ -76,46 +84,65 @@ export const CategoryTabs = () => {
   return (
     <div ref={containerRef} className="w-full mx-auto">
       <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
-        {/* Category Tabs - 2 columns grid with parallax effect */}
+        {/* Category Tabs - 2 columns grid with parallax and staggered animation */}
         <div className="w-full">
           <TabsList className="w-full h-auto bg-background p-3 md:p-4 rounded-2xl grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
-            {categories.map((category, index) => {
-              // Staggered parallax offset for each card (translateY only, no scale to avoid blur)
-              // Using integer pixels to avoid subpixel rendering issues
-              const parallaxOffset = Math.round((1 - scrollY) * (15 + index * 6));
-              
-              return (
-                <TabsTrigger
-                  key={category.id}
-                  value={category.id}
-                  style={{
-                    transform: `translate3d(0, ${parallaxOffset}px, 0)`,
-                    willChange: 'transform',
-                    backfaceVisibility: 'hidden',
-                  }}
-                  className={cn(
-                    "flex flex-col items-center gap-2 md:gap-4 p-3 md:p-5",
-                    "data-[state=active]:bg-primary/10 data-[state=active]:text-primary",
-                    "text-foreground",
-                    "rounded-xl h-auto",
-                    "hover:shadow-md",
-                    "border border-transparent data-[state=active]:border-primary/30"
-                  )}
-                >
-                  <div className="w-14 h-14 md:w-24 md:h-24 flex items-center justify-center">
-                    <img 
-                      src={category.icon} 
-                      alt={category.name} 
-                      className="w-full h-full object-contain"
-                      style={{ imageRendering: 'auto' }}
-                    />
-                  </div>
-                  <span className="text-sm md:text-lg font-medium text-center leading-tight">
-                    {category.name}
-                  </span>
-                </TabsTrigger>
-              );
-            })}
+            <AnimatePresence>
+              {categories.map((category, index) => {
+                // Staggered parallax offset for each card (translateY only, no scale to avoid blur)
+                const parallaxOffset = Math.round((1 - scrollY) * (15 + index * 6));
+                
+                return (
+                  <motion.div
+                    key={category.id}
+                    initial={{ opacity: 0, x: -30, y: 20 }}
+                    animate={isVisible ? { 
+                      opacity: 1, 
+                      x: 0, 
+                      y: parallaxOffset,
+                    } : {}}
+                    transition={{
+                      delay: index * 0.1,
+                      duration: 0.5,
+                      ease: "easeOut",
+                      y: { duration: 0.1 } // Faster y transition for smooth parallax
+                    }}
+                    style={{
+                      willChange: 'transform',
+                      backfaceVisibility: 'hidden',
+                    }}
+                  >
+                    <TabsTrigger
+                      value={category.id}
+                      className={cn(
+                        "flex flex-col items-center gap-2 md:gap-4 p-3 md:p-5 w-full",
+                        "data-[state=active]:bg-primary/10 data-[state=active]:text-primary",
+                        "text-foreground",
+                        "rounded-xl h-auto",
+                        "hover:shadow-md hover:scale-105 transition-all duration-300",
+                        "border border-transparent data-[state=active]:border-primary/30"
+                      )}
+                    >
+                      <motion.div 
+                        className="w-14 h-14 md:w-24 md:h-24 flex items-center justify-center"
+                        whileHover={{ scale: 1.1, rotate: 3 }}
+                        transition={{ type: "spring", stiffness: 300 }}
+                      >
+                        <img 
+                          src={category.icon} 
+                          alt={category.name} 
+                          className="w-full h-full object-contain"
+                          style={{ imageRendering: 'auto' }}
+                        />
+                      </motion.div>
+                      <span className="text-sm md:text-lg font-medium text-center leading-tight">
+                        {category.name}
+                      </span>
+                    </TabsTrigger>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
           </TabsList>
         </div>
 
@@ -124,24 +151,51 @@ export const CategoryTabs = () => {
           <TabsContent 
             key={category.id} 
             value={category.id}
-            className="mt-8 animate-fade-in"
+            className="mt-8"
           >
-            {/* Service pills - wrapping layout */}
-            <div className="flex flex-wrap gap-2 md:gap-3 mb-6 animate-fade-in" style={{ animationDelay: '100ms' }}>
-              {services.map((service) => (
-                <Button
+            {/* Service pills - wrapping layout with staggered animation */}
+            <motion.div 
+              className="flex flex-wrap gap-2 md:gap-3 mb-6"
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: {},
+                visible: {
+                  transition: { staggerChildren: 0.05 }
+                }
+              }}
+            >
+              {services.map((service, i) => (
+                <motion.div
                   key={service.name}
-                  onClick={() => handleServiceClick(service.name, service.description)}
-                  variant="outline"
-                  className="rounded-full px-4 py-2 md:px-5 md:py-2.5 h-auto text-sm md:text-base bg-background/50 backdrop-blur-sm hover:bg-primary/10 hover:text-primary hover:border-primary transition-all duration-300 hover:scale-105"
+                  variants={{
+                    hidden: { opacity: 0, x: -20, scale: 0.9 },
+                    visible: { 
+                      opacity: 1, 
+                      x: 0, 
+                      scale: 1,
+                      transition: { duration: 0.3, ease: "easeOut" }
+                    }
+                  }}
                 >
-                  {service.name}
-                </Button>
+                  <Button
+                    onClick={() => handleServiceClick(service.name, service.description)}
+                    variant="outline"
+                    className="rounded-full px-4 py-2 md:px-5 md:py-2.5 h-auto text-sm md:text-base bg-background/50 backdrop-blur-sm hover:bg-primary/10 hover:text-primary hover:border-primary transition-all duration-300 hover:scale-105"
+                  >
+                    {service.name}
+                  </Button>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
             
             {/* Hero Image Container with Responsive Text */}
-            <div className="rounded-2xl overflow-hidden bg-blue-50 p-4 md:p-6 animate-fade-in" style={{ animationDelay: '200ms' }}>
+            <motion.div 
+              className="rounded-2xl overflow-hidden bg-blue-50 p-4 md:p-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+            >
               
               {/* Mobile: Text ABOVE image (hidden on desktop) */}
               <div className="md:hidden mb-4 text-left">
@@ -290,7 +344,7 @@ export const CategoryTabs = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </TabsContent>
         ))}
       </Tabs>
