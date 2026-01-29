@@ -83,7 +83,7 @@ const ProviderMap = () => {
           status,
           scheduled_at,
           total_amount,
-          customer:profiles!jobs_customer_id_fkey(full_name)
+          client:users!jobs_client_id_fkey(full_name)
         `)
         .eq("provider_id", user.id)
         .in("status", ["pending", "confirmed", "in_progress"])
@@ -99,7 +99,7 @@ const ProviderMap = () => {
           status,
           scheduled_at,
           total_amount,
-          customer:profiles!jobs_customer_id_fkey(full_name)
+          client:users!jobs_client_id_fkey(full_name)
         `)
         .is("provider_id", null)
         .eq("status", "pending")

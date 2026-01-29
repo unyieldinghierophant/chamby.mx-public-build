@@ -95,7 +95,7 @@ const SKILL_OPTIONS = [
 const PROGRESS_STEPS = [
   { id: 2, label: 'CUENTA' },
   { id: 3, label: 'PERFIL' },
-  { id: 4, label: 'SKILLS' },
+  { id: 4, label: 'HABILIDADES' },
   { id: 5, label: 'ZONA' },
   { id: 6, label: 'DOCS' },
 ];
@@ -169,10 +169,6 @@ export default function ProviderOnboardingWizard() {
       if (savedData.workZoneCoords) setWorkZoneCoords(savedData.workZoneCoords);
       if (savedData.workZoneRadius) setWorkZoneRadius(savedData.workZoneRadius);
       if (savedData.availability) setAvailability(savedData.availability);
-      
-      toast.info('Progreso restaurado', {
-        description: 'Continuamos donde lo dejaste'
-      });
     }
   }, [loadFormData]);
 
