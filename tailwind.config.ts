@@ -17,6 +17,7 @@ export default {
         'dillan': ['Made Dillan', 'sans-serif'],
         'hero': ['Outfit', 'sans-serif'],
         'urbanist': ['Urbanist', 'sans-serif'],
+        'audiowide': ['Audiowide', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
