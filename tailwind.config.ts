@@ -16,6 +16,7 @@ export default {
       fontFamily: {
         'dillan': ['Made Dillan', 'sans-serif'],
         'hero': ['Outfit', 'sans-serif'],
+        'urbanist': ['Urbanist', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
