@@ -6,7 +6,6 @@ import { AISearchBar } from "@/components/AISearchBar";
 import { useAuth } from "@/contexts/AuthContext";
 import { CategoryTabs } from "@/components/CategoryTabs";
 import { SavedJobBanner } from "@/components/SavedJobBanner";
-import { HeroParticles } from "@/components/HeroParticles";
 import moneyBagIcon from "@/assets/money-bag-icon.png";
 
 const Hero = () => {
@@ -28,8 +27,6 @@ const Hero = () => {
             transition={{ duration: 0.6, ease: "easeOut" }}
             className="relative rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] border border-primary-foreground/20 bg-primary"
           >
-            {/* Particles Background */}
-            <HeroParticles />
             
             {/* Main Content */}
             <div className="relative z-10 p-6 md:p-8 lg:p-10 xl:p-12 max-w-4xl mx-auto">
