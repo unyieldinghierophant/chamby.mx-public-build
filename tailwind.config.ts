@@ -19,6 +19,7 @@ export default {
         'urbanist': ['Urbanist', 'sans-serif'],
         'audiowide': ['Audiowide', 'sans-serif'],
         'sf-pro': ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
+        'jakarta': ['Plus Jakarta Sans', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
