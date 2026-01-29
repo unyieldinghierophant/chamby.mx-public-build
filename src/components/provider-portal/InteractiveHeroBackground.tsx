@@ -335,6 +335,20 @@ const InteractiveHeroBackground = ({
       {/* Deep blue gradient base */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-[hsl(221,83%,40%)]" />
       
+      {/* Animated gradient overlay - subtle blue aurora effect */}
+      <div 
+        className="absolute inset-0 opacity-15 pointer-events-none"
+        style={{
+          background: `
+            radial-gradient(ellipse 80% 50% at 20% 40%, hsl(214 80% 55% / 0.5), transparent 50%),
+            radial-gradient(ellipse 60% 40% at 80% 60%, hsl(214 80% 30% / 0.4), transparent 50%),
+            radial-gradient(ellipse 50% 60% at 50% 85%, hsl(221 83% 45% / 0.35), transparent 45%)
+          `,
+          backgroundSize: '200% 200%',
+          animation: 'gradient-shift 25s ease-in-out infinite',
+        }}
+      />
+      
       {/* Subtle radial overlay for depth */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.2)_100%)]" />
       
