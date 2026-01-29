@@ -6,13 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { PaymentStatusBadge } from '@/components/PaymentStatusBadge';
 import { getVisitFeeStatus, getInvoiceStatus } from '@/utils/jobPaymentStatus';
 import { useCompleteFirstVisit } from '@/hooks/useCompleteFirstVisit';
-import { ArrowLeft, Phone, Mail, MapPin, Calendar, Clock, Search, Image, Wallet, AlertTriangle, CheckCircle, XCircle, Loader2, User, DollarSign } from 'lucide-react';
+import { ArrowLeft, Phone, Mail, MapPin, Calendar, Clock, Search, Image, Wallet, AlertTriangle, CheckCircle, XCircle, Loader2, User, DollarSign, Shield, FileText, Eye } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -34,10 +35,8 @@ interface JobWithClient {
   created_at: string | null;
   client_id: string;
   provider_id: string | null;
-  // Payment status fields
   stripe_visit_payment_intent_id: string | null;
   visit_fee_paid: boolean | null;
-  // Double confirmation fields
   provider_confirmed_visit: boolean | null;
   client_confirmed_visit: boolean | null;
   visit_confirmation_deadline: string | null;
@@ -58,23 +57,52 @@ interface JobWithClient {
   } | null;
 }
 
+interface PendingVerification {
+  id: string;
+  user_id: string;
+  verification_status: string;
+  admin_notes: string | null;
+  created_at: string;
+  user: {
+    full_name: string | null;
+    email: string | null;
+    phone: string | null;
+  };
+  provider: {
+    display_name: string | null;
+    skills: string[] | null;
+    zone_served: string | null;
+  };
+  documents: {
+    id: string;
+    doc_type: string;
+    file_url: string | null;
+    verification_status: string;
+  }[];
+}
+
 const AdminDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [jobs, setJobs] = useState<JobWithClient[]>([]);
   const [disputedJobs, setDisputedJobs] = useState<JobWithClient[]>([]);
+  const [pendingVerifications, setPendingVerifications] = useState<PendingVerification[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [activeTab, setActiveTab] = useState('jobs');
   const [resolvingJobId, setResolvingJobId] = useState<string | null>(null);
+  const [processingVerification, setProcessingVerification] = useState<string | null>(null);
+  const [adminNotes, setAdminNotes] = useState<Record<string, string>>({});
   
   const { adminResolveCapture, adminResolveRelease } = useCompleteFirstVisit();
 
   useEffect(() => {
     fetchJobs();
     fetchDisputedJobs();
+    fetchPendingVerifications();
   }, []);
+
 
   const fetchJobs = async () => {
     try {
@@ -154,6 +182,186 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchPendingVerifications = async () => {
+    try {
+      // Fetch provider_details with pending or recently updated status
+      const { data: providerDetails, error } = await supabase
+        .from('provider_details')
+        .select('id, user_id, verification_status, admin_notes, created_at')
+        .in('verification_status', ['pending', 'rejected'])
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Fetch related user, provider, and documents for each
+      const verificationsWithDetails = await Promise.all(
+        (providerDetails || []).map(async (detail) => {
+          const [userResult, providerResult, docsResult] = await Promise.all([
+            supabase.from('users').select('full_name, email, phone').eq('id', detail.user_id).maybeSingle(),
+            supabase.from('providers').select('display_name, skills, zone_served').eq('user_id', detail.user_id).maybeSingle(),
+            supabase.from('documents').select('id, doc_type, file_url, verification_status').eq('provider_id', detail.user_id)
+          ]);
+
+          return {
+            ...detail,
+            user: userResult.data || { full_name: null, email: null, phone: null },
+            provider: providerResult.data || { display_name: null, skills: null, zone_served: null },
+            documents: docsResult.data || []
+          };
+        })
+      );
+
+      setPendingVerifications(verificationsWithDetails);
+    } catch (error) {
+      console.error('Error fetching pending verifications:', error);
+    }
+  };
+
+  const handleApproveProvider = async (userId: string) => {
+    setProcessingVerification(userId);
+    try {
+      const notes = adminNotes[userId] || null;
+
+      // Update provider_details
+      const { error: detailsError } = await supabase
+        .from('provider_details')
+        .update({ 
+          verification_status: 'verified',
+          admin_notes: notes 
+        })
+        .eq('user_id', userId);
+
+      if (detailsError) throw detailsError;
+
+      // Update providers.verified
+      const { error: providerError } = await supabase
+        .from('providers')
+        .update({ verified: true })
+        .eq('user_id', userId);
+
+      if (providerError) throw providerError;
+
+      // Update all documents to verified
+      const { error: docsError } = await supabase
+        .from('documents')
+        .update({ verification_status: 'verified' })
+        .eq('provider_id', userId);
+
+      if (docsError) throw docsError;
+
+      toast.success('Proveedor aprobado', {
+        description: 'El proveedor ha sido verificado exitosamente.'
+      });
+
+      fetchPendingVerifications();
+    } catch (error) {
+      console.error('Error approving provider:', error);
+      toast.error('Error al aprobar', {
+        description: 'No se pudo aprobar al proveedor.'
+      });
+    } finally {
+      setProcessingVerification(null);
+    }
+  };
+
+  const handleRejectProvider = async (userId: string) => {
+    const notes = adminNotes[userId];
+    if (!notes || notes.trim() === '') {
+      toast.error('Notas requeridas', {
+        description: 'Por favor proporciona una razón para el rechazo.'
+      });
+      return;
+    }
+
+    setProcessingVerification(userId);
+    try {
+      // Update provider_details
+      const { error: detailsError } = await supabase
+        .from('provider_details')
+        .update({ 
+          verification_status: 'rejected',
+          admin_notes: notes 
+        })
+        .eq('user_id', userId);
+
+      if (detailsError) throw detailsError;
+
+      // Update providers.verified to false
+      const { error: providerError } = await supabase
+        .from('providers')
+        .update({ verified: false })
+        .eq('user_id', userId);
+
+      if (providerError) throw providerError;
+
+      // Update all documents to rejected
+      const { error: docsError } = await supabase
+        .from('documents')
+        .update({ 
+          verification_status: 'rejected',
+          rejection_reason: notes
+        })
+        .eq('provider_id', userId);
+
+      if (docsError) throw docsError;
+
+      toast.success('Proveedor rechazado', {
+        description: 'Se ha notificado al proveedor sobre el rechazo.'
+      });
+
+      setAdminNotes(prev => ({ ...prev, [userId]: '' }));
+      fetchPendingVerifications();
+    } catch (error) {
+      console.error('Error rejecting provider:', error);
+      toast.error('Error al rechazar', {
+        description: 'No se pudo rechazar al proveedor.'
+      });
+    } finally {
+      setProcessingVerification(null);
+    }
+  };
+
+  const getSignedUrl = async (filePath: string) => {
+    // Extract the path after the bucket name
+    const { data, error } = await supabase.storage
+      .from('user-documents')
+      .createSignedUrl(filePath.replace('user-documents/', ''), 3600);
+    
+    if (error) {
+      console.error('Error getting signed URL:', error);
+      return null;
+    }
+    return data.signedUrl;
+  };
+
+  const handleViewDocument = async (fileUrl: string | null) => {
+    if (!fileUrl) {
+      toast.error('Documento no disponible');
+      return;
+    }
+
+    // If it's already a full URL, open it
+    if (fileUrl.startsWith('http')) {
+      window.open(fileUrl, '_blank');
+      return;
+    }
+
+    // Otherwise get a signed URL
+    const signedUrl = await getSignedUrl(fileUrl);
+    if (signedUrl) {
+      window.open(signedUrl, '_blank');
+    } else {
+      toast.error('No se pudo obtener el documento');
+    }
+  };
+
+  const documentTypeLabels: Record<string, string> = {
+    'face_photo': 'Foto de Rostro',
+    'id_front': 'INE Frente',
+    'id_back': 'INE Reverso',
+    'id_card': 'INE/ID',
+    'criminal_record': 'Carta de Antecedentes',
+  }
   const handleResolveCapture = async (jobId: string) => {
     setResolvingJobId(jobId);
     try {
@@ -265,17 +473,26 @@ const AdminDashboard = () => {
       {/* Tabs */}
       <div className="container mx-auto px-4 py-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
+          <TabsList className="grid w-full grid-cols-3 mb-4">
             <TabsTrigger value="jobs" className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
-              <span>Trabajos</span>
+              <span className="hidden sm:inline">Trabajos</span>
               <Badge variant="secondary" className="ml-1 text-xs">{filteredJobs.length}</Badge>
             </TabsTrigger>
             <TabsTrigger value="disputes" className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4" />
-              <span>Disputas</span>
+              <span className="hidden sm:inline">Disputas</span>
               {disputedJobs.length > 0 && (
                 <Badge variant="destructive" className="ml-1 text-xs">{disputedJobs.length}</Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="verifications" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              <span className="hidden sm:inline">Verificaciones</span>
+              {pendingVerifications.filter(v => v.verification_status === 'pending').length > 0 && (
+                <Badge variant="default" className="ml-1 text-xs animate-pulse">
+                  {pendingVerifications.filter(v => v.verification_status === 'pending').length}
+                </Badge>
               )}
             </TabsTrigger>
           </TabsList>
@@ -601,6 +818,175 @@ const AdminDashboard = () => {
                       <strong>Cobrar:</strong> El proveedor completó la visita correctamente. 
                       <strong className="ml-2">Liberar:</strong> El cliente tiene razón, devolver fondos.
                     </p>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </TabsContent>
+
+          {/* Verifications Tab */}
+          <TabsContent value="verifications" className="space-y-4">
+            {pendingVerifications.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4 opacity-50" />
+                  <p className="text-muted-foreground font-medium">No hay verificaciones pendientes</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Todos los proveedores han sido revisados
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              pendingVerifications.map((verification) => (
+                <Card key={verification.id} className="overflow-hidden">
+                  <CardHeader className="bg-muted/30 pb-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <User className="h-4 w-4 text-primary flex-shrink-0" />
+                          <CardTitle className="text-base sm:text-lg truncate">
+                            {verification.user.full_name || verification.provider.display_name || 'Sin nombre'}
+                          </CardTitle>
+                        </div>
+                        <CardDescription className="text-xs sm:text-sm space-y-1">
+                          <div className="flex items-center gap-2">
+                            <Mail className="h-3 w-3" />
+                            <span>{verification.user.email || 'Sin email'}</span>
+                          </div>
+                          {verification.user.phone && (
+                            <div className="flex items-center gap-2">
+                              <Phone className="h-3 w-3" />
+                              <a href={`tel:${verification.user.phone}`} className="text-primary hover:underline">
+                                {verification.user.phone}
+                              </a>
+                            </div>
+                          )}
+                        </CardDescription>
+                      </div>
+                      <Badge 
+                        variant={verification.verification_status === 'pending' ? 'secondary' : 'destructive'}
+                        className="flex-shrink-0"
+                      >
+                        {verification.verification_status === 'pending' ? 'Pendiente' : 'Rechazado'}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-4 space-y-4">
+                    {/* Provider Info */}
+                    {(verification.provider.skills?.length || verification.provider.zone_served) && (
+                      <div className="bg-muted/30 rounded-lg p-3 space-y-2">
+                        {verification.provider.skills && verification.provider.skills.length > 0 && (
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1">Habilidades:</p>
+                            <div className="flex flex-wrap gap-1">
+                              {verification.provider.skills.map((skill, idx) => (
+                                <Badge key={idx} variant="outline" className="text-xs">
+                                  {skill}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {verification.provider.zone_served && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <MapPin className="h-3 w-3 text-muted-foreground" />
+                            <span>{verification.provider.zone_served}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Documents */}
+                    <div>
+                      <p className="font-medium text-sm mb-2 flex items-center gap-2">
+                        <FileText className="h-4 w-4" />
+                        Documentos ({verification.documents.length})
+                      </p>
+                      {verification.documents.length === 0 ? (
+                        <p className="text-xs text-muted-foreground">No hay documentos subidos</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {verification.documents.map((doc) => (
+                            <div 
+                              key={doc.id} 
+                              className="flex items-center justify-between p-2 bg-muted/20 rounded-lg"
+                            >
+                              <div className="flex items-center gap-2">
+                                <FileText className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm">
+                                  {documentTypeLabels[doc.doc_type] || doc.doc_type}
+                                </span>
+                                <Badge 
+                                  variant={doc.verification_status === 'verified' ? 'default' : 
+                                           doc.verification_status === 'rejected' ? 'destructive' : 'secondary'}
+                                  className="text-xs"
+                                >
+                                  {doc.verification_status === 'verified' ? '✓' : 
+                                   doc.verification_status === 'rejected' ? '✗' : '⏳'}
+                                </Badge>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleViewDocument(doc.file_url)}
+                                className="h-8"
+                              >
+                                <Eye className="h-4 w-4 mr-1" />
+                                Ver
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Admin Notes */}
+                    <div>
+                      <p className="text-sm font-medium mb-2">Notas para el proveedor (requerido para rechazar):</p>
+                      <Textarea
+                        placeholder="Ej: La foto del INE está borrosa, por favor sube una foto más clara..."
+                        value={adminNotes[verification.user_id] || ''}
+                        onChange={(e) => setAdminNotes(prev => ({
+                          ...prev,
+                          [verification.user_id]: e.target.value
+                        }))}
+                        className="min-h-[80px]"
+                      />
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                      <Button
+                        onClick={() => handleApproveProvider(verification.user_id)}
+                        disabled={processingVerification === verification.user_id}
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        {processingVerification === verification.user_id ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                        )}
+                        Aprobar Proveedor
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => handleRejectProvider(verification.user_id)}
+                        disabled={processingVerification === verification.user_id}
+                        className="flex-1 border-red-300 text-red-600 hover:bg-red-50"
+                      >
+                        {processingVerification === verification.user_id ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <XCircle className="h-4 w-4 mr-2" />
+                        )}
+                        Rechazar
+                      </Button>
+                    </div>
+
+                    {/* Metadata */}
+                    <div className="text-xs text-muted-foreground pt-2 border-t">
+                      Registrado: {verification.created_at && format(new Date(verification.created_at), "d MMM yyyy", { locale: es })}
+                    </div>
                   </CardContent>
                 </Card>
               ))

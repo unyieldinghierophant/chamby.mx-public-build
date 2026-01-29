@@ -3,41 +3,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Circle, Upload, UserCheck, Award } from "lucide-react";
+import { CheckCircle, Circle, Upload, UserCheck, Award, ArrowLeft, Clock, XCircle, FileText } from "lucide-react";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { DocumentUploadDialog } from "@/components/provider-portal/DocumentUploadDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-
-const verificationSteps = [
-  {
-    id: 1,
-    title: "Subir foto de rostro",
-    description: "Una foto clara de tu rostro para identificación",
-    icon: Upload,
-  },
-  {
-    id: 2,
-    title: "Subir INE y carta de antecedentes",
-    description: "Documentos oficiales para verificación de identidad",
-    icon: Upload,
-  },
-  {
-    id: 3,
-    title: "Completar entrevista presencial",
-    description: "Una breve entrevista con nuestro equipo",
-    icon: UserCheck,
-  },
-  {
-    id: 4,
-    title: "Completar 5 trabajos con calificación positiva",
-    description: "Demuestra tu calidad de servicio",
-    icon: Award,
-  },
-];
+import { useNavigate } from "react-router-dom";
 
 const ProviderVerification = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { profile: providerProfile } = useProviderProfile(user?.id);
   const [uploadDialog, setUploadDialog] = useState<{
     open: boolean;
@@ -48,6 +23,10 @@ const ProviderVerification = () => {
   const [documents, setDocuments] = useState<any[]>([]);
   const [completedJobs, setCompletedJobs] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [verificationDetails, setVerificationDetails] = useState<{
+    status: string;
+    admin_notes: string | null;
+  }>({ status: 'pending', admin_notes: null });
 
   const isVerified = providerProfile?.verification_status === "verified";
 
@@ -77,6 +56,20 @@ const ProviderVerification = () => {
         .eq("status", "completed");
 
       setCompletedJobs(jobs?.length || 0);
+
+      // Fetch provider_details for verification status and notes
+      const { data: details } = await supabase
+        .from("provider_details")
+        .select("verification_status, admin_notes")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (details) {
+        setVerificationDetails({
+          status: details.verification_status || 'pending',
+          admin_notes: details.admin_notes
+        });
+      }
     } catch (error) {
       console.error("Error fetching verification data:", error);
     } finally {
@@ -88,11 +81,16 @@ const ProviderVerification = () => {
     return documents.some((doc) => doc.doc_type === docType);
   };
 
+  const getDocumentStatus = (docType: string) => {
+    const doc = documents.find((d) => d.doc_type === docType);
+    return doc?.verification_status || null;
+  };
+
   const calculateProgress = () => {
     if (isVerified) return 100;
     let progress = 0;
     if (hasDocument("face_photo")) progress += 25;
-    if (hasDocument("id_card")) progress += 25;
+    if (hasDocument("id_card") || hasDocument("id_front")) progress += 25;
     if (hasDocument("criminal_record")) progress += 25;
     if (completedJobs >= 5) progress += 25;
     return progress;
@@ -104,19 +102,78 @@ const ProviderVerification = () => {
     setUploadDialog({ open: true, docType, title, description });
   };
 
+  const documentTypes: Record<string, string> = {
+    'id_card': 'INE/ID',
+    'id_front': 'INE Frente',
+    'id_back': 'INE Reverso',
+    'criminal_record': 'Carta de Antecedentes',
+    'face_photo': 'Foto del Rostro',
+  };
+
   return (
     <div className="container mx-auto p-4 lg:p-6 space-y-6 max-w-4xl">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">Verificación</h1>
-        <p className="text-muted-foreground">
-          Completa tu proceso de verificación para desbloquear beneficios
-        </p>
+      {/* Header with Back Button */}
+      <div className="flex items-center gap-4">
+        <Button 
+          variant="ghost" 
+          size="icon"
+          onClick={() => navigate('/provider-portal')}
+          className="shrink-0"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div>
+          <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Verificación</h1>
+          <p className="text-muted-foreground text-sm">
+            Completa tu proceso de verificación para desbloquear beneficios
+          </p>
+        </div>
       </div>
+
+      {/* Status Banner */}
+      {verificationDetails.status === 'rejected' && verificationDetails.admin_notes && (
+        <Card className="border-destructive/50 bg-destructive/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-destructive text-base">
+              <XCircle className="h-5 w-5" />
+              Verificación Rechazada
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-destructive/80">
+              <strong>Razón:</strong> {verificationDetails.admin_notes}
+            </p>
+            <Button 
+              className="mt-3" 
+              size="sm"
+              onClick={() => navigate('/provider-onboarding')}
+            >
+              Actualizar Documentos
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {verificationDetails.status === 'pending' && documents.length > 0 && (
+        <Card className="border-amber-500/50 bg-amber-500/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-amber-700 dark:text-amber-400 text-base">
+              <Clock className="h-5 w-5" />
+              Verificación en Revisión
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Tu perfil está siendo revisado por el equipo de Chamby. Te notificaremos cuando tengamos una respuesta.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {isVerified && (
         <Card className="border-green-500/50 bg-green-500/5">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-green-700">
+            <CardTitle className="flex items-center gap-2 text-green-700 dark:text-green-400">
               <CheckCircle className="h-5 w-5" />
               ¡Proveedor Verificado!
             </CardTitle>
@@ -125,6 +182,39 @@ const ProviderVerification = () => {
             <p className="text-sm text-muted-foreground">
               Has completado exitosamente el proceso de verificación.
             </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Documents Status */}
+      {documents.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Estado de Documentos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {documents.map((doc) => (
+                <div key={doc.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">
+                      {documentTypes[doc.doc_type] || doc.doc_type}
+                    </span>
+                  </div>
+                  <Badge 
+                    variant={doc.verification_status === 'verified' ? 'default' : 
+                             doc.verification_status === 'rejected' ? 'destructive' : 'secondary'}
+                  >
+                    {doc.verification_status === 'verified' ? 'Verificado' :
+                     doc.verification_status === 'rejected' ? 'Rechazado' : 'En Revisión'}
+                  </Badge>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}
@@ -183,7 +273,7 @@ const ProviderVerification = () => {
             {/* Step 2: ID Card */}
             <div className="flex items-start gap-4 p-4 border rounded-lg">
               <div className="mt-1">
-                {hasDocument("id_card") ? (
+                {hasDocument("id_card") || hasDocument("id_front") ? (
                   <CheckCircle className="h-6 w-6 text-green-600" />
                 ) : (
                   <Circle className="h-6 w-6 text-muted-foreground" />
@@ -194,13 +284,13 @@ const ProviderVerification = () => {
                 <p className="text-sm text-muted-foreground">
                   Identificación oficial para verificación
                 </p>
-                {hasDocument("id_card") && (
+                {(hasDocument("id_card") || hasDocument("id_front")) && (
                   <Badge className="bg-green-500/10 text-green-700">
                     Completado
                   </Badge>
                 )}
               </div>
-              {!hasDocument("id_card") && !isVerified && (
+              {!hasDocument("id_card") && !hasDocument("id_front") && !isVerified && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -346,3 +436,4 @@ const ProviderVerification = () => {
 };
 
 export default ProviderVerification;
+
