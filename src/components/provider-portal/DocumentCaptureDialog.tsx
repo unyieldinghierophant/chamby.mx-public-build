@@ -228,10 +228,25 @@ export const DocumentCaptureDialog = ({
   }, [open, stopCamera]);
 
   const handleUpload = async () => {
-    if (!capturedImage || !user) return;
+    if (!capturedImage || !user) {
+      toast.error("Error de sesión", {
+        description: "Por favor inicia sesión nuevamente"
+      });
+      return;
+    }
 
     setUploading(true);
     try {
+      // Verify we have a valid session before uploading
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Sesión expirada", {
+          description: "Por favor recarga la página e inicia sesión nuevamente"
+        });
+        setUploading(false);
+        return;
+      }
+
       // Convert base64 to blob
       const response = await fetch(capturedImage);
       const blob = await response.blob();
@@ -278,7 +293,23 @@ export const DocumentCaptureDialog = ({
       onOpenChange(false);
     } catch (error: any) {
       console.error("Error uploading document:", error);
-      toast.error("Error al subir documento");
+      
+      // Provide specific error messages based on error type
+      let errorMessage = "Ocurrió un error inesperado";
+      
+      if (error?.message?.includes('Unauthorized') || error?.message?.includes('JWT') || error?.message?.includes('expired')) {
+        errorMessage = "Tu sesión ha expirado. Por favor recarga la página e inicia sesión nuevamente.";
+      } else if (error?.message?.includes('exceeded') || error?.message?.includes('size') || error?.message?.includes('too large')) {
+        errorMessage = "El archivo es demasiado grande. Máximo 5MB permitido.";
+      } else if (error?.message?.includes('policy') || error?.statusCode === 403 || error?.status === 403) {
+        errorMessage = "No tienes permiso para subir este archivo. Intenta cerrar sesión y volver a iniciar.";
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error("Error al subir documento", {
+        description: errorMessage
+      });
     } finally {
       setUploading(false);
     }
