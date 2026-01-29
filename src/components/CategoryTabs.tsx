@@ -97,7 +97,12 @@ export const CategoryTabs = () => {
                   )}
                 >
                   <motion.div 
-                    className="w-14 h-14 md:w-24 md:h-24 flex items-center justify-center"
+                    className={cn(
+                      "flex items-center justify-center",
+                      category.id === 'plumbing' 
+                        ? "w-28 h-28 md:w-48 md:h-48" 
+                        : "w-14 h-14 md:w-24 md:h-24"
+                    )}
                     whileHover={{ scale: 1.1, rotate: 3 }}
                     transition={{ type: "spring", stiffness: 300 }}
                   >
