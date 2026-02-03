@@ -133,14 +133,14 @@ export const CategoryTabs = () => {
                   )}
                 >
                   <motion.div 
-                    className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center"
+                    className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center overflow-visible"
                     whileHover={{ scale: 1.1 }}
                     transition={{ type: "spring", stiffness: 300 }}
                   >
                     <img 
                       src={category.icon} 
                       alt={category.name} 
-                      className="w-[300%] h-[300%] object-contain"
+                      className="w-32 h-32 md:w-40 md:h-40 object-contain"
                       style={{ imageRendering: 'auto' }}
                     />
                   </motion.div>
