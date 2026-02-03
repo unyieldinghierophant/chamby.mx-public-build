@@ -214,10 +214,10 @@ export const AISearchBar = ({ className }: { className?: string }) => {
       <form onSubmit={handleSearch}>
         <div className="relative">
           {/* Pill-shaped container with border */}
-          <div className="relative flex items-center h-11 sm:h-12 md:h-14 bg-background border border-border rounded-full overflow-hidden">
+          <div className="relative flex items-center h-12 sm:h-14 md:h-16 bg-background border border-border rounded-full overflow-hidden shadow-sm">
             {/* Search icon on left */}
-            <div className="absolute left-3 sm:left-4 flex items-center">
-              <Search className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
+            <div className="absolute left-4 sm:left-5 flex items-center">
+              <Search className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground" />
             </div>
 
             {/* Input field */}
@@ -233,7 +233,7 @@ export const AISearchBar = ({ className }: { className?: string }) => {
               onFocus={() => setIsOpen(true)}
               disabled={isLoading}
               className={cn(
-                "h-full w-full pl-10 sm:pl-12 pr-16 sm:pr-20 text-base border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0",
+                "h-full w-full pl-11 sm:pl-14 pr-16 sm:pr-24 text-base sm:text-lg border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0",
                 fade ? "placeholder:opacity-100" : "placeholder:opacity-0",
                 "placeholder:transition-opacity placeholder:duration-300"
               )}
@@ -244,12 +244,12 @@ export const AISearchBar = ({ className }: { className?: string }) => {
             <Button
               type="submit"
               disabled={isLoading}
-              className="absolute right-0 top-0 h-full rounded-l-none rounded-r-full bg-primary hover:bg-primary/90 text-primary-foreground px-4 sm:px-6"
+              className="absolute right-0 top-0 h-full rounded-l-none rounded-r-full bg-primary hover:bg-primary/90 text-primary-foreground px-5 sm:px-8"
             >
               {isLoading ? (
-                <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+                <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" />
               ) : (
-                <Search className="w-4 h-4 sm:w-5 sm:h-5" />
+                <Search className="w-5 h-5 sm:w-6 sm:h-6" />
               )}
             </Button>
           </div>
