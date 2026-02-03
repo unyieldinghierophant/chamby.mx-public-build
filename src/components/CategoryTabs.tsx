@@ -153,7 +153,7 @@ export const CategoryTabs = () => {
           </TabsList>
           
           {/* Underline with active indicator */}
-          <div className="relative mt-2">
+          <div className="relative mt-2 pl-4">
             {/* Base line */}
             <div className="w-full h-[1px] bg-border" />
             {/* Active indicator */}
