@@ -97,7 +97,7 @@ export const CategoryTabs = () => {
                   )}
                 >
                   <motion.div 
-                    className="w-56 h-56 md:w-96 md:h-96 flex items-center justify-center"
+                    className="w-56 h-28 md:w-96 md:h-48 flex items-center justify-center"
                     whileHover={{ scale: 1.1, rotate: 3 }}
                     transition={{ type: "spring", stiffness: 300 }}
                   >
