@@ -116,26 +116,26 @@ const Hero = () => {
                 transition={{ delay: 0.4, duration: 0.5 }}
               >
                 <AISearchBar className="w-full" />
-                
-                {/* Gana dinero CTA */}
-                <motion.div 
-                  className="mt-4"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6, duration: 0.4 }}
-                >
-                  <Link to="/provider-landing">
-                    <ModernButton 
-                      variant="outline" 
-                      className="w-full bg-white/10 text-white border-white/25 hover:bg-white/20 hover:border-white/40 flex items-center justify-center gap-2 transition-all duration-300"
-                    >
-                      <img src={moneyBagIcon} alt="Money bag" className="w-10 h-10" />
-                      Gana dinero como Chambynauta
-                    </ModernButton>
-                  </Link>
-                </motion.div>
               </motion.div>
             </div>
+          </motion.div>
+
+          {/* Gana dinero CTA - Between hero card and categories */}
+          <motion.div 
+            className="mt-6 max-w-sm sm:max-w-md md:max-w-xl lg:max-w-2xl mx-auto px-2 sm:px-4"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.4 }}
+          >
+            <Link to="/provider-landing">
+              <ModernButton 
+                variant="outline" 
+                className="w-full bg-primary/5 text-primary border-primary/25 hover:bg-primary/10 hover:border-primary/40 flex items-center justify-center gap-2 transition-all duration-300"
+              >
+                <img src={moneyBagIcon} alt="Money bag" className="w-10 h-10" />
+                Gana dinero como Chambynauta
+              </ModernButton>
+            </Link>
           </motion.div>
 
           {/* Categories Section with Staggered Animation */}
