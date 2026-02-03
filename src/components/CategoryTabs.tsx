@@ -64,22 +64,22 @@ export const CategoryTabs = () => {
       <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
         {/* Category Tabs - Horizontal scroll layout */}
         <div className="w-full">
-          <TabsList className="w-full h-auto bg-background p-3 md:p-4 rounded-2xl flex gap-4 md:gap-6 overflow-x-auto scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent pb-2">
+          <TabsList className="w-full h-auto bg-background p-3 md:p-4 rounded-2xl flex gap-4 md:gap-6 overflow-x-auto scrollbar-always-visible pb-4">
             {categories.map((category, index) => (
-              <motion.div
-                key={category.id}
-                initial={{ opacity: 0, y: 30 }}
-                animate={isInView ? { 
-                  opacity: 1, 
-                  y: 0,
-                } : { opacity: 0, y: 30 }}
-                transition={{
-                  delay: index * 0.1,
-                  duration: 0.4,
-                  ease: [0.25, 0.46, 0.45, 0.94],
-                }}
-                className="flex-shrink-0"
-              >
+                <motion.div
+                  key={category.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={isInView ? { 
+                    opacity: 1, 
+                    y: 0,
+                  } : { opacity: 0, y: 30 }}
+                  transition={{
+                    delay: index * 0.1,
+                    duration: 0.4,
+                    ease: [0.25, 0.46, 0.45, 0.94],
+                  }}
+                  className="flex-shrink-0 overflow-visible"
+                >
                 <TabsTrigger
                   value={category.id}
                   className={cn(
@@ -92,7 +92,7 @@ export const CategoryTabs = () => {
                   )}
                 >
                   <motion.div 
-                    className="w-20 h-20 md:w-28 md:h-28 flex items-center justify-center"
+                    className="w-[7.5rem] h-[7.5rem] md:w-[10.5rem] md:h-[10.5rem] flex items-center justify-center overflow-visible"
                     whileHover={{ scale: 1.1 }}
                     transition={{ type: "spring", stiffness: 300 }}
                   >
