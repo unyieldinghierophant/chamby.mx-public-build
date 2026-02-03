@@ -5,35 +5,31 @@ export interface ServiceOption {
 
 export const categoryServicesMap: Record<string, ServiceOption[]> = {
   "Handyman": [
-    { name: "Instalación de muebles", description: "Armado e instalación de muebles, estantes y gabinetes" },
-    { name: "Colgar cuadros y TV", description: "Montaje seguro de cuadros, espejos y televisores" },
-    { name: "Reparación de puertas", description: "Ajuste, reparación y cambio de puertas" },
-    { name: "Instalación de repisas", description: "Colocación de repisas y estanterías" },
-    { name: "Instalación de cortinas", description: "Montaje de barras y colocación de cortinas" },
-    { name: "Otros servicios", description: "Describe el servicio que necesitas" }
+    { name: "Armado de Muebles", description: "Armado e instalación de muebles, estantes y gabinetes" },
+    { name: "Montaje de TV", description: "Montaje seguro de cuadros, espejos y televisores" },
+    { name: "Reparación de Puertas", description: "Ajuste, reparación y cambio de puertas" },
+    { name: "Repisas y Estantes", description: "Colocación de repisas y estanterías" },
+    { name: "Otros Servicios", description: "Describe el servicio que necesitas" }
   ],
   "Electricidad": [
-    { name: "Instalación de enchufes", description: "Instalación y cambio de tomacorrientes" },
-    { name: "Cambio de interruptores", description: "Reemplazo de interruptores y apagadores" },
-    { name: "Instalación de lámparas", description: "Colocación de lámparas y luminarias" },
-    { name: "Reparación de breakers", description: "Revisión y cambio de interruptores automáticos" },
-    { name: "Instalación de ventiladores", description: "Montaje de ventiladores de techo" },
-    { name: "Otros servicios", description: "Describe el servicio que necesitas" }
+    { name: "Instalación de Enchufes", description: "Instalación y cambio de tomacorrientes" },
+    { name: "Interruptores", description: "Reemplazo de interruptores y apagadores" },
+    { name: "Lámparas y Luces", description: "Colocación de lámparas y luminarias" },
+    { name: "Ventiladores de Techo", description: "Montaje de ventiladores de techo" },
+    { name: "Otros Servicios", description: "Describe el servicio que necesitas" }
   ],
   "Fontanería": [
-    { name: "Reparación de grifos", description: "Arreglo de llaves y grifos con fugas" },
-    { name: "Destape de cañerías", description: "Limpieza y destape de tuberías obstruidas" },
-    { name: "Reparación de inodoros", description: "Arreglo de fallas en sanitarios" },
-    { name: "Instalación de regaderas", description: "Montaje de regaderas y duchas" },
-    { name: "Reparación de fugas", description: "Detección y reparación de fugas de agua" },
-    { name: "Otros servicios", description: "Describe el servicio que necesitas" }
+    { name: "Reparación de Grifos", description: "Arreglo de llaves y grifos con fugas" },
+    { name: "Destape de Cañerías", description: "Limpieza y destape de tuberías obstruidas" },
+    { name: "Reparación de WC", description: "Arreglo de fallas en sanitarios" },
+    { name: "Instalación de Regaderas", description: "Montaje de regaderas y duchas" },
+    { name: "Otros Servicios", description: "Describe el servicio que necesitas" }
   ],
   "Auto y Lavado": [
-    { name: "Lavado básico", description: "Lavado exterior del vehículo" },
-    { name: "Lavado premium", description: "Lavado completo exterior e interior" },
-    { name: "Pulido y encerado", description: "Pulido y protección de pintura" },
-    { name: "Lavado de tapicería", description: "Limpieza profunda de asientos y tapiz" },
-    { name: "Cambio de batería", description: "Reemplazo de batería de vehículo" },
-    { name: "Otros servicios", description: "Describe el servicio que necesitas" }
+    { name: "Lavado Básico", description: "Lavado exterior del vehículo" },
+    { name: "Lavado Premium", description: "Lavado completo exterior e interior" },
+    { name: "Pulido y Encerado", description: "Pulido y protección de pintura" },
+    { name: "Limpieza de Tapicería", description: "Limpieza profunda de asientos y tapiz" },
+    { name: "Otros Servicios", description: "Describe el servicio que necesitas" }
   ]
 };
