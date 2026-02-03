@@ -48,9 +48,9 @@ export const CategoryTabs = () => {
       if (tabsListRef.current) {
         const activeTab = tabsListRef.current.querySelector(`[data-state="active"]`) as HTMLElement;
         if (activeTab) {
-          // Use offsetLeft which is relative to the parent, not viewport
-          // This works correctly regardless of scroll position
-          const activeCenter = activeTab.offsetLeft + (activeTab.offsetWidth / 2);
+          // Use offsetLeft and subtract scrollLeft to keep indicator aligned during scroll
+          const scrollLeft = tabsListRef.current.scrollLeft;
+          const activeCenter = activeTab.offsetLeft + (activeTab.offsetWidth / 2) - scrollLeft;
           setIndicatorStyle({
             left: activeCenter - 20,
             width: 40
@@ -63,7 +63,7 @@ export const CategoryTabs = () => {
     const timer = setTimeout(updateIndicator, 50);
     window.addEventListener('resize', updateIndicator);
     
-    // Also update on scroll of the tabs container
+    // Update on scroll of the tabs container
     const tabsList = tabsListRef.current;
     if (tabsList) {
       tabsList.addEventListener('scroll', updateIndicator);
