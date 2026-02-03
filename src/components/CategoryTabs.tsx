@@ -62,56 +62,63 @@ export const CategoryTabs = () => {
   return (
     <div ref={containerRef} className="w-full mx-auto">
       <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
-        {/* Category Tabs - 2 columns grid with scroll-triggered rise-up animation */}
+        {/* Category Tabs - Horizontal scroll layout */}
         <div className="w-full">
-          <TabsList className="w-full h-auto bg-background p-3 md:p-4 rounded-2xl grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
+          <TabsList className="w-full h-auto bg-background p-3 md:p-4 rounded-2xl flex gap-4 md:gap-6 overflow-x-auto scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent pb-2">
             {categories.map((category, index) => (
               <motion.div
                 key={category.id}
-                initial={{ opacity: 0, y: 50 }}
+                initial={{ opacity: 0, y: 30 }}
                 animate={isInView ? { 
                   opacity: 1, 
                   y: 0,
-                } : { opacity: 0, y: 50 }}
+                } : { opacity: 0, y: 30 }}
                 transition={{
-                  delay: index * 0.12,
-                  duration: 0.5,
-                  ease: [0.25, 0.46, 0.45, 0.94], // Custom easing for smooth rise
+                  delay: index * 0.1,
+                  duration: 0.4,
+                  ease: [0.25, 0.46, 0.45, 0.94],
                 }}
-                style={{
-                  willChange: 'transform, opacity',
-                }}
+                className="flex-shrink-0"
               >
                 <TabsTrigger
                   value={category.id}
                   className={cn(
-                    "flex flex-col items-center gap-2 md:gap-4 p-3 md:p-5 w-full",
-                    "data-[state=active]:bg-primary/10 data-[state=active]:text-primary",
-                    "text-foreground",
-                    "rounded-xl h-auto",
-                    "hover:shadow-md hover:scale-105 transition-all duration-300",
-                    "border border-transparent data-[state=active]:border-primary/30"
+                    "flex flex-col items-center gap-1.5 md:gap-2 p-2 md:p-3",
+                    "data-[state=active]:bg-transparent data-[state=active]:text-primary",
+                    "text-muted-foreground",
+                    "rounded-lg h-auto min-w-[70px] md:min-w-[90px]",
+                    "hover:text-primary transition-all duration-300",
+                    "border-b-2 border-transparent data-[state=active]:border-primary"
                   )}
                 >
                   <motion.div 
-                    className="w-56 h-28 md:w-96 md:h-48 flex items-center justify-center overflow-visible"
-                    whileHover={{ scale: 1.1, rotate: 3 }}
+                    className="w-10 h-10 md:w-14 md:h-14 flex items-center justify-center"
+                    whileHover={{ scale: 1.1 }}
                     transition={{ type: "spring", stiffness: 300 }}
                   >
                     <img 
                       src={category.icon} 
                       alt={category.name} 
-                      className="w-[28rem] h-[14rem] md:w-full md:h-full object-contain"
+                      className="w-full h-full object-contain"
                       style={{ imageRendering: 'auto' }}
                     />
                   </motion.div>
-                  <span className="text-sm md:text-lg font-medium text-center leading-tight">
+                  <span className="text-xs md:text-sm font-medium text-center leading-tight whitespace-nowrap">
                     {category.name}
                   </span>
                 </TabsTrigger>
               </motion.div>
             ))}
           </TabsList>
+          
+          {/* Scroll indicator */}
+          <div className="flex justify-center mt-2">
+            <div className="flex gap-1">
+              <div className="w-8 h-1 bg-primary/40 rounded-full"></div>
+              <div className="w-2 h-1 bg-muted-foreground/20 rounded-full"></div>
+              <div className="w-2 h-1 bg-muted-foreground/20 rounded-full"></div>
+            </div>
+          </div>
         </div>
 
         {/* Service Pills for Each Category */}
