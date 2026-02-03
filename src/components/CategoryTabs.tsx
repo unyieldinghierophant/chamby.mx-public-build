@@ -8,12 +8,10 @@ import categoryHandyman from '@/assets/category-handyman.png';
 import categoryElectrician from '@/assets/category-electrician.png';
 import categoryPlumbing from '@/assets/category-plumbing.png';
 import categoryAuto from '@/assets/category-auto.png';
-import medchargeIcon from '@/assets/medcharge-icon.png';
 import handymanHero from '@/assets/category-handyman-hero.jpg';
 import electricianHero from '@/assets/category-electrician-hero.jpg';
 import plumbingHero from '@/assets/category-plumbing-hero.jpg';
 import autoHero from '@/assets/category-auto-hero.jpg';
-import medusaHero from '@/assets/category-medusa-hero.png';
 import { cn } from '@/lib/utils';
 
 interface Category {
@@ -29,7 +27,6 @@ const categories: Category[] = [
   { id: 'electrician', name: 'Electricidad', icon: categoryElectrician, dataKey: 'Electricidad', heroImage: electricianHero },
   { id: 'plumbing', name: 'Fontanería', icon: categoryPlumbing, dataKey: 'Fontanería', heroImage: plumbingHero },
   { id: 'auto', name: 'Auto y Lavado', icon: categoryAuto, dataKey: 'Auto y Lavado', heroImage: autoHero },
-  { id: 'medusa', name: 'Medusa Energy', icon: medchargeIcon, dataKey: 'Medusa Energy', heroImage: medusaHero },
 ];
 
 export const CategoryTabs = () => {
@@ -222,18 +219,6 @@ export const CategoryTabs = () => {
                       </p>
                     </>
                   )}
-                  {category.id === 'medusa' && (
-                    <>
-                      <p className="text-sm flex items-start gap-2 text-muted-foreground">
-                        <span className="text-primary text-lg">✓</span>
-                        <span>Instalación profesional de cargadores para vehículos eléctricos.</span>
-                      </p>
-                      <p className="text-sm flex items-start gap-2 text-muted-foreground">
-                        <span className="text-primary text-lg">✓</span>
-                        <span><strong className="text-foreground">Ahora en tendencia:</strong> Energía solar residencial y sistemas de almacenamiento.</span>
-                      </p>
-                    </>
-                  )}
                 </div>
               </div>
 
@@ -297,18 +282,6 @@ export const CategoryTabs = () => {
                         <p className="text-base flex items-start gap-2">
                           <span className="text-primary text-lg">✓</span>
                           <span><strong>Ahora en tendencia:</strong> Detallado ecológico y protección cerámica.</span>
-                        </p>
-                      </>
-                    )}
-                    {category.id === 'medusa' && (
-                      <>
-                        <p className="text-base flex items-start gap-2">
-                          <span className="text-primary text-lg">✓</span>
-                          <span>Instalación profesional de cargadores para vehículos eléctricos.</span>
-                        </p>
-                        <p className="text-base flex items-start gap-2">
-                          <span className="text-primary text-lg">✓</span>
-                          <span><strong>Ahora en tendencia:</strong> Energía solar residencial y sistemas de almacenamiento.</span>
                         </p>
                       </>
                     )}
