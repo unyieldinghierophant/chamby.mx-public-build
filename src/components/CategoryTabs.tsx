@@ -48,10 +48,11 @@ export const CategoryTabs = () => {
       if (tabsListRef.current) {
         const activeTab = tabsListRef.current.querySelector(`[data-state="active"]`) as HTMLElement;
         if (activeTab) {
-          const tabsRect = tabsListRef.current.getBoundingClientRect();
-          const activeRect = activeTab.getBoundingClientRect();
+          // Use offsetLeft which is relative to the parent, not viewport
+          // This works correctly regardless of scroll position
+          const activeCenter = activeTab.offsetLeft + (activeTab.offsetWidth / 2);
           setIndicatorStyle({
-            left: activeRect.left - tabsRect.left + (activeRect.width / 2) - 20,
+            left: activeCenter - 20,
             width: 40
           });
         }
@@ -62,9 +63,18 @@ export const CategoryTabs = () => {
     const timer = setTimeout(updateIndicator, 50);
     window.addEventListener('resize', updateIndicator);
     
+    // Also update on scroll of the tabs container
+    const tabsList = tabsListRef.current;
+    if (tabsList) {
+      tabsList.addEventListener('scroll', updateIndicator);
+    }
+    
     return () => {
       clearTimeout(timer);
       window.removeEventListener('resize', updateIndicator);
+      if (tabsList) {
+        tabsList.removeEventListener('scroll', updateIndicator);
+      }
     };
   }, [selectedCategory]);
 
