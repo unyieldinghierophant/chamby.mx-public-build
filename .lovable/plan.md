@@ -1,136 +1,109 @@
 
-# Plan: Agregar Gradiente Animado Sutil al Hero de /user-landing
 
-## Objetivo
-Agregar un gradiente animado sutil en tonos azules de la paleta Chamby al fondo del hero section en la página `/user-landing`, sin reducir la legibilidad del texto blanco.
+# Plan: Mostrar trabajos reales de la base de datos en el hero de proveedores
 
----
-
-## Análisis Actual
-
-El hero section usa el componente `InteractiveHeroBackground` que tiene:
-- Gradiente base: `bg-gradient-to-br from-primary via-primary to-[hsl(221,83%,40%)]`
-- Overlay radial para profundidad
-- Grid pattern sutil
-- Puntos flotantes y tarjetas de trabajo
-
-**Paleta de Chamby (tonos azules):**
-- Primary: `hsl(214 80% 41%)` - Azul principal
-- Primary Light: `hsl(214 80% 55%)` - Azul claro
-- Primary Dark: `hsl(214 80% 30%)` - Azul oscuro
-- También: `hsl(221 83% 40%)` ya usado en el gradiente actual
+## Resumen
+Modificar el componente `InteractiveHeroBackground` para que las tarjetas flotantes de trabajos ("Jardinería $450 Tlaquepaque") muestren datos reales de la base de datos en lugar de ejemplos inventados.
 
 ---
 
-## Cambios Propuestos
+## Cambios a realizar
 
-### Archivo: `src/components/provider-portal/InteractiveHeroBackground.tsx`
+### 1. Crear un nuevo hook para obtener trabajos públicos
+**Archivo nuevo:** `src/hooks/usePublicAvailableJobs.ts`
 
-Agregar una capa de gradiente animado sutil entre el gradiente base y los overlays. El gradiente:
+Este hook obtendrá los trabajos disponibles sin necesidad de autenticación (ya que el landing page puede ser visitado por usuarios no logueados).
 
-1. **Animación suave de 20-30 segundos** - Muy lenta para no distraer
-2. **Baja opacidad (10-20%)** - Para no afectar legibilidad
-3. **Múltiples tonos azules de la paleta** - Primary, primary-light, primary-dark
-4. **Movimiento radial** - Simula una aurora o nebulosa suave
+- Consulta la tabla `jobs` filtrando por `status = 'active'` y `provider_id IS NULL`
+- Selecciona solo los campos necesarios: `title`, `category`, `rate`, `location`
+- Limita a los últimos 20 trabajos para no sobrecargar
+- **No requiere autenticación** - usa la política RLS existente `jobs_new_select_active` que permite ver trabajos activos sin proveedor
 
-**Nueva capa a agregar (después de línea 336, antes de las overlays):**
+### 2. Modificar el componente InteractiveHeroBackground
+**Archivo:** `src/components/provider-portal/InteractiveHeroBackground.tsx`
 
-```tsx
-{/* Animated gradient overlay - subtle blue aurora effect */}
-<div 
-  className="absolute inset-0 opacity-20 animate-gradient-shift"
-  style={{
-    background: `
-      radial-gradient(ellipse 80% 50% at 20% 40%, hsl(214 80% 55% / 0.4), transparent 50%),
-      radial-gradient(ellipse 60% 40% at 80% 60%, hsl(214 80% 30% / 0.3), transparent 50%),
-      radial-gradient(ellipse 50% 60% at 50% 80%, hsl(221 83% 45% / 0.25), transparent 45%)
-    `,
-    backgroundSize: '200% 200%',
-  }}
-/>
+**Cambios:**
+1. Importar el nuevo hook `usePublicAvailableJobs`
+2. Eliminar el array hardcodeado `JOB_TYPES`
+3. Crear una función para extraer la ciudad de la dirección completa (ej: "Av Pablo Neruda 3117, Providencia 4a. Secc, 44639 Guadalajara, Jal., Mexico" → "Guadalajara")
+4. Formatear el rate como precio (ej: `rate` → `$${rate}`)
+5. Si no hay trabajos en la BD, mostrar un fallback mínimo o no mostrar tarjetas
+
+**Formato de las tarjetas resultante:**
+- Actual: `Jardinería · $450 Tlaquepaque` (datos falsos)
+- Nuevo: `Instalación de enchufes · $1 Guadalajara` (datos reales)
+
+---
+
+## Detalles técnicos
+
+### Extracción de ciudad
+La dirección viene en formato: `"Calle, Colonia, CP Ciudad, Estado, País"`
+
+Usaré una función que:
+1. Divide la dirección por comas
+2. Busca el segmento que contiene el código postal (5 dígitos seguidos de espacio y ciudad)
+3. Extrae solo el nombre de la ciudad
+
+```typescript
+const extractCity = (location: string | null): string => {
+  if (!location) return 'México';
+  
+  // Buscar patrón: "44639 Guadalajara" o similar
+  const match = location.match(/\d{5}\s+([^,]+)/);
+  if (match) return match[1].trim();
+  
+  // Fallback: último segmento antes del país
+  const parts = location.split(',');
+  if (parts.length >= 2) {
+    const cityPart = parts[parts.length - 3] || parts[parts.length - 2];
+    return cityPart.replace(/\d+/g, '').trim() || 'México';
+  }
+  
+  return 'México';
+};
 ```
 
-### Archivo: `tailwind.config.ts`
+### Hook público para trabajos
 
-El `animate-gradient-shift` ya existe con duración de `3000s` (línea 214), lo cual es perfecto para una animación muy lenta y sutil.
-
----
-
-## Visualización del Resultado
-
-```text
-┌─────────────────────────────────────────────────────────────────┐
-│                                                                 │
-│    ┌─────────────────────────────────────────────────────────┐  │
-│    │ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │  │
-│    │ ░░░░░▓▓▓▓░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │  │
-│    │ ░░░░▓▓▓▓▓▓░░░ SOLUCIONA EN ░░░░░░░░░░░░░░░░░▒▒▒░░░░░░░ │  │
-│    │ ░░░░░▓▓▓▓░░░░ MINUTOS NO ░░░░░░░░░░░░░░░░░░▒▒▒▒▒░░░░░░ │  │
-│    │ ░░░░░░░░░░░░░░ EN DÍAS. ░░░░░░░░░░░░░░░░░░░░▒▒▒░░░░░░░ │  │
-│    │ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │  │
-│    │ ░░░░░░░░░░░░░ [Buscar Servicio →] ░░░░░░░░░░░░░░░░░░░░░ │  │
-│    │ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │  │
-│    │ ░░░░░░░░░░░░░░░░░░░░░▒▒▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │  │
-│    │ ░░░░░░░░░░░░░░░░░░░░▒▒▒▒▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │  │
-│    │ ░░░░░░░░░░░░░░░░░░░░░▒▒▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │  │
-│    └─────────────────────────────────────────────────────────┘  │
-│                                                                 │
-│    ▓▓▓ = Gradiente azul claro (primary-light) - esquina sup izq│
-│    ▒▒▒ = Gradiente azul oscuro (primary-dark) - zonas sutiles  │
-│    ░░░ = Color base primary                                     │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
+```typescript
+export const usePublicAvailableJobs = () => {
+  const [jobs, setJobs] = useState<PublicJob[]>([]);
+  
+  useEffect(() => {
+    const fetchJobs = async () => {
+      const { data } = await supabase
+        .from('jobs')
+        .select('title, category, rate, location')
+        .eq('status', 'active')
+        .is('provider_id', null)
+        .order('created_at', { ascending: false })
+        .limit(20);
+      
+      if (data) setJobs(data);
+    };
+    
+    fetchJobs();
+  }, []);
+  
+  return jobs;
+};
 ```
 
 ---
 
-## Archivo a Modificar
+## Archivos afectados
 
-| Archivo | Cambio |
+| Archivo | Acción |
 |---------|--------|
-| `src/components/provider-portal/InteractiveHeroBackground.tsx` | Agregar capa de gradiente animado sutil entre el gradiente base y los overlays |
+| `src/hooks/usePublicAvailableJobs.ts` | Crear nuevo |
+| `src/components/provider-portal/InteractiveHeroBackground.tsx` | Modificar |
 
 ---
 
-## Detalles Técnicos
+## Consideraciones
 
-**Posición en el componente (después de línea 336):**
-```tsx
-{/* Deep blue gradient base */}
-<div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-[hsl(221,83%,40%)]" />
-
-{/* NEW: Animated gradient overlay - subtle blue aurora */}
-<div 
-  className="absolute inset-0 opacity-15 pointer-events-none"
-  style={{
-    background: `
-      radial-gradient(ellipse 80% 50% at 20% 40%, hsl(214 80% 55% / 0.5), transparent 50%),
-      radial-gradient(ellipse 60% 40% at 80% 60%, hsl(214 80% 30% / 0.4), transparent 50%),
-      radial-gradient(ellipse 50% 60% at 50% 85%, hsl(221 83% 45% / 0.35), transparent 45%)
-    `,
-    backgroundSize: '200% 200%',
-    animation: 'gradient-shift 25s ease-in-out infinite',
-  }}
-/>
-
-{/* Subtle radial overlay for depth */}
-<div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.2)_100%)]" />
-```
-
-**Propiedades clave:**
-- `opacity-15` - Muy sutil para no afectar legibilidad
-- Tres elipses radiales en diferentes posiciones y tamaños
-- Animación de 25 segundos, muy lenta
-- Usa exactamente los colores de la paleta Chamby
-- `pointer-events-none` para no interferir con interacciones
-
----
-
-## Resultado Esperado
-
-1. **Efecto visual sutil** - Una especie de "aurora" o "nebulosa" muy suave que se mueve lentamente
-2. **Legibilidad intacta** - El texto blanco sigue siendo perfectamente legible
-3. **Consistencia de marca** - Solo usa tonos azules de la paleta Chamby
-4. **Rendimiento** - Animación CSS pura, sin impacto en rendimiento
-5. **Responsivo** - Funciona igual en mobile y desktop
+1. **Performance:** El hook solo se ejecuta una vez al montar el componente, no en cada render
+2. **Fallback:** Si no hay trabajos en la BD, las tarjetas simplemente no aparecerán (el componente sigue funcionando con los puntos brillantes)
+3. **RLS:** La política `jobs_new_select_active` ya permite lectura pública de trabajos activos sin proveedor, por lo que no se requieren cambios de base de datos
 
