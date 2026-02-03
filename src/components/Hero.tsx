@@ -41,6 +41,18 @@ const Hero = () => {
               }}
             />
             
+            {/* Grid pattern overlay */}
+            <div 
+              className="absolute inset-0 opacity-[0.03] pointer-events-none"
+              style={{
+                backgroundImage: `
+                  linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px),
+                  linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)
+                `,
+                backgroundSize: '60px 60px',
+              }}
+            />
+            
             {/* Main Content */}
             <div className="relative z-10 p-6 md:p-8 lg:p-10 xl:p-12 max-w-4xl mx-auto">
               {/* Text Content - Clean Layout with Staggered Animation */}
