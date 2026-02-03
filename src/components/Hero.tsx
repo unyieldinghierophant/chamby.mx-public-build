@@ -73,7 +73,7 @@ const Hero = () => {
                 }}
               >
                 <motion.h1 
-                  className="font-jakarta font-medium text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-white leading-[1.15] tracking-tight text-center"
+                  className="font-jakarta font-medium text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-white leading-[1.15] tracking-tight text-center"
                   variants={{
                     hidden: { opacity: 0, y: 20 },
                     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
