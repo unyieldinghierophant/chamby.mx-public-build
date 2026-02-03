@@ -119,14 +119,14 @@ const FloatingJobCard = memo(({ card, parallaxOffset, baseOpacity, isMobile }: {
       willChange: 'opacity, transform',
     }}
   >
-    <div className={`relative flex items-center gap-2 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 shadow-lg ${isMobile ? 'px-2 py-1.5' : 'px-3 py-2'}`}>
-      {/* Yellow indicator dot */}
-      <div className={`bg-yellow-400 rounded-full shadow-[0_0_6px_rgba(250,204,21,0.6)] ${isMobile ? 'w-1.5 h-1.5' : 'w-2 h-2'}`} />
-      <div className={`text-white font-medium whitespace-nowrap ${isMobile ? 'text-xs' : 'text-sm'}`}>
-        {card.service} · <span className="text-white/90">{card.price}</span>
+      <div className={`relative flex items-center gap-2 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 shadow-lg ${isMobile ? 'px-2 py-1.5' : 'px-3 py-2'}`}>
+        {/* Yellow indicator dot */}
+        <div className={`bg-yellow-400 rounded-full shadow-[0_0_6px_rgba(250,204,21,0.6)] ${isMobile ? 'w-1.5 h-1.5' : 'w-2 h-2'}`} />
+        <div className={`text-white font-medium whitespace-nowrap ${isMobile ? 'text-xs' : 'text-sm'}`}>
+          {card.service}
+        </div>
+        <div className={`text-white/60 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>{card.city}</div>
       </div>
-      <div className={`text-white/60 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>{card.city}</div>
-    </div>
   </div>
 ));
 
