@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, memo, useRef } from 'react';
+import { usePublicAvailableJobs, extractCity } from '@/hooks/usePublicAvailableJobs';
 
 interface JobDot {
   id: number;
@@ -17,17 +18,6 @@ interface FloatingCard {
   city: string;
   opacity: number;
 }
-
-const JOB_TYPES = [
-  { service: 'Plomería', price: '$1,200', cities: ['Guadalajara', 'Zapopan', 'Tlaquepaque'] },
-  { service: 'Electricista', price: '$850', cities: ['CDMX', 'Monterrey', 'Puebla'] },
-  { service: 'Limpieza', price: '$600', cities: ['Guadalajara', 'León', 'Querétaro'] },
-  { service: 'Mudanza', price: '$2,500', cities: ['CDMX', 'Guadalajara', 'Monterrey'] },
-  { service: 'Pintura', price: '$1,800', cities: ['Zapopan', 'Tlajomulco', 'Tonalá'] },
-  { service: 'Jardinería', price: '$450', cities: ['Guadalajara', 'Zapopan', 'Tlaquepaque'] },
-  { service: 'Carpintería', price: '$1,500', cities: ['CDMX', 'Guadalajara', 'Querétaro'] },
-  { service: 'Herrería', price: '$2,200', cities: ['Monterrey', 'León', 'Puebla'] },
-];
 
 // Mexico map SVG path (simplified outline)
 const MexicoMapPath = memo(({ opacity }: { opacity: number }) => (
@@ -165,6 +155,9 @@ const InteractiveHeroBackground = ({
   const [dotIdCounter, setDotIdCounter] = useState(0);
   const [cardIdCounter, setCardIdCounter] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
+  
+  // Fetch real jobs from database
+  const { jobs: realJobs } = usePublicAvailableJobs();
 
   // Detect mobile
   useEffect(() => {
@@ -221,16 +214,19 @@ const InteractiveHeroBackground = ({
 
   // Add a floating card with smoother animation
   const addCard = useCallback(() => {
-    const jobType = JOB_TYPES[Math.floor(Math.random() * JOB_TYPES.length)];
-    const city = jobType.cities[Math.floor(Math.random() * jobType.cities.length)];
+    // If no real jobs, don't show cards
+    if (realJobs.length === 0) return;
+    
+    const randomJob = realJobs[Math.floor(Math.random() * realJobs.length)];
+    const city = extractCity(randomJob.location);
     const pos = getRandomPosition();
     
     const newCard: FloatingCard = {
       id: cardIdCounter,
       x: pos.x,
       y: pos.y,
-      service: jobType.service,
-      price: jobType.price,
+      service: randomJob.title.length > 20 ? randomJob.title.substring(0, 20) + '...' : randomJob.title,
+      price: `$${randomJob.rate.toLocaleString()}`,
       city,
       opacity: 0,
     };
@@ -274,7 +270,7 @@ const InteractiveHeroBackground = ({
         return filtered;
       });
     }, 3300);
-  }, [cardIdCounter, getRandomPosition, onJobCardVisible, isMobile]);
+  }, [cardIdCounter, getRandomPosition, onJobCardVisible, isMobile, realJobs]);
 
   // Use refs to avoid interval recreation
   const addDotRef = useRef(addDot);
