@@ -59,12 +59,15 @@ export const CategoryTabs = () => {
     });
   };
 
+  // Limit services to 5 per category
+  const limitedServices = services.slice(0, 5);
+
   return (
     <div ref={containerRef} className="w-full mx-auto">
       <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
         {/* Category Tabs - Horizontal scroll layout */}
         <div className="w-full">
-          <TabsList className="w-full h-auto bg-background p-3 md:p-4 rounded-2xl flex gap-4 md:gap-6 overflow-x-auto scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent pb-2">
+          <TabsList className="w-full h-auto bg-transparent p-0 flex justify-start md:justify-center gap-6 md:gap-10 overflow-x-auto scrollbar-hide pl-0">
             {categories.map((category, index) => (
               <motion.div
                 key={category.id}
@@ -83,27 +86,27 @@ export const CategoryTabs = () => {
                 <TabsTrigger
                   value={category.id}
                   className={cn(
-                    "flex flex-col items-center gap-1.5 md:gap-2 p-2 md:p-3",
+                    "flex flex-col items-center gap-2 md:gap-3 p-2 md:p-3",
                     "data-[state=active]:bg-transparent data-[state=active]:text-primary",
-                    "text-muted-foreground",
-                    "rounded-lg h-auto min-w-[70px] md:min-w-[90px]",
+                    "text-muted-foreground bg-transparent",
+                    "rounded-none h-auto min-w-[70px] md:min-w-[90px]",
                     "hover:text-primary transition-all duration-300",
-                    "border-b-2 border-transparent data-[state=active]:border-primary"
+                    "border-b-0 shadow-none"
                   )}
                 >
                   <motion.div 
-                    className="w-20 h-20 md:w-28 md:h-28 flex items-center justify-center"
+                    className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center"
                     whileHover={{ scale: 1.1 }}
                     transition={{ type: "spring", stiffness: 300 }}
                   >
                     <img 
                       src={category.icon} 
                       alt={category.name} 
-                      className="w-full h-full object-contain"
+                      className="w-[150%] h-[150%] object-contain"
                       style={{ imageRendering: 'auto' }}
                     />
                   </motion.div>
-                  <span className="text-xs md:text-sm font-medium text-center leading-tight whitespace-nowrap">
+                  <span className="text-xs md:text-sm font-semibold text-center leading-tight whitespace-nowrap">
                     {category.name}
                   </span>
                 </TabsTrigger>
@@ -111,13 +114,20 @@ export const CategoryTabs = () => {
             ))}
           </TabsList>
           
-          {/* Scroll indicator */}
-          <div className="flex justify-center mt-2">
-            <div className="flex gap-1">
-              <div className="w-8 h-1 bg-primary/40 rounded-full"></div>
-              <div className="w-2 h-1 bg-muted-foreground/20 rounded-full"></div>
-              <div className="w-2 h-1 bg-muted-foreground/20 rounded-full"></div>
-            </div>
+          {/* Underline with active indicator */}
+          <div className="relative mt-2">
+            {/* Base line */}
+            <div className="w-full h-[1px] bg-border" />
+            {/* Active indicator */}
+            <motion.div 
+              className="absolute top-0 h-[3px] bg-primary rounded-full"
+              initial={false}
+              animate={{
+                x: `calc(${categories.findIndex(c => c.id === selectedCategory)} * (100% / ${categories.length}) + (100% / ${categories.length} / 2) - 20px)`,
+              }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              style={{ width: '40px' }}
+            />
           </div>
         </div>
 
@@ -128,9 +138,9 @@ export const CategoryTabs = () => {
             value={category.id}
             className="mt-8"
           >
-            {/* Service pills - wrapping layout with staggered animation */}
+            {/* Service pills - aesthetic grid layout like reference */}
             <motion.div 
-              className="flex flex-wrap gap-2 md:gap-3 mb-6"
+              className="flex flex-wrap gap-2 md:gap-3 mb-6 max-w-xl"
               initial="hidden"
               animate="visible"
               variants={{
@@ -140,23 +150,23 @@ export const CategoryTabs = () => {
                 }
               }}
             >
-              {services.map((service, i) => (
+              {limitedServices.map((service, i) => (
                 <motion.div
                   key={service.name}
                   variants={{
-                    hidden: { opacity: 0, x: -40, scale: 0.85 },
+                    hidden: { opacity: 0, y: 10, scale: 0.95 },
                     visible: { 
                       opacity: 1, 
-                      x: 0, 
+                      y: 0, 
                       scale: 1,
-                      transition: { duration: 0.4, ease: "easeOut" }
+                      transition: { duration: 0.3, ease: "easeOut" }
                     }
                   }}
                 >
                   <Button
                     onClick={() => handleServiceClick(service.name, service.description)}
                     variant="outline"
-                    className="rounded-full px-4 py-2 md:px-5 md:py-2.5 h-auto text-sm md:text-base bg-background/50 backdrop-blur-sm hover:bg-primary/10 hover:text-primary hover:border-primary transition-all duration-300 hover:scale-105"
+                    className="rounded-full px-4 py-1.5 md:px-5 md:py-2 h-auto text-xs md:text-sm bg-background border-border hover:bg-primary/5 hover:text-primary hover:border-primary transition-all duration-200"
                   >
                     {service.name}
                   </Button>
