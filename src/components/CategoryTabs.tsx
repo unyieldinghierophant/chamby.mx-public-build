@@ -33,12 +33,40 @@ export const CategoryTabs = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>(categories[0].id);
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
+  const tabsListRef = useRef<HTMLDivElement>(null);
+  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 40 });
   
   // Use Intersection Observer to detect when categories come into view
   const isInView = useInView(containerRef, { 
     once: true, // Only trigger once
     amount: 0.2 // Trigger when 20% of the element is visible
   });
+
+  // Update indicator position when selected category changes
+  useEffect(() => {
+    const updateIndicator = () => {
+      if (tabsListRef.current) {
+        const activeTab = tabsListRef.current.querySelector(`[data-state="active"]`) as HTMLElement;
+        if (activeTab) {
+          const tabsRect = tabsListRef.current.getBoundingClientRect();
+          const activeRect = activeTab.getBoundingClientRect();
+          setIndicatorStyle({
+            left: activeRect.left - tabsRect.left + (activeRect.width / 2) - 20,
+            width: 40
+          });
+        }
+      }
+    };
+    
+    // Small delay to ensure DOM is updated
+    const timer = setTimeout(updateIndicator, 50);
+    window.addEventListener('resize', updateIndicator);
+    
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', updateIndicator);
+    };
+  }, [selectedCategory]);
 
   const currentCategory = categories.find(cat => cat.id === selectedCategory);
   const services = currentCategory ? categoryServicesMap[currentCategory.dataKey] || [] : [];
@@ -67,7 +95,7 @@ export const CategoryTabs = () => {
       <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
         {/* Category Tabs - Horizontal scroll layout */}
         <div className="w-full">
-          <TabsList className="w-full h-auto bg-transparent p-0 flex justify-start md:justify-center gap-6 md:gap-10 overflow-x-auto scrollbar-hide pl-0">
+          <TabsList ref={tabsListRef} className="w-full h-auto bg-transparent p-0 flex justify-start md:justify-center gap-6 md:gap-10 overflow-x-auto scrollbar-hide pl-0">
             {categories.map((category, index) => (
               <motion.div
                 key={category.id}
@@ -123,10 +151,10 @@ export const CategoryTabs = () => {
               className="absolute top-0 h-[3px] bg-primary rounded-full"
               initial={false}
               animate={{
-                x: `calc(${categories.findIndex(c => c.id === selectedCategory)} * (100% / ${categories.length}) + (100% / ${categories.length} / 2) - 20px)`,
+                left: indicatorStyle.left,
               }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              style={{ width: '40px' }}
+              style={{ width: indicatorStyle.width }}
             />
           </div>
         </div>
