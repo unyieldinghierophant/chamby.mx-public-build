@@ -252,8 +252,8 @@ const ProviderLanding = () => {
               🚀 Únete a más de 500+ profesionales
             </Badge>
             
-            <h1 className="font-dillan text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-white leading-[1.1] tracking-wide drop-shadow-lg">
-              SÉ TU PROPIO JEFE
+            <h1 className="font-jakarta font-medium text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white leading-[1.15] tracking-tight drop-shadow-lg">
+              Sé tu propio jefe
             </h1>
             
             <p className="text-lg md:text-xl text-white/90 leading-relaxed max-w-2xl mx-auto drop-shadow-md">
