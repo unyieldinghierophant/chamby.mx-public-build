@@ -48,9 +48,12 @@ export const CategoryTabs = () => {
       if (tabsListRef.current) {
         const activeTab = tabsListRef.current.querySelector(`[data-state="active"]`) as HTMLElement;
         if (activeTab) {
-          // Use offsetLeft and subtract scrollLeft to keep indicator aligned during scroll
-          const scrollLeft = tabsListRef.current.scrollLeft;
-          const activeCenter = activeTab.offsetLeft + (activeTab.offsetWidth / 2) - scrollLeft;
+          // Get the bounding rect of the active tab relative to the TabsList
+          const tabsListRect = tabsListRef.current.getBoundingClientRect();
+          const activeTabRect = activeTab.getBoundingClientRect();
+          
+          // Calculate the center position relative to the TabsList container
+          const activeCenter = activeTabRect.left - tabsListRect.left + (activeTabRect.width / 2);
           setIndicatorStyle({
             left: activeCenter - 20,
             width: 40
@@ -63,7 +66,7 @@ export const CategoryTabs = () => {
     const timer = setTimeout(updateIndicator, 50);
     window.addEventListener('resize', updateIndicator);
     
-    // Update on scroll of the tabs container
+    // Update on scroll of the tabs container to keep indicator aligned with visual position
     const tabsList = tabsListRef.current;
     if (tabsList) {
       tabsList.addEventListener('scroll', updateIndicator);
