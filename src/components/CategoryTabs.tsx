@@ -140,7 +140,7 @@ export const CategoryTabs = () => {
                     <img 
                       src={category.icon} 
                       alt={category.name} 
-                      className="w-[150%] h-[150%] object-contain"
+                      className="w-[300%] h-[300%] object-contain"
                       style={{ imageRendering: 'auto' }}
                     />
                   </motion.div>
