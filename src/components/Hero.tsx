@@ -25,33 +25,36 @@ const Hero = () => {
             initial={{ opacity: 0, y: 30, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="relative rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] border border-primary-foreground/20 bg-primary"
+            className="relative rounded-[1.5rem] md:rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] border border-primary-foreground/20 bg-primary"
           >
-            {/* Animated gradient overlay - subtle blue aurora effect */}
-            <div 
-              className="absolute inset-0 opacity-30 pointer-events-none"
-              style={{
-                background: `
-                  radial-gradient(ellipse 80% 50% at 20% 40%, hsl(214 80% 55% / 0.6), transparent 50%),
-                  radial-gradient(ellipse 60% 40% at 80% 60%, hsl(214 80% 30% / 0.5), transparent 50%),
-                  radial-gradient(ellipse 50% 60% at 50% 85%, hsl(221 83% 45% / 0.4), transparent 45%)
-                `,
-                backgroundSize: '200% 200%',
-                animation: 'gradient-shift 20s ease-in-out infinite',
-              }}
-            />
-            
-            {/* Grid pattern overlay */}
-            <div 
-              className="absolute inset-0 opacity-[0.03] pointer-events-none"
-              style={{
-                backgroundImage: `
-                  linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px),
-                  linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)
-                `,
-                backgroundSize: '60px 60px',
-              }}
-            />
+            {/* Background effects container with overflow hidden */}
+            <div className="absolute inset-0 overflow-hidden rounded-[1.5rem] md:rounded-[2.5rem]">
+              {/* Animated gradient overlay - subtle blue aurora effect */}
+              <div 
+                className="absolute inset-0 opacity-30 pointer-events-none"
+                style={{
+                  background: `
+                    radial-gradient(ellipse 80% 50% at 20% 40%, hsl(214 80% 55% / 0.6), transparent 50%),
+                    radial-gradient(ellipse 60% 40% at 80% 60%, hsl(214 80% 30% / 0.5), transparent 50%),
+                    radial-gradient(ellipse 50% 60% at 50% 85%, hsl(221 83% 45% / 0.4), transparent 45%)
+                  `,
+                  backgroundSize: '200% 200%',
+                  animation: 'gradient-shift 20s ease-in-out infinite',
+                }}
+              />
+              
+              {/* Grid pattern overlay */}
+              <div 
+                className="absolute inset-0 opacity-[0.03] pointer-events-none"
+                style={{
+                  backgroundImage: `
+                    linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)
+                  `,
+                  backgroundSize: '60px 60px',
+                }}
+              />
+            </div>
             
             {/* Main Content */}
             <div className="relative z-10 p-6 md:p-8 lg:p-10 xl:p-12 max-w-4xl mx-auto">
