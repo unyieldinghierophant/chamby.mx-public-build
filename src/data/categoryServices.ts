@@ -35,10 +35,5 @@ export const categoryServicesMap: Record<string, ServiceOption[]> = {
     { name: "Lavado de tapicería", description: "Limpieza profunda de asientos y tapiz" },
     { name: "Cambio de batería", description: "Reemplazo de batería de vehículo" },
     { name: "Otros servicios", description: "Describe el servicio que necesitas" }
-  ],
-  "Medusa Energy": [
-    { name: "Instalación de cargadores eléctricos", description: "Instalación de estaciones de carga para vehículos eléctricos" },
-    { name: "Paneles solares", description: "Instalación de sistemas de energía solar" },
-    { name: "Otros servicios", description: "Describe el servicio que necesitas" }
   ]
 };
