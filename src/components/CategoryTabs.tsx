@@ -105,7 +105,7 @@ export const CategoryTabs = () => {
       <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
         {/* Category Tabs - Horizontal scroll layout */}
         <div className="w-full">
-          <TabsList ref={tabsListRef} className="w-full h-auto bg-transparent p-0 flex justify-start md:justify-center gap-6 md:gap-10 overflow-x-auto scrollbar-hide pl-0">
+          <TabsList ref={tabsListRef} className="w-full h-auto bg-transparent p-0 py-6 flex justify-start md:justify-center gap-6 md:gap-10 overflow-x-auto overflow-y-visible scrollbar-hide pl-0">
             {categories.map((category, index) => (
               <motion.div
                 key={category.id}
@@ -119,7 +119,7 @@ export const CategoryTabs = () => {
                   duration: 0.4,
                   ease: [0.25, 0.46, 0.45, 0.94],
                 }}
-                className="flex-shrink-0"
+                className="flex-shrink-0 overflow-visible"
               >
                 <TabsTrigger
                   value={category.id}
@@ -129,7 +129,7 @@ export const CategoryTabs = () => {
                     "text-muted-foreground bg-transparent",
                     "rounded-none h-auto min-w-[70px] md:min-w-[90px]",
                     "hover:text-primary transition-all duration-300",
-                    "border-b-0 shadow-none"
+                    "border-b-0 shadow-none overflow-visible"
                   )}
                 >
                   <motion.div 
