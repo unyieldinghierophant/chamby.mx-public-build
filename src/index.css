@@ -206,6 +206,32 @@ All colors MUST be HSL.
     scrollbar-width: none;
   }
 
+  /* Always visible scrollbar for category tabs */
+  .scrollbar-always-visible::-webkit-scrollbar {
+    height: 6px;
+    display: block;
+  }
+
+  .scrollbar-always-visible::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+    border-radius: 3px;
+  }
+
+  .scrollbar-always-visible::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.4);
+    border-radius: 3px;
+  }
+
+  .scrollbar-always-visible::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.6);
+  }
+
+  /* Firefox */
+  .scrollbar-always-visible {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.4) hsl(var(--muted));
+  }
+
   /* Float animation for UFO */
   @keyframes float {
     0%, 100% {
