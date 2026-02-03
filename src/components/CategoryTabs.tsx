@@ -105,7 +105,7 @@ export const CategoryTabs = () => {
       <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
         {/* Category Tabs - Horizontal scroll layout */}
         <div className="w-full">
-          <TabsList ref={tabsListRef} className="w-full h-auto bg-transparent p-0 py-6 flex justify-start md:justify-center gap-6 md:gap-10 overflow-x-auto overflow-y-visible scrollbar-hide pl-0">
+          <TabsList ref={tabsListRef} className="w-full h-auto bg-transparent p-0 py-6 flex justify-start md:justify-center gap-6 md:gap-10 overflow-x-auto overflow-y-visible scrollbar-hide pl-4 relative z-20">
             {categories.map((category, index) => (
               <motion.div
                 key={category.id}
@@ -119,19 +119,19 @@ export const CategoryTabs = () => {
                   duration: 0.4,
                   ease: [0.25, 0.46, 0.45, 0.94],
                 }}
-                className="flex-shrink-0 overflow-visible"
+                className="flex-shrink-0 overflow-visible relative z-10"
               >
-                <TabsTrigger
-                  value={category.id}
-                  className={cn(
-                    "flex flex-col items-center gap-2 md:gap-3 p-2 md:p-3",
-                    "data-[state=active]:bg-transparent data-[state=active]:text-primary",
-                    "text-muted-foreground bg-transparent",
-                    "rounded-none h-auto min-w-[70px] md:min-w-[90px]",
-                    "hover:text-primary transition-all duration-300",
-                    "border-b-0 shadow-none overflow-visible"
-                  )}
-                >
+                  <TabsTrigger
+                    value={category.id}
+                    className={cn(
+                      "flex flex-col items-center gap-2 md:gap-3 p-2 md:p-3",
+                      "data-[state=active]:bg-transparent data-[state=active]:text-primary",
+                      "text-muted-foreground bg-transparent",
+                      "rounded-none h-auto min-w-[70px] md:min-w-[90px]",
+                      "hover:text-primary transition-all duration-300",
+                      "border-b-0 shadow-none overflow-visible cursor-pointer relative z-10"
+                    )}
+                  >
                   <motion.div 
                     className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center overflow-visible"
                     whileHover={{ scale: 1.1 }}
@@ -140,7 +140,7 @@ export const CategoryTabs = () => {
                     <img 
                       src={category.icon} 
                       alt={category.name} 
-                      className="w-32 h-32 md:w-40 md:h-40 object-contain"
+                      className="w-16 h-16 md:w-20 md:h-20 object-contain transform scale-[2]"
                       style={{ imageRendering: 'auto' }}
                     />
                   </motion.div>
