@@ -110,6 +110,7 @@ export default function ProviderOnboardingWizard() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const hasRestoredForm = useRef(false);
+  const hasCheckedOnboarding = useRef(false); // Track if we've already checked onboarding status
 
   // Form persistence
   const { saveFormData, loadFormData, clearFormData } = useFormPersistence(FORM_STORAGE_KEY);
@@ -212,6 +213,11 @@ export default function ProviderOnboardingWizard() {
 
   useEffect(() => {
     if (user) {
+      // Skip if we've already checked onboarding status for this user session
+      if (hasCheckedOnboarding.current) {
+        return;
+      }
+      
       const checkOnboardingStatus = async () => {
         setCheckingStatus(true);
         
@@ -246,8 +252,14 @@ export default function ProviderOnboardingWizard() {
           return;
         }
         
-        // User needs to complete onboarding - continue with wizard
-        setCurrentStep(3);
+        // Mark that we've checked onboarding - don't run this again
+        hasCheckedOnboarding.current = true;
+        
+        // User needs to complete onboarding - only set step 3 if currently at step 2 (auth step)
+        // This prevents resetting the step when user is already further along
+        if (currentStep <= 2) {
+          setCurrentStep(3);
+        }
         
         const { data: userData } = await supabase
           .from('users')
@@ -285,7 +297,7 @@ export default function ProviderOnboardingWizard() {
 
       checkOnboardingStatus();
     }
-  }, [user, authMode, navigate]);
+  }, [user, authMode, navigate, currentStep]);
 
   const totalSteps = 8;
   const progress = Math.max(0, ((currentStep - 1) / (totalSteps - 2)) * 100);
