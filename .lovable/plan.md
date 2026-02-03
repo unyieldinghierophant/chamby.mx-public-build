@@ -1,50 +1,50 @@
 
+# Plan: Hacer los íconos de categoría 100% más grandes
 
-# Plan: Agregar patrón de grid al Hero de usuarios
+## Problema Identificado
 
-## Resumen
-Agregar el mismo patrón de líneas de cuadrícula (grid) que tiene el hero de provider-landing al hero card de la página principal de usuarios.
+Los íconos no se ven más grandes porque están siendo **recortados** por varios contenedores padres que tienen `overflow: hidden` o similares:
 
----
+1. **TabsList** (`overflow-x-auto`) - necesario para scroll pero corta verticalmente
+2. **TabsTrigger** - tiene overflow implícito
+3. **motion.div wrapper** - no tiene `overflow-visible`
 
-## Cambio a realizar
+El código actual ya tiene la imagen a `w-32 h-32` (128px) dentro de un contenedor de `w-16 h-16` (64px), pero las imágenes se están recortando en lugar de desbordar.
 
-### Archivo: `src/components/Hero.tsx`
+## Solución
 
-Agregar un nuevo `<div>` con el patrón de grid justo después del overlay de gradiente animado y antes del contenido principal.
+Agregar `overflow-visible` y ajustar estilos en toda la cadena de contenedores para permitir que los íconos se desborden visualmente sin afectar el layout de los botones.
 
-**Ubicación exacta:** Entre la línea 42 (cierre del div del gradiente animado) y la línea 44 (comentario "Main Content")
+### Cambios en `src/components/CategoryTabs.tsx`:
 
-**Código a agregar:**
+1. **TabsList**: Cambiar de `overflow-x-auto` a `overflow-x-auto overflow-y-visible` para permitir desborde vertical mientras mantiene scroll horizontal
+
+2. **motion.div wrapper** (línea 110-122): Agregar `overflow-visible` al contenedor de cada categoría
+
+3. **TabsTrigger**: Agregar `overflow-visible` explícitamente en las clases
+
+4. **Agregar padding vertical al TabsList**: Para dar espacio visual a los íconos que sobresalen (`py-4`)
+
+### Código específico:
 
 ```tsx
-{/* Grid pattern overlay */}
-<div 
-  className="absolute inset-0 opacity-[0.03] pointer-events-none"
-  style={{
-    backgroundImage: `
-      linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)
-    `,
-    backgroundSize: '60px 60px',
-  }}
-/>
+// Línea 108 - TabsList
+<TabsList ref={tabsListRef} className="w-full h-auto bg-transparent p-0 py-4 flex justify-start md:justify-center gap-6 md:gap-10 overflow-x-auto overflow-y-visible scrollbar-hide pl-0">
+
+// Línea 122 - motion.div wrapper  
+className="flex-shrink-0 overflow-visible"
+
+// Líneas 126-133 - TabsTrigger
+className={cn(
+  "flex flex-col items-center gap-2 md:gap-3 p-2 md:p-3",
+  "data-[state=active]:bg-transparent data-[state=active]:text-primary",
+  "text-muted-foreground bg-transparent",
+  "rounded-none h-auto min-w-[70px] md:min-w-[90px]",
+  "hover:text-primary transition-all duration-300",
+  "border-b-0 shadow-none overflow-visible"  // <-- agregar overflow-visible
+)}
 ```
 
----
+## Resultado Esperado
 
-## Detalles técnicos
-
-| Propiedad | Valor | Descripción |
-|-----------|-------|-------------|
-| `opacity-[0.03]` | 3% | Muy sutil para no distraer del texto |
-| `backgroundSize` | 60px x 60px | Tamaño de cada celda del grid |
-| `linear-gradient` | blanco 50% transparencia | Líneas horizontales y verticales |
-| `pointer-events-none` | - | No interfiere con interacciones |
-
----
-
-## Resultado visual
-
-El hero card de usuarios tendrá el mismo efecto visual sutil de cuadrícula que el hero de proveedores, manteniendo consistencia visual entre ambas páginas.
-
+Los íconos de las categorías serán el doble de su tamaño actual (128x128px en móvil, 160x160px en desktop) mientras los botones mantienen su tamaño original (64x64px / 80x80px). Los íconos "flotarán" visualmente sobre sus contenedores.
