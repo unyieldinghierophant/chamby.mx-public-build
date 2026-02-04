@@ -7,6 +7,7 @@ export const ROUTES = {
   DASHBOARD_USER: '/dashboard/user',
   USER_AUTH: '/auth/user',
   USER_AUTH_SIGNIN: '/auth/user?mode=signin',
+  LOGIN: '/login',
   PROVIDER_AUTH: '/auth/provider',
   PROVIDER_LANDING: '/provider-landing',
   PROVIDER_ONBOARDING: '/provider-onboarding',
