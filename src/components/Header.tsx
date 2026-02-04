@@ -178,7 +178,7 @@ const Header = ({
                 <Link to={ROUTES.USER_AUTH} className="text-foreground/70 hover:text-foreground transition-colors text-base font-normal">
                   Registrarse
                 </Link>
-                <Link to={ROUTES.USER_AUTH_SIGNIN} className="text-foreground/70 hover:text-foreground transition-colors text-base font-normal">
+                <Link to={ROUTES.LOGIN} className="text-foreground/70 hover:text-foreground transition-colors text-base font-normal">
                   Iniciar sesión
                 </Link>
                 <Link to={ROUTES.PROVIDER_AUTH} className="text-primary hover:text-primary/80 transition-colors text-base font-semibold">
@@ -214,11 +214,19 @@ const Header = ({
               </button>
               
               <Link 
+                to={ROUTES.LOGIN} 
+                className="block py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Iniciar sesión
+              </Link>
+              
+              <Link 
                 to={ROUTES.USER_AUTH} 
                 className="block py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Iniciar sesión / Registrarse
+                Registrarse
               </Link>
               
               <Link 
