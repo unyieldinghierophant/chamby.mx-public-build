@@ -1,13 +1,17 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { ModernButton } from "@/components/ui/modern-button";
-import { Sparkles, Brain, Camera, MessageCircle } from "lucide-react";
+import { Sparkle, Brain, Camera, ChatCircle } from "@phosphor-icons/react";
+import { ForwardRefExoticComponent, RefAttributes } from "react";
+import { IconProps } from "@phosphor-icons/react";
 import { useNavigate } from "react-router-dom";
+
+type PhosphorIcon = ForwardRefExoticComponent<IconProps & RefAttributes<SVGSVGElement>>;
 
 const HowItWorks = () => {
   const navigate = useNavigate();
   const steps = [
     {
-      icon: Sparkles,
+      icon: Sparkle,
       step: "1",
       title: "Escribe tu problema",
       description: "Describe lo que necesitas en el buscador con IA. Ejemplo: \"Mi lavabo está goteando\" o \"Necesito cambiar una lámpara\"",
@@ -28,7 +32,7 @@ const HowItWorks = () => {
       color: "bg-orange-50 text-orange-600"
     },
     {
-      icon: MessageCircle,
+      icon: ChatCircle,
       step: "4",
       title: "Conéctate por WhatsApp",
       description: "Te redirigimos automáticamente a WhatsApp para coordinar el servicio con nuestro equipo",
@@ -68,7 +72,7 @@ const HowItWorks = () => {
                 {/* Icon */}
                 <div className="mt-6 mb-6">
                   <div className={`w-20 h-20 mx-auto rounded-2xl flex items-center justify-center ${step.color} group-hover:scale-110 transition-transform duration-300 shadow-soft backdrop-blur-glass`}>
-                    <step.icon className="h-10 w-10" />
+                    <step.icon size={40} weight="duotone" />
                   </div>
                 </div>
 
