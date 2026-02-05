@@ -742,7 +742,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
         ) : showVisitFeeAuth && createdJobId ? (
           <div className="space-y-6 animate-fade-in">
             <div className="text-center space-y-2">
-              <h1 className="text-3xl font-bold text-foreground font-['Made_Dillan']">
+              <h1 className="text-3xl font-jakarta font-medium text-foreground">
                 ¡Solicitud creada!
               </h1>
               <p className="text-muted-foreground">
@@ -773,7 +773,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
         {/* Step 1: Title & Date */}
           {currentStep === 1 && (
             <div className="space-y-8">
-              <h1 className="text-4xl font-bold text-foreground mb-8 font-['Made_Dillan']">Empecemos con lo básico</h1>
+              <h1 className="text-4xl font-jakarta font-medium text-foreground mb-8">Empecemos con lo básico</h1>
               
               <div className="space-y-3 relative">
                 <Label className="text-lg font-semibold text-foreground">
@@ -928,7 +928,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
           {/* Step 2: Location */}
           {currentStep === 2 && (
             <div className="space-y-8">
-              <h1 className="text-4xl font-bold text-foreground mb-8 font-['Made_Dillan']">¿Dónde necesitas que se haga?</h1>
+              <h1 className="text-4xl font-jakarta font-medium text-foreground mb-8">¿Dónde necesitas que se haga?</h1>
               
               <GoogleMapPicker 
                 onLocationSelect={handleMapLocationSelect}
@@ -941,7 +941,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
           {/* Step 3: Details */}
           {currentStep === 3 && (
             <div className="space-y-8">
-              <h1 className="text-4xl font-bold text-foreground mb-8 font-['Made_Dillan']">Cuéntanos más sobre tu trabajo</h1>
+              <h1 className="text-4xl font-jakarta font-medium text-foreground mb-8">Cuéntanos más sobre tu trabajo</h1>
               
               <div className="space-y-3">
                 <Label className="text-lg font-semibold text-foreground">
@@ -963,7 +963,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
           {/* Step 4: Photos */}
           {currentStep === 4 && (
             <div className="space-y-8">
-              <h1 className="text-4xl font-bold text-foreground mb-8 font-['Made_Dillan']">Casi terminamos</h1>
+              <h1 className="text-4xl font-jakarta font-medium text-foreground mb-8">Casi terminamos</h1>
               
               <div className="space-y-3">
                 <Label className="text-lg font-semibold text-foreground">
