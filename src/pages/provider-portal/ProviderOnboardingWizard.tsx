@@ -866,33 +866,18 @@ export default function ProviderOnboardingWizard() {
           Continuar con Google
         </Button>
         
-        {/* Sign-in link for existing users */}
-        {authMode === 'signup' && (
-          <p className="text-center text-sm text-muted-foreground">
-            ¿Ya tienes cuenta?{' '}
-            <button
-              type="button"
-              onClick={() => setAuthMode('login')}
-              className="text-primary font-medium hover:underline"
-            >
-              Iniciar sesión
-            </button>
-          </p>
-        )}
+        {/* Sign-in link for existing users - redirects to dedicated login page */}
+        <p className="text-center text-sm text-muted-foreground">
+          ¿Ya tienes cuenta?{' '}
+          <button
+            type="button"
+            onClick={() => navigate('/provider/login')}
+            className="text-primary font-medium hover:underline"
+          >
+            Iniciar sesión
+          </button>
+        </p>
         
-        {/* Back to signup link for login mode */}
-        {authMode === 'login' && (
-          <p className="text-center text-sm text-muted-foreground">
-            ¿No tienes cuenta?{' '}
-            <button
-              type="button"
-              onClick={() => setAuthMode('signup')}
-              className="text-primary font-medium hover:underline"
-            >
-              Registrarse
-            </button>
-          </p>
-        )}
 
         <div className="relative">
           <Separator />

@@ -85,7 +85,7 @@ const Index = () => {
 
               {/* Right Auth Links */}
               <div className="flex items-center gap-6">
-                <Link to="/auth/user" className="text-foreground hover:text-primary transition-colors font-medium">
+                <Link to="/login?mode=signup" className="text-foreground hover:text-primary transition-colors font-medium">
                   Registrarse
                 </Link>
                 <Link to="/login" className="text-foreground hover:text-primary transition-colors font-medium">
@@ -134,7 +134,7 @@ const Index = () => {
                     ¿Cómo funciona?
                   </button>
                   <div className="border-t border-border my-4"></div>
-                  <Link to="/auth/user" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2 text-foreground hover:text-primary transition-colors font-medium text-left">
+                  <Link to="/login?mode=signup" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2 text-foreground hover:text-primary transition-colors font-medium text-left">
                     Registrarse
                   </Link>
                   <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2 text-foreground hover:text-primary transition-colors font-medium text-left">

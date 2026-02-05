@@ -215,13 +215,13 @@ const AuthCallback = () => {
     // Only redirect to login if no OAuth params AND we've waited long enough
     if (!authLoading && !user && !hasOAuthParams) {
       console.log('No user and no OAuth params, redirecting to login');
-      navigate("/auth/user", { replace: true });
+      navigate("/login", { replace: true });
     }
 
     // Last resort: if we've waited 3 seconds and still no user
     if (!authLoading && !user && hasOAuthParams && retryCount >= 6) {
       console.error('Safari session restoration failed after 3 seconds');
-      navigate("/auth/user", { replace: true });
+      navigate("/login", { replace: true });
     }
   }, [authLoading, user, hasOAuthParams, retryCount, navigate]);
 
@@ -233,7 +233,7 @@ const AuthCallback = () => {
         const contextFromUrl = searchParams.get('login_context');
         const contextFromStorage = localStorage.getItem('login_context');
         const loginContext = contextFromUrl || contextFromStorage || 'client';
-        const targetAuth = loginContext === 'provider' ? '/auth/provider?tab=login' : '/auth/user?tab=login';
+        const targetAuth = loginContext === 'provider' ? '/provider/login' : '/login';
         navigate(targetAuth, { replace: true });
       }, 5000);
       return () => clearTimeout(timer);
@@ -343,7 +343,7 @@ const AuthCallback = () => {
                 const contextFromUrl = searchParams.get('login_context');
                 const contextFromStorage = localStorage.getItem('login_context');
                 const loginContext = contextFromUrl || contextFromStorage || 'client';
-                const targetAuth = loginContext === 'provider' ? '/auth/provider?tab=login' : '/auth/user?tab=login';
+                const targetAuth = loginContext === 'provider' ? '/provider/login' : '/login';
                 navigate(targetAuth, { replace: true });
               }}
               className="w-full"
