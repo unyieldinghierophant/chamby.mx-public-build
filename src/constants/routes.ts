@@ -8,6 +8,7 @@ export const ROUTES = {
   USER_AUTH: '/auth/user',
   USER_AUTH_SIGNIN: '/auth/user?mode=signin',
   LOGIN: '/login',
+  LOGIN_SIGNUP: '/login?mode=signup',
   PROVIDER_LOGIN: '/provider/login',
   PROVIDER_AUTH: '/auth/provider',
   PROVIDER_LANDING: '/provider-landing',

@@ -575,8 +575,8 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
     
     console.log('💾 Saved form data with step:', currentStep);
     
-    // Navigate to auth with returnTo in state
-    navigate('/auth/user', { state: { returnTo: RETURN_PATH } });
+    // Navigate to login with returnTo in state
+    navigate('/login', { state: { returnTo: RETURN_PATH } });
   };
 
   const handleSuccessNavigate = () => {
