@@ -1,48 +1,57 @@
 import { Card, CardContent } from "@/components/ui/card";
-import verifiedIcon from "@/assets/verified-icon.png";
-import documentsIcon from "@/assets/documents-icon.png";
-import ratingsIcon from "@/assets/ratings-icon.png";
-import customerSupportIcon from "@/assets/customer-support-icon.png";
-import securityIcon from "@/assets/security-icon.png";
-import guaranteeIcon from "@/assets/guarantee-icon.png";
+import { ShieldCheck, Camera, Star, Headphones, Lock, BadgeCheck, LucideIcon } from "lucide-react";
+
+interface TrustFeature {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  stats: string;
+  color: string;
+}
 
 const Trust = () => {
-  const trustFeatures = [
+  const trustFeatures: TrustFeature[] = [
     {
-      icon: verifiedIcon,
+      icon: ShieldCheck,
       title: "Verificación completa",
       description: "Verificamos identidad y referencias laborales de todos los profesionales",
-      stats: "100% verificados"
+      stats: "100% verificados",
+      color: "bg-blue-50 text-primary"
     },
     {
-      icon: documentsIcon,
+      icon: Camera,
       title: "Documentación visual",
       description: "Grabamos el área de trabajo antes y después para darte paz mental de que no te falte nada",
-      stats: "Registro completo"
+      stats: "Registro completo",
+      color: "bg-orange-50 text-orange-600"
     },
     {
-      icon: ratingsIcon,
+      icon: Star,
       title: "Sistema de calificaciones",
       description: "Calificaciones reales de clientes para ayudarte a elegir el mejor",
-      stats: "4.9★ promedio"
+      stats: "4.9★ promedio",
+      color: "bg-yellow-50 text-yellow-600"
     },
     {
-      icon: customerSupportIcon,
+      icon: Headphones,
       title: "Soporte 24/7",
       description: "Nuestro equipo está disponible para resolver cualquier problema",
-      stats: "Respuesta inmediata"
+      stats: "Respuesta inmediata",
+      color: "bg-green-50 text-green-600"
     },
     {
-      icon: securityIcon,
+      icon: Lock,
       title: "Pagos seguros",
       description: "Procesamos pagos de forma segura. El profesional cobra hasta que termines",
-      stats: "Pago protegido"
+      stats: "Pago protegido",
+      color: "bg-purple-50 text-purple-600"
     },
     {
-      icon: guaranteeIcon,
+      icon: BadgeCheck,
       title: "Garantía de servicio",
       description: "Si no quedas satisfecho, regresamos a corregir el trabajo sin costo",
-      stats: "30 días garantía"
+      stats: "30 días garantía",
+      color: "bg-primary-light text-primary"
     }
   ];
 
@@ -70,8 +79,8 @@ const Trust = () => {
               <CardContent className="p-6">
                 <div className="flex items-start space-x-4">
                   <div className="flex-shrink-0">
-                    <div className="w-16 h-16 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                      <img src={feature.icon} alt={feature.title} className="w-14 h-14 object-contain" />
+                    <div className={`w-16 h-16 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 ${feature.color}`}>
+                      <feature.icon className="w-8 h-8" />
                     </div>
                   </div>
                   <div className="flex-1">
