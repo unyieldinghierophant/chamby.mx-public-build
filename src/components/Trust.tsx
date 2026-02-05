@@ -62,7 +62,7 @@ const Trust = () => {
       title: "Garantía de servicio",
       description: "Si no quedas satisfecho, regresamos a corregir el trabajo sin costo",
       stats: "30 días garantía",
-      color: "bg-primary-light text-primary"
+      color: "bg-indigo-50 text-indigo-600"
     }
   ];
 
