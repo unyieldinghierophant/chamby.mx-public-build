@@ -63,6 +63,7 @@ const ProviderLanding = () => {
     setIsLoggingOut(true);
     await signOut();
     setIsLoggingOut(false);
+    navigate("/provider-landing");
   };
 
   const handleGetStarted = () => {

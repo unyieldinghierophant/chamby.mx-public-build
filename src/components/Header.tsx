@@ -44,6 +44,12 @@ const Header = ({
     setIsLoggingOut(true);
     await signOut();
     setIsLoggingOut(false);
+    // Redirect based on current context
+    if (location.pathname.startsWith('/provider')) {
+      navigate('/provider-landing');
+    } else {
+      navigate('/');
+    }
   };
 
   const isProvider = user?.user_metadata?.is_provider;

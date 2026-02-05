@@ -19,7 +19,7 @@ export function ProviderTopBar() {
 
   const handleSignOut = async () => {
     await signOut();
-    navigate("/auth/provider");
+    navigate("/provider-landing");
   };
 
   return (
