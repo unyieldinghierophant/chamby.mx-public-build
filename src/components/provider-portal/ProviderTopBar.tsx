@@ -28,7 +28,7 @@ export function ProviderTopBar() {
         <img 
           src={chambyLogo} 
           alt="Chamby" 
-          className="h-10 cursor-pointer" 
+          className="h-32 -my-8 cursor-pointer" 
           onClick={() => navigate('/provider-portal')}
         />
       </div>

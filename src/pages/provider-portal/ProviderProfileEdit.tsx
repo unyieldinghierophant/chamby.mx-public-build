@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,15 +9,16 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useAuth } from "@/contexts/AuthContext";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, Trash2, AlertTriangle, Sparkles } from "lucide-react";
+import { Camera, Trash2, AlertTriangle, Sparkles, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
 const ProviderProfileEdit = () => {
   const { user, signOut } = useAuth();
-  const { profile, updateProfile } = useProviderProfile(user?.id);
+  const { profile, updateProfile, refetch } = useProviderProfile(user?.id);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     full_name: profile?.full_name || "",
     phone: profile?.phone || "",
@@ -25,6 +26,7 @@ const ProviderProfileEdit = () => {
   });
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   // Update form data when profile loads
   useEffect(() => {
@@ -36,6 +38,96 @@ const ProviderProfileEdit = () => {
       });
     }
   }, [profile]);
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Error",
+        description: "Por favor selecciona una imagen válida",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Error",
+        description: "La imagen no debe superar los 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingAvatar(true);
+
+    try {
+      // Create unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/avatar.${fileExt}`;
+
+      // Upload to storage bucket
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, { 
+          upsert: true,
+          cacheControl: '3600'
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      // Add cache-busting query param
+      const avatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+
+      // Update providers table with avatar URL
+      const { error: updateError } = await supabase
+        .from('providers')
+        .update({ avatar_url: avatarUrl })
+        .eq('user_id', user.id);
+
+      if (updateError) throw updateError;
+
+      // Also update users table
+      await supabase
+        .from('users')
+        .update({ avatar_url: avatarUrl })
+        .eq('id', user.id);
+
+      // Refetch profile to get updated avatar
+      await refetch();
+
+      toast({
+        title: "Foto actualizada",
+        description: "Tu foto de perfil se ha actualizado correctamente",
+      });
+    } catch (error: any) {
+      console.error('Error uploading avatar:', error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo subir la imagen",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingAvatar(false);
+      // Reset input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,7 +206,7 @@ const ProviderProfileEdit = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="flex items-center gap-6 relative">
-          <div className="relative group">
+          <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
             <Avatar className="h-24 w-24 ring-4 ring-primary/10 group-hover:ring-primary/20 transition-all duration-300">
               <AvatarImage src={profile?.avatar_url || ""} />
               <AvatarFallback className="text-2xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground">
@@ -122,12 +214,39 @@ const ProviderProfileEdit = () => {
               </AvatarFallback>
             </Avatar>
             <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-              <Camera className="h-6 w-6 text-white" />
+              {uploadingAvatar ? (
+                <Loader2 className="h-6 w-6 text-white animate-spin" />
+              ) : (
+                <Camera className="h-6 w-6 text-white" />
+              )}
             </div>
           </div>
-          <Button variant="outline" size="sm" className="hover-scale">
-            <Camera className="h-4 w-4 mr-2" />
-            Cambiar Foto
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleAvatarUpload}
+            disabled={uploadingAvatar}
+          />
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="hover-scale"
+            onClick={handleAvatarClick}
+            disabled={uploadingAvatar}
+          >
+            {uploadingAvatar ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Subiendo...
+              </>
+            ) : (
+              <>
+                <Camera className="h-4 w-4 mr-2" />
+                Cambiar Foto
+              </>
+            )}
           </Button>
         </CardContent>
       </Card>
