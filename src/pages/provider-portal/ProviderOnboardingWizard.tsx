@@ -859,38 +859,40 @@ export default function ProviderOnboardingWizard() {
           <GoogleIcon />
           Continuar con Google
         </Button>
+        
+        {/* Sign-in link for existing users */}
+        {authMode === 'signup' && (
+          <p className="text-center text-sm text-muted-foreground">
+            ¿Ya tienes cuenta?{' '}
+            <button
+              type="button"
+              onClick={() => setAuthMode('login')}
+              className="text-primary font-medium hover:underline"
+            >
+              Iniciar sesión
+            </button>
+          </p>
+        )}
+        
+        {/* Back to signup link for login mode */}
+        {authMode === 'login' && (
+          <p className="text-center text-sm text-muted-foreground">
+            ¿No tienes cuenta?{' '}
+            <button
+              type="button"
+              onClick={() => setAuthMode('signup')}
+              className="text-primary font-medium hover:underline"
+            >
+              Registrarse
+            </button>
+          </p>
+        )}
 
         <div className="relative">
           <Separator />
           <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-4 text-sm text-muted-foreground">
             o con email
           </span>
-        </div>
-
-        {/* Auth Mode Toggle */}
-        <div className="flex rounded-xl border-2 p-1 bg-muted/30">
-          <button
-            className={cn(
-              "flex-1 py-3 px-4 rounded-lg text-sm font-medium transition-all",
-              authMode === 'signup' 
-                ? "bg-primary text-primary-foreground shadow-sm" 
-                : "text-muted-foreground hover:text-foreground"
-            )}
-            onClick={() => setAuthMode('signup')}
-          >
-            Registrarse
-          </button>
-          <button
-            className={cn(
-              "flex-1 py-3 px-4 rounded-lg text-sm font-medium transition-all",
-              authMode === 'login' 
-                ? "bg-primary text-primary-foreground shadow-sm" 
-                : "text-muted-foreground hover:text-foreground"
-            )}
-            onClick={() => setAuthMode('login')}
-          >
-            Iniciar Sesión
-          </button>
         </div>
         
         {/* Signup Form */}
