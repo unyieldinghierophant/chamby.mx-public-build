@@ -3,6 +3,7 @@ import { Search, Clock, ArrowRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface TaxonomySuggestion {
   serviceType: string;
@@ -52,7 +53,16 @@ const SERVICE_TAXONOMY: Record<string, string[]> = {
   ]
 };
 
-const TYPING_EXAMPLES = [
+// Shorter examples for mobile to prevent text cutoff
+const TYPING_EXAMPLES_MOBILE = [
+  'Pintar pared',
+  'Armar cama',
+  'Cortar pasto',
+  'Lavar auto',
+  'Mover muebles'
+];
+
+const TYPING_EXAMPLES_DESKTOP = [
   'Arreglar mi lavadora',
   'Pintar mi pared',
   'Armar mi cama',
@@ -62,6 +72,7 @@ const TYPING_EXAMPLES = [
 
 export const HeroSearchBar: React.FC = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<TaxonomySuggestion[]>([]);
@@ -71,6 +82,9 @@ export const HeroSearchBar: React.FC = () => {
   
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Select appropriate examples based on screen size
+  const typingExamples = isMobile ? TYPING_EXAMPLES_MOBILE : TYPING_EXAMPLES_DESKTOP;
 
   // Typing animation effect
   useEffect(() => {
@@ -86,7 +100,7 @@ export const HeroSearchBar: React.FC = () => {
     const pauseDuration = 2000;
 
     const type = () => {
-      const currentExample = TYPING_EXAMPLES[currentIndex];
+      const currentExample = typingExamples[currentIndex];
       
       if (!isDeleting) {
         currentText = currentExample.substring(0, charIndex + 1);
@@ -111,7 +125,7 @@ export const HeroSearchBar: React.FC = () => {
         
         if (charIndex === 0) {
           isDeleting = false;
-          currentIndex = (currentIndex + 1) % TYPING_EXAMPLES.length;
+          currentIndex = (currentIndex + 1) % typingExamples.length;
           setTimeout(type, 500);
           return;
         }
@@ -123,7 +137,7 @@ export const HeroSearchBar: React.FC = () => {
     const timeout = setTimeout(type, 1000);
     
     return () => clearTimeout(timeout);
-  }, [isFocused, query]);
+  }, [isFocused, query, typingExamples]);
 
   // Search function with taxonomy matching
   const searchTaxonomy = (searchQuery: string) => {
