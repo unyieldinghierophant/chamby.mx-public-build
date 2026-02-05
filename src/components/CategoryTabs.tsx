@@ -8,10 +8,14 @@ import categoryHandyman from '@/assets/category-handyman.png';
 import categoryElectrician from '@/assets/category-electrician.png';
 import categoryPlumbing from '@/assets/category-plumbing.png';
 import categoryAuto from '@/assets/category-auto.png';
+import categoryCleaning from '@/assets/category-cleaning.png';
+import categoryGardening from '@/assets/category-gardening.png';
 import handymanHero from '@/assets/category-handyman-hero.jpg';
 import electricianHero from '@/assets/category-electrician-hero.jpg';
 import plumbingHero from '@/assets/category-plumbing-hero.jpg';
 import autoHero from '@/assets/category-auto-hero.jpg';
+import cleaningHero from '@/assets/service-cleaning.jpg';
+import gardeningHero from '@/assets/service-garden.jpg';
 import { cn } from '@/lib/utils';
 
 interface Category {
@@ -27,6 +31,8 @@ const categories: Category[] = [
   { id: 'electrician', name: 'Electricidad', icon: categoryElectrician, dataKey: 'Electricidad', heroImage: electricianHero },
   { id: 'plumbing', name: 'Fontanería', icon: categoryPlumbing, dataKey: 'Fontanería', heroImage: plumbingHero },
   { id: 'auto', name: 'Auto y Lavado', icon: categoryAuto, dataKey: 'Auto y Lavado', heroImage: autoHero },
+  { id: 'cleaning', name: 'Limpieza', icon: categoryCleaning, dataKey: 'Limpieza', heroImage: cleaningHero },
+  { id: 'gardening', name: 'Jardinería', icon: categoryGardening, dataKey: 'Jardinería', heroImage: gardeningHero },
 ];
 
 export const CategoryTabs = () => {
@@ -277,6 +283,30 @@ export const CategoryTabs = () => {
                       </p>
                     </>
                   )}
+                  {category.id === 'cleaning' && (
+                    <>
+                      <p className="text-sm flex items-start gap-2 text-muted-foreground">
+                        <span className="text-primary text-lg">✓</span>
+                        <span>Limpieza profesional de hogar y oficina a tu conveniencia.</span>
+                      </p>
+                      <p className="text-sm flex items-start gap-2 text-muted-foreground">
+                        <span className="text-primary text-lg">✓</span>
+                        <span><strong className="text-foreground">Ahora en tendencia:</strong> Limpieza profunda y sanitización de espacios.</span>
+                      </p>
+                    </>
+                  )}
+                  {category.id === 'gardening' && (
+                    <>
+                      <p className="text-sm flex items-start gap-2 text-muted-foreground">
+                        <span className="text-primary text-lg">✓</span>
+                        <span>Mantenimiento de jardines y áreas verdes por expertos.</span>
+                      </p>
+                      <p className="text-sm flex items-start gap-2 text-muted-foreground">
+                        <span className="text-primary text-lg">✓</span>
+                        <span><strong className="text-foreground">Ahora en tendencia:</strong> Jardines sustentables y sistemas de riego inteligente.</span>
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -340,6 +370,30 @@ export const CategoryTabs = () => {
                         <p className="text-base flex items-start gap-2">
                           <span className="text-primary text-lg">✓</span>
                           <span><strong>Ahora en tendencia:</strong> Detallado ecológico y protección cerámica.</span>
+                        </p>
+                      </>
+                    )}
+                    {category.id === 'cleaning' && (
+                      <>
+                        <p className="text-base flex items-start gap-2">
+                          <span className="text-primary text-lg">✓</span>
+                          <span>Limpieza profesional de hogar y oficina a tu conveniencia.</span>
+                        </p>
+                        <p className="text-base flex items-start gap-2">
+                          <span className="text-primary text-lg">✓</span>
+                          <span><strong>Ahora en tendencia:</strong> Limpieza profunda y sanitización de espacios.</span>
+                        </p>
+                      </>
+                    )}
+                    {category.id === 'gardening' && (
+                      <>
+                        <p className="text-base flex items-start gap-2">
+                          <span className="text-primary text-lg">✓</span>
+                          <span>Mantenimiento de jardines y áreas verdes por expertos.</span>
+                        </p>
+                        <p className="text-base flex items-start gap-2">
+                          <span className="text-primary text-lg">✓</span>
+                          <span><strong>Ahora en tendencia:</strong> Jardines sustentables y sistemas de riego inteligente.</span>
                         </p>
                       </>
                     )}

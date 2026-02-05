@@ -31,5 +31,19 @@ export const categoryServicesMap: Record<string, ServiceOption[]> = {
     { name: "Pulido y Encerado", description: "Pulido y protección de pintura" },
     { name: "Limpieza de Tapicería", description: "Limpieza profunda de asientos y tapiz" },
     { name: "Otros Servicios", description: "Describe el servicio que necesitas" }
+  ],
+  "Limpieza": [
+    { name: "Limpieza General", description: "Limpieza completa de hogar u oficina" },
+    { name: "Limpieza Profunda", description: "Limpieza a detalle de espacios" },
+    { name: "Limpieza de Cocina", description: "Desengrase y limpieza de cocina" },
+    { name: "Limpieza de Baños", description: "Sanitización de baños" },
+    { name: "Otros Servicios", description: "Describe el servicio que necesitas" }
+  ],
+  "Jardinería": [
+    { name: "Corte de Césped", description: "Corte y mantenimiento de pasto" },
+    { name: "Poda de Árboles", description: "Poda y recorte de árboles y arbustos" },
+    { name: "Diseño de Jardín", description: "Diseño y plantación de jardines" },
+    { name: "Sistema de Riego", description: "Instalación de sistemas de riego" },
+    { name: "Otros Servicios", description: "Describe el servicio que necesitas" }
   ]
 };
