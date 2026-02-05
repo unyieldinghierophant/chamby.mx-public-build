@@ -28,6 +28,9 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { ProviderDashboardSkeleton } from "@/components/skeletons";
 import { cn } from "@/lib/utils";
+import { useAvailableJobs } from "@/hooks/useAvailableJobs";
+import { AvailableJobsAlert } from "@/components/provider-portal/AvailableJobsAlert";
+import { AvailableJobsSection } from "@/components/provider-portal/AvailableJobsSection";
 
 interface UpcomingJob {
   id: string;
@@ -50,6 +53,9 @@ const ProviderDashboardHome = () => {
   const { profile: providerProfile } = useProviderProfile(user?.id);
   const navigate = useNavigate();
   
+  // Available jobs hook
+  const { jobs: availableJobs, loading: availableJobsLoading, acceptJob } = useAvailableJobs();
+  
   const [upcomingJobs, setUpcomingJobs] = useState<UpcomingJob[]>([]);
   const [earnings, setEarnings] = useState({ total: 0, pending: 0 });
   const [stats, setStats] = useState({
@@ -65,6 +71,23 @@ const ProviderDashboardHome = () => {
     admin_notes: null,
     documentsCount: 0
   });
+  const [showJobsAlert, setShowJobsAlert] = useState(false);
+  
+  // Show popup alert when there are available jobs
+  useEffect(() => {
+    if (!availableJobsLoading && availableJobs.length > 0) {
+      // Only show alert once per session
+      const alertShownKey = 'provider_jobs_alert_shown';
+      const lastShown = sessionStorage.getItem(alertShownKey);
+      const now = Date.now();
+      
+      // Show alert if not shown in the last 5 minutes
+      if (!lastShown || now - parseInt(lastShown) > 5 * 60 * 1000) {
+        setShowJobsAlert(true);
+        sessionStorage.setItem(alertShownKey, now.toString());
+      }
+    }
+  }, [availableJobs, availableJobsLoading]);
 
   useEffect(() => {
     if (!user) return;
@@ -379,6 +402,20 @@ const ProviderDashboardHome = () => {
         </CardContent>
       </Card>
 
+      {/* Available Jobs Alert Popup */}
+      <AvailableJobsAlert 
+        jobCount={availableJobs.length}
+        isOpen={showJobsAlert}
+        onClose={() => setShowJobsAlert(false)}
+      />
+
+      {/* Available Jobs Section - PROMINENT */}
+      <AvailableJobsSection
+        jobs={availableJobs}
+        loading={availableJobsLoading}
+        onAcceptJob={acceptJob}
+      />
+
       {/* Verification Status Card */}
       {renderVerificationCard()}
 
@@ -509,21 +546,6 @@ const ProviderDashboardHome = () => {
       {/* Quick Actions */}
       <div className="grid gap-4 md:grid-cols-2">
         <Card className="cursor-pointer hover:border-primary transition-colors"
-          onClick={() => navigate("/provider-portal/available-jobs")}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              Ver Trabajos Disponibles
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Explora nuevas oportunidades de trabajo en tu área
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="cursor-pointer hover:border-primary transition-colors"
           onClick={() => navigate("/provider-portal/calendar")}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -534,6 +556,21 @@ const ProviderDashboardHome = () => {
           <CardContent>
             <p className="text-sm text-muted-foreground">
               Organiza tu agenda y disponibilidad
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="cursor-pointer hover:border-primary transition-colors"
+          onClick={() => navigate("/provider-portal/earnings")}>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-primary" />
+              Mis Ganancias
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Revisa tus pagos y balance
             </p>
           </CardContent>
         </Card>
