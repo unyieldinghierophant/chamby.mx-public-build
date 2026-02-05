@@ -146,7 +146,7 @@ const Trust = () => {
             </div>
             <div>
               <div className="text-3xl md:text-4xl font-bold text-primary-foreground mb-2">
-                500+
+                50+
               </div>
               <div className="text-primary-foreground/80">
                 Profesionales activos
