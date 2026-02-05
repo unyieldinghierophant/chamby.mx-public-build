@@ -72,7 +72,8 @@ const TYPING_EXAMPLES_DESKTOP = [
 
 export const HeroSearchBar: React.FC = () => {
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
+  const isMobileHook = useIsMobile();
+  const [isMobile, setIsMobile] = useState(false);
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<TaxonomySuggestion[]>([]);
@@ -82,6 +83,17 @@ export const HeroSearchBar: React.FC = () => {
   
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Update mobile state based on window size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile(); // Check on mount
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Select appropriate examples based on screen size
   const typingExamples = isMobile ? TYPING_EXAMPLES_MOBILE : TYPING_EXAMPLES_DESKTOP;
@@ -94,6 +106,7 @@ export const HeroSearchBar: React.FC = () => {
     let currentText = '';
     let isDeleting = false;
     let charIndex = 0;
+    let timeoutId: NodeJS.Timeout;
     
     const typeSpeed = 100;
     const deleteSpeed = 50;
@@ -109,14 +122,14 @@ export const HeroSearchBar: React.FC = () => {
         setDynamicPlaceholder(currentText);
         
         if (charIndex === currentExample.length) {
-          setTimeout(() => {
+          timeoutId = setTimeout(() => {
             isDeleting = true;
-            setTimeout(type, deleteSpeed);
+            timeoutId = setTimeout(type, deleteSpeed);
           }, pauseDuration);
           return;
         }
         
-        setTimeout(type, typeSpeed);
+        timeoutId = setTimeout(type, typeSpeed);
       } else {
         currentText = currentExample.substring(0, charIndex - 1);
         charIndex--;
@@ -126,17 +139,19 @@ export const HeroSearchBar: React.FC = () => {
         if (charIndex === 0) {
           isDeleting = false;
           currentIndex = (currentIndex + 1) % typingExamples.length;
-          setTimeout(type, 500);
+          timeoutId = setTimeout(type, 500);
           return;
         }
         
-        setTimeout(type, deleteSpeed);
+        timeoutId = setTimeout(type, deleteSpeed);
       }
     };
 
-    const timeout = setTimeout(type, 1000);
+    timeoutId = setTimeout(type, 1000);
     
-    return () => clearTimeout(timeout);
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, [isFocused, query, typingExamples]);
 
   // Search function with taxonomy matching
