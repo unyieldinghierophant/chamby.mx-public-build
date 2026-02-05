@@ -14,7 +14,7 @@ import handymanHero from '@/assets/category-handyman-hero.jpg';
 import electricianHero from '@/assets/category-electrician-hero.jpg';
 import plumbingHero from '@/assets/category-plumbing-hero.jpg';
 import autoHero from '@/assets/category-auto-hero.jpg';
-import cleaningHero from '@/assets/service-cleaning.jpg';
+import cleaningHero from '@/assets/category-cleaning-hero.png';
 import gardeningHero from '@/assets/category-gardening-hero.png';
 import { cn } from '@/lib/utils';
 
