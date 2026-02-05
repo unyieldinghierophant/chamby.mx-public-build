@@ -1,71 +1,52 @@
 
-# Plan: Páginas dedicadas de Login para Clientes y Proveedores
+# Plan: Corregir Search Bar en User Landing para Usuarios Logueados
 
-## Resumen
-Actualmente, los botones de "Iniciar sesión" redirigen al wizard de signup completo. Se crearán páginas de login dedicadas y simples que solo contengan:
-- Sign in con Google
-- Ingreso con Email/Password
-- Link para crear cuenta nueva
+## Problema Identificado
+El usuario logueado ve un botón "Buscar Servicio" en lugar del nuevo search bar interactivo con borde gradient en la página `/user-landing`. El componente `HeroSearchBar` existe y está importado, pero no se muestra correctamente.
 
-## Situación Actual
+## Diagnóstico
+Después de revisar el código:
+- `HeroSearchBar.tsx` existe y está correctamente implementado con el borde gradient rotativo
+- `UserLanding.tsx` importa y usa `HeroSearchBar` en línea 276
+- Sin embargo, el usuario sigue viendo un botón en lugar del search bar
 
-- **Página de Login para clientes** (`/login`): Ya existe y funciona correctamente
-- **Problema en Index.tsx**: Los enlaces de "Iniciar sesión" apuntan a `/auth/user` (wizard de signup)
-- **Problema en ProviderLanding.tsx**: El botón "Iniciar Sesión" apunta a `/auth/provider` (wizard de signup)
-- **No existe página de login dedicada para proveedores**
+Posibles causas:
+1. El archivo `UserLanding.tsx` podría no estar actualizado (caché o sincronización)
+2. Podría haber un error de renderizado silencioso en el componente
 
-## Cambios Propuestos
+## Solución
 
-### 1. Crear página de Login para Proveedores
-**Archivo nuevo:** `src/pages/ProviderLogin.tsx`
+### 1. Verificar y Re-escribir UserLanding.tsx
+Asegurar que el componente `HeroSearchBar` esté correctamente integrado, removiendo cualquier posible código duplicado o conflicto
 
-- Copiar estructura de `Login.tsx` existente
-- Adaptar para contexto de proveedor:
-  - Cambiar `login_context` a `'provider'`
-  - Cambiar redirección post-login a `/provider-portal`
-  - Actualizar link de registro a `/auth/provider`
-  - Ajustar textos para proveedores ("Accede a tu cuenta de Chambynauta")
+### 2. Mejorar HeroSearchBar con mejor visibilidad
+Asegurar que el search bar sea prominente y visible:
+- Fondo blanco sólido para contraste en el hero azul
+- Tamaño apropiado (h-14 como está actualmente)
+- Borde gradient visible
 
-### 2. Agregar ruta para Login de Proveedores
-**Archivo:** `src/constants/routes.ts`
-- Agregar `PROVIDER_LOGIN: '/provider/login'`
+### 3. Remover cualquier Button legacy
+Verificar que no haya ningún `<Button>` de "Buscar Servicio" en el hero del UserLanding
 
-**Archivo:** `src/App.tsx`
-- Agregar ruta para `ProviderLogin`
+## Cambios Específicos
 
-### 3. Actualizar enlaces en Index.tsx
-**Archivo:** `src/pages/Index.tsx`
-- Cambiar enlaces de "Iniciar sesión" de `/auth/user` a `/login`
-- El link ya usa `?mode=signin` en móvil, se simplificará a `/login`
+### src/pages/UserLanding.tsx
+- Confirmar que usa `HeroSearchBar` y no un botón
+- Verificar que no hay condicionalmente un botón mostrándose
+- Asegurar que el import está correcto: `import { HeroSearchBar } from "@/components/HeroSearchBar";`
 
-### 4. Actualizar botón en ProviderLanding.tsx
-**Archivo:** `src/pages/ProviderLanding.tsx`
-- Cambiar el botón "Iniciar Sesión" de `/auth/provider` a `/provider/login`
+### src/components/HeroSearchBar.tsx  
+- Verificar exportaciones (named y default)
+- Asegurar visibilidad del componente con estilos apropiados
 
-## Flujo Final
+## Verificación Visual
+El search bar en el hero debería verse así:
+- Caja de input blanca con borde gradient rotativo
+- Placeholder con animación de typing
+- Icono de búsqueda a la izquierda
+- Botón con flecha a la derecha
+- Dropdown de sugerencias al hacer click/focus
 
-```text
-Usuario (cliente):
-  Click "Iniciar sesión" → /login → Login simple → /user-landing
-
-Proveedor:
-  Click "Iniciar Sesión" → /provider/login → Login simple → /provider-portal
-```
-
-## Detalles Técnicos
-
-### Estructura de ProviderLogin.tsx
-- Misma estructura visual que `Login.tsx`
-- Usa `signInWithGoogle(true, 'provider')` para OAuth
-- Usa `signIn(email, password, 'provider')` para email/password
-- Redirección post-login: verificar si tiene onboarding completo, si no → `/auth/provider`, si sí → `/provider-portal`
-- Link "¿No tienes cuenta?" → `/auth/provider`
-
-### Archivos a Modificar
-1. `src/constants/routes.ts` - Nueva ruta
-2. `src/App.tsx` - Registro de ruta
-3. `src/pages/Index.tsx` - Actualizar enlaces
-4. `src/pages/ProviderLanding.tsx` - Actualizar botón
-
-### Archivo Nuevo
-1. `src/pages/ProviderLogin.tsx` - Página de login para proveedores
+## Archivos a Revisar/Modificar
+1. `src/pages/UserLanding.tsx` - Confirmar uso de HeroSearchBar
+2. `src/components/HeroSearchBar.tsx` - Verificar exportaciones correctas
