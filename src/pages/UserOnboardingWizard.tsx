@@ -19,6 +19,12 @@ import {
 } from 'lucide-react';
 import chambyLogo from '@/assets/chamby-logo-new.png';
 import ufoCharacter from '@/assets/ufo-chamby-final.png';
+
+// Preload images immediately
+const preloadLogo = new window.Image();
+preloadLogo.src = chambyLogo;
+const preloadUfo = new window.Image();
+preloadUfo.src = ufoCharacter;
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { ROUTES } from '@/constants/routes';

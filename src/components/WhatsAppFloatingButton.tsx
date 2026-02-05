@@ -1,6 +1,9 @@
 import { MessageCircle } from "lucide-react";
 import whatsappHelper from "@/assets/whatsapp-helper.png";
 
+// Preload image immediately
+const preloadHelper = new window.Image();
+preloadHelper.src = whatsappHelper;
 const WhatsAppFloatingButton = () => {
   const handleWhatsAppClick = () => {
     // Replace with your WhatsApp number (format: country code + number without + or spaces)
@@ -22,6 +25,7 @@ const WhatsAppFloatingButton = () => {
           src={whatsappHelper} 
           alt="Ayuda Chamby" 
           className="w-20 h-20 drop-shadow-lg"
+          loading="eager"
         />
         
         {/* WhatsApp Icon Badge */}

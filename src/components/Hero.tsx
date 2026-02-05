@@ -8,6 +8,10 @@ import { CategoryTabs } from "@/components/CategoryTabs";
 import { SavedJobBanner } from "@/components/SavedJobBanner";
 import moneyBagIcon from "@/assets/money-bag-icon.png";
 
+// Preload icon image immediately
+const preloadMoneyBag = new window.Image();
+preloadMoneyBag.src = moneyBagIcon;
+
 const Hero = () => {
   const [location, setLocation] = useState("");
   const navigate = useNavigate();
@@ -132,7 +136,7 @@ const Hero = () => {
                 variant="outline" 
                 className="w-full bg-primary/5 text-primary border-primary/25 hover:bg-primary/10 hover:border-primary/40 flex items-center justify-center gap-2 transition-all duration-300"
               >
-                <img src={moneyBagIcon} alt="Money bag" className="w-10 h-10" />
+                <img src={moneyBagIcon} alt="Money bag" className="w-10 h-10" loading="eager" />
                 Gana dinero como Chambynauta
               </ModernButton>
             </Link>

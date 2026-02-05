@@ -8,6 +8,12 @@ import { supabase } from "@/integrations/supabase/client";
 import ufoChamby from "@/assets/ufo-chamby-final.png";
 import chatbotAlienLogo from "@/assets/chatbot-alien-logo.png";
 
+// Preload images immediately
+const preloadUfo = new window.Image();
+preloadUfo.src = ufoChamby;
+const preloadAlien = new window.Image();
+preloadAlien.src = chatbotAlienLogo;
+
 interface Message {
   role: "user" | "assistant";
   content: string;
@@ -107,6 +113,7 @@ const ChatBot = () => {
             src={ufoChamby} 
             alt="UFO Chamby - Ayuda" 
             className="w-24 h-24 drop-shadow-lg group-hover:scale-105 transition-transform duration-300"
+            loading="eager"
           />
           <div className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full p-2 shadow-lg animate-pulse">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

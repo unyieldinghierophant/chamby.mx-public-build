@@ -18,6 +18,18 @@ import cleaningHero from '@/assets/category-cleaning-hero.png';
 import gardeningHero from '@/assets/category-gardening-hero.png';
 import { cn } from '@/lib/utils';
 
+// Preload all category images immediately
+const categoryImages = [
+  categoryHandyman, categoryElectrician, categoryPlumbing, 
+  categoryAuto, categoryCleaning, categoryGardening,
+  handymanHero, electricianHero, plumbingHero,
+  autoHero, cleaningHero, gardeningHero
+];
+categoryImages.forEach(src => {
+  const img = new window.Image();
+  img.src = src;
+});
+
 interface Category {
   id: string;
   name: string;
@@ -151,6 +163,7 @@ export const CategoryTabs = () => {
                       alt={category.name} 
                       className="w-16 h-16 md:w-20 md:h-20 object-contain transform scale-[2]"
                       style={{ imageRendering: 'auto' }}
+                      loading="eager"
                     />
                   </motion.div>
                   <span className="text-xs md:text-sm font-semibold text-center leading-tight whitespace-nowrap">
@@ -317,6 +330,7 @@ export const CategoryTabs = () => {
                   src={category.heroImage} 
                   alt={category.name}
                   className="w-full h-[220px] md:h-[400px] object-cover rounded-xl"
+                  loading="eager"
                 />
                 
                 {/* Desktop: Overlay Card (hidden on mobile) */}

@@ -40,6 +40,12 @@ import {
 } from 'lucide-react';
 import chambyLogo from '@/assets/chamby-logo-new.png';
 import providerCharacter from '@/assets/walking-provider.png';
+
+// Preload images immediately
+const preloadLogo = new window.Image();
+preloadLogo.src = chambyLogo;
+const preloadCharacter = new window.Image();
+preloadCharacter.src = providerCharacter;
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { ROUTES } from '@/constants/routes';
