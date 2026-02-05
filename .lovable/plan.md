@@ -1,27 +1,48 @@
-# Plan: Search Bar en User Landing - COMPLETADO ✓
 
-## Problema Resuelto
-El usuario logueado ahora ve el search bar interactivo con borde gradient rotativo en lugar del botón "Buscar Servicio".
+# Plan: Optimize Search Bar Placeholder Examples for Mobile
 
-## Cambios Realizados
+## Problem
+On mobile devices, the dynamic typing placeholder examples in the HeroSearchBar get cut off because they're too long for the smaller screen width. Examples like "Arreglar mi lavadora" (20 characters) may not fit completely.
 
-### 1. src/pages/UserLanding.tsx
-- Confirmado uso de `<HeroSearchBar />` en el hero
-- Aumentado max-width a xl para mejor visibilidad
-- Removido import no usado de AISearchBar
-- Añadido z-20 para asegurar visibilidad del dropdown
+## Solution
+Create two sets of typing examples - shorter ones for mobile and the current ones for desktop - and use a responsive approach to select the appropriate set based on screen size.
 
-### 2. src/components/HeroSearchBar.tsx
-- Mejorado el borde gradient rotativo con inline styles para compatibilidad
-- Aumentado padding del wrapper y border-radius
-- Añadido shadow-floating para mejor visibilidad
-- Mejorado hover effects del botón de búsqueda
-- Icono de búsqueda ahora usa color primary
+## Changes
 
-## Verificación Visual
-El search bar en el hero ahora muestra:
-✓ Caja de input blanca con borde gradient rotativo
-✓ Placeholder con animación de typing
-✓ Icono de búsqueda azul a la izquierda
-✓ Botón con flecha a la derecha
-✓ Dropdown de sugerencias al hacer click/focus
+### src/components/HeroSearchBar.tsx
+
+1. **Add shorter mobile-friendly examples:**
+```typescript
+const TYPING_EXAMPLES_MOBILE = [
+  'Pintar pared',
+  'Armar cama', 
+  'Cortar pasto',
+  'Lavar auto',
+  'Mover muebles'
+];
+
+const TYPING_EXAMPLES_DESKTOP = [
+  'Arreglar mi lavadora',
+  'Pintar mi pared',
+  'Armar mi cama',
+  'Ayudarme a mover',
+  'Lavar mi auto'
+];
+```
+
+2. **Add mobile detection hook:**
+   - Use the existing `use-mobile` hook or create a simple width check using `window.innerWidth`
+   - Switch between `TYPING_EXAMPLES_MOBILE` and `TYPING_EXAMPLES_DESKTOP` based on screen size
+
+3. **Update the typing effect to use the responsive array:**
+   - The typing animation will automatically use shorter strings on mobile
+   - All examples will fit comfortably in the search bar without cutoff
+
+## Technical Details
+
+- Mobile breakpoint: 640px (Tailwind's `sm` breakpoint)
+- Max character length for mobile examples: ~12 characters
+- This ensures text fits with the search icon (left) and arrow button (right)
+
+## Files to Modify
+- `src/components/HeroSearchBar.tsx` - Add mobile examples and responsive selection logic
