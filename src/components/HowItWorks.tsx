@@ -22,7 +22,7 @@ const HowItWorks = () => {
       step: "2", 
       title: "Chamby detecta el servicio",
       description: "Nuestra IA identifica el tipo de trabajo y selecciona al profesional adecuado",
-      color: "bg-primary-light text-primary"
+      color: "bg-purple-50 text-purple-600"
     },
     {
       icon: Camera,
