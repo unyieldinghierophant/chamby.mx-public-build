@@ -19,8 +19,8 @@ import {
 } from "@/components/ui/accordion";
 import { ROUTES } from "@/constants/routes";
 import { AISearchBar } from "@/components/AISearchBar";
+import { HeroSearchBar } from "@/components/HeroSearchBar";
 import logo from "@/assets/chamby-logo-new-horizontal.png";
-import { ArrowRight } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CategoryTabs } from "@/components/CategoryTabs";
@@ -272,20 +272,8 @@ const UserLanding = () => {
               Conectamos contigo a los mejores profesionales verificados
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <div className="relative w-fit p-[3px] rounded-[14px] shadow-elegant overflow-hidden">
-                {/* Rotating gradient border - hugs button tightly */}
-                <div className="absolute inset-0">
-                  <div className="absolute inset-[-100%] animate-rotate-gradient bg-[conic-gradient(from_0deg,hsl(214_80%_41%),hsl(210_20%_85%),hsl(214_80%_55%),hsl(214_80%_30%),hsl(210_20%_85%),hsl(214_80%_41%))]" />
-                </div>
-                <button 
-                  className="relative inline-flex items-center justify-center bg-white text-primary hover:bg-white/90 font-semibold px-8 py-4 text-lg rounded-[10px] whitespace-nowrap"
-                  onClick={() => navigate('/book-job')}
-                >
-                  Buscar Servicio
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </button>
-              </div>
+            <div className="w-full max-w-md mx-auto px-4">
+              <HeroSearchBar />
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 text-sm text-white/90">
