@@ -76,6 +76,7 @@ import AdminPayoutDetailPage from "./pages/admin/AdminPayoutDetailPage";
 import VisitFeePaymentPage from "./pages/VisitFeePaymentPage";
 import ResetPassword from "./pages/ResetPassword";
 import Login from "./pages/Login";
+import ProviderLogin from "./pages/ProviderLogin";
 
 const queryClient = new QueryClient();
 
@@ -126,6 +127,7 @@ const App = () => {
               <Route path={ROUTES.SOLICITAR_SERVICIO} element={<Navigate to={ROUTES.BOOK_JOB} replace />} />
               <Route path={ROUTES.BOOK_JOB} element={<BookJob />} />
               <Route path={ROUTES.LOGIN} element={<Login />} />
+              <Route path={ROUTES.PROVIDER_LOGIN} element={<ProviderLogin />} />
               <Route path={ROUTES.USER_AUTH} element={<UserOnboardingWizard />} />
               <Route path={ROUTES.PROVIDER_AUTH} element={<ProviderOnboardingWizard />} />
               
