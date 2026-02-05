@@ -285,13 +285,13 @@ const Login = () => {
           </Link>
         </header>
 
-        {/* Main content */}
-        <div className="flex-1 flex items-center justify-center px-4 pb-12">
+        {/* Main content - centered properly on mobile */}
+        <div className="flex-1 flex items-center justify-center px-4 py-8">
           <div className="w-full max-w-md">
             <Card className="bg-card/95 backdrop-blur-sm shadow-raised border-border/20">
               <CardHeader className="text-center pb-2">
                 <div className="flex justify-center mb-4">
-                  <img src={logo} alt="Chamby" className="h-20 w-auto" loading="eager" decoding="async" />
+                  <img src={logo} alt="Chamby" className="h-40 w-auto" loading="eager" decoding="async" />
                 </div>
                 <CardTitle className="text-2xl font-bold text-foreground">
                   {mode === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'}

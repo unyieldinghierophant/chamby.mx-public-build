@@ -19,13 +19,19 @@ import {
   Phone,
   Mail
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ProfileCardSkeleton, MenuSectionSkeleton } from "@/components/skeletons";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const MobileProfile = () => {
   const { user, signOut, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   const isLoading = authLoading || profileLoading;
 
@@ -235,7 +241,7 @@ const MobileProfile = () => {
         <Card className="bg-gradient-card shadow-raised border-0 mt-6">
           <CardContent className="p-0">
             <button
-              onClick={signOut}
+              onClick={handleSignOut}
               className="w-full flex items-center justify-center space-x-2 p-4 text-destructive hover:bg-destructive/10 transition-colors rounded-lg"
             >
               <LogOut className="h-4 w-4" />

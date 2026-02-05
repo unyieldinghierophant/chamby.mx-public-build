@@ -70,6 +70,7 @@ const UserLanding = () => {
     setIsLoggingOut(true);
     await signOut();
     setIsLoggingOut(false);
+    navigate("/");
   };
 
   // Redirect non-authenticated users to public landing
