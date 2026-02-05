@@ -1,12 +1,9 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
-import { ModernButton } from "@/components/ui/modern-button";
-import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, User, Settings, CreditCard, Shield, Users } from "lucide-react";
+import { Menu, X, LogOut, User, Settings, CreditCard, Users } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import chambyLogo from "@/assets/chamby-logo-text.png";
-import { BackButton } from "@/components/BackButton";
+import chambyLogo from "@/assets/chamby-logo-new-horizontal.png";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AllCategoriesDialog } from "@/components/AllCategoriesDialog";
+import { HeaderSearchBar } from "@/components/HeaderSearchBar";
 import { ROUTES } from "@/constants/routes";
 
 interface HeaderProps {
@@ -96,18 +94,16 @@ const Header = ({
               <img 
                 src={chambyLogo} 
                 alt="Chamby.mx" 
-                className="h-16 md:h-20 w-auto"
+                className="h-48 md:h-56 w-auto -my-16 md:-my-20"
               />
             </button>
           </div>
 
           {/* Center - All Navigation */}
-          <div className="hidden lg:flex items-center gap-8">
-            <button onClick={handlePostJobClick}>
-              <span className="bg-primary hover:bg-primary/90 text-white rounded-full px-8 py-3 text-base font-semibold inline-block transition-colors cursor-pointer">
-                Publicar tarea
-              </span>
-            </button>
+          <div className="hidden lg:flex items-center gap-6">
+            {/* Search Bar with Gradient */}
+            <HeaderSearchBar />
+            
             <button 
               onClick={() => setCategoriesDialogOpen(true)}
               className="text-foreground/70 hover:text-foreground transition-colors text-base font-normal"
