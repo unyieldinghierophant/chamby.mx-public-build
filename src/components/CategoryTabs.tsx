@@ -15,7 +15,7 @@ import electricianHero from '@/assets/category-electrician-hero.jpg';
 import plumbingHero from '@/assets/category-plumbing-hero.jpg';
 import autoHero from '@/assets/category-auto-hero.jpg';
 import cleaningHero from '@/assets/service-cleaning.jpg';
-import gardeningHero from '@/assets/service-garden.jpg';
+import gardeningHero from '@/assets/category-gardening-hero.png';
 import { cn } from '@/lib/utils';
 
 interface Category {
