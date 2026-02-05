@@ -51,12 +51,12 @@ export const useAvailableJobs = (): UseAvailableJobsResult => {
       setLoading(true);
       
       // Fetch jobs that are active and don't have a provider assigned yet
+      // Show all active jobs without a provider - payment status can be checked separately
       const { data: jobsData, error: fetchError } = await supabase
         .from('jobs')
         .select('*')
         .eq('status', 'active')
         .is('provider_id', null)
-        .eq('visit_fee_paid', true)
         .order('created_at', { ascending: false });
 
       if (fetchError) throw fetchError;
