@@ -3,6 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Check, MapPin, Calendar, FileText, Image, Clock } from "lucide-react";
 import toolsPatternBg from "@/assets/tools-pattern-bg.png";
 
+// Preload background image immediately
+const preloadImage = new window.Image();
+preloadImage.src = toolsPatternBg;
+
 interface BookingConfirmationProps {
   service: string;
   date: string;
