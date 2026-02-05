@@ -231,7 +231,7 @@ export const CategoryTabs = () => {
               
               {/* Mobile: Text ABOVE image (hidden on desktop) */}
               <div className="md:hidden mb-4 text-left">
-                <h3 className="text-xl font-bold text-foreground mb-3">
+                <h3 className="text-xl font-jakarta font-semibold text-foreground mb-3">
                   {category.name}
                 </h3>
                 <div className="space-y-2">
@@ -321,7 +321,7 @@ export const CategoryTabs = () => {
                 
                 {/* Desktop: Overlay Card (hidden on mobile) */}
                 <div className="hidden md:block absolute top-8 left-8 bg-white rounded-xl p-6 shadow-lg max-w-[350px]">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                  <h3 className="text-2xl font-jakarta font-semibold text-foreground mb-4">
                     {category.name}
                   </h3>
                   <div className="space-y-3">
