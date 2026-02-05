@@ -218,7 +218,7 @@ const ProviderLanding = () => {
           )}
 
           {!user && (
-            <Button onClick={() => navigate('/auth/provider')} className="bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant">
+            <Button onClick={() => navigate('/provider/login')} className="bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant">
               Iniciar Sesión
             </Button>
           )}

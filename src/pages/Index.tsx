@@ -88,7 +88,7 @@ const Index = () => {
                 <Link to="/auth/user" className="text-foreground hover:text-primary transition-colors font-medium">
                   Registrarse
                 </Link>
-                <Link to="/auth/user" className="text-foreground hover:text-primary transition-colors font-medium">
+                <Link to="/login" className="text-foreground hover:text-primary transition-colors font-medium">
                   Iniciar sesión
                 </Link>
                 <Link to="/auth/provider" className="text-primary hover:text-primary/80 transition-colors font-medium">
@@ -137,7 +137,7 @@ const Index = () => {
                   <Link to="/auth/user" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2 text-foreground hover:text-primary transition-colors font-medium text-left">
                     Registrarse
                   </Link>
-                  <Link to="/auth/user?mode=signin" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2 text-foreground hover:text-primary transition-colors font-medium text-left">
+                  <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2 text-foreground hover:text-primary transition-colors font-medium text-left">
                     Iniciar sesión
                   </Link>
                   <Link to="/auth/provider" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2 text-primary hover:text-primary/80 transition-colors font-semibold text-left">
