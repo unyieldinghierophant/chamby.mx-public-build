@@ -18,7 +18,6 @@ import {
   AccordionTrigger 
 } from "@/components/ui/accordion";
 import { ROUTES } from "@/constants/routes";
-import { AISearchBar } from "@/components/AISearchBar";
 import { HeroSearchBar } from "@/components/HeroSearchBar";
 import logo from "@/assets/chamby-logo-new-horizontal.png";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -271,11 +270,10 @@ const UserLanding = () => {
             <p className="text-lg md:text-xl text-white/90 leading-relaxed max-w-2xl mx-auto drop-shadow-md">
               Conectamos contigo a los mejores profesionales verificados
             </p>
-
-            <div className="w-full max-w-md mx-auto px-4">
+            {/* Interactive Search Bar with Rotating Gradient */}
+            <div className="w-full max-w-xl mx-auto px-4 relative z-20">
               <HeroSearchBar />
             </div>
-
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 text-sm text-white/90">
               <div className="flex items-center space-x-2">
                 <CheckCircle className="h-5 w-5 text-white" />
