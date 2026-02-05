@@ -134,7 +134,7 @@ const Hero = () => {
             <Link to="/provider-landing">
               <ModernButton 
                 variant="outline" 
-                className="w-full bg-primary/5 text-primary border-primary/25 hover:bg-primary/10 hover:border-primary/40 flex items-center justify-center gap-2 transition-all duration-300"
+                className="w-full bg-primary/5 text-primary border-primary/25 hover:bg-primary/10 hover:border-primary/40 flex items-center justify-center gap-2 transition-all duration-300 text-base md:text-lg font-semibold"
               >
                 <img src={moneyBagIcon} alt="Money bag" className="w-10 h-10" loading="eager" />
                 Gana dinero como Chambynauta

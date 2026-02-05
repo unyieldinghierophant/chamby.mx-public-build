@@ -166,7 +166,7 @@ export const CategoryTabs = () => {
                       loading="eager"
                     />
                   </motion.div>
-                  <span className="text-xs md:text-sm font-semibold text-center leading-tight whitespace-nowrap">
+                  <span className="text-xs md:text-sm font-bold text-center leading-tight whitespace-nowrap">
                     {category.name}
                   </span>
                 </TabsTrigger>
@@ -226,7 +226,7 @@ export const CategoryTabs = () => {
                   <Button
                     onClick={() => handleServiceClick(service.name, service.description)}
                     variant="outline"
-                    className="rounded-full px-4 py-1.5 md:px-5 md:py-2 h-auto text-xs md:text-sm bg-background border-border hover:bg-primary/5 hover:text-primary hover:border-primary transition-all duration-200"
+                    className="rounded-full px-4 py-2 md:px-6 md:py-2.5 h-auto text-sm md:text-base font-medium bg-background border-border hover:bg-primary/5 hover:text-primary hover:border-primary transition-all duration-200"
                   >
                     {service.name}
                   </Button>
