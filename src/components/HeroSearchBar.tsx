@@ -207,19 +207,24 @@ export const HeroSearchBar: React.FC = () => {
   };
 
   return (
-    <div ref={searchRef} className="relative w-full max-w-md mx-auto">
+    <div ref={searchRef} className="relative w-full">
       {/* Rotating gradient border wrapper */}
-      <div className="relative p-[3px] rounded-[14px] shadow-elegant overflow-hidden">
+      <div className="relative p-[3px] rounded-2xl shadow-floating overflow-hidden">
         {/* Rotating gradient border */}
-        <div className="absolute inset-0">
-          <div className="absolute inset-[-100%] animate-rotate-gradient bg-[conic-gradient(from_0deg,hsl(214_80%_41%),hsl(210_20%_85%),hsl(214_80%_55%),hsl(214_80%_30%),hsl(210_20%_85%),hsl(214_80%_41%))]" />
+        <div className="absolute inset-0 overflow-hidden rounded-2xl">
+          <div 
+            className="absolute inset-[-200%] animate-rotate-gradient" 
+            style={{
+              background: 'conic-gradient(from 0deg, hsl(214 80% 41%), hsl(210 20% 85%), hsl(214 80% 55%), hsl(214 80% 30%), hsl(210 20% 85%), hsl(214 80% 41%))'
+            }}
+          />
         </div>
         
-        {/* Search bar container */}
-        <div className="relative flex items-center h-14 bg-white rounded-[10px]">
+        {/* Search bar container - white background */}
+        <div className="relative flex items-center h-14 bg-white rounded-xl">
           {/* Search icon */}
-          <div className="absolute left-4 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-muted-foreground" />
+          <div className="absolute left-4 flex items-center pointer-events-none z-10">
+            <Search className="h-5 w-5 text-primary" />
           </div>
 
           {/* Input field */}
@@ -232,14 +237,14 @@ export const HeroSearchBar: React.FC = () => {
             onFocus={handleInputFocus}
             onBlur={handleInputBlur}
             onKeyDown={handleKeyPress}
-            className="h-full w-full pl-12 pr-14 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base text-foreground rounded-[10px] placeholder:text-muted-foreground"
+            className="h-full w-full pl-12 pr-16 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base text-foreground rounded-xl placeholder:text-muted-foreground/70"
           />
 
           {/* Search/Arrow button */}
           <button
             type="button"
             onClick={handleSearchSubmit}
-            className="absolute right-2 h-10 w-10 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center transition-colors"
+            className="absolute right-2 h-10 w-10 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center transition-all hover:scale-105 shadow-md"
           >
             <ArrowRight className="h-5 w-5" />
           </button>
