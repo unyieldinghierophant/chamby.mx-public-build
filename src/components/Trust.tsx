@@ -1,8 +1,19 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { ShieldCheck, Camera, Star, Headphones, Lock, BadgeCheck, LucideIcon } from "lucide-react";
+import { 
+  ShieldCheck, 
+  Camera, 
+  Star, 
+  Headset, 
+  LockKey, 
+  SealCheck,
+  IconProps 
+} from "@phosphor-icons/react";
+import { ForwardRefExoticComponent, RefAttributes } from "react";
+
+type PhosphorIcon = ForwardRefExoticComponent<IconProps & RefAttributes<SVGSVGElement>>;
 
 interface TrustFeature {
-  icon: LucideIcon;
+  icon: PhosphorIcon;
   title: string;
   description: string;
   stats: string;
@@ -33,21 +44,21 @@ const Trust = () => {
       color: "bg-yellow-50 text-yellow-600"
     },
     {
-      icon: Headphones,
+      icon: Headset,
       title: "Soporte 24/7",
       description: "Nuestro equipo está disponible para resolver cualquier problema",
       stats: "Respuesta inmediata",
       color: "bg-green-50 text-green-600"
     },
     {
-      icon: Lock,
+      icon: LockKey,
       title: "Pagos seguros",
       description: "Procesamos pagos de forma segura. El profesional cobra hasta que termines",
       stats: "Pago protegido",
       color: "bg-purple-50 text-purple-600"
     },
     {
-      icon: BadgeCheck,
+      icon: SealCheck,
       title: "Garantía de servicio",
       description: "Si no quedas satisfecho, regresamos a corregir el trabajo sin costo",
       stats: "30 días garantía",
@@ -80,7 +91,7 @@ const Trust = () => {
                 <div className="flex items-start space-x-4">
                   <div className="flex-shrink-0">
                     <div className={`w-16 h-16 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 ${feature.color}`}>
-                      <feature.icon className="w-8 h-8" />
+                      <feature.icon size={32} weight="duotone" />
                     </div>
                   </div>
                   <div className="flex-1">
