@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface PublicJob {
   title: string;
@@ -26,11 +27,19 @@ export const extractCity = (location: string | null): string => {
 };
 
 export const usePublicAvailableJobs = () => {
+  const { user } = useAuth();
   const [jobs, setJobs] = useState<PublicJob[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchJobs = async () => {
+      // Only fetch if user is authenticated (security fix)
+      if (!user) {
+        setJobs([]);
+        setLoading(false);
+        return;
+      }
+      
       try {
         const { data, error } = await supabase
           .from('jobs')
@@ -42,6 +51,7 @@ export const usePublicAvailableJobs = () => {
 
         if (error) {
           console.error('Error fetching public jobs:', error);
+          setJobs([]);
           return;
         }
 
@@ -50,13 +60,14 @@ export const usePublicAvailableJobs = () => {
         }
       } catch (err) {
         console.error('Error fetching public jobs:', err);
+        setJobs([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchJobs();
-  }, []);
+  }, [user]);
 
   return { jobs, loading };
 };
