@@ -1,13 +1,15 @@
+import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { MapPin, Calendar, Clock, DollarSign, AlertCircle, Briefcase, ArrowRight, ImageIcon } from "lucide-react";
+import { Briefcase, ArrowRight, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AvailableJob } from "@/hooks/useAvailableJobs";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
-import { toast } from "sonner";
+import { JobCardMobile } from "./JobCardMobile";
+import { JobFeedSkeleton } from "./JobFeedSkeleton";
+import { useJobSorting } from "@/hooks/useJobSorting";
+import { useProviderProfile } from "@/hooks/useProviderProfile";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface AvailableJobsSectionProps {
   jobs: AvailableJob[];
@@ -17,30 +19,29 @@ interface AvailableJobsSectionProps {
 
 export const AvailableJobsSection = ({ jobs, loading, onAcceptJob }: AvailableJobsSectionProps) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { profile: providerProfile } = useProviderProfile(user?.id);
 
-  const handleAcceptJob = async (jobId: string) => {
-    try {
-      await onAcceptJob(jobId);
-      toast.success('¡Trabajo aceptado!', {
-        description: 'El trabajo ha sido asignado a tu cuenta'
-      });
-    } catch (error: any) {
-      toast.error('Error al aceptar el trabajo', {
-        description: error.message
-      });
-    }
-  };
+  // Get sorted jobs with match indicators
+  const sortedJobs = useJobSorting({
+    jobs,
+    sortOption: 'for-you',
+    providerSkills: providerProfile?.skills || []
+  });
 
   if (loading) {
     return (
       <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
         <CardHeader>
-          <Skeleton className="h-6 w-48" />
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Briefcase className="h-5 w-5 text-primary" />
+            </div>
+            <CardTitle>Trabajos Disponibles</CardTitle>
+          </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {[1, 2].map((i) => (
-            <Skeleton key={i} className="h-32 w-full" />
-          ))}
+        <CardContent>
+          <JobFeedSkeleton count={2} />
         </CardContent>
       </Card>
     );
@@ -82,98 +83,28 @@ export const AvailableJobsSection = ({ jobs, loading, onAcceptJob }: AvailableJo
 
       <CardContent>
         {jobs.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <Briefcase className="h-12 w-12 mx-auto mb-3 opacity-50" />
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-8 text-muted-foreground"
+          >
+            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
+              <Briefcase className="h-8 w-8 opacity-50" />
+            </div>
             <p className="font-medium">No hay trabajos disponibles</p>
             <p className="text-sm">Te notificaremos cuando haya nuevas oportunidades</p>
-          </div>
+          </motion.div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
-            {jobs.slice(0, 4).map((job) => {
-              const scheduledDate = job.scheduled_at ? new Date(job.scheduled_at) : null;
-              
-              return (
-                <Card 
-                  key={job.id} 
-                  className="bg-background border-border hover:border-primary/50 hover:shadow-md transition-all"
-                >
-                  <CardContent className="p-4 space-y-3">
-                    {/* Header */}
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h4 className="font-semibold text-foreground truncate">{job.title}</h4>
-                          {job.urgent && (
-                            <Badge variant="destructive" className="text-xs animate-pulse">
-                              Urgente
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {job.category}
-                        </p>
-                      </div>
-                      <Badge variant="outline" className="bg-green-500/10 text-green-700 shrink-0">
-                        Nuevo
-                      </Badge>
-                    </div>
-
-                    {/* Problem */}
-                    {job.problem && (
-                      <div className="flex items-start gap-2 text-sm">
-                        <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0 text-primary" />
-                        <p className="text-foreground line-clamp-2">{job.problem}</p>
-                      </div>
-                    )}
-
-                    {/* Photos indicator */}
-                    {job.photos && job.photos.length > 0 && (
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <ImageIcon className="w-3.5 h-3.5" />
-                        <span>{job.photos.length} foto{job.photos.length > 1 ? 's' : ''}</span>
-                      </div>
-                    )}
-
-                    {/* Details Row */}
-                    <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                      {scheduledDate && (
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-3.5 h-3.5" />
-                          {format(scheduledDate, "d MMM", { locale: es })}
-                        </span>
-                      )}
-                      {scheduledDate && (
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3.5 h-3.5" />
-                          {format(scheduledDate, "HH:mm", { locale: es })}
-                        </span>
-                      )}
-                      {job.location && (
-                        <span className="flex items-center gap-1">
-                          <MapPin className="w-3.5 h-3.5" />
-                          <span className="truncate max-w-[120px]">{job.location.split(',')[0]}</span>
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Price & Action */}
-                    <div className="flex items-center justify-between pt-2 border-t border-border/50">
-                      <div className="flex items-center gap-1.5 text-lg font-bold text-primary">
-                        <DollarSign className="w-5 h-5" />
-                        <span>${job.rate.toFixed(0)} MXN</span>
-                      </div>
-                      <Button 
-                        size="sm"
-                        onClick={() => handleAcceptJob(job.id)}
-                        className="bg-gradient-button hover:shadow-button-hover"
-                      >
-                        Aceptar
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+            {sortedJobs.slice(0, 4).map((job, index) => (
+              <JobCardMobile
+                key={job.id}
+                job={job}
+                onAccept={onAcceptJob}
+                isMatch={job.isMatch}
+                index={index}
+              />
+            ))}
           </div>
         )}
 

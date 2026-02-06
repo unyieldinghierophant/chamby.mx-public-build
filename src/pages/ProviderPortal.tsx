@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Outlet, Navigate, useNavigate } from "react-router-dom";
 import { ProviderSidebar } from "@/components/provider-portal/ProviderSidebar";
 import { ProviderTopBar } from "@/components/provider-portal/ProviderTopBar";
+import { ProviderBottomNav } from "@/components/provider-portal/ProviderBottomNav";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -84,9 +85,11 @@ const ProviderPortal = () => {
         <ProviderSidebar />
         <div className="flex-1 flex flex-col">
           <ProviderTopBar />
-          <main className="flex-1 overflow-auto">
+          <main className="flex-1 overflow-auto pb-20 md:pb-0">
             <Outlet />
           </main>
+          {/* Mobile Bottom Navigation */}
+          <ProviderBottomNav />
         </div>
       </div>
     </SidebarProvider>

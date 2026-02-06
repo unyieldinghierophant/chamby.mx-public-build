@@ -1,4 +1,4 @@
-import { ChevronDown } from "lucide-react";
+import { Bell, ChevronDown, Menu } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,12 +10,18 @@ import {
 import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { useNotifications } from "@/hooks/useNotifications";
 import chambyLogo from "@/assets/chamby-logo-new-horizontal.png";
+import { useSidebar } from "@/components/ui/sidebar";
 
 export function ProviderTopBar() {
   const { profile } = useProfile();
   const { signOut } = useAuth();
   const navigate = useNavigate();
+  const { notifications } = useNotifications();
+  const { toggleSidebar } = useSidebar();
+
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   const handleSignOut = async () => {
     await signOut();
@@ -23,17 +29,43 @@ export function ProviderTopBar() {
   };
 
   return (
-    <header className="h-16 border-b border-border bg-card px-4 lg:px-6 flex items-center justify-between sticky top-0 z-10">
-      <div className="flex items-center gap-4">
+    <header className="h-14 md:h-16 border-b border-border bg-background/95 backdrop-blur-lg px-4 lg:px-6 flex items-center justify-between sticky top-0 z-20">
+      <div className="flex items-center gap-3">
+        {/* Mobile menu button */}
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="md:hidden"
+          onClick={toggleSidebar}
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+
         <img 
           src={chambyLogo} 
           alt="Chamby" 
-          className="h-32 -my-8 cursor-pointer" 
+          className="h-24 md:h-32 -my-8 cursor-pointer" 
           onClick={() => navigate('/provider-portal')}
         />
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 md:gap-4">
+        {/* Notifications */}
+        <Button 
+          variant="ghost" 
+          size="icon"
+          className="relative"
+          onClick={() => navigate('/provider-portal/notifications')}
+        >
+          <Bell className="h-5 w-5" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center px-1">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          )}
+        </Button>
+
+        {/* Active requests button - Desktop only */}
         <Button 
           variant="default" 
           size="sm" 
@@ -43,29 +75,30 @@ export function ProviderTopBar() {
           Ver solicitudes activas
         </Button>
 
+        {/* Profile Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="gap-2">
+            <Button variant="ghost" className="gap-2 px-2">
               <Avatar className="h-8 w-8">
                 <AvatarImage src={profile?.avatar_url || ""} />
-                <AvatarFallback>
+                <AvatarFallback className="text-sm">
                   {profile?.full_name?.charAt(0) || "P"}
                 </AvatarFallback>
               </Avatar>
-              <span className="hidden md:inline-block">
-                {profile?.full_name || "Proveedor"}
-              </span>
-              <ChevronDown className="h-4 w-4" />
+              <ChevronDown className="h-4 w-4 hidden md:block" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="w-48 bg-popover border border-border shadow-lg z-50">
             <DropdownMenuItem onClick={() => navigate("/provider-portal/profile")}>
               Mi Perfil
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => navigate("/provider-portal/verification")}>
               Verificación
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleSignOut}>
+            <DropdownMenuItem onClick={() => navigate("/provider-portal/earnings")}>
+              Mis Ganancias
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
               Cerrar Sesión
             </DropdownMenuItem>
           </DropdownMenuContent>

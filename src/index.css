@@ -248,3 +248,28 @@ All colors MUST be HSL.
 .show-recaptcha .grecaptcha-badge {
   visibility: visible !important;
 }
+
+/* Safe area insets for mobile bottom navigation */
+.safe-area-inset-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Hide scrollbar for horizontal scroll elements */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Pull to refresh animation */
+@keyframes pull-refresh {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.animate-pull-refresh {
+  animation: pull-refresh 1s linear infinite;
+}
