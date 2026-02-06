@@ -33,28 +33,28 @@ const AvailableJobs = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Mobile Header */}
+      {/* Mobile Header - Compact */}
       <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-lg border-b border-border md:hidden">
-        <div className="px-4 py-4">
+        <div className="px-4 py-3">
           {/* Title Row */}
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-3">
             <div>
-              <h1 className="text-2xl font-bold text-foreground font-jakarta">
+              <h1 className="text-lg font-bold text-foreground font-jakarta">
                 Trabajos Disponibles
               </h1>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                {sortedJobs.length} oportunidad{sortedJobs.length !== 1 ? 'es' : ''} disponible{sortedJobs.length !== 1 ? 's' : ''}
+              <p className="text-xs text-muted-foreground">
+                {sortedJobs.length} oportunidad{sortedJobs.length !== 1 ? 'es' : ''}
               </p>
             </div>
             <button
               onClick={handleRefresh}
               disabled={isRefreshing}
               className={cn(
-                "p-2 rounded-full bg-muted hover:bg-muted/80 transition-colors",
+                "p-2 rounded-full bg-muted active:bg-muted/80 transition-colors",
                 isRefreshing && "animate-spin"
               )}
             >
-              <RefreshCw className="w-5 h-5 text-muted-foreground" />
+              <RefreshCw className="w-4 h-4 text-muted-foreground" />
             </button>
           </div>
 
@@ -67,13 +67,13 @@ const AvailableJobs = () => {
       </div>
 
       {/* Desktop Header */}
-      <div className="hidden md:block px-6 py-6">
-        <div className="flex items-center justify-between mb-6">
+      <div className="hidden md:block px-6 py-4">
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground font-jakarta">
+            <h1 className="text-2xl font-bold text-foreground font-jakarta">
               Trabajos Disponibles
             </h1>
-            <p className="text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground mt-0.5">
               {sortedJobs.length} oportunidad{sortedJobs.length !== 1 ? 'es' : ''} disponible{sortedJobs.length !== 1 ? 's' : ''}
             </p>
           </div>
@@ -81,7 +81,7 @@ const AvailableJobs = () => {
             onClick={handleRefresh}
             disabled={isRefreshing}
             className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-lg bg-muted hover:bg-muted/80 transition-colors text-sm font-medium",
+              "flex items-center gap-2 px-3 py-2 rounded-lg bg-muted hover:bg-muted/80 transition-colors text-sm font-medium",
               isRefreshing && "opacity-50"
             )}
           >
@@ -98,7 +98,7 @@ const AvailableJobs = () => {
       </div>
 
       {/* Job Feed */}
-      <div className="p-4 md:px-6">
+      <div className="px-4 pb-24 md:px-6 md:pb-6">
         {/* Refresh indicator */}
         <AnimatePresence>
           {isRefreshing && (
@@ -106,10 +106,10 @@ const AvailableJobs = () => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="flex justify-center py-4"
+              className="flex justify-center py-2"
             >
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <RefreshCw className="w-4 h-4 animate-spin" />
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <RefreshCw className="w-3 h-3 animate-spin" />
                 <span>Actualizando...</span>
               </div>
             </motion.div>
@@ -120,22 +120,22 @@ const AvailableJobs = () => {
           <JobFeedSkeleton count={4} />
         ) : sortedJobs.length === 0 ? (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center justify-center py-16 text-center"
+            className="flex flex-col items-center justify-center py-12 text-center"
           >
-            <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-4">
-              <Briefcase className="w-10 h-10 text-muted-foreground" />
+            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-3">
+              <Briefcase className="w-8 h-8 text-muted-foreground" />
             </div>
-            <h3 className="text-xl font-semibold text-foreground mb-2">
+            <h3 className="text-lg font-semibold text-foreground mb-1">
               No hay trabajos disponibles
             </h3>
-            <p className="text-muted-foreground max-w-xs">
+            <p className="text-sm text-muted-foreground max-w-xs">
               Te notificaremos cuando haya nuevas oportunidades de trabajo en tu zona
             </p>
           </motion.div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          <div className="space-y-3 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 md:space-y-0">
             {sortedJobs.map((job, index) => (
               <JobCardMobile
                 key={job.id}

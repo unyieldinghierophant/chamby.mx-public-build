@@ -52,8 +52,8 @@ export const ProviderBottomNav = () => {
   };
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-t border-border pb-[env(safe-area-inset-bottom)]">
-      <div className="flex items-center justify-around py-2 px-2">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-t border-border safe-area-bottom">
+      <div className="flex items-center justify-around h-14 px-1">
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);
@@ -63,29 +63,26 @@ export const ProviderBottomNav = () => {
               key={item.id}
               onClick={() => navigate(item.path)}
               className={cn(
-                "relative flex flex-col items-center justify-center py-2 px-4 rounded-xl transition-all duration-200",
+                "relative flex flex-col items-center justify-center min-w-[60px] h-12 rounded-lg transition-colors",
                 active
                   ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground active:bg-muted"
               )}
             >
               <div className="relative">
-                <Icon className={cn("h-6 w-6 mb-1", active && "scale-110")} />
+                <Icon className={cn("h-5 w-5", active && "text-primary")} />
                 {item.badge && item.badge > 0 && (
-                  <span className="absolute -top-1 -right-2 min-w-[18px] h-[18px] bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center px-1">
+                  <span className="absolute -top-1.5 -right-2 min-w-[16px] h-[16px] bg-primary text-primary-foreground text-[9px] font-bold rounded-full flex items-center justify-center">
                     {item.badge > 99 ? '99+' : item.badge}
                   </span>
                 )}
               </div>
               <span className={cn(
-                "text-[11px] font-medium",
-                active && "font-semibold"
+                "text-[10px] mt-0.5",
+                active ? "font-semibold text-primary" : "font-medium"
               )}>
                 {item.label}
               </span>
-              {active && (
-                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full" />
-              )}
             </button>
           );
         })}

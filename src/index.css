@@ -254,6 +254,10 @@ All colors MUST be HSL.
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+.safe-area-bottom {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+}
+
 /* Hide scrollbar for horizontal scroll elements */
 .scrollbar-hide {
   -ms-overflow-style: none;
