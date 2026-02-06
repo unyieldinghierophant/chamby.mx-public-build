@@ -76,23 +76,23 @@ export const JobCardMobile = ({ job, onAccept, isMatch = false, index = 0 }: Job
         )}
       >
         {/* Mobile: Vertical layout / Desktop: Horizontal */}
-        <div className="flex flex-col sm:flex-row">
+        <div className="flex flex-col sm:flex-row w-full">
           {/* Image Section - Full width on mobile, 40% on desktop */}
-          <div className="relative aspect-[16/9] sm:aspect-square sm:w-2/5 bg-gradient-to-br from-primary/10 via-primary/5 to-accent/10 overflow-hidden flex-shrink-0">
+          <div className="relative w-full sm:w-2/5 aspect-[16/10] sm:aspect-square bg-gradient-to-br from-primary/10 via-primary/5 to-accent/10 overflow-hidden flex-shrink-0">
             {job.photos && job.photos.length > 0 ? (
               <img 
                 src={job.photos[0]} 
                 alt={job.title}
-                className="w-full h-full object-cover"
+                className="absolute inset-0 w-full h-full object-cover"
                 loading="lazy"
               />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center">
-                  <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
-                    <ImageIcon className="w-6 h-6 text-primary/50" />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
+                    <ImageIcon className="w-5 h-5 sm:w-6 sm:h-6 text-primary/50" />
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">{job.category}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">{job.category}</p>
                 </div>
               </div>
             )}
@@ -128,58 +128,58 @@ export const JobCardMobile = ({ job, onAccept, isMatch = false, index = 0 }: Job
           </div>
 
           {/* Content Section */}
-          <div className="flex-1 p-3 sm:p-4 flex flex-col">
+          <div className="flex-1 p-3 sm:p-4 flex flex-col min-w-0">
             {/* Title + Category */}
-            <div className="mb-2">
-              <h3 className="font-semibold text-base text-foreground line-clamp-1">
+            <div className="mb-1.5 sm:mb-2">
+              <h3 className="font-semibold text-sm sm:text-base text-foreground line-clamp-1">
                 {job.title}
               </h3>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
                 {job.category} {job.service_type && `• ${job.service_type}`}
               </p>
             </div>
 
             {/* Problem/Description - 2 lines max */}
             {(job.problem || job.description) && (
-              <p className="text-sm text-muted-foreground line-clamp-2 mb-2 flex-grow">
+              <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 mb-2 flex-grow">
                 {job.problem || job.description}
               </p>
             )}
 
             {/* Metadata Row - Horizontal scroll on mobile */}
-            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-muted-foreground mb-2 sm:mb-3 overflow-x-auto scrollbar-hide -mx-1 px-1">
               {scheduledDate && (
-                <span className="flex items-center gap-1 whitespace-nowrap bg-muted/50 px-2 py-1 rounded-full">
-                  <Calendar className="w-3 h-3" />
+                <span className="flex items-center gap-0.5 sm:gap-1 whitespace-nowrap bg-muted/50 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full">
+                  <Calendar className="w-2.5 h-2.5 sm:w-3 sm:h-3 flex-shrink-0" />
                   {format(scheduledDate, "d MMM", { locale: es })}
                 </span>
               )}
               {scheduledDate && (
-                <span className="flex items-center gap-1 whitespace-nowrap bg-muted/50 px-2 py-1 rounded-full">
-                  <Clock className="w-3 h-3" />
+                <span className="flex items-center gap-0.5 sm:gap-1 whitespace-nowrap bg-muted/50 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full">
+                  <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 flex-shrink-0" />
                   {format(scheduledDate, "HH:mm")}
                 </span>
               )}
               {job.location && (
-                <span className="flex items-center gap-1 whitespace-nowrap bg-muted/50 px-2 py-1 rounded-full">
-                  <MapPin className="w-3 h-3" />
+                <span className="flex items-center gap-0.5 sm:gap-1 whitespace-nowrap bg-muted/50 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full">
+                  <MapPin className="w-2.5 h-2.5 sm:w-3 sm:h-3 flex-shrink-0" />
                   {getCity(job.location)}
                 </span>
               )}
             </div>
 
             {/* Price + Button Row */}
-            <div className="flex items-center justify-between pt-2 border-t border-border/50">
-              <div className="flex items-baseline gap-1">
-                <span className="text-lg font-bold text-foreground">
+            <div className="flex items-center justify-between pt-2 border-t border-border/50 mt-auto">
+              <div className="flex items-baseline gap-0.5 sm:gap-1">
+                <span className="text-base sm:text-lg font-bold text-foreground">
                   ${job.rate.toLocaleString('es-MX')}
                 </span>
-                <span className="text-xs text-muted-foreground">MXN</span>
+                <span className="text-[10px] sm:text-xs text-muted-foreground">MXN</span>
               </div>
               <Button 
                 onClick={() => setShowConfirmDialog(true)}
                 size="sm"
-                className="bg-primary hover:bg-primary/90 h-9 px-4"
+                className="bg-primary hover:bg-primary/90 h-8 sm:h-9 px-3 sm:px-4 text-xs sm:text-sm"
               >
                 Aceptar
               </Button>
