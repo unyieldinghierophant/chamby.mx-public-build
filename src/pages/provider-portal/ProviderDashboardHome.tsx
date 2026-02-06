@@ -304,30 +304,30 @@ const ProviderDashboardHome = () => {
       )}
 
       {/* Stats Grid - 2 columns, compact */}
-      <div className="grid grid-cols-2 gap-2 px-4 mt-3">
+      <div className="grid grid-cols-2 gap-2 px-3 sm:px-4 mt-2 sm:mt-3">
         <Card className="bg-card border-border/50">
-          <CardContent className="p-3">
+          <CardContent className="p-2.5 sm:p-3">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Activos</p>
-                <p className="text-xl font-bold">{stats.activeJobs}</p>
+                <p className="text-lg sm:text-xl font-bold">{stats.activeJobs}</p>
               </div>
-              <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center">
-                <Clock className="w-4 h-4 text-blue-600" />
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-500/10 flex items-center justify-center">
+                <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600" />
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-card border-border/50">
-          <CardContent className="p-3">
+          <CardContent className="p-2.5 sm:p-3">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Ganancias</p>
-                <p className="text-xl font-bold">${earnings.total.toLocaleString('es-MX')}</p>
+                <p className="text-lg sm:text-xl font-bold">${earnings.total.toLocaleString('es-MX')}</p>
               </div>
-              <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center">
-                <DollarSign className="w-4 h-4 text-green-600" />
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-green-500/10 flex items-center justify-center">
+                <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-600" />
               </div>
             </div>
           </CardContent>
@@ -335,13 +335,13 @@ const ProviderDashboardHome = () => {
       </div>
 
       {/* Jobs Feed Section */}
-      <div className="mt-4">
-        <div className="px-4 pb-2">
+      <div className="mt-3 sm:mt-4">
+        <div className="px-3 sm:px-4 pb-2">
           {/* Header Row */}
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <Briefcase className="w-4 h-4 text-primary" />
-              <h2 className="text-base font-bold text-foreground font-jakarta">
+              <h2 className="text-sm sm:text-base font-bold text-foreground font-jakarta">
                 Trabajos Disponibles
               </h2>
               {availableJobs.length > 0 && (
@@ -370,7 +370,7 @@ const ProviderDashboardHome = () => {
         </div>
 
         {/* Job Cards - Single column on mobile, grid on larger */}
-        <div className="px-4 pb-24 md:pb-6">
+        <div className="px-3 sm:px-4 pb-28 sm:pb-24 md:pb-6">
           <AnimatePresence>
             {isRefreshing && (
               <motion.div
@@ -406,7 +406,7 @@ const ProviderDashboardHome = () => {
               </p>
             </motion.div>
           ) : (
-            <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
+            <div className="space-y-2.5 sm:space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
               {sortedJobs.slice(0, 4).map((job, index) => (
                 <JobCardMobile
                   key={job.id}
