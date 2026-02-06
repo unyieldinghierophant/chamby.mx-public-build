@@ -125,8 +125,8 @@ export const CategoryTabs = () => {
     <div ref={containerRef} className="w-full mx-auto">
       <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
         {/* Category Tabs - Horizontal scroll layout */}
-        <div className="w-full">
-          <TabsList ref={tabsListRef} className="w-full h-auto bg-transparent p-0 py-6 flex justify-start md:justify-center gap-6 md:gap-10 overflow-x-auto overflow-y-visible scrollbar-hide pl-4 relative z-20">
+        <div className="w-full relative z-30">
+          <TabsList ref={tabsListRef} className="w-full h-auto bg-transparent p-0 py-6 flex justify-start md:justify-center gap-6 md:gap-10 overflow-x-auto overflow-y-visible scrollbar-hide pl-4 relative z-30">
             {categories.map((category, index) => (
               <motion.div
                 key={category.id}
@@ -196,7 +196,7 @@ export const CategoryTabs = () => {
           <TabsContent 
             key={category.id} 
             value={category.id}
-            className="mt-8"
+            className="mt-8 relative z-10"
           >
             {/* Service pills - aesthetic grid layout like reference */}
             <motion.div 
