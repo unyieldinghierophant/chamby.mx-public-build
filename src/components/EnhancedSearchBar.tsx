@@ -279,10 +279,10 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 max-h-96 overflow-y-auto z-50">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-card rounded-lg shadow-floating border border-border max-h-96 overflow-y-auto z-[100]">
           {showPopular && (
             <div className="p-4">
-              <h3 className={cn("font-medium text-gray-700 mb-3", dropdownSizeClasses[size])}>
+              <h3 className={cn("font-medium text-foreground mb-3", dropdownSizeClasses[size])}>
                 Categorías Populares
               </h3>
               <div className="space-y-1">
@@ -291,11 +291,11 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
                     key={category}
                     onClick={() => handleCategoryClick(category)}
                     className={cn(
-                      "w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 text-gray-700 transition-colors capitalize",
+                      "w-full text-left px-3 py-2 rounded-md hover:bg-muted text-foreground transition-colors capitalize",
                       dropdownSizeClasses[size]
                     )}
                   >
-                    <Clock className="inline-block w-4 h-4 mr-3 text-gray-400" />
+                    <Clock className="inline-block w-4 h-4 mr-3 text-muted-foreground" />
                     {category}
                   </button>
                 ))}
@@ -312,17 +312,17 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
                       key={`${suggestion.serviceType}-${suggestion.problem}-${index}`}
                       onClick={() => handleSuggestionClick(suggestion)}
                       className={cn(
-                        "w-full text-left p-3 rounded-md hover:bg-gray-100 transition-colors",
+                        "w-full text-left p-3 rounded-md hover:bg-muted transition-colors",
                         dropdownSizeClasses[size]
                       )}
                     >
-                      <div className="font-medium text-gray-900 capitalize">{suggestion.problem}</div>
-                      <div className="text-sm text-gray-600 mt-1 capitalize">{suggestion.serviceType}</div>
+                      <div className="font-medium text-foreground capitalize">{suggestion.problem}</div>
+                      <div className="text-sm text-muted-foreground mt-1 capitalize">{suggestion.serviceType}</div>
                     </button>
                   ))}
                 </div>
               ) : (
-                <div className="p-4 text-center text-gray-500">
+                <div className="p-4 text-center text-muted-foreground">
                   <div className={cn("mb-2", dropdownSizeClasses[size])}>
                     No se encontraron coincidencias
                   </div>
