@@ -3,15 +3,27 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
 import { ROUTES } from '@/constants/routes';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function PhotoRedirect() {
   const { shortCode } = useParams();
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
+    // Wait for auth to finish loading
+    if (authLoading) return;
+
     const redirect = async () => {
       if (!shortCode) {
         navigate(ROUTES.HOME);
+        return;
+      }
+
+      // Security: Require authentication to view photo links
+      if (!user) {
+        // Redirect to login with return URL
+        navigate(`/login?redirect=/p/${shortCode}`);
         return;
       }
 
@@ -45,13 +57,15 @@ export default function PhotoRedirect() {
     };
 
     redirect();
-  }, [shortCode, navigate]);
+  }, [shortCode, navigate, user, authLoading]);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <div className="text-center">
         <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
-        <p className="text-muted-foreground">Redirigiendo...</p>
+        <p className="text-muted-foreground">
+          {authLoading ? 'Verificando autenticación...' : 'Redirigiendo...'}
+        </p>
       </div>
     </div>
   );
