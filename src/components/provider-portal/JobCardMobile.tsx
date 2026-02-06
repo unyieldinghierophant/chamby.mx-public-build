@@ -6,12 +6,11 @@ import {
   MapPin, 
   Calendar, 
   Clock, 
-  DollarSign, 
   ImageIcon,
   Sparkles,
   AlertCircle
 } from "lucide-react";
-import { format, formatDistanceToNow } from "date-fns";
+import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { AvailableJob } from "@/hooks/useAvailableJobs";
 import { 
@@ -25,6 +24,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface JobCardMobileProps {
   job: AvailableJob;
@@ -67,118 +67,123 @@ export const JobCardMobile = ({ job, onAccept, isMatch = false, index = 0 }: Job
   return (
     <>
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.05, duration: 0.3 }}
-        className={`bg-card rounded-2xl overflow-hidden shadow-sm border transition-all duration-200 hover:shadow-md ${
-          isMatch ? 'border-amber-400/50 ring-1 ring-amber-400/30' : 'border-border'
-        }`}
+        transition={{ delay: index * 0.03, duration: 0.2 }}
+        className={cn(
+          "bg-card rounded-xl overflow-hidden shadow-sm border transition-all duration-200 active:scale-[0.98]",
+          isMatch ? 'border-amber-400/50 ring-1 ring-amber-400/20' : 'border-border'
+        )}
       >
-        {/* Image Section */}
-        <div className="relative aspect-[16/10] bg-gradient-to-br from-primary/10 via-primary/5 to-accent/10 overflow-hidden">
-          {job.photos && job.photos.length > 0 ? (
-            <img 
-              src={job.photos[0]} 
-              alt={job.title}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center space-y-2">
-                <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
-                  <ImageIcon className="w-8 h-8 text-primary/50" />
+        {/* Mobile: Vertical layout / Desktop: Horizontal */}
+        <div className="flex flex-col sm:flex-row">
+          {/* Image Section - Full width on mobile, 40% on desktop */}
+          <div className="relative aspect-[16/9] sm:aspect-square sm:w-2/5 bg-gradient-to-br from-primary/10 via-primary/5 to-accent/10 overflow-hidden flex-shrink-0">
+            {job.photos && job.photos.length > 0 ? (
+              <img 
+                src={job.photos[0]} 
+                alt={job.title}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
+                    <ImageIcon className="w-6 h-6 text-primary/50" />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">{job.category}</p>
                 </div>
-                <p className="text-sm text-muted-foreground">{job.category}</p>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Badges */}
-          <div className="absolute top-3 left-3 flex flex-wrap gap-2">
-            {isNew && (
-              <Badge className="bg-primary text-primary-foreground shadow-md">
-                <Sparkles className="w-3 h-3 mr-1" />
-                Nuevo
-              </Badge>
-            )}
-            {job.urgent && (
-              <Badge variant="destructive" className="animate-pulse shadow-md">
-                <AlertCircle className="w-3 h-3 mr-1" />
-                Urgente
-              </Badge>
-            )}
-            {isMatch && (
-              <Badge className="bg-amber-500 text-white shadow-md">
-                ✨ Match perfecto
-              </Badge>
+            {/* Badges - Positioned in corner */}
+            <div className="absolute top-2 left-2 flex flex-wrap gap-1.5">
+              {isNew && (
+                <Badge className="bg-primary text-primary-foreground text-[10px] px-2 py-0.5">
+                  <Sparkles className="w-3 h-3 mr-1" />
+                  Nuevo
+                </Badge>
+              )}
+              {job.urgent && (
+                <Badge variant="destructive" className="text-[10px] px-2 py-0.5 animate-pulse">
+                  <AlertCircle className="w-3 h-3 mr-1" />
+                  Urgente
+                </Badge>
+              )}
+              {isMatch && (
+                <Badge className="bg-amber-500 text-white text-[10px] px-2 py-0.5">
+                  ✨ Match
+                </Badge>
+              )}
+            </div>
+
+            {/* Photo count indicator */}
+            {job.photos && job.photos.length > 1 && (
+              <div className="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded-full flex items-center gap-1">
+                <ImageIcon className="w-3 h-3" />
+                {job.photos.length}
+              </div>
             )}
           </div>
 
-          {/* Photo count indicator */}
-          {job.photos && job.photos.length > 1 && (
-            <div className="absolute bottom-3 right-3 bg-black/60 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
-              <ImageIcon className="w-3 h-3" />
-              {job.photos.length}
+          {/* Content Section */}
+          <div className="flex-1 p-3 sm:p-4 flex flex-col">
+            {/* Title + Category */}
+            <div className="mb-2">
+              <h3 className="font-semibold text-base text-foreground line-clamp-1">
+                {job.title}
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                {job.category} {job.service_type && `• ${job.service_type}`}
+              </p>
             </div>
-          )}
-        </div>
 
-        {/* Content Section */}
-        <div className="p-4 space-y-3">
-          {/* Title + Category */}
-          <div>
-            <h3 className="font-semibold text-lg text-foreground line-clamp-1">
-              {job.title}
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              {job.category} {job.service_type && `• ${job.service_type}`}
-            </p>
-          </div>
-
-          {/* Problem/Description */}
-          {(job.problem || job.description) && (
-            <p className="text-sm text-muted-foreground line-clamp-2">
-              {job.problem || job.description}
-            </p>
-          )}
-
-          {/* Metadata Row */}
-          <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-            {scheduledDate && (
-              <span className="flex items-center gap-1">
-                <Calendar className="w-4 h-4" />
-                {format(scheduledDate, "d MMM", { locale: es })}
-              </span>
+            {/* Problem/Description - 2 lines max */}
+            {(job.problem || job.description) && (
+              <p className="text-sm text-muted-foreground line-clamp-2 mb-2 flex-grow">
+                {job.problem || job.description}
+              </p>
             )}
-            {scheduledDate && (
-              <span className="flex items-center gap-1">
-                <Clock className="w-4 h-4" />
-                {format(scheduledDate, "HH:mm")}
-              </span>
-            )}
-            {job.location && (
-              <span className="flex items-center gap-1">
-                <MapPin className="w-4 h-4" />
-                {getCity(job.location)}
-              </span>
-            )}
-          </div>
 
-          {/* Price + Button Row */}
-          <div className="flex items-center justify-between pt-3 border-t border-border/50">
-            <div className="flex items-center gap-1.5">
-              <DollarSign className="w-5 h-5 text-primary" />
-              <span className="text-xl font-bold text-foreground">
-                ${job.rate.toLocaleString('es-MX')}
-              </span>
-              <span className="text-sm text-muted-foreground">MXN</span>
+            {/* Metadata Row - Horizontal scroll on mobile */}
+            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3 overflow-x-auto scrollbar-hide">
+              {scheduledDate && (
+                <span className="flex items-center gap-1 whitespace-nowrap bg-muted/50 px-2 py-1 rounded-full">
+                  <Calendar className="w-3 h-3" />
+                  {format(scheduledDate, "d MMM", { locale: es })}
+                </span>
+              )}
+              {scheduledDate && (
+                <span className="flex items-center gap-1 whitespace-nowrap bg-muted/50 px-2 py-1 rounded-full">
+                  <Clock className="w-3 h-3" />
+                  {format(scheduledDate, "HH:mm")}
+                </span>
+              )}
+              {job.location && (
+                <span className="flex items-center gap-1 whitespace-nowrap bg-muted/50 px-2 py-1 rounded-full">
+                  <MapPin className="w-3 h-3" />
+                  {getCity(job.location)}
+                </span>
+              )}
             </div>
-            <Button 
-              onClick={() => setShowConfirmDialog(true)}
-              className="bg-primary hover:bg-primary/90 shadow-sm"
-            >
-              Aceptar
-            </Button>
+
+            {/* Price + Button Row */}
+            <div className="flex items-center justify-between pt-2 border-t border-border/50">
+              <div className="flex items-baseline gap-1">
+                <span className="text-lg font-bold text-foreground">
+                  ${job.rate.toLocaleString('es-MX')}
+                </span>
+                <span className="text-xs text-muted-foreground">MXN</span>
+              </div>
+              <Button 
+                onClick={() => setShowConfirmDialog(true)}
+                size="sm"
+                className="bg-primary hover:bg-primary/90 h-9 px-4"
+              >
+                Aceptar
+              </Button>
+            </div>
           </div>
         </div>
       </motion.div>

@@ -10,23 +10,23 @@ interface JobSortingTabsProps {
 
 export const JobSortingTabs = ({ activeSort, onSortChange }: JobSortingTabsProps) => {
   const sortOptions: { id: SortOption; label: string; icon: React.ReactNode }[] = [
-    { id: 'for-you', label: 'Para ti', icon: <Target className="w-4 h-4" /> },
-    { id: 'closest', label: 'Más cerca', icon: <MapPin className="w-4 h-4" /> },
-    { id: 'highest-paid', label: 'Mejor pagados', icon: <DollarSign className="w-4 h-4" /> },
-    { id: 'newest', label: 'Nuevos', icon: <Sparkles className="w-4 h-4" /> },
+    { id: 'for-you', label: 'Para ti', icon: <Target className="w-3.5 h-3.5" /> },
+    { id: 'closest', label: 'Más cerca', icon: <MapPin className="w-3.5 h-3.5" /> },
+    { id: 'highest-paid', label: 'Mejor pagados', icon: <DollarSign className="w-3.5 h-3.5" /> },
+    { id: 'newest', label: 'Nuevos', icon: <Sparkles className="w-3.5 h-3.5" /> },
   ];
 
   return (
-    <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4">
+    <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-4 px-4">
       {sortOptions.map((option) => (
         <button
           key={option.id}
           onClick={() => onSortChange(option.id)}
           className={cn(
-            "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200",
+            "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-200 min-h-[32px]",
             activeSort === option.id
               ? "bg-primary text-primary-foreground shadow-sm"
-              : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+              : "bg-muted text-muted-foreground active:bg-muted/80"
           )}
         >
           {option.icon}

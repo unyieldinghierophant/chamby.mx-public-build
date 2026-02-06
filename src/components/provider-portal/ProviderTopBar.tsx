@@ -29,37 +29,38 @@ export function ProviderTopBar() {
   };
 
   return (
-    <header className="h-14 md:h-16 border-b border-border bg-background/95 backdrop-blur-lg px-4 lg:px-6 flex items-center justify-between sticky top-0 z-20">
-      <div className="flex items-center gap-3">
+    <header className="h-14 border-b border-border bg-background/95 backdrop-blur-lg px-3 md:px-6 flex items-center justify-between sticky top-0 z-20">
+      <div className="flex items-center gap-2">
         {/* Mobile menu button */}
         <Button 
           variant="ghost" 
           size="icon" 
-          className="md:hidden"
+          className="md:hidden h-9 w-9"
           onClick={toggleSidebar}
         >
           <Menu className="h-5 w-5" />
         </Button>
 
+        {/* Logo - Smaller on mobile */}
         <img 
           src={chambyLogo} 
           alt="Chamby" 
-          className="h-24 md:h-32 -my-8 cursor-pointer" 
+          className="h-10 md:h-14 cursor-pointer" 
           onClick={() => navigate('/provider-portal')}
         />
       </div>
 
-      <div className="flex items-center gap-2 md:gap-4">
+      <div className="flex items-center gap-1 md:gap-3">
         {/* Notifications */}
         <Button 
           variant="ghost" 
           size="icon"
-          className="relative"
+          className="relative h-9 w-9"
           onClick={() => navigate('/provider-portal/notifications')}
         >
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center px-1">
+            <span className="absolute top-0.5 right-0.5 min-w-[16px] h-[16px] bg-primary text-primary-foreground text-[9px] font-bold rounded-full flex items-center justify-center">
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           )}
@@ -78,14 +79,14 @@ export function ProviderTopBar() {
         {/* Profile Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="gap-2 px-2">
-              <Avatar className="h-8 w-8">
+            <Button variant="ghost" className="gap-1 px-1.5 h-9">
+              <Avatar className="h-7 w-7">
                 <AvatarImage src={profile?.avatar_url || ""} />
-                <AvatarFallback className="text-sm">
+                <AvatarFallback className="text-xs">
                   {profile?.full_name?.charAt(0) || "P"}
                 </AvatarFallback>
               </Avatar>
-              <ChevronDown className="h-4 w-4 hidden md:block" />
+              <ChevronDown className="h-3 w-3 hidden md:block" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48 bg-popover border border-border shadow-lg z-50">
