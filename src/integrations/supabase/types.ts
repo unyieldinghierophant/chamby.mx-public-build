@@ -830,6 +830,22 @@ export type Database = {
         }[]
       }
       get_user_email: { Args: never; Returns: string }
+      get_verified_providers: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          display_name: string
+          hourly_rate: number
+          id: string
+          rating: number
+          skills: string[]
+          specialty: string
+          total_reviews: number
+          user_id: string
+          verified: boolean
+          zone_served: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
