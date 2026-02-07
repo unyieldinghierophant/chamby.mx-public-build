@@ -9,13 +9,13 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-gradient-glass-button backdrop-blur-glass border-[var(--glass-border-foggy)] text-chamby-black shadow-button-3d hover:shadow-button-hover active:shadow-button-active transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200",
+        default: "bg-primary text-primary-foreground shadow-button-3d hover:shadow-button-hover active:shadow-button-active transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline: "bg-gradient-glass-button backdrop-blur-glass border-[var(--glass-border-foggy)] text-chamby-black shadow-button-3d hover:shadow-button-hover active:shadow-button-active transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200",
-        secondary: "bg-gradient-glass-button backdrop-blur-glass border-[var(--glass-border-foggy)] text-chamby-black shadow-button-3d hover:shadow-button-hover active:shadow-button-active transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200",
+        outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        glass: "bg-gradient-glass-button backdrop-blur-glass border-[var(--glass-border-foggy)] text-chamby-black shadow-button-3d hover:shadow-button-hover active:shadow-button-active transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200",
+        glass: "bg-gradient-glass-button backdrop-blur-glass border-[var(--glass-border-foggy)] text-foreground shadow-button-3d hover:shadow-button-hover active:shadow-button-active transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200",
       },
       size: {
         default: "h-10 px-4 py-2",
