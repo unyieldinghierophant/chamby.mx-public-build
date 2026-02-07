@@ -1,166 +1,187 @@
 
-# Plan: Reorganizar Flujos de Autenticación
+# Plan: Provider Portal Mobile-First UI/UX Tweaks
 
-## Resumen del Problema
-Actualmente hay confusión en las rutas de autenticación:
-- Los wizards de onboarding manejan tanto login como registro
-- Los usuarios que inician sesión son enviados a wizards en lugar de páginas de login simples
-- No hay distinción clara entre el flujo de clientes y proveedores
+## Overview
+This plan implements targeted UI/UX improvements to make the provider portal truly mobile-first, with clearer hierarchy and faster scanning - all while preserving existing business logic.
 
-## Solución Propuesta
+## Key Changes Summary
 
-### Principios de Diseño
-- **Iniciar Sesión** → Siempre va a páginas de login dedicadas (`/login` o `/provider/login`)
-- **Registrarse** (clientes) → Página de registro simple o wizard de cliente
-- **Ser Chambynauta** → Wizard de proveedor (`/auth/provider`) solo para registro
-- **Desde /book-job** → Redirecciona a `/login` y regresa al paso actual del formulario
+### 1. Availability Toggle Redesign
+**Current:** Small iOS-style Switch in the profile header corner
+**New:** Full-width stateful button above the jobs section
 
-### Cambios por Archivo
+Changes to `ProviderDashboardHome.tsx`:
+- Remove Switch from profile header section
+- Add new `AvailabilityButton` component above "Trabajos Disponibles"
+- Two visual states:
+  - **Available (Primary filled):** "Disponible para trabajos"
+  - **Not Available (Outlined):** "No disponible"
+- Add microcopy below: "Recibe trabajos solo cuando estes disponible"
+- When unavailable: Blur/overlay the jobs feed with message "Activa tu disponibilidad para ver trabajos"
 
-#### 1. src/pages/Index.tsx (Landing público)
-**Cambios:**
-- "Registrarse" → Cambiar de `/auth/user` a `/login` con parámetro `?mode=signup`
-- "Iniciar sesión" → Mantener en `/login` ✅
-- "Ser Chambynauta" → Mantener en `/auth/provider` ✅
+### 2. Header Simplification
+**Current:** Logo + Menu + Notifications + Avatar with dropdown
+**New:** Keep TopBar minimal, move greeting/stats to dedicated card
 
-#### 2. src/pages/Login.tsx (Página de login de clientes)
-**Cambios:**
-- Agregar soporte para modo registro (`?mode=signup`)
-- Añadir formulario de registro simple (nombre, email, teléfono, contraseña)
-- El enlace "¿No tienes cuenta?" cambia a modo registro dentro de la misma página
-- Manejar correctamente el `returnTo` para `/book-job`
+Changes to `ProviderTopBar.tsx`:
+- Keep: Menu icon, Notification bell, Avatar
+- Remove: Any extra elements
 
-#### 3. src/components/JobBookingForm.tsx
-**Cambios:**
-- Cambiar redirección de autenticación de `/auth/user` a `/login`
-- Mantener la lógica de guardar el paso actual y datos del formulario
-- Asegurar que el usuario regrese al paso donde se quedó después de autenticarse
+Changes to `ProviderDashboardHome.tsx`:
+- Create compact welcome card below header with:
+  - "Hola, {name}"
+  - Rating stars + completed jobs count
+  - No availability toggle (moved to jobs section)
 
-#### 4. src/components/AuthModal.tsx
-**Cambios:**
-- El botón "Iniciar sesión / Registrarme" debe navegar a `/login` en lugar de `/auth/user`
+### 3. Verification Banner Compression
+**Current:** Card-style with icon, text, and chevron button
+**New:** Slim single-line banner
 
-#### 5. src/pages/UserOnboardingWizard.tsx
-**Cambios:**
-- Convertir a wizard solo de registro para clientes (eliminar modo login)
-- Opcional: Mover esta lógica a Login.tsx y eliminar este archivo
-- O mantenerlo para flujos de registro que requieran más pasos
+Changes to `ProviderDashboardHome.tsx`:
+- Reduce padding from `p-2.5` to `py-2 px-3`
+- Inline format: "Verificacion en revision . Ver estado ->"
+- Make it horizontally clickable (entire banner)
+- Optional: Add dismiss button (using existing state, no new persistence)
 
-#### 6. src/pages/provider-portal/ProviderOnboardingWizard.tsx
-**Cambios:**
-- Ya tiene simplificación de auth implementada (enlace de texto para login)
-- Asegurar que el enlace "¿Ya tienes cuenta? Iniciar sesión" vaya a `/provider/login`
-- No debe manejar login completo, solo mostrar enlace a la página de login
+### 4. Lighter Job Filters (Segmented Tabs)
+**Current:** Heavy pill buttons with icons
+**New:** Light text-based segmented control
 
-#### 7. src/pages/AuthCallback.tsx
-**Cambios:**
-- Ajustar la lógica de redirección post-autenticación
-- Si viene de `/book-job`, regresar ahí con datos preservados
-- Si es cliente nuevo, ir a `/user-landing` (no a wizard)
-- Si es proveedor nuevo, ir a wizard de proveedor para completar perfil
+Changes to `JobSortingTabs.tsx`:
+- Convert from filled pills to underlined text tabs
+- Remove icons except location for "Mas cerca"
+- Reduce visual weight with `border-b-2` for active state
+- Keep horizontal scroll behavior
 
-#### 8. src/constants/routes.ts
-**Cambios:**
-- Agregar `USER_SIGNUP: '/signup'` si se decide separar registro de login
-- O agregar constante para `LOGIN_SIGNUP_MODE: '/login?mode=signup'`
+### 5. Job Card Height Reduction + Scanability
+**Current:** Large 16:10 image, metadata pills
+**New:** Compact layout with thumbnail approach
 
-### Flujos Resultantes
+Changes to `JobCardMobile.tsx`:
+- Reduce image from `aspect-[16/10]` to `aspect-[21/9]` (ultra-wide banner)
+- Add photo count badge on image
+- Restructure content:
+  - Service icon + name (from category)
+  - 1-2 line description (line-clamp-2)
+  - Date + Time + Zone (city only)
+  - Add "Visita pagada" trust badge when `visit_fee_paid === true`
+- **Remove Accept button from list view** (per requirements)
+- Card becomes tappable to open detail view
 
+### 6. Active Job Pinning + Lock UI
+**Current:** Active jobs shown in stats only
+**New:** Pinned active job card + dimmed other jobs
+
+Create new `ActiveJobCard.tsx` component:
+- Distinct styling (primary border, background tint)
+- Label: "Trabajo activo"
+- Show key info: title, date, client
+- Action button: "Ver detalles"
+
+Changes to `ProviderDashboardHome.tsx`:
+- Import and use `useActiveJobs` hook
+- If `stats.activeJobs > 0`:
+  - Fetch first active job details
+  - Render `ActiveJobCard` at top of jobs section
+  - Apply `opacity-50 pointer-events-none` to other job cards
+  - Show overlay message: "Finaliza tu trabajo activo para aceptar otro"
+
+### 7. Stats Cards Conditional Display
+**Current:** Always shows 2 cards (Activos, Ganancias)
+**New:** Hide or collapse when zero
+
+Changes to `ProviderDashboardHome.tsx`:
+- If `stats.activeJobs === 0 && earnings.total === 0`:
+  - Hide stats grid entirely OR
+  - Collapse to single compact row with muted styling
+- If only one is zero, show both but muted for the empty one
+
+### 8. Notifications Bottom Sheet
+**Current:** Uses Popover for desktop, navigates to page on mobile
+**New:** Bottom sheet (Drawer) on mobile for last 3 notifications
+
+Create new `NotificationBottomSheet.tsx`:
+- Uses existing `Drawer` component from vaul
+- Shows last 3 notifications from existing `useNotifications` hook
+- "Ver todas" button navigates to full page
+- Keep all existing read-state logic intact
+
+Changes to `ProviderTopBar.tsx`:
+- On mobile: Bell click opens `NotificationBottomSheet`
+- On desktop: Keep current Popover behavior
+
+## Technical Details
+
+### Files to Create
+1. `src/components/provider-portal/AvailabilityButton.tsx` - Full-width toggle button
+2. `src/components/provider-portal/ActiveJobCard.tsx` - Pinned active job display
+3. `src/components/provider-portal/NotificationBottomSheet.tsx` - Mobile drawer for notifications
+
+### Files to Modify
+1. `src/pages/provider-portal/ProviderDashboardHome.tsx`
+   - Remove Switch from profile section
+   - Add AvailabilityButton above jobs
+   - Add active job pinning logic
+   - Conditional stats display
+   - Jobs blur when unavailable
+
+2. `src/components/provider-portal/JobSortingTabs.tsx`
+   - Convert to light segmented text tabs
+   - Remove most icons
+
+3. `src/components/provider-portal/JobCardMobile.tsx`
+   - Reduce image height
+   - Add trust badge
+   - Remove Accept button (card becomes tappable)
+   - Streamline metadata display
+
+4. `src/components/provider-portal/ProviderTopBar.tsx`
+   - Integrate NotificationBottomSheet for mobile
+
+### Dependencies
+- Existing `useActiveJobs` hook (already in codebase)
+- Existing `Drawer` component from vaul
+- Existing `useNotifications` hook
+- No new packages required
+
+### Preserved Functionality
+- Jobs fetching/filtering/sorting logic (untouched)
+- Notification triggers and read-state pipeline (untouched)
+- Availability backend behavior (only UI changes, same `isAvailable` state)
+- Auth/session and routing (untouched)
+- Real-time subscriptions (untouched)
+
+## Visual Hierarchy (Mobile)
 ```text
-+------------------+     +-----------+     +----------------+
-| Landing (/)      |     |  /login   |     | /user-landing  |
-| - Iniciar sesión +---->+ (login o  +---->+ (cliente auth) |
-| - Registrarse    +---->+ registro) |     +----------------+
-+------------------+     +-----------+
-                                |
-                                v (si es nuevo)
-                         +----------------+
-                         | Crear cuenta   |
-                         | (en /login)    |
-                         +----------------+
-
-+------------------+     +----------------+     +------------------+
-| Provider Landing |     | /provider/login|     | /provider-portal |
-| - Iniciar sesión +---->+ (solo login)   +---->+ (proveedor auth) |
-+------------------+     +----------------+     +------------------+
-        |
-        v (nuevo proveedor)
-+------------------+     +------------------+
-| /auth/provider   |     | /provider-portal |
-| (wizard signup)  +---->+ (después del     |
-| solo registro    |     | onboarding)      |
-+------------------+     +------------------+
-
-+------------------+     +-----------+     +------------------+
-| /book-job        |     |  /login   |     | /book-job        |
-| (sin auth)       +---->+ (login o  +---->+ (retorna al paso |
-| requiere auth    |     | registro) |     | donde se quedó)  |
-+------------------+     +-----------+     +------------------+
++----------------------------------+
+|  [=]  CHAMBY LOGO    [Bell] [Av] |  <- TopBar (h-14)
++----------------------------------+
+|  Hola, Armando!                  |
+|  * 4.8  |  * 12 trabajos         |  <- Welcome Card
++----------------------------------+
+|  [!] Verificacion en revision -> |  <- Slim Banner (if applicable)
++----------------------------------+
+|  [ Disponible para trabajos ]    |  <- Availability Button
+|  Recibe trabajos solo cuando...  |
++----------------------------------+
+|  [TRABAJO ACTIVO]                |  <- Pinned (if exists)
+|  Reparacion de tuberia...        |
++----------------------------------+
+|  Trabajos Disponibles (24)       |
+|  Para ti | Mas cerca | ...       |  <- Light tabs
++----------------------------------+
+|  [Job Card - Compact]            |
+|  [Job Card - Dimmed if active]   |
+|  ...                             |
++----------------------------------+
 ```
 
-### Detalles Técnicos
-
-#### Login.tsx - Nuevo Diseño con Registro
-```typescript
-// Detectar modo desde URL
-const [searchParams] = useSearchParams();
-const initialMode = searchParams.get('mode') === 'signup' ? 'signup' : 'login';
-const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
-
-// Formulario de registro
-const [signupData, setSignupData] = useState({
-  fullName: '',
-  email: '',
-  phone: '',
-  password: ''
-});
-
-// Toggle entre modos
-<p className="text-sm text-muted-foreground">
-  {mode === 'login' ? (
-    <>¿No tienes cuenta? <button onClick={() => setMode('signup')}>Regístrate</button></>
-  ) : (
-    <>¿Ya tienes cuenta? <button onClick={() => setMode('login')}>Inicia sesión</button></>
-  )}
-</p>
-```
-
-#### JobBookingForm.tsx - Cambio de Redirección
-```typescript
-// ANTES
-navigate('/auth/user', { state: { returnTo: RETURN_PATH } });
-
-// DESPUÉS
-navigate('/login', { state: { returnTo: RETURN_PATH } });
-```
-
-#### AuthCallback.tsx - Lógica de Retorno
-```typescript
-// Prioridad para returnTo:
-// 1. sessionStorage/localStorage (para /book-job)
-// 2. Si es cliente nuevo → /user-landing (NO wizard)
-// 3. Si es proveedor nuevo → /auth/provider (completar onboarding)
-// 4. Default → landing correspondiente según rol
-```
-
-### Archivos a Modificar
-1. `src/pages/Index.tsx` - Actualizar enlaces de navegación
-2. `src/pages/Login.tsx` - Agregar modo registro
-3. `src/components/JobBookingForm.tsx` - Cambiar redirección auth
-4. `src/components/AuthModal.tsx` - Actualizar navegación
-5. `src/pages/AuthCallback.tsx` - Ajustar lógica de redirección
-6. `src/pages/provider-portal/ProviderOnboardingWizard.tsx` - Enlace a login real
-7. `src/constants/routes.ts` - Agregar nuevas constantes si es necesario
-
-### Orden de Implementación
-1. Primero: Actualizar `Login.tsx` con soporte de registro
-2. Segundo: Actualizar `JobBookingForm.tsx` y `AuthModal.tsx`
-3. Tercero: Actualizar `AuthCallback.tsx` para flujos correctos
-4. Cuarto: Actualizar `Index.tsx` y `ProviderOnboardingWizard.tsx`
-5. Quinto: Pruebas de todos los flujos
-
-### Resultado Esperado
-- Usuarios que quieren iniciar sesión → Siempre ven página de login simple
-- Usuarios que quieren registrarse como clientes → Registro simple en `/login?mode=signup`
-- Usuarios que quieren ser proveedores → Wizard completo en `/auth/provider`
-- Usuarios en `/book-job` → Regresan exactamente al paso donde estaban
+## Implementation Order
+1. Create AvailabilityButton component
+2. Create ActiveJobCard component
+3. Modify ProviderDashboardHome (main layout changes)
+4. Update JobSortingTabs (light tabs)
+5. Update JobCardMobile (compact + no accept button)
+6. Create NotificationBottomSheet
+7. Update ProviderTopBar (integrate drawer)
+8. Test all flows on mobile viewport
