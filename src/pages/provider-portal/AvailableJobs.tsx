@@ -1,12 +1,14 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAvailableJobs } from "@/hooks/useAvailableJobs";
+import { useAvailableJobs, AvailableJob } from "@/hooks/useAvailableJobs";
 import { useJobSorting } from "@/hooks/useJobSorting";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
+import { useActiveJobs } from "@/hooks/useActiveJobs";
 import { useAuth } from "@/contexts/AuthContext";
 import { JobCardMobile } from "@/components/provider-portal/JobCardMobile";
 import { JobSortingTabs, SortOption } from "@/components/provider-portal/JobSortingTabs";
 import { JobFeedSkeleton } from "@/components/provider-portal/JobFeedSkeleton";
+import { JobDetailSheet } from "@/components/provider-portal/JobDetailSheet";
 import { Briefcase, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +18,12 @@ const AvailableJobs = () => {
   const [sortOption, setSortOption] = useState<SortOption>('for-you');
   const { jobs, loading, refetch, acceptJob } = useAvailableJobs();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<AvailableJob | null>(null);
+  const [showJobDetail, setShowJobDetail] = useState(false);
+  
+  // Active jobs to check if provider has one
+  const { jobs: activeJobs } = useActiveJobs();
+  const hasActiveJob = activeJobs.length > 0;
 
   // Get sorted jobs with match indicators
   const sortedJobs = useJobSorting({
@@ -31,10 +39,15 @@ const AvailableJobs = () => {
     setTimeout(() => setIsRefreshing(false), 500);
   }, [refetch]);
 
+  const handleViewJobDetails = (job: AvailableJob) => {
+    setSelectedJob(job);
+    setShowJobDetail(true);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Mobile Header - Compact */}
-      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-lg border-b border-border md:hidden">
+      <div className="sticky top-14 md:top-0 z-20 bg-background/95 backdrop-blur-lg border-b border-border md:hidden">
         <div className="px-4 py-3">
           {/* Title Row */}
           <div className="flex items-center justify-between mb-3">
@@ -135,19 +148,42 @@ const AvailableJobs = () => {
             </p>
           </motion.div>
         ) : (
-          <div className="space-y-3 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 md:space-y-0">
+          <div className={cn(
+            "space-y-3 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 md:space-y-0",
+            hasActiveJob && "opacity-50 grayscale pointer-events-none"
+          )}>
             {sortedJobs.map((job, index) => (
               <JobCardMobile
                 key={job.id}
                 job={job}
                 onAccept={acceptJob}
+                onViewDetails={handleViewJobDetails}
                 isMatch={job.isMatch}
                 index={index}
+                disabled={hasActiveJob}
               />
             ))}
           </div>
         )}
+
+        {/* Active job warning */}
+        {hasActiveJob && sortedJobs.length > 0 && (
+          <div className="mt-4 p-3 bg-muted/50 rounded-lg border border-border text-center">
+            <p className="text-sm text-muted-foreground">
+              Finaliza tu trabajo activo para aceptar otro
+            </p>
+          </div>
+        )}
       </div>
+
+      {/* Job Detail Sheet */}
+      <JobDetailSheet
+        job={selectedJob}
+        isOpen={showJobDetail}
+        onClose={() => setShowJobDetail(false)}
+        onAccept={acceptJob}
+        hasActiveJob={hasActiveJob}
+      />
     </div>
   );
 };
