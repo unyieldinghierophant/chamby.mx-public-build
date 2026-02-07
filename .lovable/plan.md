@@ -1,187 +1,155 @@
 
-# Plan: Provider Portal Mobile-First UI/UX Tweaks
+# Plan: Provider Portal Mobile UX Fixes
 
-## Overview
-This plan implements targeted UI/UX improvements to make the provider portal truly mobile-first, with clearer hierarchy and faster scanning - all while preserving existing business logic.
+## Issues Identified
 
-## Key Changes Summary
+1. **Job Details Not Accessible**: Clicking on a job card navigates to `/provider-portal/available-jobs?highlight=${job.id}` but there's no job detail page or modal - just the list view
+2. **AvailabilityButton Text Color**: The button shows correctly (blue bg with white text) - this is actually working as intended
+3. **User Notifications in Provider Portal**: The `useNotifications` hook fetches ALL notifications for the user, not filtered by provider-specific types
+4. **Bottom Nav Badge Display Issue**: The badge count "0" appears between the icon and text label instead of as a corner bubble
+5. **Header Removal Request**: User wants to remove the TopBar header on mobile and move elements
+6. **Notifications in Footer**: Add notification bell to bottom nav
+7. **Hamburger Menu**: Make menu icon larger and position at top-right
 
-### 1. Availability Toggle Redesign
-**Current:** Small iOS-style Switch in the profile header corner
-**New:** Full-width stateful button above the jobs section
+---
 
-Changes to `ProviderDashboardHome.tsx`:
-- Remove Switch from profile header section
-- Add new `AvailabilityButton` component above "Trabajos Disponibles"
-- Two visual states:
-  - **Available (Primary filled):** "Disponible para trabajos"
-  - **Not Available (Outlined):** "No disponible"
-- Add microcopy below: "Recibe trabajos solo cuando estes disponible"
-- When unavailable: Blur/overlay the jobs feed with message "Activa tu disponibilidad para ver trabajos"
+## Solution Overview
 
-### 2. Header Simplification
-**Current:** Logo + Menu + Notifications + Avatar with dropdown
-**New:** Keep TopBar minimal, move greeting/stats to dedicated card
+### 1. Create Job Detail Bottom Sheet/Modal
+Add a `JobDetailSheet.tsx` component that opens when clicking a job card, showing full job details with an "Accept" button.
 
-Changes to `ProviderTopBar.tsx`:
-- Keep: Menu icon, Notification bell, Avatar
-- Remove: Any extra elements
+### 2. Fix Bottom Nav Badge Positioning
+The current code has the badge correctly positioned, but there may be a rendering issue. Will ensure the badge only shows when count > 0 and is properly positioned as a red bubble.
 
-Changes to `ProviderDashboardHome.tsx`:
-- Create compact welcome card below header with:
-  - "Hola, {name}"
-  - Rating stars + completed jobs count
-  - No availability toggle (moved to jobs section)
+### 3. Filter Provider-Specific Notifications
+Create a `useProviderNotifications` hook that filters notifications by provider-relevant types (job_assigned, job_cancelled, etc.)
 
-### 3. Verification Banner Compression
-**Current:** Card-style with icon, text, and chevron button
-**New:** Slim single-line banner
+### 4. Redesign Mobile Header/Navigation
+- Remove the TopBar header on mobile (keep on desktop)
+- Add a floating hamburger menu button at top-right
+- Add notifications button to bottom nav (replacing one item or adding as 5th item)
 
-Changes to `ProviderDashboardHome.tsx`:
-- Reduce padding from `p-2.5` to `py-2 px-3`
-- Inline format: "Verificacion en revision . Ver estado ->"
-- Make it horizontally clickable (entire banner)
-- Optional: Add dismiss button (using existing state, no new persistence)
+---
 
-### 4. Lighter Job Filters (Segmented Tabs)
-**Current:** Heavy pill buttons with icons
-**New:** Light text-based segmented control
-
-Changes to `JobSortingTabs.tsx`:
-- Convert from filled pills to underlined text tabs
-- Remove icons except location for "Mas cerca"
-- Reduce visual weight with `border-b-2` for active state
-- Keep horizontal scroll behavior
-
-### 5. Job Card Height Reduction + Scanability
-**Current:** Large 16:10 image, metadata pills
-**New:** Compact layout with thumbnail approach
-
-Changes to `JobCardMobile.tsx`:
-- Reduce image from `aspect-[16/10]` to `aspect-[21/9]` (ultra-wide banner)
-- Add photo count badge on image
-- Restructure content:
-  - Service icon + name (from category)
-  - 1-2 line description (line-clamp-2)
-  - Date + Time + Zone (city only)
-  - Add "Visita pagada" trust badge when `visit_fee_paid === true`
-- **Remove Accept button from list view** (per requirements)
-- Card becomes tappable to open detail view
-
-### 6. Active Job Pinning + Lock UI
-**Current:** Active jobs shown in stats only
-**New:** Pinned active job card + dimmed other jobs
-
-Create new `ActiveJobCard.tsx` component:
-- Distinct styling (primary border, background tint)
-- Label: "Trabajo activo"
-- Show key info: title, date, client
-- Action button: "Ver detalles"
-
-Changes to `ProviderDashboardHome.tsx`:
-- Import and use `useActiveJobs` hook
-- If `stats.activeJobs > 0`:
-  - Fetch first active job details
-  - Render `ActiveJobCard` at top of jobs section
-  - Apply `opacity-50 pointer-events-none` to other job cards
-  - Show overlay message: "Finaliza tu trabajo activo para aceptar otro"
-
-### 7. Stats Cards Conditional Display
-**Current:** Always shows 2 cards (Activos, Ganancias)
-**New:** Hide or collapse when zero
-
-Changes to `ProviderDashboardHome.tsx`:
-- If `stats.activeJobs === 0 && earnings.total === 0`:
-  - Hide stats grid entirely OR
-  - Collapse to single compact row with muted styling
-- If only one is zero, show both but muted for the empty one
-
-### 8. Notifications Bottom Sheet
-**Current:** Uses Popover for desktop, navigates to page on mobile
-**New:** Bottom sheet (Drawer) on mobile for last 3 notifications
-
-Create new `NotificationBottomSheet.tsx`:
-- Uses existing `Drawer` component from vaul
-- Shows last 3 notifications from existing `useNotifications` hook
-- "Ver todas" button navigates to full page
-- Keep all existing read-state logic intact
-
-Changes to `ProviderTopBar.tsx`:
-- On mobile: Bell click opens `NotificationBottomSheet`
-- On desktop: Keep current Popover behavior
-
-## Technical Details
+## Technical Changes
 
 ### Files to Create
-1. `src/components/provider-portal/AvailabilityButton.tsx` - Full-width toggle button
-2. `src/components/provider-portal/ActiveJobCard.tsx` - Pinned active job display
-3. `src/components/provider-portal/NotificationBottomSheet.tsx` - Mobile drawer for notifications
+
+**`src/components/provider-portal/JobDetailSheet.tsx`**
+- Bottom sheet/drawer component using vaul's Drawer
+- Shows complete job information:
+  - Full image gallery (swipeable)
+  - Title and category
+  - Full description/problem
+  - Client info (if available)
+  - Date, time, location (full address)
+  - Price and visit fee status
+  - "Aceptar Trabajo" button (disabled if provider has active job)
+- Triggered when job card is clicked
+
+**`src/hooks/useProviderNotifications.ts`**
+- Wraps `useNotifications` and filters for provider-relevant notification types
+- Types to include: `job_assigned`, `job_cancelled`, `new_job`, `payment_received`, `review_received`, etc.
 
 ### Files to Modify
-1. `src/pages/provider-portal/ProviderDashboardHome.tsx`
-   - Remove Switch from profile section
-   - Add AvailabilityButton above jobs
-   - Add active job pinning logic
-   - Conditional stats display
-   - Jobs blur when unavailable
 
-2. `src/components/provider-portal/JobSortingTabs.tsx`
-   - Convert to light segmented text tabs
-   - Remove most icons
+**`src/components/provider-portal/JobCardMobile.tsx`**
+- Change click handler to open JobDetailSheet instead of navigating
+- Pass `onViewDetails` callback prop
 
-3. `src/components/provider-portal/JobCardMobile.tsx`
-   - Reduce image height
-   - Add trust badge
-   - Remove Accept button (card becomes tappable)
-   - Streamline metadata display
+**`src/components/provider-portal/ProviderBottomNav.tsx`**
+- Fix badge: Only render when `badge > 0` (currently does this, but need to verify)
+- Badge should be red bubble in top-right corner of icon (not between icon and text)
+- Add notifications item with bell icon
+- Restructure to 5 items: Inicio, Trabajos, Notificaciones, Historial, Perfil
 
-4. `src/components/provider-portal/ProviderTopBar.tsx`
-   - Integrate NotificationBottomSheet for mobile
+**`src/pages/provider-portal/ProviderDashboardHome.tsx`**
+- Import and render JobDetailSheet
+- Add state for selected job
+- Pass job selection handler to JobCardMobile
 
-### Dependencies
-- Existing `useActiveJobs` hook (already in codebase)
-- Existing `Drawer` component from vaul
-- Existing `useNotifications` hook
-- No new packages required
+**`src/pages/provider-portal/AvailableJobs.tsx`**
+- Same changes as ProviderDashboardHome for job detail sheet
 
-### Preserved Functionality
-- Jobs fetching/filtering/sorting logic (untouched)
-- Notification triggers and read-state pipeline (untouched)
-- Availability backend behavior (only UI changes, same `isAvailable` state)
-- Auth/session and routing (untouched)
-- Real-time subscriptions (untouched)
+**`src/components/provider-portal/ProviderTopBar.tsx`**
+- Hide entire header on mobile (`hidden md:flex`)
+- Or alternatively: Keep only logo, hide menu button (sidebar trigger)
 
-## Visual Hierarchy (Mobile)
-```text
-+----------------------------------+
-|  [=]  CHAMBY LOGO    [Bell] [Av] |  <- TopBar (h-14)
-+----------------------------------+
-|  Hola, Armando!                  |
-|  * 4.8  |  * 12 trabajos         |  <- Welcome Card
-+----------------------------------+
-|  [!] Verificacion en revision -> |  <- Slim Banner (if applicable)
-+----------------------------------+
-|  [ Disponible para trabajos ]    |  <- Availability Button
-|  Recibe trabajos solo cuando...  |
-+----------------------------------+
-|  [TRABAJO ACTIVO]                |  <- Pinned (if exists)
-|  Reparacion de tuberia...        |
-+----------------------------------+
-|  Trabajos Disponibles (24)       |
-|  Para ti | Mas cerca | ...       |  <- Light tabs
-+----------------------------------+
-|  [Job Card - Compact]            |
-|  [Job Card - Dimmed if active]   |
-|  ...                             |
-+----------------------------------+
+**`src/pages/ProviderPortal.tsx`**
+- Add floating hamburger menu button for mobile (positioned top-right)
+- Make it larger (h-10 w-10 or similar)
+
+---
+
+## Visual Changes
+
+### Mobile Bottom Nav (Updated Layout)
+```
+┌──────────────────────────────────────────┐
+│   🏠    💼(🔴)  🔔(🔴)   📋      👤     │
+│  Inicio Trabajos  Notif  Historial Perfil│
+└──────────────────────────────────────────┘
 ```
 
+### Mobile Header (Updated)
+```
+┌──────────────────────────────────────────┐
+│  [CHAMBY LOGO]                    [☰]   │  <- Floating hamburger (larger)
+└──────────────────────────────────────────┘
+```
+
+The hamburger opens the sidebar as before.
+
+### Job Detail Sheet
+```
+┌──────────────────────────────────────────┐
+│  ─── (drag handle)                       │
+│  ┌────────────────────────────────────┐  │
+│  │     [Image Gallery - swipe]        │  │
+│  │         📷 1/3                     │  │
+│  └────────────────────────────────────┘  │
+│  Reparación de tubería                   │
+│  Plomería • Urgente                      │
+│                                          │
+│  📝 Descripción                          │
+│  Tengo una fuga en el baño que necesita │
+│  reparación urgente...                   │
+│                                          │
+│  📍 Ubicación                            │
+│  Av. Vallarta 1234, Guadalajara, Jalisco │
+│                                          │
+│  📅 Fecha y hora                         │
+│  Lunes 10 Feb, 14:00                     │
+│                                          │
+│  💰 Tarifa: $500 MXN                     │
+│  ✅ Visita pagada                        │
+│                                          │
+│  ┌────────────────────────────────────┐  │
+│  │       Aceptar Trabajo              │  │
+│  └────────────────────────────────────┘  │
+└──────────────────────────────────────────┘
+```
+
+---
+
 ## Implementation Order
-1. Create AvailabilityButton component
-2. Create ActiveJobCard component
-3. Modify ProviderDashboardHome (main layout changes)
-4. Update JobSortingTabs (light tabs)
-5. Update JobCardMobile (compact + no accept button)
-6. Create NotificationBottomSheet
-7. Update ProviderTopBar (integrate drawer)
-8. Test all flows on mobile viewport
+
+1. **Create `JobDetailSheet.tsx`** - New component for viewing job details
+2. **Create `useProviderNotifications.ts`** - Filter notifications for providers
+3. **Update `ProviderBottomNav.tsx`** - Add notifications, fix badge, 5 items
+4. **Update `ProviderTopBar.tsx`** - Hide on mobile or simplify
+5. **Update `ProviderPortal.tsx`** - Add floating hamburger for mobile
+6. **Update `JobCardMobile.tsx`** - Open detail sheet on click
+7. **Update `ProviderDashboardHome.tsx`** - Wire up job detail sheet
+8. **Update `AvailableJobs.tsx`** - Wire up job detail sheet
+9. **Update `NotificationBottomSheet.tsx`** - Use provider-filtered notifications
+
+---
+
+## Preserved Functionality
+
+- All existing job fetching/sorting logic
+- Accept job flow (just moved into detail sheet)
+- Notification read-state and real-time updates
+- Sidebar functionality (just trigger moved)
+- All routing and authentication
