@@ -4,36 +4,31 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { useJobSorting } from "@/hooks/useJobSorting";
+import { useActiveJobs } from "@/hooks/useActiveJobs";
 import { JobCardMobile } from "@/components/provider-portal/JobCardMobile";
 import { JobSortingTabs, SortOption } from "@/components/provider-portal/JobSortingTabs";
 import { JobFeedSkeleton } from "@/components/provider-portal/JobFeedSkeleton";
+import { AvailabilityButton } from "@/components/provider-portal/AvailabilityButton";
+import { ActiveJobCard } from "@/components/provider-portal/ActiveJobCard";
 import {
   Calendar,
-  MapPin,
   DollarSign,
   Star,
   Clock,
   CheckCircle,
   AlertCircle,
-  Settings,
   BadgeCheck,
   XCircle,
-  FileText,
   Briefcase,
   RefreshCw,
   ChevronRight,
-  Bell,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { useNavigate } from "react-router-dom";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
 import { ProviderDashboardSkeleton } from "@/components/skeletons";
 import { cn } from "@/lib/utils";
 import { useAvailableJobs } from "@/hooks/useAvailableJobs";
@@ -54,6 +49,11 @@ const ProviderDashboardHome = () => {
   // Available jobs hook
   const { jobs: availableJobs, loading: availableJobsLoading, acceptJob, refetch } = useAvailableJobs();
   
+  // Active jobs hook
+  const { jobs: activeJobs } = useActiveJobs();
+  const hasActiveJob = activeJobs.length > 0;
+  const firstActiveJob = activeJobs[0] || null;
+  
   const [earnings, setEarnings] = useState({ total: 0, pending: 0 });
   const [stats, setStats] = useState({
     completedJobs: 0,
@@ -71,6 +71,7 @@ const ProviderDashboardHome = () => {
   const [showJobsAlert, setShowJobsAlert] = useState(false);
   const [sortOption, setSortOption] = useState<SortOption>('for-you');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [verificationDismissed, setVerificationDismissed] = useState(false);
   
   // Sorted jobs for feed
   const sortedJobs = useJobSorting({
@@ -147,7 +148,7 @@ const ProviderDashboardHome = () => {
         .eq("provider_id", user?.id)
         .eq("status", "completed");
 
-      const { data: activeJobs } = await supabase
+      const { data: activeJobsData } = await supabase
         .from("jobs")
         .select("id", { count: "exact" })
         .eq("provider_id", user?.id)
@@ -165,7 +166,7 @@ const ProviderDashboardHome = () => {
 
       setStats({
         completedJobs: completedJobs?.length || 0,
-        activeJobs: activeJobs?.length || 0,
+        activeJobs: activeJobsData?.length || 0,
         rating: avgRating,
         totalReviews: reviews?.length || 0,
       });
@@ -196,17 +197,20 @@ const ProviderDashboardHome = () => {
   };
 
   const { status, admin_notes, documentsCount } = verificationDetails;
-  const showVerificationBanner = status !== 'verified';
+  const showVerificationBanner = status !== 'verified' && !verificationDismissed;
+
+  // Conditional stats display - hide if both are zero
+  const showStats = stats.activeJobs > 0 || earnings.total > 0;
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden w-full max-w-full">
-      {/* Mobile Profile Card - Ultra Compact */}
+      {/* Welcome Card - Compact below header */}
       <div className="bg-gradient-to-br from-primary/5 via-background to-accent/5 border-b border-border">
         <div className="px-4 py-3">
           <div className="flex items-center gap-3">
             {/* Avatar - Smaller on mobile */}
             <div className="relative flex-shrink-0">
-              <Avatar className="w-12 h-12 border-2 border-background shadow-sm">
+              <Avatar className="w-11 h-11 border-2 border-background shadow-sm">
                 <AvatarImage 
                   src={providerProfile?.avatar_url || profile?.avatar_url} 
                   alt={profile?.full_name || 'Provider'} 
@@ -217,12 +221,12 @@ const ProviderDashboardHome = () => {
               </Avatar>
               {providerProfile?.verification_status === 'verified' && (
                 <div className="absolute -bottom-0.5 -right-0.5 bg-background rounded-full p-0.5">
-                  <BadgeCheck className="w-4 h-4 text-primary fill-primary/20" />
+                  <BadgeCheck className="w-3.5 h-3.5 text-primary fill-primary/20" />
                 </div>
               )}
             </div>
 
-            {/* Info - Compact */}
+            {/* Info */}
             <div className="flex-1 min-w-0">
               <h1 className="text-base font-bold text-foreground truncate font-jakarta">
                 ¡Hola, {profile?.full_name?.split(' ')[0] || 'Chambynauta'}!
@@ -241,22 +245,6 @@ const ProviderDashboardHome = () => {
                 </span>
               </div>
             </div>
-
-            {/* Availability Toggle - Compact */}
-            <div className="flex flex-col items-center flex-shrink-0">
-              <Switch
-                id="availability"
-                checked={isAvailable}
-                onCheckedChange={setIsAvailable}
-                className="scale-90"
-              />
-              <span className={cn(
-                "text-[10px] mt-0.5",
-                isAvailable ? "text-green-600 font-medium" : "text-muted-foreground"
-              )}>
-                {isAvailable ? "Activo" : "Inactivo"}
-              </span>
-            </div>
           </div>
         </div>
       </div>
@@ -268,13 +256,14 @@ const ProviderDashboardHome = () => {
         onClose={() => setShowJobsAlert(false)}
       />
 
-      {/* Verification Banner - More Compact */}
+      {/* Verification Banner - Slim inline format */}
       {showVerificationBanner && (
-        <motion.div
+        <motion.button
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
+          onClick={() => navigate("/provider-portal/verification")}
           className={cn(
-            "mx-4 mt-3 p-2.5 rounded-lg border flex items-center gap-2",
+            "mx-4 mt-3 py-2 px-3 rounded-lg border flex items-center gap-2 w-[calc(100%-2rem)] text-left transition-colors active:opacity-80",
             status === 'rejected' 
               ? "bg-destructive/5 border-destructive/30" 
               : "bg-amber-500/5 border-amber-500/30"
@@ -287,148 +276,193 @@ const ProviderDashboardHome = () => {
           ) : (
             <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
           )}
-          <p className="text-xs font-medium text-foreground flex-1">
+          <span className="text-xs font-medium text-foreground flex-1">
             {status === 'rejected' ? 'Verificación rechazada' :
              status === 'pending' ? 'Verificación en revisión' :
              'Completa tu verificación'}
-          </p>
-          <Button 
-            size="sm" 
-            variant="ghost"
-            onClick={() => navigate("/provider-portal/verification")}
-            className="h-7 px-2"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </Button>
-        </motion.div>
+          </span>
+          <span className="text-xs text-muted-foreground">Ver estado →</span>
+        </motion.button>
       )}
 
-      {/* Stats Grid - 2 columns, compact */}
-      <div className="grid grid-cols-2 gap-2 px-3 sm:px-4 mt-2 sm:mt-3">
-        <Card className="bg-card border-border/50">
-          <CardContent className="p-2.5 sm:p-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Activos</p>
-                <p className="text-lg sm:text-xl font-bold">{stats.activeJobs}</p>
+      {/* Stats Grid - Conditional, compact */}
+      {showStats && (
+        <div className="grid grid-cols-2 gap-2 px-4 mt-3">
+          <Card className={cn(
+            "bg-card border-border/50",
+            stats.activeJobs === 0 && "opacity-50"
+          )}>
+            <CardContent className="p-2.5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Activos</p>
+                  <p className="text-lg font-bold">{stats.activeJobs}</p>
+                </div>
+                <div className="w-7 h-7 rounded-full bg-blue-500/10 flex items-center justify-center">
+                  <Clock className="w-3.5 h-3.5 text-blue-600" />
+                </div>
               </div>
-              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-500/10 flex items-center justify-center">
-                <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card className="bg-card border-border/50">
-          <CardContent className="p-2.5 sm:p-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Ganancias</p>
-                <p className="text-lg sm:text-xl font-bold">${earnings.total.toLocaleString('es-MX')}</p>
+          <Card className={cn(
+            "bg-card border-border/50",
+            earnings.total === 0 && "opacity-50"
+          )}>
+            <CardContent className="p-2.5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Ganancias</p>
+                  <p className="text-lg font-bold">${earnings.total.toLocaleString('es-MX')}</p>
+                </div>
+                <div className="w-7 h-7 rounded-full bg-green-500/10 flex items-center justify-center">
+                  <DollarSign className="w-3.5 h-3.5 text-green-600" />
+                </div>
               </div>
-              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-green-500/10 flex items-center justify-center">
-                <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Availability Button - Full width above jobs */}
+      <div className="px-4 mt-4">
+        <AvailabilityButton 
+          isAvailable={isAvailable} 
+          onToggle={setIsAvailable} 
+        />
       </div>
 
       {/* Jobs Feed Section */}
-      <div className="mt-3 sm:mt-4">
-        <div className="px-3 sm:px-4 pb-2">
-          {/* Header Row */}
-          <div className="flex items-center justify-between mb-2 sm:mb-3">
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <Briefcase className="w-4 h-4 text-primary" />
-              <h2 className="text-sm sm:text-base font-bold text-foreground font-jakarta">
-                Trabajos Disponibles
-              </h2>
-              {availableJobs.length > 0 && (
-                <Badge className="bg-primary text-primary-foreground text-[10px] px-1.5 py-0">
-                  {availableJobs.length}
-                </Badge>
-              )}
+      <div className="mt-4">
+        {/* Unavailable Overlay */}
+        {!isAvailable && (
+          <div className="mx-4 mb-4 p-6 bg-muted/50 rounded-xl border border-border text-center">
+            <div className="w-12 h-12 rounded-full bg-muted mx-auto flex items-center justify-center mb-2">
+              <Briefcase className="w-6 h-6 text-muted-foreground" />
             </div>
-            <button
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              className={cn(
-                "p-1.5 rounded-full bg-muted active:bg-muted/80 transition-colors",
-                isRefreshing && "animate-spin"
-              )}
-            >
-              <RefreshCw className="w-4 h-4 text-muted-foreground" />
-            </button>
+            <p className="text-sm font-medium text-foreground mb-1">
+              No estás disponible
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Activa tu disponibilidad para ver trabajos
+            </p>
           </div>
+        )}
 
-          {/* Sorting Tabs - Horizontal scroll */}
-          <JobSortingTabs
-            activeSort={sortOption}
-            onSortChange={setSortOption}
-          />
-        </div>
-
-        {/* Job Cards - Single column on mobile, grid on larger */}
-        <div className="px-3 sm:px-4 pb-28 sm:pb-24 md:pb-6">
-          <AnimatePresence>
-            {isRefreshing && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="flex justify-center py-2"
-              >
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <RefreshCw className="w-3 h-3 animate-spin" />
-                  <span>Actualizando...</span>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {availableJobsLoading ? (
-            <JobFeedSkeleton count={2} />
-          ) : sortedJobs.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex flex-col items-center justify-center py-10 text-center"
-            >
-              <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mb-2">
-                <Briefcase className="w-7 h-7 text-muted-foreground" />
-              </div>
-              <h3 className="text-base font-semibold text-foreground mb-0.5">
-                No hay trabajos disponibles
-              </h3>
-              <p className="text-xs text-muted-foreground max-w-[200px]">
-                Te notificaremos cuando haya nuevas oportunidades
+        {/* Jobs content - blur when unavailable */}
+        <div className={cn(
+          "transition-all duration-300",
+          !isAvailable && "opacity-30 blur-sm pointer-events-none"
+        )}>
+          {/* Active Job Pinned Card */}
+          {hasActiveJob && firstActiveJob && (
+            <div className="px-4 mb-2">
+              <ActiveJobCard job={firstActiveJob} />
+              <p className="text-[10px] text-center text-muted-foreground mt-1">
+                Finaliza tu trabajo activo para aceptar otro
               </p>
-            </motion.div>
-          ) : (
-            <div className="space-y-2.5 sm:space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
-              {sortedJobs.slice(0, 4).map((job, index) => (
-                <JobCardMobile
-                  key={job.id}
-                  job={job}
-                  onAccept={acceptJob}
-                  isMatch={job.isMatch}
-                  index={index}
-                />
-              ))}
-
-              {sortedJobs.length > 4 && (
-                <Button
-                  variant="outline"
-                  className="w-full h-10 text-sm md:col-span-2"
-                  onClick={() => navigate("/provider-portal/available-jobs")}
-                >
-                  Ver {sortedJobs.length - 4} trabajo{sortedJobs.length - 4 !== 1 ? 's' : ''} más
-                  <ChevronRight className="w-4 h-4 ml-1" />
-                </Button>
-              )}
             </div>
           )}
+
+          <div className="px-4 pb-2">
+            {/* Header Row */}
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-1.5">
+                <Briefcase className="w-4 h-4 text-primary" />
+                <h2 className="text-sm font-bold text-foreground font-jakarta">
+                  Trabajos Disponibles
+                </h2>
+                {availableJobs.length > 0 && (
+                  <Badge className="bg-primary text-primary-foreground text-[10px] px-1.5 py-0">
+                    {availableJobs.length}
+                  </Badge>
+                )}
+              </div>
+              <button
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className={cn(
+                  "p-1.5 rounded-full bg-muted active:bg-muted/80 transition-colors",
+                  isRefreshing && "animate-spin"
+                )}
+              >
+                <RefreshCw className="w-4 h-4 text-muted-foreground" />
+              </button>
+            </div>
+
+            {/* Sorting Tabs - Light segmented */}
+            <JobSortingTabs
+              activeSort={sortOption}
+              onSortChange={setSortOption}
+            />
+          </div>
+
+          {/* Job Cards */}
+          <div className="px-4 pb-28 md:pb-6">
+            <AnimatePresence>
+              {isRefreshing && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="flex justify-center py-2"
+                >
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <RefreshCw className="w-3 h-3 animate-spin" />
+                    <span>Actualizando...</span>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {availableJobsLoading ? (
+              <JobFeedSkeleton count={2} />
+            ) : sortedJobs.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-col items-center justify-center py-10 text-center"
+              >
+                <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mb-2">
+                  <Briefcase className="w-7 h-7 text-muted-foreground" />
+                </div>
+                <h3 className="text-base font-semibold text-foreground mb-0.5">
+                  No hay trabajos disponibles
+                </h3>
+                <p className="text-xs text-muted-foreground max-w-[200px]">
+                  Te notificaremos cuando haya nuevas oportunidades
+                </p>
+              </motion.div>
+            ) : (
+              <div className={cn(
+                "space-y-2.5 md:grid md:grid-cols-2 md:gap-4 md:space-y-0",
+                hasActiveJob && "opacity-50 grayscale"
+              )}>
+                {sortedJobs.slice(0, 4).map((job, index) => (
+                  <JobCardMobile
+                    key={job.id}
+                    job={job}
+                    onAccept={acceptJob}
+                    isMatch={job.isMatch}
+                    index={index}
+                    disabled={hasActiveJob}
+                  />
+                ))}
+
+                {sortedJobs.length > 4 && (
+                  <Button
+                    variant="outline"
+                    className="w-full h-10 text-sm md:col-span-2"
+                    onClick={() => navigate("/provider-portal/available-jobs")}
+                    disabled={hasActiveJob}
+                  >
+                    Ver {sortedJobs.length - 4} trabajo{sortedJobs.length - 4 !== 1 ? 's' : ''} más
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
