@@ -1,6 +1,6 @@
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import { Bell, ChevronRight, CheckCircle, AlertCircle, Briefcase, DollarSign } from "lucide-react";
+import { Bell, ChevronRight, CheckCircle, AlertCircle, Briefcase, DollarSign, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
@@ -38,12 +38,25 @@ export const NotificationBottomSheet = ({
     switch (type) {
       case 'job_assigned':
       case 'new_job':
+      case 'new_job_available':
         return <Briefcase className="w-4 h-4 text-primary" />;
+      case 'payment_received':
       case 'payment':
+      case 'invoice_paid':
+      case 'payout_completed':
         return <DollarSign className="w-4 h-4 text-green-600" />;
-      case 'success':
+      case 'review_received':
+        return <Star className="w-4 h-4 text-yellow-500" />;
+      case 'verification_approved':
+      case 'visit_confirmed':
+      case 'client_confirmed_visit':
         return <CheckCircle className="w-4 h-4 text-green-600" />;
-      case 'warning':
+      case 'verification_rejected':
+      case 'job_cancelled':
+      case 'reschedule_rejected':
+        return <AlertCircle className="w-4 h-4 text-destructive" />;
+      case 'reschedule_request':
+      case 'reschedule_approved':
         return <AlertCircle className="w-4 h-4 text-amber-600" />;
       default:
         return <Bell className="w-4 h-4 text-muted-foreground" />;

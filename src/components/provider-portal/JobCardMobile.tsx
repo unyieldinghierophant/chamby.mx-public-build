@@ -13,18 +13,17 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { AvailableJob } from "@/hooks/useAvailableJobs";
 import { cn } from "@/lib/utils";
-import { useNavigate } from "react-router-dom";
 
 interface JobCardMobileProps {
   job: AvailableJob;
   onAccept: (jobId: string) => Promise<void>;
+  onViewDetails?: (job: AvailableJob) => void;
   isMatch?: boolean;
   index?: number;
   disabled?: boolean;
 }
 
-export const JobCardMobile = ({ job, onAccept, isMatch = false, index = 0, disabled = false }: JobCardMobileProps) => {
-  const navigate = useNavigate();
+export const JobCardMobile = ({ job, onAccept, onViewDetails, isMatch = false, index = 0, disabled = false }: JobCardMobileProps) => {
   const scheduledDate = job.scheduled_at ? new Date(job.scheduled_at) : null;
   const isNew = new Date(job.created_at) > new Date(Date.now() - 24 * 60 * 60 * 1000);
 
@@ -37,8 +36,10 @@ export const JobCardMobile = ({ job, onAccept, isMatch = false, index = 0, disab
 
   const handleCardClick = () => {
     if (disabled) return;
-    // Navigate to job detail page (or open modal in future)
-    navigate(`/provider-portal/available-jobs?highlight=${job.id}`);
+    // Open job detail sheet
+    if (onViewDetails) {
+      onViewDetails(job);
+    }
   };
 
   return (

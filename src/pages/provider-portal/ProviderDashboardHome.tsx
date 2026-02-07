@@ -12,6 +12,8 @@ import { JobSortingTabs, SortOption } from "@/components/provider-portal/JobSort
 import { JobFeedSkeleton } from "@/components/provider-portal/JobFeedSkeleton";
 import { AvailabilityButton } from "@/components/provider-portal/AvailabilityButton";
 import { ActiveJobCard } from "@/components/provider-portal/ActiveJobCard";
+import { JobDetailSheet } from "@/components/provider-portal/JobDetailSheet";
+import { AvailableJob } from "@/hooks/useAvailableJobs";
 import {
   Calendar,
   DollarSign,
@@ -72,6 +74,13 @@ const ProviderDashboardHome = () => {
   const [sortOption, setSortOption] = useState<SortOption>('for-you');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [verificationDismissed, setVerificationDismissed] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<AvailableJob | null>(null);
+  const [showJobDetail, setShowJobDetail] = useState(false);
+  
+  const handleViewJobDetails = (job: AvailableJob) => {
+    setSelectedJob(job);
+    setShowJobDetail(true);
+  };
   
   // Sorted jobs for feed
   const sortedJobs = useJobSorting({
@@ -443,6 +452,7 @@ const ProviderDashboardHome = () => {
                     key={job.id}
                     job={job}
                     onAccept={acceptJob}
+                    onViewDetails={handleViewJobDetails}
                     isMatch={job.isMatch}
                     index={index}
                     disabled={hasActiveJob}
@@ -498,6 +508,15 @@ const ProviderDashboardHome = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Job Detail Sheet */}
+      <JobDetailSheet
+        job={selectedJob}
+        isOpen={showJobDetail}
+        onClose={() => setShowJobDetail(false)}
+        onAccept={acceptJob}
+        hasActiveJob={hasActiveJob}
+      />
     </div>
   );
 };
