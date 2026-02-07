@@ -81,11 +81,11 @@ const ProviderPortal = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
+      <div className="min-h-screen flex w-full max-w-full bg-background overflow-x-hidden">
         <ProviderSidebar />
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0 max-w-full overflow-x-hidden">
           <ProviderTopBar />
-          <main className="flex-1 overflow-auto pb-20 md:pb-0">
+          <main className="flex-1 overflow-y-auto overflow-x-hidden pb-20 md:pb-0 w-full max-w-full">
             <Outlet />
           </main>
           {/* Mobile Bottom Navigation */}

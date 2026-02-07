@@ -158,10 +158,13 @@ All colors MUST be HSL.
 
   html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
   }
 
   body {
     @apply bg-background text-foreground;
+    overflow-x: hidden;
+    max-width: 100vw;
   }
 
   /* Safari mobile input fixes - prevents cursor clipping and zoom */
