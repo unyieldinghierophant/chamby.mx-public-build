@@ -71,12 +71,12 @@ export const JobCardMobile = ({ job, onAccept, isMatch = false, index = 0 }: Job
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.03, duration: 0.2 }}
         className={cn(
-          "bg-card rounded-xl overflow-hidden shadow-sm border transition-all duration-200 active:scale-[0.98]",
+          "bg-card rounded-xl overflow-hidden shadow-sm border transition-all duration-200 active:scale-[0.98] w-full max-w-full",
           isMatch ? 'border-amber-400/50 ring-1 ring-amber-400/20' : 'border-border'
         )}
       >
         {/* Mobile: Vertical layout / Desktop: Horizontal */}
-        <div className="flex flex-col sm:flex-row w-full">
+        <div className="flex flex-col sm:flex-row w-full max-w-full overflow-hidden">
           {/* Image Section - Full width on mobile, 40% on desktop */}
           <div className="relative w-full sm:w-2/5 aspect-[16/10] sm:aspect-square bg-gradient-to-br from-primary/10 via-primary/5 to-accent/10 overflow-hidden flex-shrink-0">
             {job.photos && job.photos.length > 0 ? (
@@ -128,10 +128,10 @@ export const JobCardMobile = ({ job, onAccept, isMatch = false, index = 0 }: Job
           </div>
 
           {/* Content Section */}
-          <div className="flex-1 p-3 sm:p-4 flex flex-col min-w-0">
+          <div className="flex-1 p-3 sm:p-4 flex flex-col min-w-0 overflow-hidden">
             {/* Title + Category */}
-            <div className="mb-1.5 sm:mb-2">
-              <h3 className="font-semibold text-sm sm:text-base text-foreground line-clamp-1">
+            <div className="mb-1.5 sm:mb-2 overflow-hidden">
+              <h3 className="font-semibold text-sm sm:text-base text-foreground truncate">
                 {job.title}
               </h3>
               <p className="text-[10px] sm:text-xs text-muted-foreground truncate">

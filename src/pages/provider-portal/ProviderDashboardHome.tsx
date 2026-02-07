@@ -199,7 +199,7 @@ const ProviderDashboardHome = () => {
   const showVerificationBanner = status !== 'verified';
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden w-full max-w-full">
       {/* Mobile Profile Card - Ultra Compact */}
       <div className="bg-gradient-to-br from-primary/5 via-background to-accent/5 border-b border-border">
         <div className="px-4 py-3">
