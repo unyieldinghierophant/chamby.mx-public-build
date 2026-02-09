@@ -1,6 +1,6 @@
 // Google Analytics 4 — privacy-first, loaded only after cookie consent
 
-const GA_MEASUREMENT_ID = "G-XXXXXXXXXX"; // Replace with your real GA4 Measurement ID
+const GA_MEASUREMENT_ID = "G-2FWSZGQXTV";
 
 let gaInitialized = false;
 
