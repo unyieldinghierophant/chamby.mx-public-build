@@ -53,6 +53,9 @@ import ProviderVerification from "./pages/provider-portal/ProviderVerification";
 import ProviderProfileEdit from "./pages/provider-portal/ProviderProfileEdit";
 import ProviderSupport from "./pages/provider-portal/ProviderSupport";
 import ProviderSkillsSelection from "./pages/provider-portal/ProviderSkillsSelection";
+import ProviderMessages from "./pages/provider-portal/ProviderMessages";
+import ProviderCreateHub from "./pages/provider-portal/ProviderCreateHub";
+import ProviderAccount from "./pages/provider-portal/ProviderAccount";
 // Provider notifications disabled during cleanup
 import RescheduleRequest from "./pages/provider-portal/RescheduleRequest";
 import AvailableJobs from "./pages/provider-portal/AvailableJobs";
@@ -181,6 +184,9 @@ const App = () => {
                 <Route index element={<ProviderDashboardHome />} />
                 <Route path="jobs" element={<ProviderJobs />} />
                 <Route path="available-jobs" element={<AvailableJobs />} />
+                <Route path="messages" element={<ProviderMessages />} />
+                <Route path="create" element={<ProviderCreateHub />} />
+                <Route path="account" element={<ProviderAccount />} />
                 <Route path="calendar" element={<ProviderCalendar />} />
                 <Route path="map" element={<ProviderMap />} />
                 <Route path="verification" element={<ProviderVerification />} />
