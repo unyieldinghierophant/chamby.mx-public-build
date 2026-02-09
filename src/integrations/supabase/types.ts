@@ -272,31 +272,37 @@ export type Database = {
           attachment_url: string | null
           created_at: string
           id: string
+          is_system_message: boolean
           job_id: string
           message_text: string
           read: boolean
           receiver_id: string
           sender_id: string
+          system_event_type: string | null
         }
         Insert: {
           attachment_url?: string | null
           created_at?: string
           id?: string
+          is_system_message?: boolean
           job_id: string
           message_text: string
           read?: boolean
           receiver_id: string
           sender_id: string
+          system_event_type?: string | null
         }
         Update: {
           attachment_url?: string | null
           created_at?: string
           id?: string
+          is_system_message?: boolean
           job_id?: string
           message_text?: string
           read?: boolean
           receiver_id?: string
           sender_id?: string
+          system_event_type?: string | null
         }
         Relationships: [
           {

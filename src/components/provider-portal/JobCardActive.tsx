@@ -2,8 +2,9 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Calendar, Clock, DollarSign, User, Phone, MessageSquare, CheckCircle, Navigation, Loader2, HourglassIcon } from "lucide-react";
+import { MapPin, Calendar, Clock, DollarSign, User, Phone, MessageSquare, CheckCircle, Navigation, Loader2, HourglassIcon, ChevronRight } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
+import { useNavigate } from "react-router-dom";
 import { PaymentStatusBadge } from "@/components/PaymentStatusBadge";
 import { getVisitFeeStatus, getInvoiceStatus } from "@/utils/jobPaymentStatus";
 import { format, formatDistanceToNow } from "date-fns";
@@ -23,6 +24,7 @@ interface JobCardActiveProps {
 }
 
 export const JobCardActive = ({ job, onComplete }: JobCardActiveProps) => {
+  const navigate = useNavigate();
   const { providerConfirmVisit, loading } = useCompleteFirstVisit();
 
   const handleConfirmVisit = async () => {
@@ -205,6 +207,14 @@ export const JobCardActive = ({ job, onComplete }: JobCardActiveProps) => {
       </CardContent>
 
       <CardFooter className="flex flex-col gap-2">
+        {/* Primary: Go to timeline */}
+        <Button 
+          onClick={() => navigate(`/provider-portal/jobs/${job.id}`)}
+          className="w-full gap-2"
+        >
+          <ChevronRight className="w-4 h-4" />
+          Ver seguimiento
+        </Button>
         <div className="w-full grid grid-cols-2 gap-2">
           <Button 
             onClick={handleStartRoute}
@@ -217,6 +227,7 @@ export const JobCardActive = ({ job, onComplete }: JobCardActiveProps) => {
           <Button 
             variant="outline"
             className="gap-2"
+            onClick={() => navigate(`/provider-portal/jobs/${job.id}`)}
           >
             <MessageSquare className="w-4 h-4" />
             Chat

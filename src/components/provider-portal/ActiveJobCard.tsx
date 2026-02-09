@@ -25,7 +25,7 @@ export const ActiveJobCard = ({ job }: ActiveJobCardProps) => {
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       whileTap={{ scale: 0.98 }}
-      onClick={() => navigate(`/provider-portal/jobs`)}
+      onClick={() => navigate(`/provider-portal/jobs/${job.id}`)}
       className="bg-background border border-border/60 rounded-2xl p-3.5 shadow-sm cursor-pointer"
     >
       {/* Header row */}
