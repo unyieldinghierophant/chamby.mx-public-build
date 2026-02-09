@@ -13,7 +13,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { PaymentStatusBadge } from '@/components/PaymentStatusBadge';
 import { getVisitFeeStatus, getInvoiceStatus } from '@/utils/jobPaymentStatus';
 import { useCompleteFirstVisit } from '@/hooks/useCompleteFirstVisit';
-import { ArrowLeft, Phone, Mail, MapPin, Calendar, Clock, Search, Image, Wallet, AlertTriangle, CheckCircle, XCircle, Loader2, User, DollarSign, Shield, FileText, Eye } from 'lucide-react';
+import { ArrowLeft, Phone, Mail, MapPin, Calendar, Clock, Search, Image, Wallet, AlertTriangle, CheckCircle, XCircle, Loader2, User, DollarSign, Shield, FileText, Eye, Headset } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -451,6 +451,15 @@ const AdminDashboard = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => navigate('/admin/support')}
+                className="flex items-center gap-2"
+              >
+                <Headset className="h-4 w-4" />
+                <span className="hidden sm:inline">Soporte</span>
+              </Button>
               <Button 
                 variant="outline" 
                 size="sm" 

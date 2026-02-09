@@ -705,6 +705,33 @@ export type Database = {
         }
         Relationships: []
       }
+      support_messages: {
+        Row: {
+          created_at: string
+          id: string
+          message_text: string
+          provider_id: string
+          read: boolean
+          sender_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_text: string
+          provider_id: string
+          read?: boolean
+          sender_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_text?: string
+          provider_id?: string
+          read?: boolean
+          sender_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
