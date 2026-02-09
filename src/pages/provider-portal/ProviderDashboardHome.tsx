@@ -26,7 +26,6 @@ import {
   Briefcase,
   RefreshCw,
   ChevronRight,
-  Bell,
   Menu,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,7 +36,7 @@ import { ProviderDashboardSkeleton } from "@/components/skeletons";
 import { cn } from "@/lib/utils";
 import { useAvailableJobs } from "@/hooks/useAvailableJobs";
 import { AvailableJobsAlert } from "@/components/provider-portal/AvailableJobsAlert";
-import { useProviderNotifications } from "@/hooks/useProviderNotifications";
+
 import { useSidebar } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -51,7 +50,7 @@ const ProviderDashboardHome = () => {
   const { user } = useAuth();
   const { profile } = useProfile();
   const { profile: providerProfile } = useProviderProfile(user?.id);
-  const { unreadCount } = useProviderNotifications();
+  
   const { toggleSidebar } = useSidebar();
   const isMobile = useIsMobile();
   const navigate = useNavigate();

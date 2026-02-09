@@ -1,8 +1,8 @@
-import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Home, MessageSquare, Plus, Clock, User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
+import { useProviderNotifications } from "@/hooks/useProviderNotifications";
 
 interface NavItem {
   id: string;
@@ -15,6 +15,7 @@ interface NavItem {
 export const ProviderBottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { unreadCount } = useProviderNotifications();
 
   const navItems: NavItem[] = [
     { id: "home", label: "Inicio", icon: Home, path: "/provider-portal" },
@@ -98,6 +99,11 @@ export const ProviderBottomNav = () => {
                         active ? "text-foreground" : "text-muted-foreground"
                       )}
                     />
+                    {item.id === "messages" && unreadCount > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-[16px] bg-destructive text-destructive-foreground text-[9px] font-bold rounded-full flex items-center justify-center px-1">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    )}
                   </div>
                   <span
                     className={cn(
