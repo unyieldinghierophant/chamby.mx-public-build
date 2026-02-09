@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Home, MessageSquare, Plus, Clock, User } from "lucide-react";
+import { Home, MessageSquare, Clock, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useSupportMessages } from "@/hooks/useSupportMessages";
@@ -9,7 +9,6 @@ interface NavItem {
   label: string;
   icon: React.ComponentType<{ className?: string }>;
   path: string;
-  isCenter?: boolean;
 }
 
 export const ProviderBottomNav = () => {
@@ -20,7 +19,6 @@ export const ProviderBottomNav = () => {
   const navItems: NavItem[] = [
     { id: "home", label: "Inicio", icon: Home, path: "/provider-portal" },
     { id: "messages", label: "Mensajes", icon: MessageSquare, path: "/provider-portal/messages" },
-    { id: "create", label: "Crear", icon: Plus, path: "/provider-portal/create", isCenter: true },
     { id: "activity", label: "Actividad", icon: Clock, path: "/provider-portal/jobs" },
     { id: "account", label: "Cuenta", icon: User, path: "/provider-portal/account" },
   ];
@@ -34,9 +32,6 @@ export const ProviderBottomNav = () => {
     }
     if (item.id === "messages") {
       return location.pathname.startsWith("/provider-portal/messages");
-    }
-    if (item.id === "create") {
-      return location.pathname.startsWith("/provider-portal/create");
     }
     if (item.id === "account") {
       return location.pathname.startsWith("/provider-portal/account") || location.pathname.startsWith("/provider-portal/profile");
@@ -57,27 +52,6 @@ export const ProviderBottomNav = () => {
             {navItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item);
-
-              if (item.isCenter) {
-                return (
-                  <motion.button
-                    key={item.id}
-                    onClick={() => handleNavClick(item)}
-                    whileTap={{ scale: 0.9 }}
-                    className="relative -mt-4 flex flex-col items-center justify-center"
-                  >
-                    <motion.div
-                      whileTap={{ scale: 0.85 }}
-                      className="w-14 h-14 rounded-2xl bg-primary shadow-lg flex items-center justify-center"
-                    >
-                      <Icon className="h-6 w-6 text-primary-foreground" />
-                    </motion.div>
-                    <span className="text-[10px] mt-1 font-medium text-muted-foreground">
-                      {item.label}
-                    </span>
-                  </motion.button>
-                );
-              }
 
               return (
                 <motion.button
