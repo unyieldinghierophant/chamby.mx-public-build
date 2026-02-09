@@ -1,124 +1,112 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Briefcase, History, User, Home, Bell } from "lucide-react";
+import { Home, MessageSquare, Plus, Clock, User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAvailableJobsCount } from "@/hooks/useAvailableJobsCount";
-import { useProviderNotifications } from "@/hooks/useProviderNotifications";
-import { NotificationBottomSheet } from "@/components/provider-portal/NotificationBottomSheet";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface NavItem {
   id: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
-  path?: string;
-  action?: () => void;
-  badge?: number;
+  path: string;
+  isCenter?: boolean;
 }
 
 export const ProviderBottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { count: availableJobsCount } = useAvailableJobsCount();
-  const { notifications, unreadCount, markAsRead } = useProviderNotifications();
-  const [showNotificationSheet, setShowNotificationSheet] = useState(false);
 
   const navItems: NavItem[] = [
-    {
-      id: "home",
-      label: "Inicio",
-      icon: Home,
-      path: "/provider-portal",
-    },
-    {
-      id: "jobs",
-      label: "Trabajos",
-      icon: Briefcase,
-      path: "/provider-portal/available-jobs",
-      badge: availableJobsCount > 0 ? availableJobsCount : undefined,
-    },
-    {
-      id: "notifications",
-      label: "Notif",
-      icon: Bell,
-      action: () => setShowNotificationSheet(true),
-      badge: unreadCount > 0 ? unreadCount : undefined,
-    },
-    {
-      id: "history",
-      label: "Historial",
-      icon: History,
-      path: "/provider-portal/jobs",
-    },
-    {
-      id: "profile",
-      label: "Perfil",
-      icon: User,
-      path: "/provider-portal/profile",
-    },
+    { id: "home", label: "Inicio", icon: Home, path: "/provider-portal" },
+    { id: "messages", label: "Mensajes", icon: MessageSquare, path: "/provider-portal/jobs" },
+    { id: "create", label: "Crear", icon: Plus, path: "/provider-portal/available-jobs", isCenter: true },
+    { id: "activity", label: "Actividad", icon: Clock, path: "/provider-portal/jobs" },
+    { id: "account", label: "Cuenta", icon: User, path: "/provider-portal/profile" },
   ];
 
-  const isActive = (path?: string) => {
-    if (!path) return false;
-    if (path === "/provider-portal") {
+  const isActive = (item: NavItem) => {
+    if (item.id === "home") {
       return location.pathname === "/provider-portal" || location.pathname === "/provider-portal/";
     }
-    return location.pathname.startsWith(path);
+    if (item.id === "activity") {
+      return location.pathname === "/provider-portal/jobs";
+    }
+    if (item.id === "account") {
+      return location.pathname.startsWith("/provider-portal/profile");
+    }
+    return location.pathname.startsWith(item.path);
   };
 
   const handleNavClick = (item: NavItem) => {
-    if (item.action) {
-      item.action();
-    } else if (item.path) {
-      navigate(item.path);
-    }
+    navigate(item.path);
   };
 
   return (
-    <>
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-t border-border safe-area-bottom">
-        <div className="flex items-center justify-around h-14 px-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const active = isActive(item.path);
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 safe-area-bottom">
+      <div className="relative mx-3 mb-2">
+        {/* Background pill */}
+        <div className="bg-background rounded-2xl shadow-[0_-2px_20px_rgba(0,0,0,0.08)] border border-border/50">
+          <div className="flex items-end justify-around h-16 px-2">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item);
 
-            return (
-              <button
-                key={item.id}
-                onClick={() => handleNavClick(item)}
-                className={cn(
-                  "relative flex flex-col items-center justify-center min-w-[56px] h-12 rounded-lg transition-colors",
-                  active
-                    ? "text-primary"
-                    : "text-muted-foreground active:bg-muted"
-                )}
-              >
-                <div className="relative">
-                  <Icon className={cn("h-5 w-5", active && "text-primary")} />
-                  {item.badge && (
-                    <span className="absolute -top-1.5 -right-2.5 min-w-[16px] h-[16px] bg-destructive text-destructive-foreground text-[9px] font-bold rounded-full flex items-center justify-center px-1">
-                      {item.badge > 99 ? '99+' : item.badge}
+              if (item.isCenter) {
+                return (
+                  <motion.button
+                    key={item.id}
+                    onClick={() => handleNavClick(item)}
+                    whileTap={{ scale: 0.9 }}
+                    className="relative -mt-4 flex flex-col items-center justify-center"
+                  >
+                    <motion.div
+                      whileTap={{ scale: 0.85 }}
+                      className="w-14 h-14 rounded-2xl bg-primary shadow-lg flex items-center justify-center"
+                    >
+                      <Icon className="h-6 w-6 text-primary-foreground" />
+                    </motion.div>
+                    <span className="text-[10px] mt-1 font-medium text-muted-foreground">
+                      {item.label}
                     </span>
-                  )}
-                </div>
-                <span className={cn(
-                  "text-[10px] mt-0.5",
-                  active ? "font-semibold text-primary" : "font-medium"
-                )}>
-                  {item.label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </nav>
+                  </motion.button>
+                );
+              }
 
-      {/* Notification Bottom Sheet */}
-      <NotificationBottomSheet
-        isOpen={showNotificationSheet}
-        onClose={() => setShowNotificationSheet(false)}
-        notifications={notifications}
-        onMarkAsRead={markAsRead}
-      />
-    </>
+              return (
+                <motion.button
+                  key={item.id}
+                  onClick={() => handleNavClick(item)}
+                  whileTap={{ scale: 0.9 }}
+                  className="relative flex flex-col items-center justify-center py-2 min-w-[56px]"
+                >
+                  <div className="relative">
+                    <motion.div
+                      initial={false}
+                      animate={active ? { scale: 1 } : { scale: 0 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                      className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary"
+                    />
+                    <Icon
+                      className={cn(
+                        "h-[22px] w-[22px] transition-colors duration-200",
+                        active ? "text-foreground" : "text-muted-foreground"
+                      )}
+                    />
+                  </div>
+                  <span
+                    className={cn(
+                      "text-[10px] mt-1 transition-colors duration-200",
+                      active ? "font-semibold text-foreground" : "font-medium text-muted-foreground"
+                    )}
+                  >
+                    {item.label}
+                  </span>
+                </motion.button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </nav>
   );
 };
