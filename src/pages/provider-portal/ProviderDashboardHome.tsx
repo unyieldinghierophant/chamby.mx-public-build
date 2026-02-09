@@ -26,6 +26,8 @@ import {
   Briefcase,
   RefreshCw,
   ChevronRight,
+  Bell,
+  Menu,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -35,6 +37,9 @@ import { ProviderDashboardSkeleton } from "@/components/skeletons";
 import { cn } from "@/lib/utils";
 import { useAvailableJobs } from "@/hooks/useAvailableJobs";
 import { AvailableJobsAlert } from "@/components/provider-portal/AvailableJobsAlert";
+import { useProviderNotifications } from "@/hooks/useProviderNotifications";
+import { useSidebar } from "@/components/ui/sidebar";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface VerificationDetails {
   status: 'none' | 'pending' | 'verified' | 'rejected';
@@ -46,6 +51,9 @@ const ProviderDashboardHome = () => {
   const { user } = useAuth();
   const { profile } = useProfile();
   const { profile: providerProfile } = useProviderProfile(user?.id);
+  const { unreadCount } = useProviderNotifications();
+  const { toggleSidebar } = useSidebar();
+  const isMobile = useIsMobile();
   const navigate = useNavigate();
   
   // Available jobs hook
@@ -254,6 +262,29 @@ const ProviderDashboardHome = () => {
                 </span>
               </div>
             </div>
+
+            {/* Mobile-only: Bell + Hamburger */}
+            {isMobile && (
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <button
+                  onClick={() => navigate('/provider-portal/notifications')}
+                  className="relative h-9 w-9 flex items-center justify-center rounded-lg transition-colors active:bg-muted"
+                >
+                  <Bell className="h-5 w-5 text-muted-foreground" />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-0.5 right-0.5 min-w-[16px] h-[16px] bg-destructive text-destructive-foreground text-[9px] font-bold rounded-full flex items-center justify-center">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
+                </button>
+                <button
+                  onClick={toggleSidebar}
+                  className="h-9 w-9 flex items-center justify-center rounded-lg bg-muted active:bg-muted/80 transition-colors"
+                >
+                  <Menu className="h-5 w-5" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
