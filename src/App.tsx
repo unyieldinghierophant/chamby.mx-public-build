@@ -77,6 +77,7 @@ import VisitFeePaymentPage from "./pages/VisitFeePaymentPage";
 import ResetPassword from "./pages/ResetPassword";
 import Login from "./pages/Login";
 import ProviderLogin from "./pages/ProviderLogin";
+import CookieConsent from "./components/CookieConsent";
 
 const queryClient = new QueryClient();
 
@@ -383,6 +384,7 @@ const App = () => {
 
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <CookieConsent />
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>
