@@ -243,56 +243,28 @@ const ProviderDashboardHome = () => {
               )}
             </div>
 
-            {/* Info + inline stats */}
+            {/* Greeting + optional rating */}
             <div className="flex-1 min-w-0">
               <h1 className="text-base font-bold text-foreground truncate font-jakarta">
                 ¡Hola, {profile?.full_name?.split(' ')[0] || 'Chambynauta'}!
               </h1>
-              
-              {/* Inline subtle stats */}
-              <div className="flex items-center gap-2.5 mt-0.5">
-                <span className="flex items-center gap-0.5 text-[11px] text-muted-foreground">
+              {stats.rating > 0 && (
+                <span className="flex items-center gap-1 text-[11px] text-muted-foreground mt-0.5">
                   <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
                   <span className="font-medium text-foreground/70">{stats.rating.toFixed(1)}</span>
                 </span>
-                <span className="text-[11px] text-border">•</span>
-                <span className="text-[11px] text-muted-foreground">
-                  {stats.completedJobs} completados
-                </span>
-                {stats.activeJobs > 0 && (
-                  <>
-                    <span className="text-[11px] text-border">•</span>
-                    <span className="text-[11px] text-muted-foreground">
-                      {stats.activeJobs} activo{stats.activeJobs !== 1 ? 's' : ''}
-                    </span>
-                  </>
-                )}
-              </div>
+              )}
             </div>
 
-            {/* Mobile-only: Bell + Hamburger */}
+            {/* Mobile-only: Hamburger menu only */}
             {isMobile && (
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <motion.button
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => navigate('/provider-portal/notifications')}
-                  className="relative h-9 w-9 flex items-center justify-center rounded-full transition-colors active:bg-muted"
-                >
-                  <Bell className="h-5 w-5 text-muted-foreground" />
-                  {unreadCount > 0 && (
-                    <span className="absolute top-0.5 right-0.5 min-w-[16px] h-[16px] bg-destructive text-destructive-foreground text-[9px] font-bold rounded-full flex items-center justify-center">
-                      {unreadCount > 99 ? '99+' : unreadCount}
-                    </span>
-                  )}
-                </motion.button>
-                <motion.button
-                  whileTap={{ scale: 0.9 }}
-                  onClick={toggleSidebar}
-                  className="h-9 w-9 flex items-center justify-center rounded-full bg-muted/60 transition-colors"
-                >
-                  <Menu className="h-5 w-5 text-muted-foreground" />
-                </motion.button>
-              </div>
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={toggleSidebar}
+                className="h-10 w-10 flex items-center justify-center rounded-full bg-muted/60 transition-colors flex-shrink-0"
+              >
+                <Menu className="h-5 w-5 text-muted-foreground" />
+              </motion.button>
             )}
           </div>
         </div>
