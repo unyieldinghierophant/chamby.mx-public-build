@@ -55,7 +55,7 @@ export const useActiveJobs = (): UseActiveJobsResult => {
         .from('jobs')
         .select('*, invoices(status)')
         .eq('provider_id', user.id)
-        .in('status', ['assigned', 'in_progress', 'scheduled'])
+        .in('status', ['assigned', 'accepted', 'confirmed', 'en_route', 'on_site', 'quoted', 'in_progress', 'scheduled'])
         .order('scheduled_at', { ascending: true });
 
       if (fetchError) throw fetchError;

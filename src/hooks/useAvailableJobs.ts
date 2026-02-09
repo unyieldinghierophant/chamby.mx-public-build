@@ -98,19 +98,50 @@ export const useAvailableJobs = (): UseAvailableJobsResult => {
       throw new Error('User not authenticated');
     }
 
+    // Check one-active-job rule
+    const { data: existingActive } = await supabase
+      .from('jobs')
+      .select('id')
+      .eq('provider_id', user.id)
+      .in('status', ['accepted', 'confirmed', 'en_route', 'on_site', 'quoted', 'in_progress'])
+      .limit(1);
+
+    if (existingActive && existingActive.length > 0) {
+      throw new Error('Ya tienes un trabajo activo. Complétalo o cancélalo primero.');
+    }
+
     try {
-      // Update job with provider_id and change status to assigned
+      // Update job with provider_id and change status to accepted
       const { error: updateError } = await supabase
         .from('jobs')
         .update({ 
           provider_id: user.id,
-          status: 'assigned',
+          status: 'accepted',
           updated_at: new Date().toISOString()
         })
         .eq('id', jobId)
         .is('provider_id', null); // Only accept if not already taken
 
       if (updateError) throw updateError;
+
+      // Create system message for acceptance
+      const { data: jobData } = await supabase
+        .from('jobs')
+        .select('client_id')
+        .eq('id', jobId)
+        .single();
+
+      if (jobData?.client_id) {
+        await supabase.from('messages').insert({
+          job_id: jobId,
+          sender_id: user.id,
+          receiver_id: jobData.client_id,
+          message_text: '✅ El proveedor aceptó el trabajo',
+          is_system_message: true,
+          system_event_type: 'accepted',
+          read: false,
+        });
+      }
 
       // Mark related notifications as read
       await supabase

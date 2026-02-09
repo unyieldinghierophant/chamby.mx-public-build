@@ -46,6 +46,7 @@ import PhotoRedirect from "./pages/PhotoRedirect";
 import ProviderPortal from "./pages/ProviderPortal";
 import ProviderDashboardHome from "./pages/provider-portal/ProviderDashboardHome";
 import ProviderJobs from "./pages/provider-portal/ProviderJobs";
+import JobTimelinePage from "./pages/provider-portal/JobTimelinePage";
 import ProviderCalendar from "./pages/provider-portal/ProviderCalendar";
 import ProviderMap from "./pages/provider-portal/ProviderMap";
 // Provider payment features disabled during cleanup
@@ -184,6 +185,7 @@ const App = () => {
               >
                 <Route index element={<ProviderDashboardHome />} />
                 <Route path="jobs" element={<ProviderJobs />} />
+                <Route path="jobs/:jobId" element={<JobTimelinePage />} />
                 <Route path="available-jobs" element={<AvailableJobs />} />
                 <Route path="messages" element={<ProviderMessages />} />
                 <Route path="create" element={<ProviderCreateHub />} />

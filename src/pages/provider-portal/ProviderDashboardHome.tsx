@@ -168,7 +168,7 @@ const ProviderDashboardHome = () => {
         .from("jobs")
         .select("id", { count: "exact" })
         .eq("provider_id", user?.id)
-        .in("status", ["pending", "confirmed", "in_progress", "assigned"]);
+        .in("status", ["pending", "confirmed", "in_progress", "assigned", "accepted", "en_route", "on_site", "quoted"]);
 
       // Fetch reviews
       const { data: reviews } = await supabase
