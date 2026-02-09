@@ -10,6 +10,8 @@ import {
   JOB_STATUS_CONFIG,
   ACTIVE_JOB_STATUSES,
 } from "@/hooks/useJobStatusTransition";
+import { InvoiceCard } from "@/components/provider-portal/InvoiceCard";
+import { CancellationSummary } from "@/components/provider-portal/CancellationSummary";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -32,6 +34,7 @@ import {
   User,
   Phone,
   MessageSquare,
+  AlertTriangle,
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -51,6 +54,9 @@ interface JobDetail {
   client_id: string;
   provider_id: string | null;
   created_at: string;
+  visit_fee_amount: number | null;
+  provider_confirmed_visit: boolean | null;
+  client_confirmed_visit: boolean | null;
 }
 
 interface ChatMessage {
@@ -73,17 +79,14 @@ const STATUS_ORDER: JobStatus[] = [
   'accepted', 'confirmed', 'en_route', 'on_site', 'quoted', 'in_progress', 'completed'
 ];
 
-// Actions config per status
+// Actions config per status (provider-side only)
 const STATUS_ACTIONS: Record<string, { label: string; nextStatus: JobStatus; icon: React.ComponentType<any>; variant?: string }[]> = {
   accepted:    [{ label: 'Esperando confirmación del cliente', nextStatus: 'confirmed', icon: ClipboardCheck }],
   confirmed:   [{ label: 'Marcar en camino', nextStatus: 'en_route', icon: Navigation }],
   en_route:    [{ label: 'Llegué al sitio', nextStatus: 'on_site', icon: MapPin }],
-  on_site:     [
-    { label: 'Enviar cotización', nextStatus: 'quoted', icon: FileText },
-    { label: 'Iniciar trabajo', nextStatus: 'in_progress', icon: Play },
-  ],
-  quoted:      [{ label: 'Iniciar trabajo', nextStatus: 'in_progress', icon: Play }],
-  in_progress: [{ label: 'Marcar como completado', nextStatus: 'completed', icon: CheckCircle }],
+  // on_site: invoice creation handled by InvoiceCard
+  // quoted: waiting for client acceptance → in_progress handled by InvoiceCard
+  in_progress: [{ label: 'Marcar trabajo como terminado', nextStatus: 'completed', icon: CheckCircle }],
 };
 
 const JobTimelinePage = () => {
@@ -96,11 +99,13 @@ const JobTimelinePage = () => {
   const [job, setJob] = useState<JobDetail | null>(null);
   const [client, setClient] = useState<ClientInfo | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [invoice, setInvoice] = useState<any>(null);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [transitioning, setTransitioning] = useState(false);
   const [sending, setSending] = useState(false);
   const [activeTab, setActiveTab] = useState<'timeline' | 'chat'>('timeline');
+  const [showCancelSummary, setShowCancelSummary] = useState(false);
 
   // Fetch job + client + messages
   const fetchAll = async () => {
@@ -123,12 +128,33 @@ const JobTimelinePage = () => {
         .eq('id', jobData.client_id)
         .maybeSingle();
       setClient(clientData);
+
+      // Fetch invoice for this job
+      const { data: invoiceData } = await supabase
+        .from('invoices')
+        .select('*')
+        .eq('job_id', jobId)
+        .not('status', 'eq', 'cancelled')
+        .maybeSingle();
+
+      if (invoiceData) {
+        // Fetch invoice items
+        const { data: items } = await supabase
+          .from('invoice_items')
+          .select('*')
+          .eq('invoice_id', invoiceData.id)
+          .order('created_at', { ascending: true });
+
+        setInvoice({ ...invoiceData, items: items || [] });
+      } else {
+        setInvoice(null);
+      }
     }
 
     // Fetch messages
     const { data: msgs } = await supabase
       .from('messages')
-      .select('id, message_text, sender_id, is_system_message, system_event_type, created_at')
+      .select('id, message_text, sender_id, receiver_id, is_system_message, system_event_type, created_at')
       .eq('job_id', jobId)
       .order('created_at', { ascending: true });
 
@@ -187,6 +213,15 @@ const JobTimelinePage = () => {
       }, (payload) => {
         setJob(prev => prev ? { ...prev, ...payload.new } as JobDetail : null);
       })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'invoices',
+        filter: `job_id=eq.${jobId}`,
+      }, () => {
+        // Re-fetch all to get updated invoice + items
+        fetchAll();
+      })
       .subscribe();
 
     return () => {
@@ -204,6 +239,32 @@ const JobTimelinePage = () => {
       return;
     }
 
+    // Double confirmation for completion: provider marks as "terminado"
+    if (nextStatus === 'completed') {
+      setTransitioning(true);
+      // Set provider_confirmed_visit
+      await supabase
+        .from('jobs')
+        .update({ provider_confirmed_visit: true, updated_at: new Date().toISOString() })
+        .eq('id', job.id);
+
+      // Send system message
+      await supabase.from('messages').insert({
+        job_id: job.id,
+        sender_id: user.id,
+        receiver_id: job.client_id,
+        message_text: '🛠️ El proveedor marcó el trabajo como terminado. Esperando confirmación del cliente.',
+        is_system_message: true,
+        system_event_type: 'provider_completed',
+        read: false,
+      });
+
+      toast.success('Marcado como terminado. El cliente debe confirmar.');
+      setTransitioning(false);
+      await fetchAll();
+      return;
+    }
+
     setTransitioning(true);
     const result = await transitionStatus(job.id, nextStatus, job.client_id);
     setTransitioning(false);
@@ -218,10 +279,35 @@ const JobTimelinePage = () => {
 
   const handleCancel = async () => {
     if (!job) return;
+    if (!showCancelSummary) {
+      setShowCancelSummary(true);
+      return;
+    }
     setTransitioning(true);
+
+    // Calculate compensation and add to cancel message
+    const afterOnSite = ["on_site", "quoted", "in_progress"].includes(job.status);
+    const compensation = afterOnSite ? 250 : 0;
+    const cancelMsg = compensation > 0
+      ? `❌ Trabajo cancelado. El proveedor recibirá $${compensation} MXN por compensación.`
+      : '❌ Trabajo cancelado.';
+
     const result = await transitionStatus(job.id, 'cancelled', job.client_id);
     setTransitioning(false);
+
     if (result.success) {
+      // Send compensation system message (extra detail beyond the default)
+      if (compensation > 0) {
+        await supabase.from('messages').insert({
+          job_id: job.id,
+          sender_id: user!.id,
+          receiver_id: job.client_id,
+          message_text: `💰 Compensación registrada: $${compensation} MXN para el proveedor`,
+          is_system_message: true,
+          system_event_type: 'cancellation_compensation',
+          read: false,
+        });
+      }
       toast.success('Trabajo cancelado');
       navigate('/provider-portal/jobs');
     } else {
@@ -403,13 +489,48 @@ const JobTimelinePage = () => {
             })}
           </div>
 
+          {/* Invoice Card — shows on on_site, quoted, in_progress */}
+          {(currentStatus === 'on_site' || currentStatus === 'quoted' || currentStatus === 'in_progress') && (
+            <InvoiceCard
+              jobId={job.id}
+              clientId={job.client_id}
+              jobStatus={currentStatus}
+              invoice={invoice}
+              onInvoiceCreated={fetchAll}
+              isProvider={true}
+            />
+          )}
+
+          {/* Waiting for client to accept invoice */}
+          {currentStatus === 'quoted' && invoice?.status === 'sent' && (
+            <Card className="border-border bg-muted/50">
+              <CardContent className="p-4 text-center">
+                <Clock className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm font-medium text-foreground">Esperando aprobación del cliente</p>
+                <p className="text-xs text-muted-foreground mt-1">El cliente debe aceptar la factura para continuar</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Double confirmation state */}
+          {currentStatus === 'in_progress' && job.provider_confirmed_visit && !job.client_confirmed_visit && (
+            <Card className="border-border bg-muted/50">
+              <CardContent className="p-4 text-center">
+                <Clock className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm font-medium text-foreground">Esperando confirmación del cliente</p>
+                <p className="text-xs text-muted-foreground mt-1">El cliente debe confirmar que el trabajo fue completado</p>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Actions */}
           {!isTerminal && actions.length > 0 && (
             <div className="space-y-2">
               {actions.map((action) => {
                 const Icon = action.icon;
-                // Provider can't confirm on behalf of client
                 const isClientAction = action.nextStatus === 'confirmed';
+                // Hide "completed" button if provider already confirmed
+                if (action.nextStatus === 'completed' && job.provider_confirmed_visit) return null;
                 return (
                   <Button
                     key={action.nextStatus}
@@ -426,16 +547,36 @@ const JobTimelinePage = () => {
                   </Button>
                 );
               })}
+            </div>
+          )}
 
-              {/* Cancel always available for non-terminal */}
+          {/* Cancel section */}
+          {!isTerminal && (
+            <div className="space-y-2">
+              {showCancelSummary && (
+                <CancellationSummary
+                  jobStatus={currentStatus}
+                  visitFeeAmount={job.visit_fee_amount || 350}
+                />
+              )}
               <Button
                 variant="ghost"
                 className="w-full text-destructive hover:text-destructive gap-2 text-sm"
                 onClick={handleCancel}
                 disabled={transitioning}
               >
-                <XCircle className="w-4 h-4" /> Cancelar trabajo
+                {transitioning ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                {showCancelSummary ? 'Confirmar cancelación' : 'Cancelar trabajo'}
               </Button>
+              {showCancelSummary && (
+                <Button
+                  variant="ghost"
+                  className="w-full text-muted-foreground text-xs"
+                  onClick={() => setShowCancelSummary(false)}
+                >
+                  Volver
+                </Button>
+              )}
             </div>
           )}
 
@@ -443,22 +584,34 @@ const JobTimelinePage = () => {
           {isTerminal && (
             <Card className={cn(
               "border",
-              currentStatus === 'completed' ? "border-emerald-200 bg-emerald-50" : "border-red-200 bg-red-50"
+              currentStatus === 'completed' ? "border-primary/30 bg-primary/5" : "border-destructive/30 bg-destructive/5"
             )}>
               <CardContent className="p-4 text-center">
                 {currentStatus === 'completed' ? (
                   <>
-                    <CheckCircle className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
-                    <p className="text-sm font-medium text-emerald-800">Trabajo completado</p>
+                    <CheckCircle className="w-8 h-8 text-primary mx-auto mb-2" />
+                    <p className="text-sm font-medium text-foreground">Trabajo completado</p>
                   </>
                 ) : (
                   <>
-                    <XCircle className="w-8 h-8 text-red-600 mx-auto mb-2" />
-                    <p className="text-sm font-medium text-red-800">Trabajo cancelado</p>
+                    <XCircle className="w-8 h-8 text-destructive mx-auto mb-2" />
+                    <p className="text-sm font-medium text-foreground">Trabajo cancelado</p>
                   </>
                 )}
               </CardContent>
             </Card>
+          )}
+
+          {/* Invoice summary on completed */}
+          {isTerminal && invoice && (
+            <InvoiceCard
+              jobId={job.id}
+              clientId={job.client_id}
+              jobStatus={currentStatus}
+              invoice={invoice}
+              onInvoiceCreated={fetchAll}
+              isProvider={true}
+            />
           )}
         </div>
       ) : (
