@@ -26,8 +26,8 @@ const VALID_TRANSITIONS: Record<string, string[]> = {
   accepted:    ['confirmed', 'cancelled'],
   confirmed:   ['en_route', 'cancelled'],
   en_route:    ['on_site', 'cancelled'],
-  on_site:     ['quoted', 'in_progress', 'cancelled'], // can skip quote if not needed
-  quoted:      ['in_progress', 'cancelled'],
+  on_site:     ['quoted', 'cancelled'], // must quote before in_progress
+  quoted:      ['in_progress', 'cancelled'], // requires accepted invoice
   in_progress: ['completed', 'cancelled'],
   // Terminal states
   completed:   [],
@@ -42,7 +42,7 @@ const SYSTEM_MESSAGES: Record<string, { emoji: string; text: string }> = {
   on_site:     { emoji: '📌', text: 'El proveedor llegó al sitio' },
   quoted:      { emoji: '🧾', text: 'El proveedor envió una cotización' },
   in_progress: { emoji: '🛠️', text: 'El trabajo comenzó' },
-  completed:   { emoji: '🎉', text: 'El trabajo fue marcado como completado' },
+  completed:   { emoji: '🎉', text: 'El trabajo fue completado correctamente' },
   cancelled:   { emoji: '❌', text: 'El trabajo fue cancelado' },
 };
 
@@ -130,7 +130,21 @@ export const useJobStatusTransition = () => {
       }
     }
 
-    // 4. Build update payload
+    // 4. If moving to in_progress, check that invoice is accepted
+    if (newStatus === 'in_progress') {
+      const { data: invoice } = await supabase
+        .from('invoices')
+        .select('status')
+        .eq('job_id', jobId)
+        .in('status', ['sent', 'accepted'])
+        .maybeSingle();
+
+      if (!invoice || invoice.status !== 'accepted') {
+        return { success: false, error: 'La factura debe ser aceptada por el cliente antes de iniciar el trabajo.' };
+      }
+    }
+
+    // 5. Build update payload
     const updatePayload: Record<string, any> = {
       status: newStatus,
       updated_at: new Date().toISOString(),
