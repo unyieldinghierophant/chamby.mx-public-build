@@ -18,10 +18,10 @@ export const ProviderBottomNav = () => {
 
   const navItems: NavItem[] = [
     { id: "home", label: "Inicio", icon: Home, path: "/provider-portal" },
-    { id: "messages", label: "Mensajes", icon: MessageSquare, path: "/provider-portal/jobs" },
-    { id: "create", label: "Crear", icon: Plus, path: "/provider-portal/available-jobs", isCenter: true },
+    { id: "messages", label: "Mensajes", icon: MessageSquare, path: "/provider-portal/messages" },
+    { id: "create", label: "Crear", icon: Plus, path: "/provider-portal/create", isCenter: true },
     { id: "activity", label: "Actividad", icon: Clock, path: "/provider-portal/jobs" },
-    { id: "account", label: "Cuenta", icon: User, path: "/provider-portal/profile" },
+    { id: "account", label: "Cuenta", icon: User, path: "/provider-portal/account" },
   ];
 
   const isActive = (item: NavItem) => {
@@ -31,8 +31,14 @@ export const ProviderBottomNav = () => {
     if (item.id === "activity") {
       return location.pathname === "/provider-portal/jobs";
     }
+    if (item.id === "messages") {
+      return location.pathname.startsWith("/provider-portal/messages");
+    }
+    if (item.id === "create") {
+      return location.pathname.startsWith("/provider-portal/create");
+    }
     if (item.id === "account") {
-      return location.pathname.startsWith("/provider-portal/profile");
+      return location.pathname.startsWith("/provider-portal/account") || location.pathname.startsWith("/provider-portal/profile");
     }
     return location.pathname.startsWith(item.path);
   };
