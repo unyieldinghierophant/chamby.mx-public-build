@@ -220,19 +220,19 @@ const ProviderDashboardHome = () => {
   const showStats = stats.activeJobs > 0 || earnings.total > 0;
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden w-full max-w-full">
+    <div className="min-h-screen bg-muted/30 overflow-x-hidden w-full max-w-full">
       {/* Welcome Card - Compact below header */}
-      <div className="bg-gradient-to-br from-primary/5 via-background to-accent/5 border-b border-border">
+      <div className="bg-background border-b border-border/50">
         <div className="px-4 py-3">
           <div className="flex items-center gap-3">
-            {/* Avatar - Smaller on mobile */}
+            {/* Avatar */}
             <div className="relative flex-shrink-0">
-              <Avatar className="w-11 h-11 border-2 border-background shadow-sm">
+              <Avatar className="w-10 h-10 border-2 border-background shadow-sm">
                 <AvatarImage 
                   src={providerProfile?.avatar_url || profile?.avatar_url} 
                   alt={profile?.full_name || 'Provider'} 
                 />
-                <AvatarFallback className="text-sm font-bold bg-primary/10 text-primary">
+                <AvatarFallback className="text-xs font-bold bg-primary/10 text-primary">
                   {getInitials(profile?.full_name || providerProfile?.display_name || 'CH')}
                 </AvatarFallback>
               </Avatar>
@@ -243,32 +243,40 @@ const ProviderDashboardHome = () => {
               )}
             </div>
 
-            {/* Info */}
+            {/* Info + inline stats */}
             <div className="flex-1 min-w-0">
               <h1 className="text-base font-bold text-foreground truncate font-jakarta">
                 ¡Hola, {profile?.full_name?.split(' ')[0] || 'Chambynauta'}!
               </h1>
               
-              {/* Quick Stats Row */}
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className="flex items-center gap-0.5 text-xs">
+              {/* Inline subtle stats */}
+              <div className="flex items-center gap-2.5 mt-0.5">
+                <span className="flex items-center gap-0.5 text-[11px] text-muted-foreground">
                   <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                  <span className="font-medium">{stats.rating.toFixed(1)}</span>
+                  <span className="font-medium text-foreground/70">{stats.rating.toFixed(1)}</span>
                 </span>
-                <span className="text-xs text-muted-foreground">•</span>
-                <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
-                  <CheckCircle className="w-3 h-3 text-green-600" />
-                  {stats.completedJobs} trabajos
+                <span className="text-[11px] text-border">•</span>
+                <span className="text-[11px] text-muted-foreground">
+                  {stats.completedJobs} completados
                 </span>
+                {stats.activeJobs > 0 && (
+                  <>
+                    <span className="text-[11px] text-border">•</span>
+                    <span className="text-[11px] text-muted-foreground">
+                      {stats.activeJobs} activo{stats.activeJobs !== 1 ? 's' : ''}
+                    </span>
+                  </>
+                )}
               </div>
             </div>
 
             {/* Mobile-only: Bell + Hamburger */}
             {isMobile && (
               <div className="flex items-center gap-1 flex-shrink-0">
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
                   onClick={() => navigate('/provider-portal/notifications')}
-                  className="relative h-9 w-9 flex items-center justify-center rounded-lg transition-colors active:bg-muted"
+                  className="relative h-9 w-9 flex items-center justify-center rounded-full transition-colors active:bg-muted"
                 >
                   <Bell className="h-5 w-5 text-muted-foreground" />
                   {unreadCount > 0 && (
@@ -276,13 +284,14 @@ const ProviderDashboardHome = () => {
                       {unreadCount > 99 ? '99+' : unreadCount}
                     </span>
                   )}
-                </button>
-                <button
+                </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
                   onClick={toggleSidebar}
-                  className="h-9 w-9 flex items-center justify-center rounded-lg bg-muted active:bg-muted/80 transition-colors"
+                  className="h-9 w-9 flex items-center justify-center rounded-full bg-muted/60 transition-colors"
                 >
-                  <Menu className="h-5 w-5" />
-                </button>
+                  <Menu className="h-5 w-5 text-muted-foreground" />
+                </motion.button>
               </div>
             )}
           </div>
@@ -296,76 +305,37 @@ const ProviderDashboardHome = () => {
         onClose={() => setShowJobsAlert(false)}
       />
 
-      {/* Verification Banner - Slim inline format */}
+      {/* Verification Banner - Minimal system status */}
       {showVerificationBanner && (
         <motion.button
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           onClick={() => navigate("/provider-portal/verification")}
           className={cn(
-            "mx-4 mt-3 py-2 px-3 rounded-lg border flex items-center gap-2 w-[calc(100%-2rem)] text-left transition-colors active:opacity-80",
+            "mx-4 mt-2 py-1.5 px-3 rounded-lg flex items-center gap-2 w-[calc(100%-2rem)] text-left",
             status === 'rejected' 
-              ? "bg-destructive/5 border-destructive/30" 
-              : "bg-amber-500/5 border-amber-500/30"
+              ? "bg-destructive/5" 
+              : "bg-muted/50"
           )}
         >
           {status === 'rejected' ? (
-            <XCircle className="w-4 h-4 text-destructive flex-shrink-0" />
+            <XCircle className="w-3.5 h-3.5 text-destructive/70 flex-shrink-0" />
           ) : status === 'pending' ? (
-            <Clock className="w-4 h-4 text-amber-600 flex-shrink-0" />
+            <Clock className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
           ) : (
-            <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+            <AlertCircle className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
           )}
-          <span className="text-xs font-medium text-foreground flex-1">
+          <span className="text-[11px] text-muted-foreground flex-1">
             {status === 'rejected' ? 'Verificación rechazada' :
              status === 'pending' ? 'Verificación en revisión' :
              'Completa tu verificación'}
           </span>
-          <span className="text-xs text-muted-foreground">Ver estado →</span>
+          <span className="text-[10px] text-muted-foreground/70">Ver estado →</span>
         </motion.button>
       )}
 
-      {/* Stats Grid - Conditional, compact */}
-      {showStats && (
-        <div className="grid grid-cols-2 gap-2 px-4 mt-3">
-          <Card className={cn(
-            "bg-card border-border/50",
-            stats.activeJobs === 0 && "opacity-50"
-          )}>
-            <CardContent className="p-2.5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Activos</p>
-                  <p className="text-lg font-bold">{stats.activeJobs}</p>
-                </div>
-                <div className="w-7 h-7 rounded-full bg-blue-500/10 flex items-center justify-center">
-                  <Clock className="w-3.5 h-3.5 text-blue-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className={cn(
-            "bg-card border-border/50",
-            earnings.total === 0 && "opacity-50"
-          )}>
-            <CardContent className="p-2.5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Ganancias</p>
-                  <p className="text-lg font-bold">${earnings.total.toLocaleString('es-MX')}</p>
-                </div>
-                <div className="w-7 h-7 rounded-full bg-green-500/10 flex items-center justify-center">
-                  <DollarSign className="w-3.5 h-3.5 text-green-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Availability Button - Full width above jobs */}
-      <div className="px-4 mt-4">
+      {/* Availability Button - Primary action */}
+      <div className="px-4 mt-3">
         <AvailabilityButton 
           isAvailable={isAvailable} 
           onToggle={setIsAvailable} 
@@ -373,17 +343,17 @@ const ProviderDashboardHome = () => {
       </div>
 
       {/* Jobs Feed Section */}
-      <div className="mt-4">
+      <div className="mt-3">
         {/* Unavailable Overlay */}
         {!isAvailable && (
-          <div className="mx-4 mb-4 p-6 bg-muted/50 rounded-xl border border-border text-center">
-            <div className="w-12 h-12 rounded-full bg-muted mx-auto flex items-center justify-center mb-2">
-              <Briefcase className="w-6 h-6 text-muted-foreground" />
+          <div className="mx-4 mb-3 p-5 bg-muted/30 rounded-xl text-center">
+            <div className="w-10 h-10 rounded-full bg-muted/60 mx-auto flex items-center justify-center mb-1.5">
+              <Briefcase className="w-5 h-5 text-muted-foreground/60" />
             </div>
-            <p className="text-sm font-medium text-foreground mb-1">
+            <p className="text-sm font-medium text-foreground/80 mb-0.5">
               No estás disponible
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[11px] text-muted-foreground">
               Activa tu disponibilidad para ver trabajos
             </p>
           </div>
@@ -398,9 +368,6 @@ const ProviderDashboardHome = () => {
           {hasActiveJob && firstActiveJob && (
             <div className="px-4 mb-2">
               <ActiveJobCard job={firstActiveJob} />
-              <p className="text-[10px] text-center text-muted-foreground mt-1">
-                Finaliza tu trabajo activo para aceptar otro
-              </p>
             </div>
           )}
 
@@ -408,9 +375,8 @@ const ProviderDashboardHome = () => {
             {/* Header Row */}
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-1.5">
-                <Briefcase className="w-4 h-4 text-primary" />
-                <h2 className="text-sm font-bold text-foreground font-jakarta">
-                  Trabajos Disponibles
+                <h2 className="text-sm font-semibold text-foreground/80">
+                  Trabajos disponibles
                 </h2>
                 {availableJobs.length > 0 && (
                   <Badge className="bg-primary text-primary-foreground text-[10px] px-1.5 py-0">
@@ -418,16 +384,17 @@ const ProviderDashboardHome = () => {
                   </Badge>
                 )}
               </div>
-              <button
+              <motion.button
+                whileTap={{ scale: 0.9 }}
                 onClick={handleRefresh}
                 disabled={isRefreshing}
                 className={cn(
-                  "p-1.5 rounded-full bg-muted active:bg-muted/80 transition-colors",
+                  "p-1.5 rounded-full transition-colors",
                   isRefreshing && "animate-spin"
                 )}
               >
-                <RefreshCw className="w-4 h-4 text-muted-foreground" />
-              </button>
+                <RefreshCw className="w-3.5 h-3.5 text-muted-foreground" />
+              </motion.button>
             </div>
 
             {/* Sorting Tabs - Light segmented */}
@@ -461,15 +428,15 @@ const ProviderDashboardHome = () => {
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex flex-col items-center justify-center py-10 text-center"
+                className="flex flex-col items-center justify-center py-12 text-center"
               >
-                <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mb-2">
-                  <Briefcase className="w-7 h-7 text-muted-foreground" />
+                <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mb-2">
+                  <Briefcase className="w-6 h-6 text-muted-foreground/50" />
                 </div>
-                <h3 className="text-base font-semibold text-foreground mb-0.5">
-                  No hay trabajos disponibles
+                <h3 className="text-sm font-medium text-foreground/70 mb-0.5">
+                  Sin trabajos por ahora
                 </h3>
-                <p className="text-xs text-muted-foreground max-w-[200px]">
+                <p className="text-[11px] text-muted-foreground max-w-[200px]">
                   Te notificaremos cuando haya nuevas oportunidades
                 </p>
               </motion.div>
