@@ -48,33 +48,43 @@ export const JobCardMobile = ({ job, onAccept, onViewDetails, isMatch = false, i
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.03, duration: 0.2 }}
       onClick={handleCardClick}
+      whileTap={disabled ? {} : { scale: 0.98 }}
       className={cn(
-        "bg-card rounded-xl overflow-hidden shadow-sm border transition-all duration-200 w-full max-w-full cursor-pointer",
-        isMatch ? 'border-amber-400/50 ring-1 ring-amber-400/20' : 'border-border',
-        disabled ? 'opacity-50 grayscale pointer-events-none' : 'active:scale-[0.98]'
+        "bg-background rounded-2xl overflow-hidden shadow-sm border transition-all duration-200 w-full max-w-full cursor-pointer",
+        isMatch ? 'border-amber-400/40 ring-1 ring-amber-400/10' : 'border-border/50',
+        disabled ? 'opacity-50 grayscale pointer-events-none' : ''
       )}
     >
       <div className="flex flex-col w-full max-w-full overflow-hidden">
-        {/* Image Section - Ultra-wide banner (21:9) */}
-        <div className="relative w-full aspect-[21/9] bg-gradient-to-br from-primary/10 via-primary/5 to-accent/10 overflow-hidden">
+        {/* Image Section - Tamed, shorter */}
+        <div className="relative w-full aspect-[3/1] bg-muted/40 overflow-hidden">
           {job.photos && job.photos.length > 0 ? (
-            <img 
-              src={job.photos[0]} 
-              alt={job.title}
-              className="absolute inset-0 w-full h-full object-cover"
-              loading="lazy"
-            />
+            <>
+              {/* Skeleton shimmer behind image */}
+              <div className="absolute inset-0 animate-pulse bg-muted/60" />
+              <img 
+                src={job.photos[0]} 
+                alt={job.title}
+                className="absolute inset-0 w-full h-full object-cover"
+                loading="lazy"
+                onLoad={(e) => {
+                  // Hide shimmer once loaded
+                  const prev = e.currentTarget.previousElementSibling as HTMLElement;
+                  if (prev) prev.style.display = 'none';
+                }}
+              />
+            </>
           ) : (
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="flex items-center gap-2 text-muted-foreground">
+              <div className="flex items-center gap-2 text-muted-foreground/50">
                 <ImageIcon className="w-4 h-4" />
-                <span className="text-xs">{job.category}</span>
+                <span className="text-[11px]">{job.category}</span>
               </div>
             </div>
           )}
 
           {/* Badges - Top left */}
-          <div className="absolute top-2 left-2 flex flex-wrap gap-1">
+          <div className="absolute top-1.5 left-1.5 flex flex-wrap gap-1">
             {isNew && (
               <Badge className="bg-primary text-primary-foreground text-[9px] px-1.5 py-0">
                 <Sparkles className="w-2.5 h-2.5 mr-0.5" />
@@ -94,9 +104,9 @@ export const JobCardMobile = ({ job, onAccept, onViewDetails, isMatch = false, i
             )}
           </div>
 
-          {/* Photo count - Bottom right */}
+          {/* Photo count */}
           {job.photos && job.photos.length > 1 && (
-            <div className="absolute bottom-2 right-2 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+            <div className="absolute bottom-1.5 right-1.5 bg-black/50 text-white text-[9px] px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
               <ImageIcon className="w-2.5 h-2.5" />
               {job.photos.length}
             </div>
