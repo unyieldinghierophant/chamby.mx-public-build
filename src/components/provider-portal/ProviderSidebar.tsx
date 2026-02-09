@@ -1,14 +1,8 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard,
-  Briefcase,
-  Calendar,
-  Map,
-  Receipt,
   ShieldCheck,
-  User,
   HeadphonesIcon,
-  Wallet,
+  LogOut,
 } from "lucide-react";
 import {
   Sidebar,
@@ -22,27 +16,24 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Badge } from "@/components/ui/badge";
 import chambyLogo from "@/assets/chamby-logo-new.png";
-import { useAvailableJobsCount } from "@/hooks/useAvailableJobsCount";
+import { useAuth } from "@/contexts/AuthContext";
 
 const menuItems = [
-  { title: "Dashboard", url: "/provider-portal", icon: LayoutDashboard, end: true },
-  { title: "Trabajos", url: "/provider-portal/jobs", icon: Briefcase },
-  { title: "Facturas", url: "/provider/invoices", icon: Receipt },
-  { title: "Ganancias", url: "/provider/earnings", icon: Wallet },
-  { title: "Pagos Recibidos", url: "/provider/payouts", icon: Receipt },
-  { title: "Calendario", url: "/provider-portal/calendar", icon: Calendar },
-  { title: "Mapa", url: "/provider-portal/map", icon: Map },
   { title: "Verificación", url: "/provider-portal/verification", icon: ShieldCheck },
-  { title: "Perfil", url: "/provider-portal/profile", icon: User },
   { title: "Soporte", url: "/provider-portal/support", icon: HeadphonesIcon },
 ];
 
 export function ProviderSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const { count: availableJobsCount } = useAvailableJobsCount();
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/provider-landing");
+  };
 
   return (
     <Sidebar className={collapsed ? "w-14" : "w-64"} collapsible="icon">
@@ -56,7 +47,7 @@ export function ProviderSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className={collapsed ? "sr-only" : ""}>
-            Menú Principal
+            Menú
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -65,36 +56,26 @@ export function ProviderSidebar() {
                   <SidebarMenuButton asChild>
                     <NavLink
                       to={item.url}
-                      end={item.end}
                       className={({ isActive }) =>
                         isActive
                           ? "bg-primary/10 text-primary font-medium"
                           : "hover:bg-muted/50"
                       }
                     >
-                      <div className="relative">
-                        <item.icon className="h-4 w-4" />
-                        {item.title === "Trabajos" && availableJobsCount > 0 && (
-                          <span className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-500 rounded-full animate-ping" />
-                        )}
-                      </div>
-                      {!collapsed && (
-                        <div className="flex items-center justify-between flex-1">
-                          <span>{item.title}</span>
-                          {item.title === "Trabajos" && availableJobsCount > 0 && (
-                            <Badge 
-                              variant="secondary" 
-                              className="ml-auto bg-yellow-500/20 text-yellow-700 animate-pulse"
-                            >
-                              {availableJobsCount}
-                            </Badge>
-                          )}
-                        </div>
-                      )}
+                      <item.icon className="h-4 w-4" />
+                      {!collapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+
+              {/* Cerrar Sesión */}
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={handleSignOut} className="text-destructive hover:bg-destructive/10">
+                  <LogOut className="h-4 w-4" />
+                  {!collapsed && <span>Cerrar Sesión</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
