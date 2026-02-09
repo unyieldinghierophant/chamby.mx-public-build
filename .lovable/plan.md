@@ -1,50 +1,45 @@
 
-# Plan: Provider Portal Mobile UX Fixes
 
-## ✅ COMPLETED
+# Plan: Cookie Consent Banner (Uber-style)
 
-All issues have been addressed:
+## Overview
+Add a mobile-friendly cookie consent banner that slides up from the bottom, similar to the Uber screenshot. It will persist the user's choice in localStorage and set a cookie for tracking consent.
 
-### 1. Job Detail Bottom Sheet ✅
-- Created `JobDetailSheet.tsx` - Opens when clicking job cards
-- Shows full image gallery, description, location, date/time, price
-- "Aceptar Trabajo" button (disabled if has active job)
+## What It Does
+- Shows a bottom sheet/card on first visit with: title, explanation text, and three buttons (Cookie Settings, Reject, Accept)
+- Stores the user's choice so it only appears once
+- Sets a `chamby_cookie_consent` cookie with the value `accepted`, `rejected`, or `custom`
+- On "Accept": enables analytics/tracking cookies
+- On "Reject": only essential cookies remain
+- "Cookie Settings" can link to a future settings page or toggle categories (for now, same as reject)
 
-### 2. Provider-Specific Notifications ✅
-- Created `useProviderNotifications.ts` hook
-- Filters notifications to provider-relevant types only
-- Used in bottom nav and notification sheet
+## Visual Design (matching the screenshot)
+- Fixed to bottom of screen
+- White card with rounded top corners
+- Bold title: "Usamos cookies"
+- Body text explaining usage
+- Three buttons in a row: "Configuracion" (text), "Rechazar" (outlined), "Aceptar" (filled black/primary)
+- Appears above the mobile bottom nav if present
 
-### 3. Bottom Nav Redesign ✅
-- Fixed badge to only show when count > 0 (red bubble)
-- Added notifications bell icon with unread count badge
-- 5 items: Inicio, Trabajos, Notif, Historial, Perfil
+## Technical Details
 
-### 4. Mobile Header Removed ✅
-- TopBar hidden on mobile (`hidden md:flex`)
-- Floating header with logo + larger hamburger menu (h-10 w-10)
-- Hamburger triggers existing sidebar
+### New File: `src/components/CookieConsent.tsx`
+- Checks `localStorage.getItem('chamby_cookie_consent')` on mount
+- If no consent stored, renders the banner
+- On Accept: sets `localStorage` + `document.cookie` with consent value, hides banner
+- On Reject: sets localStorage to rejected, hides banner
+- Uses `framer-motion` for slide-up animation (already installed)
+- Responsive: full-width on mobile, max-w-lg centered on desktop
+- z-index high enough to sit above everything (z-[60])
 
-### 5. Job Card Click Handler ✅
-- Changed from navigation to opening JobDetailSheet
-- Added `onViewDetails` callback prop
-- Wired up in both ProviderDashboardHome and AvailableJobs
+### Modified File: `src/App.tsx`
+- Import and render `<CookieConsent />` inside `BrowserRouter` but outside `Routes`, so it appears on all pages
 
-### 6. Active Job Blocking ✅
-- AvailableJobs now checks for active jobs
-- Feed becomes grayed out with pointer-events-none when has active job
-- Shows warning message
+### Cookie Details
+- Cookie name: `chamby_cookie_consent`
+- Values: `accepted` | `rejected`
+- Expiry: 365 days
+- Path: `/`
 
-## Files Created
-- `src/components/provider-portal/JobDetailSheet.tsx`
-- `src/hooks/useProviderNotifications.ts`
-
-## Files Modified
-- `src/components/provider-portal/ProviderBottomNav.tsx`
-- `src/components/provider-portal/ProviderTopBar.tsx`
-- `src/pages/ProviderPortal.tsx`
-- `src/components/provider-portal/JobCardMobile.tsx`
-- `src/pages/provider-portal/ProviderDashboardHome.tsx`
-- `src/pages/provider-portal/AvailableJobs.tsx`
-- `src/components/provider-portal/NotificationBottomSheet.tsx`
+No external cookie library needed -- just native `document.cookie` and `localStorage`.
 
