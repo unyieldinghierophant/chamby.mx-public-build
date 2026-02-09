@@ -1,54 +1,74 @@
 
+# Provider "Mensajes" Screen
 
-# Plan: Circular Safe-Area Icon Adjustment
+## Overview
+Replace the current placeholder `ProviderMessages.tsx` with a full mobile-first messaging screen featuring a search bar, tabbed navigation (Soporte / Clientes), mock conversation lists, and polished empty states.
 
-## Problem
-All current icon files (favicon, apple-touch-icon, android-chrome) have the Chamby house logo filling the entire canvas with no internal padding. When platforms apply circular masks (iOS, Google Search, PWA), the roof and sides of the house get clipped.
+## UI Structure
 
-## Solution
-Use AI image generation to create two properly padded icon variants from the existing logo, then export them at all required sizes and replace the current files.
+```text
++----------------------------------+
+|  Mensajes              (title)   |
+|  [  Search bar               ]   |
++----------------------------------+
+|  [ Soporte ]  [ Clientes ]       |  <-- Tabs
++----------------------------------+
+|                                  |
+|  Conversation list items:        |
+|  +------------------------------+|
+|  | Avatar | Title        time   ||
+|  |        | Preview...   * dot  ||
+|  +------------------------------+|
+|  | Avatar | Title        time   ||
+|  |        | Preview...          ||
+|  +------------------------------+|
+|                                  |
+|  -- or Empty State --            |
+|  Icon + message                  |
++----------------------------------+
+```
 
-## Variant A -- Standard App / PWA Icon (82-85% safe area)
-- For: iOS app icon, Android adaptive icon, PWA icon
-- The logo occupies ~83% of the canvas, centered optically (shifted ~1-2% down since the roof peak draws the eye upward)
-- White background fills the remaining space
-- Used for: `apple-touch-icon.png`, `android-chrome-192x192.png`, `android-chrome-512x512.png`
+## Details
 
-## Variant B -- Small-Icon / Search Variant (86-88% safe area)
-- For: Browser favicon, Google Search brand icon
-- The logo occupies ~87% of the canvas with tighter but fully safe padding
-- White background
-- Used for: `favicon.png`, `favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png`
+### 1. Header
+- "Mensajes" as a bold page title (`text-xl font-bold font-jakarta`)
+- Search input below with a `Search` icon, placeholder "Buscar conversaciones..."
 
-## Files to Replace
+### 2. Tabs (Radix Tabs)
+- Two tabs: **Soporte** and **Clientes**
+- Default active: **Soporte**
+- Uses existing `Tabs`, `TabsList`, `TabsTrigger`, `TabsContent` components
 
-| File | Size | Variant |
-|------|------|---------|
-| `public/apple-touch-icon.png` | 180x180 | A (83%) |
-| `public/android-chrome-512x512.png` | 512x512 | A (83%) |
-| `public/android-chrome-192x192.png` | 192x192 | A (83%) |
-| `public/favicon.png` | 512x512 | B (87%) |
-| `public/favicon-32x32.png` | 32x32 | B (87%) |
-| `public/favicon-16x16.png` | 16x16 | B (87%) |
-| `public/favicon.ico` | 32x32 | B (87%) |
-| `src/assets/chamby-logo-icon.png` | 1024x1024 | A (83%) |
+### 3. Conversation List Items
+- Mock data array within the component (no backend calls)
+- Each item renders:
+  - **Avatar**: `Headset` icon in a colored circle for support threads; customer initial letter for client threads
+  - **Title**: "Soporte Chamby" or "Cliente: {name}"
+  - **Last message preview**: single line, truncated
+  - **Timestamp**: relative time string (e.g., "hace 2 min")
+  - **Unread indicator**: small primary-colored dot if `unread: true`
+- Items use `motion.div` with `whileTap={{ scale: 0.98 }}` for subtle press feedback
+- Clicking a conversation is a no-op for now (or shows a toast "Proximamente")
 
-## Process
-1. Generate a master 1024x1024 Variant A image using AI image generation: the existing Chamby house-face logo centered on a white square canvas with ~8.5% padding on each side, optically adjusted slightly downward
-2. Generate a master 1024x1024 Variant B image with ~6.5% padding per side
-3. Export/resize to all required dimensions listed above
-4. Replace all files in `public/` and `src/assets/`
-5. No code changes needed -- filenames and manifest stay the same
+### 4. Empty States
+- **Soporte tab**: `Headset` icon + "Escribenos si necesitas ayuda" + subtle secondary text
+- **Clientes tab**: `MessageSquare` icon + "Aun no tienes conversaciones con clientes"
+- Both use `motion.div` fade-in animation, consistent with existing portal empty states
 
-## What Will NOT Change
-- Logo design, proportions, colors, stroke weights, facial expression
-- File names or paths
-- `site.webmanifest` configuration
-- `index.html` meta tags
-- Any component code
+### 5. Search Filtering
+- Filters mock conversations by title or last message content (client-side only)
 
-## Technical Notes
-- The AI image editor will be given the current `public/favicon.png` as input with instructions to place it on a white canvas with precise padding ratios
-- Multiple generation attempts may be needed to nail the optical centering
-- Final output will be PNG files at exact pixel dimensions
+## Technical Plan
 
+### File: `src/pages/provider-portal/ProviderMessages.tsx`
+Rewrite this single file with:
+- Imports: `useState` from React, `motion` from framer-motion, UI components (`Input`, `Tabs`/`TabsList`/`TabsTrigger`/`TabsContent`), Lucide icons (`Search`, `Headset`, `MessageSquare`)
+- Mock data: two arrays (`supportThreads`, `clientThreads`) with `id`, `title`, `lastMessage`, `timestamp`, `unread`, `avatarInitial?` fields
+- `ConversationItem` inline component rendering each row
+- Empty state components per tab
+- Search state filtering both lists
+
+### No other files changed
+- Routing already exists (`/provider-portal/messages`)
+- Bottom nav already wired with unread badge
+- No backend, no new hooks, no new dependencies
