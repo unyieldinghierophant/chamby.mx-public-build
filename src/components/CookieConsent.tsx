@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { initGA } from "@/lib/analytics";
 
 const COOKIE_KEY = "chamby_cookie_consent";
 
@@ -12,14 +13,20 @@ export default function CookieConsent() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (!localStorage.getItem(COOKIE_KEY)) {
+    const consent = localStorage.getItem(COOKIE_KEY);
+    if (!consent) {
       setVisible(true);
+    } else if (consent === "accepted") {
+      initGA();
     }
   }, []);
 
   const handle = (choice: "accepted" | "rejected") => {
     localStorage.setItem(COOKIE_KEY, choice);
     setCookie(choice);
+    if (choice === "accepted") {
+      initGA();
+    }
     setVisible(false);
   };
 

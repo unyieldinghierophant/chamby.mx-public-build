@@ -78,8 +78,20 @@ import ResetPassword from "./pages/ResetPassword";
 import Login from "./pages/Login";
 import ProviderLogin from "./pages/ProviderLogin";
 import CookieConsent from "./components/CookieConsent";
+import { trackPageView, isGALoaded } from "@/lib/analytics";
 
 const queryClient = new QueryClient();
+
+// Tracks page views on route changes (only if GA is loaded)
+const AnalyticsTracker = () => {
+  const location = useRouterLocation();
+  useEffect(() => {
+    if (isGALoaded()) {
+      trackPageView(location.pathname + location.search);
+    }
+  }, [location]);
+  return null;
+};
 
 
 // Component to handle GitHub Pages redirects
@@ -121,6 +133,7 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <AnalyticsTracker />
             <RedirectHandler />
             <Routes>
               <Route path={ROUTES.HOME} element={<Index />} />
