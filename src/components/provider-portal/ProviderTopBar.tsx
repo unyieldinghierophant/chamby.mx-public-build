@@ -1,4 +1,4 @@
-import { Bell, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,14 +10,13 @@ import {
 import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { useProviderNotifications } from "@/hooks/useProviderNotifications";
 import chambyLogo from "@/assets/chamby-logo-new-horizontal.png";
 
 export function ProviderTopBar() {
   const { profile } = useProfile();
   const { signOut } = useAuth();
   const navigate = useNavigate();
-  const { unreadCount } = useProviderNotifications();
+  
 
   const handleSignOut = async () => {
     await signOut();
@@ -38,21 +37,6 @@ export function ProviderTopBar() {
       </div>
 
       <div className="flex items-center gap-3 flex-shrink-0">
-        {/* Notifications */}
-        <Button 
-          variant="ghost" 
-          size="icon"
-          className="relative h-9 w-9"
-          onClick={() => navigate('/provider-portal/notifications')}
-        >
-          <Bell className="h-5 w-5" />
-          {unreadCount > 0 && (
-            <span className="absolute top-0 right-0 min-w-[16px] h-[16px] bg-destructive text-destructive-foreground text-[9px] font-bold rounded-full flex items-center justify-center">
-              {unreadCount > 99 ? '99+' : unreadCount}
-            </span>
-          )}
-        </Button>
-
         {/* Active requests button */}
         <Button 
           variant="default" 
