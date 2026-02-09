@@ -76,6 +76,7 @@ import ProviderPayoutDetailPage from "./pages/provider/ProviderPayoutDetailPage"
 import ClientInvoiceListPage from "./pages/client/ClientInvoiceListPage";
 import AdminPayoutDashboard from "./pages/admin/AdminPayoutDashboard";
 import AdminPayoutDetailPage from "./pages/admin/AdminPayoutDetailPage";
+import AdminSupportInbox from "./pages/admin/AdminSupportInbox";
 import VisitFeePaymentPage from "./pages/VisitFeePaymentPage";
 import ResetPassword from "./pages/ResetPassword";
 import Login from "./pages/Login";
@@ -387,9 +388,19 @@ const App = () => {
                 element={
                   <ProtectedRoute requireAdmin>
                     <AdminPayoutDetailPage />
-                  </ProtectedRoute>
-                }
-              />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Admin Support Inbox */}
+          <Route
+            path="/admin/support"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AdminSupportInbox />
+              </ProtectedRoute>
+            }
+          />
 
               {/* Visit Fee Payment Page (customer fallback) */}
               <Route
