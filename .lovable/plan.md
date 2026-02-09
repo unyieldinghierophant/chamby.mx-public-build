@@ -1,57 +1,54 @@
 
 
-# Plan: Integrate Google Analytics 4 with Cookie Consent
+# Plan: Circular Safe-Area Icon Adjustment
 
-## Overview
-Wire up real Google Analytics 4 (GA4) tracking that only activates when the user accepts cookies. Currently the cookie banner does nothing -- after this change, accepting will load the GA4 script and start collecting page views, user behavior, and events.
+## Problem
+All current icon files (favicon, apple-touch-icon, android-chrome) have the Chamby house logo filling the entire canvas with no internal padding. When platforms apply circular masks (iOS, Google Search, PWA), the roof and sides of the house get clipped.
 
-## How It Works
+## Solution
+Use AI image generation to create two properly padded icon variants from the existing logo, then export them at all required sizes and replace the current files.
 
-1. User visits the site -- no GA4 script is loaded (privacy-first)
-2. Cookie banner appears
-3. If "Aceptar": GA4 `gtag.js` script is injected into the page, tracking begins
-4. If "Rechazar": nothing is loaded, only the consent cookie is set
-5. On return visits: if consent was previously accepted, GA4 loads automatically on page load
+## Variant A -- Standard App / PWA Icon (82-85% safe area)
+- For: iOS app icon, Android adaptive icon, PWA icon
+- The logo occupies ~83% of the canvas, centered optically (shifted ~1-2% down since the roof peak draws the eye upward)
+- White background fills the remaining space
+- Used for: `apple-touch-icon.png`, `android-chrome-192x192.png`, `android-chrome-512x512.png`
 
-## Technical Details
+## Variant B -- Small-Icon / Search Variant (86-88% safe area)
+- For: Browser favicon, Google Search brand icon
+- The logo occupies ~87% of the canvas with tighter but fully safe padding
+- White background
+- Used for: `favicon.png`, `favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png`
 
-### New File: `src/lib/analytics.ts`
-Utility module that handles GA4 script loading and event tracking:
+## Files to Replace
 
-- `initGA(measurementId: string)` -- dynamically injects the `gtag.js` script tag and initializes `gtag('config', ...)`
-- `trackPageView(path: string)` -- sends a page_view event
-- `trackEvent(name, params)` -- generic event tracking helper
-- `isGALoaded()` -- checks if GA is already initialized (prevents double-loading)
-- GA Measurement ID stored as a constant (it's a public/publishable key)
+| File | Size | Variant |
+|------|------|---------|
+| `public/apple-touch-icon.png` | 180x180 | A (83%) |
+| `public/android-chrome-512x512.png` | 512x512 | A (83%) |
+| `public/android-chrome-192x192.png` | 192x192 | A (83%) |
+| `public/favicon.png` | 512x512 | B (87%) |
+| `public/favicon-32x32.png` | 32x32 | B (87%) |
+| `public/favicon-16x16.png` | 16x16 | B (87%) |
+| `public/favicon.ico` | 32x32 | B (87%) |
+| `src/assets/chamby-logo-icon.png` | 1024x1024 | A (83%) |
 
-### Modified File: `src/components/CookieConsent.tsx`
-- On "Aceptar": call `initGA()` after saving consent
-- On mount: if consent was previously "accepted", call `initGA()` immediately
+## Process
+1. Generate a master 1024x1024 Variant A image using AI image generation: the existing Chamby house-face logo centered on a white square canvas with ~8.5% padding on each side, optically adjusted slightly downward
+2. Generate a master 1024x1024 Variant B image with ~6.5% padding per side
+3. Export/resize to all required dimensions listed above
+4. Replace all files in `public/` and `src/assets/`
+5. No code changes needed -- filenames and manifest stay the same
 
-### Modified File: `src/App.tsx` (minor)
-- Add a `useEffect` that calls `trackPageView` on route changes (using `useLocation` from react-router), but only if GA is loaded
-- This will be a small `<AnalyticsTracker />` component rendered inside `BrowserRouter`
+## What Will NOT Change
+- Logo design, proportions, colors, stroke weights, facial expression
+- File names or paths
+- `site.webmanifest` configuration
+- `index.html` meta tags
+- Any component code
 
-### What Gets Tracked
-- **Page views**: Every route change (automatic)
-- **Session data**: GA4 automatically collects session duration, bounce rate, geography, device type, browser, referral source
-- **User engagement**: Scroll depth, outbound clicks (GA4 enhanced measurement -- enabled in GA dashboard, not in code)
-
-### GA4 Measurement ID
-- Stored as a constant in `src/lib/analytics.ts` (public key, safe for client-side)
-- If the user doesn't have one yet, the code will use a placeholder `G-XXXXXXXXXX` that can be swapped later
-
-### Privacy Compliance
-- GA4 script is NEVER loaded unless user explicitly accepts
-- On reject: zero tracking scripts, zero third-party cookies
-- Consent choice persisted for 365 days
-- If user clears localStorage, banner reappears
-
-## Files Summary
-
-| File | Action |
-|------|--------|
-| `src/lib/analytics.ts` | Create -- GA4 init, page view, event helpers |
-| `src/components/CookieConsent.tsx` | Modify -- trigger `initGA()` on accept, auto-init on return visits |
-| `src/App.tsx` | Modify -- add `AnalyticsTracker` component for route-change tracking |
+## Technical Notes
+- The AI image editor will be given the current `public/favicon.png` as input with instructions to place it on a white canvas with precise padding ratios
+- Multiple generation attempts may be needed to nail the optical centering
+- Final output will be PNG files at exact pixel dimensions
 
