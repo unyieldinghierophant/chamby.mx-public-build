@@ -1,6 +1,7 @@
 import { JobBookingForm } from "@/components/JobBookingForm";
 import { HandymanBookingFlow } from "@/components/handyman/HandymanBookingFlow";
 import { GardeningBookingFlow } from "@/components/gardening/GardeningBookingFlow";
+import { PlumbingBookingFlow } from "@/components/plumbing/PlumbingBookingFlow";
 import { X } from "lucide-react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import logo from "@/assets/chamby-logo-new-horizontal.png";
@@ -25,6 +26,7 @@ const BookJob = () => {
   const category = prefillData?.category;
   const isHandyman = category?.toLowerCase() === 'handyman';
   const isGardening = category?.toLowerCase() === 'jardinería';
+  const isPlumbing = category?.toLowerCase() === 'fontanería';
   
   return (
     <>
@@ -43,6 +45,8 @@ const BookJob = () => {
           <HandymanBookingFlow />
         ) : isGardening ? (
           <GardeningBookingFlow />
+        ) : isPlumbing ? (
+          <PlumbingBookingFlow />
         ) : (
           <JobBookingForm 
             initialService={serviceParam || prefillData?.service} 
