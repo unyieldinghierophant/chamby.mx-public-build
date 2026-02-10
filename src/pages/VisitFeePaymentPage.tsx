@@ -17,7 +17,8 @@ import {
   Lock,
   Calendar,
   ArrowLeft,
-  User
+  User,
+  Clock
 } from "lucide-react";
 import { useVisitAuthorizationStatus } from "@/hooks/useVisitAuthorizationStatus";
 import { useVisitAuthorization } from "@/hooks/useVisitAuthorization";
@@ -314,23 +315,30 @@ const VisitFeePaymentPage = () => {
                 </div>
                 <div className="space-y-2">
                   <h1 className="text-xl sm:text-2xl font-bold text-foreground">
-                    ¡Visita asegurada!
+                    ¡Pago confirmado!
                   </h1>
                   <p className="text-sm sm:text-base text-muted-foreground px-2">
-                    Tu pago de visita ha sido preautorizado correctamente. 
-                    El cargo solo se realizará cuando el proveedor complete la primera visita.
+                    Estamos buscando un profesional verificado para tu servicio.
+                    Te notificaremos en cuanto uno acepte (máximo 4 horas).
                   </p>
                 </div>
                 <Badge variant="outline" className="bg-success/10 text-success border-success/20 text-xs sm:text-sm">
                   <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
-                  $350 MXN preautorizados
+                  $350 MXN — Visita asegurada
                 </Badge>
                 <ModernButton
                   variant="primary"
-                  onClick={() => navigate("/active-jobs")}
+                  onClick={() => navigate(`/esperando-proveedor?job_id=${jobId}`)}
                   className="w-full h-11 sm:h-12 text-sm sm:text-base"
                 >
-                  Ver mis trabajos
+                  Ver estado de búsqueda
+                </ModernButton>
+                <ModernButton
+                  variant="outline"
+                  onClick={() => navigate("/user-landing")}
+                  className="w-full h-10 sm:h-11 text-sm"
+                >
+                  Volver al inicio
                 </ModernButton>
               </div>
             </CardContent>
@@ -355,10 +363,10 @@ const VisitFeePaymentPage = () => {
         {/* Header */}
         <div className="text-center space-y-1.5 sm:space-y-2">
           <h1 className="text-xl sm:text-2xl font-bold text-foreground">
-            Asegurar pago de visita
+            Visita y gestión de asignación
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Completa el pago para asegurar tu visita
+            Este pago cubre la visita técnica y la búsqueda de un profesional verificado
           </p>
         </div>
 
@@ -414,16 +422,23 @@ const VisitFeePaymentPage = () => {
           <CardContent className="pt-4 sm:pt-6 px-3 sm:px-6">
             <div className="flex items-center justify-between gap-3">
               <div className="space-y-0.5 sm:space-y-1">
-                <p className="text-xs sm:text-sm text-muted-foreground">Monto a preautorizar</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Visita + gestión de asignación</p>
                 <p className="text-2xl sm:text-3xl font-bold text-foreground">
                   ${status?.amount || 350} <span className="text-base sm:text-lg">MXN</span>
                 </p>
               </div>
               <ShieldCheck className="w-8 h-8 sm:w-10 sm:h-10 text-primary opacity-50 flex-shrink-0" />
             </div>
-            <p className="text-xs text-muted-foreground mt-2 sm:mt-3">
-              Este monto se preautoriza en tu tarjeta pero no se cobra hasta que el proveedor complete la visita.
-            </p>
+            <div className="mt-3 space-y-2">
+              <div className="flex items-start gap-2 text-xs text-muted-foreground">
+                <Clock className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-primary" />
+                <span>Asignación de proveedor en máximo <strong>4 horas</strong></span>
+              </div>
+              <div className="flex items-start gap-2 text-xs text-muted-foreground">
+                <ShieldCheck className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-primary" />
+                <span>Si no se asigna proveedor, puedes reagendar o solicitar reembolso</span>
+              </div>
+            </div>
           </CardContent>
         </Card>
 

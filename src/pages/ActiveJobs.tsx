@@ -70,7 +70,7 @@ const ActiveJobs = () => {
         .from("jobs")
         .select("*, invoices(status)")
         .eq("client_id", user.id)
-        .in("status", ["active", "assigned", "in_progress", "scheduled"])
+        .in("status", ["searching", "active", "accepted", "confirmed", "en_route", "on_site", "quoted", "in_progress"])
         .order("created_at", { ascending: false });
 
       if (jobsError) throw jobsError;
