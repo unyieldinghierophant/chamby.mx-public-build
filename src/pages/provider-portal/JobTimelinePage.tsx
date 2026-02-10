@@ -12,6 +12,8 @@ import {
 } from "@/hooks/useJobStatusTransition";
 import { InvoiceCard } from "@/components/provider-portal/InvoiceCard";
 import { CancellationSummary } from "@/components/provider-portal/CancellationSummary";
+import { RatingDialog } from "@/components/provider-portal/RatingDialog";
+import { useJobRating } from "@/hooks/useJobRating";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -35,6 +37,7 @@ import {
   Phone,
   MessageSquare,
   AlertTriangle,
+  Star,
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -106,6 +109,7 @@ const JobTimelinePage = () => {
   const [sending, setSending] = useState(false);
   const [activeTab, setActiveTab] = useState<'timeline' | 'chat'>('timeline');
   const [showCancelSummary, setShowCancelSummary] = useState(false);
+  const [ratingDismissed, setRatingDismissed] = useState(false);
 
   // Fetch job + client + messages
   const fetchAll = async () => {
@@ -362,6 +366,9 @@ const JobTimelinePage = () => {
   const isTerminal = currentStatus === 'completed' || currentStatus === 'cancelled';
   const actions = isTerminal ? [] : (STATUS_ACTIONS[currentStatus] || []);
 
+  // Rating hook - only active for completed jobs
+  const { canRate, hasRated, myReview, refetch: refetchRating } = useJobRating(jobId, job.status);
+
   return (
     <div className="pb-24 min-h-screen bg-muted/30">
       {/* Header */}
@@ -612,6 +619,44 @@ const JobTimelinePage = () => {
               onInvoiceCreated={fetchAll}
               isProvider={true}
             />
+          )}
+
+          {/* Rating section — only after successful completion */}
+          {currentStatus === 'completed' && canRate && !ratingDismissed && (
+            <RatingDialog
+              jobId={job.id}
+              otherUserId={job.client_id}
+              reviewerRole="provider"
+              onComplete={() => {
+                refetchRating();
+                fetchAll();
+              }}
+              onDismiss={() => setRatingDismissed(true)}
+            />
+          )}
+
+          {/* Already rated confirmation */}
+          {currentStatus === 'completed' && hasRated && myReview && (
+            <Card className="border-border/50">
+              <CardContent className="p-4 text-center">
+                <div className="flex justify-center gap-0.5 mb-2">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <Star
+                      key={s}
+                      className={cn(
+                        "w-5 h-5",
+                        s <= myReview.rating
+                          ? "fill-amber-400 text-amber-400"
+                          : "text-muted-foreground/20"
+                      )}
+                    />
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Ya calificaste este trabajo
+                </p>
+              </CardContent>
+            </Card>
           )}
         </div>
       ) : (

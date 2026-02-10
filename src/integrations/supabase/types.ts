@@ -610,9 +610,13 @@ export type Database = {
           comment: string | null
           created_at: string | null
           id: string
+          job_id: string | null
           provider_id: string
           rating: number
+          reviewer_role: string
+          tags: string[] | null
           updated_at: string | null
+          visible_at: string | null
         }
         Insert: {
           booking_id?: string | null
@@ -620,9 +624,13 @@ export type Database = {
           comment?: string | null
           created_at?: string | null
           id?: string
+          job_id?: string | null
           provider_id: string
           rating: number
+          reviewer_role?: string
+          tags?: string[] | null
           updated_at?: string | null
+          visible_at?: string | null
         }
         Update: {
           booking_id?: string | null
@@ -630,11 +638,23 @@ export type Database = {
           comment?: string | null
           created_at?: string | null
           id?: string
+          job_id?: string | null
           provider_id?: string
           rating?: number
+          reviewer_role?: string
+          tags?: string[] | null
           updated_at?: string | null
+          visible_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "reviews_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       saved_locations: {
         Row: {
