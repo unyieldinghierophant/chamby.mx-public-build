@@ -927,14 +927,25 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
 
           {/* Step 2: Location */}
           {currentStep === 2 && (
-            <div className="space-y-8">
+            <div className="space-y-8 pb-24 md:pb-0">
               <h1 className="text-4xl font-jakarta font-medium text-foreground mb-8">¿Dónde necesitas que se haga?</h1>
               
               <GoogleMapPicker 
                 onLocationSelect={handleMapLocationSelect}
                 initialLocation={location}
-                onConfirm={() => setCurrentStep(3)}
               />
+
+              {/* Sticky bottom CTA bar - mobile only */}
+              <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-card border-t border-border px-4 pt-3 shadow-floating" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0.75rem))' }}>
+                <ModernButton
+                  variant="primary"
+                  onClick={handleNext}
+                  disabled={!canProceedToNextStep()}
+                  className="w-full h-12 rounded-full text-base font-semibold"
+                >
+                  Continuar
+                </ModernButton>
+              </div>
             </div>
           )}
 

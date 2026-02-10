@@ -27,9 +27,15 @@ import { toast } from 'sonner';
 
 const libraries: ("places")[] = ["places"];
 
-const mapContainerStyle = {
+const mapContainerStyleDesktop = {
   width: '100%',
-  height: '600px',
+  height: '500px',
+  borderRadius: '1rem',
+};
+
+const mapContainerStyleMobile = {
+  width: '100%',
+  height: '35vh',
   borderRadius: '1rem',
 };
 
@@ -88,6 +94,16 @@ interface GoogleMapPickerProps {
 export const GoogleMapPicker = ({ onLocationSelect, initialLocation, onConfirm }: GoogleMapPickerProps) => {
   const { user } = useAuth();
   const { locations, loading: locationsLoading, addLocation, updateLocation, deleteLocation } = useSavedLocations();
+  const [mapInteractive, setMapInteractive] = useState(false);
+  const [isMobileDevice, setIsMobileDevice] = useState(false);
+
+  // Detect mobile
+  useEffect(() => {
+    const check = () => setIsMobileDevice(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
   
   // Your Google Maps API key should be stored in environment variables
   const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
@@ -698,9 +714,25 @@ export const GoogleMapPicker = ({ onLocationSelect, initialLocation, onConfirm }
               </div>
             </div>
           )}
+
+          {/* Tap-to-interact overlay (mobile only) */}
+          {isMobileDevice && !mapInteractive && (
+            <div 
+              className="absolute inset-0 z-20 flex items-center justify-center cursor-pointer"
+              onClick={() => setMapInteractive(true)}
+              onTouchEnd={(e) => { e.preventDefault(); setMapInteractive(true); }}
+            >
+              <div className="bg-background/70 backdrop-blur-sm rounded-xl px-5 py-3 shadow-lg border border-border">
+                <p className="text-sm font-medium text-foreground flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-primary" />
+                  Toca para mover el mapa
+                </p>
+              </div>
+            </div>
+          )}
           
           <GoogleMap
-            mapContainerStyle={mapContainerStyle}
+            mapContainerStyle={isMobileDevice ? mapContainerStyleMobile : mapContainerStyleDesktop}
             center={center}
             zoom={15}
             onLoad={(map) => { mapRef.current = map; }}
@@ -709,7 +741,9 @@ export const GoogleMapPicker = ({ onLocationSelect, initialLocation, onConfirm }
               styles: modernMapStyles,
               disableDefaultUI: true,
               zoomControl: false,
-              gestureHandling: 'greedy',
+              gestureHandling: isMobileDevice 
+                ? (mapInteractive ? 'greedy' : 'none')
+                : 'greedy',
               restriction: {
                 latLngBounds: guadalajaraBounds,
                 strictBounds: false,
@@ -743,87 +777,72 @@ export const GoogleMapPicker = ({ onLocationSelect, initialLocation, onConfirm }
             </div>
           </div>
 
+          {/* "Listo" button when map is interactive on mobile */}
+          {isMobileDevice && mapInteractive && (
+            <button
+              onClick={() => setMapInteractive(false)}
+              className="absolute top-3 right-3 z-30 bg-primary text-primary-foreground rounded-full px-4 py-2 text-sm font-semibold shadow-lg active:scale-95 transition-transform"
+            >
+              Listo
+            </button>
+          )}
+
           {/* GPS Location Button */}
           <button 
             onClick={handleUseMyLocation}
             disabled={isLocating}
-            className="absolute bottom-32 md:bottom-6 right-4 md:right-6 z-20 bg-white dark:bg-gray-900 rounded-full shadow-2xl border-2 border-gray-200 dark:border-gray-700 w-14 h-14 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform disabled:opacity-50"
+            className="absolute bottom-4 right-4 z-20 bg-card rounded-full shadow-2xl border-2 border-border w-12 h-12 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform disabled:opacity-50"
             aria-label="Usar mi ubicación"
           >
             {isLocating ? (
-              <Loader2 className="w-6 h-6 text-primary animate-spin" />
+              <Loader2 className="w-5 h-5 text-primary animate-spin" />
             ) : (
-              <Navigation className="w-6 h-6 text-primary" />
+              <Navigation className="w-5 h-5 text-primary" />
             )}
           </button>
+        </div>
 
-          {/* Bottom Address Card - Modern Floating Design */}
-          <div className="absolute bottom-0 left-0 right-0 z-20 p-4 md:p-6">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border-2 border-gray-200 dark:border-gray-700 p-4 md:p-6 max-w-2xl mx-auto backdrop-blur-sm bg-opacity-95">
-              {/* Address Display */}
-              <div className="flex items-start gap-3 mb-4">
-                <MapPin className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  {isGeocoding ? (
-                    <div className="animate-pulse space-y-2">
-                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-                      <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded w-1/2"></div>
-                    </div>
-                  ) : (
-                    <>
-                      <p className="font-semibold text-base text-foreground leading-tight">
-                        {currentAddress || 'Selecciona una ubicación'}
-                      </p>
-                      {currentCity && (
-                        <p className="text-sm text-muted-foreground mt-1">{currentCity}</p>
-                      )}
-                    </>
-                  )}
+        {/* Address Card - Below map on mobile */}
+        <div className="bg-card rounded-2xl shadow-raised border border-border p-4 md:p-6 max-w-2xl mx-auto">
+          {/* Address Display */}
+          <div className="flex items-start gap-3 mb-4">
+            <MapPin className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              {isGeocoding ? (
+                <div className="animate-pulse space-y-2">
+                  <div className="h-4 bg-muted rounded w-3/4"></div>
+                  <div className="h-3 bg-muted rounded w-1/2"></div>
                 </div>
-              </div>
-              
-              {/* Interior Number Input */}
-              <div className="relative mb-4">
-                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
-                <Input
-                  value={interiorNumber}
-                  onChange={(e) => {
-                    const value = e.target.value.slice(0, 50);
-                    setInteriorNumber(value);
-                    if (currentAddress) {
-                      const fullAddress = value ? `${currentAddress}, ${value}` : currentAddress;
-                      onLocationSelect(center.lat, center.lng, fullAddress);
-                    }
-                  }}
-                  placeholder="Interior, depto, torre (opcional)"
-                  className="h-11 text-sm pl-10 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
-                  maxLength={50}
-                />
-              </div>
-              
-              {/* Confirm Button */}
-              <Button 
-                className="w-full h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-shadow" 
-                size="lg"
-                disabled={!currentAddress || isGeocoding}
-                onClick={() => {
-                  const fullAddress = interiorNumber 
-                    ? `${currentAddress}, ${interiorNumber}`
-                    : currentAddress;
-                  onLocationSelect(center.lat, center.lng, fullAddress);
-                  toast.success('✓ Ubicación confirmada');
-                  
-                  // Auto-advance to next step if callback provided
-                  if (onConfirm) {
-                    setTimeout(() => {
-                      onConfirm();
-                    }, 300);
-                  }
-                }}
-              >
-                {isGeocoding ? 'Cargando...' : 'Confirmar ubicación'}
-              </Button>
+              ) : (
+                <>
+                  <p className="font-semibold text-base text-foreground leading-tight">
+                    {currentAddress || 'Selecciona una ubicación'}
+                  </p>
+                  {currentCity && (
+                    <p className="text-sm text-muted-foreground mt-1">{currentCity}</p>
+                  )}
+                </>
+              )}
             </div>
+          </div>
+          
+          {/* Interior Number Input */}
+          <div className="relative">
+            <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+            <Input
+              value={interiorNumber}
+              onChange={(e) => {
+                const value = e.target.value.slice(0, 50);
+                setInteriorNumber(value);
+                if (currentAddress) {
+                  const fullAddress = value ? `${currentAddress}, ${value}` : currentAddress;
+                  onLocationSelect(center.lat, center.lng, fullAddress);
+                }
+              }}
+              placeholder="Interior, depto, torre (opcional)"
+              className="h-11 text-sm pl-10 bg-secondary border-border"
+              maxLength={50}
+            />
           </div>
         </div>
         
