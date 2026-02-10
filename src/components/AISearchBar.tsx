@@ -193,7 +193,7 @@ export const AISearchBar = ({ className }: { className?: string }) => {
 
           {/* Autosuggest dropdown — solid white, no transparency */}
           {isOpen && !isLoading && (
-            <div className="absolute top-full left-0 right-0 mt-2 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-border max-h-80 overflow-y-auto z-[100] animate-fade-in" style={{ backgroundColor: 'white' }}>
+            <div className="absolute top-full left-0 right-0 mt-2 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-border max-h-80 overflow-y-auto z-[9999] animate-fade-in" style={{ backgroundColor: 'white' }}>
               <div className="p-2 sm:p-3">
                 {suggestions.length > 0 && (
                   <div className="space-y-0.5">
