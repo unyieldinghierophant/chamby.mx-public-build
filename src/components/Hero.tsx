@@ -61,7 +61,7 @@ const Hero = () => {
             </div>
             
             {/* Main Content */}
-            <div className="relative z-10 p-6 md:p-8 lg:p-10 xl:p-12 max-w-4xl mx-auto">
+            <div className="relative z-40 p-6 md:p-8 lg:p-10 xl:p-12 max-w-4xl mx-auto">
               {/* Text Content - Clean Layout with Staggered Animation */}
               <motion.div 
                 className="space-y-4 md:space-y-6"
