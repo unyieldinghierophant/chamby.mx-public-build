@@ -50,13 +50,14 @@ export const useAvailableJobs = (): UseAvailableJobsResult => {
     try {
       setLoading(true);
       
-      // Fetch jobs that are active and don't have a provider assigned yet
-      // Show all active jobs without a provider - payment status can be checked separately
+      // Only show paid, valid, unassigned active jobs to providers
       const { data: jobsData, error: fetchError } = await supabase
         .from('jobs')
         .select('*')
         .eq('status', 'active')
+        .eq('visit_fee_paid', true)
         .is('provider_id', null)
+        .not('scheduled_at', 'is', null)
         .order('created_at', { ascending: false });
 
       if (fetchError) throw fetchError;
@@ -111,6 +112,20 @@ export const useAvailableJobs = (): UseAvailableJobsResult => {
     }
 
     try {
+      // Verify job is paid before accepting
+      const { data: jobToAccept } = await supabase
+        .from('jobs')
+        .select('visit_fee_paid, status')
+        .eq('id', jobId)
+        .single();
+
+      if (!jobToAccept?.visit_fee_paid) {
+        throw new Error('Este trabajo no tiene pago de visita confirmado.');
+      }
+      if (jobToAccept.status !== 'active') {
+        throw new Error('Este trabajo ya no está disponible.');
+      }
+
       // Update job with provider_id and change status to accepted
       const { error: updateError } = await supabase
         .from('jobs')
@@ -120,6 +135,7 @@ export const useAvailableJobs = (): UseAvailableJobsResult => {
           updated_at: new Date().toISOString()
         })
         .eq('id', jobId)
+        .eq('visit_fee_paid', true)
         .is('provider_id', null); // Only accept if not already taken
 
       if (updateError) throw updateError;

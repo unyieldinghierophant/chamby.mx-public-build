@@ -45,6 +45,7 @@ export const usePublicAvailableJobs = () => {
           .from('jobs')
           .select('title, category, rate, location')
           .eq('status', 'active')
+          .eq('visit_fee_paid', true)
           .is('provider_id', null)
           .order('created_at', { ascending: false })
           .limit(20);
