@@ -11,7 +11,8 @@ export const useAvailableJobsCount = () => {
         .from('jobs')
         .select('*', { count: 'exact', head: true })
         .is('provider_id', null)
-        .eq('status', 'pending');
+        .eq('status', 'active')
+        .eq('visit_fee_paid', true);
 
       if (error) throw error;
       setCount(jobCount || 0);
