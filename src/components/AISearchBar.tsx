@@ -8,68 +8,101 @@ import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
-const PLACEHOLDER_EXAMPLES = [
+const TYPING_EXAMPLES = [
   "Lavar mi carro",
   "Cortar el pasto",
   "Destapar mi baño",
   "Arreglar mi lavadora",
-];
-
-const SEARCH_SUGGESTIONS = [
-  "Lavar mi carro",
-  "Cortar el pasto",
-  "Destapar mi baño",
-  "Arreglar mi lavadora",
-  "Quitar un árbol",
-  "Instalar un ventilador",
   "Colgar una TV",
   "Armar muebles",
 ];
 
-interface FilteredSuggestion {
-  serviceType: string;
-  problem: string;
-}
+const SEARCH_SUGGESTIONS = [
+  "Lavar mi carro",
+  "Lavar tinaco",
+  "Lavado de alfombra",
+  "Cortar el pasto",
+  "Cortar árbol",
+  "Destapar mi baño",
+  "Destapar tubería",
+  "Arreglar mi lavadora",
+  "Arreglar puerta",
+  "Quitar un árbol",
+  "Instalar un ventilador",
+  "Instalar boiler",
+  "Colgar una TV",
+  "Colgar cuadros",
+  "Armar muebles",
+  "Armar cama",
+  "Pintar pared",
+  "Pintar casa",
+  "Mover muebles",
+];
 
 export const AISearchBar = ({ className }: { className?: string }) => {
   const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [placeholderIndex, setPlaceholderIndex] = useState(0);
-  const [fade, setFade] = useState(true);
+  const [dynamicPlaceholder, setDynamicPlaceholder] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const [suggestions, setSuggestions] = useState<FilteredSuggestion[]>([]);
-  const [showPopular, setShowPopular] = useState(true);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const searchRef = useRef<HTMLDivElement>(null);
 
+  // Typing animation for placeholder
   useEffect(() => {
-    const interval = setInterval(() => {
-      setFade(false);
-      setTimeout(() => {
-        setPlaceholderIndex((prev) => (prev + 1) % PLACEHOLDER_EXAMPLES.length);
-        setFade(true);
-      }, 300);
-    }, 3000);
+    if (isFocused || query) return;
 
-    return () => clearInterval(interval);
-  }, []);
+    let currentIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    const typeSpeed = 90;
+    const deleteSpeed = 45;
+    const pauseDuration = 2000;
 
-  // Filter suggestions based on query
+    const type = () => {
+      const current = TYPING_EXAMPLES[currentIndex];
+      if (!isDeleting) {
+        charIndex++;
+        setDynamicPlaceholder(current.substring(0, charIndex));
+        if (charIndex === current.length) {
+          setTimeout(() => { isDeleting = true; setTimeout(type, deleteSpeed); }, pauseDuration);
+          return;
+        }
+        setTimeout(type, typeSpeed);
+      } else {
+        charIndex--;
+        setDynamicPlaceholder(current.substring(0, charIndex));
+        if (charIndex === 0) {
+          isDeleting = false;
+          currentIndex = (currentIndex + 1) % TYPING_EXAMPLES.length;
+          setTimeout(type, 400);
+          return;
+        }
+        setTimeout(type, deleteSpeed);
+      }
+    };
+
+    const timeout = setTimeout(type, 800);
+    return () => clearTimeout(timeout);
+  }, [isFocused, query]);
+
+  // Filter suggestions only when user types
   useEffect(() => {
     if (!query.trim() || query.length < 2) {
       setSuggestions([]);
-      setShowPopular(true);
+      setIsOpen(false);
       return;
     }
 
-    setShowPopular(false);
     const normalizedQuery = query.toLowerCase().trim();
     const matches = SEARCH_SUGGESTIONS
       .filter((s) => s.toLowerCase().includes(normalizedQuery))
-      .map((s) => ({ serviceType: "", problem: s }));
+      .slice(0, 5);
 
-    setSuggestions(matches.slice(0, 5));
+    setSuggestions(matches);
+    setIsOpen(matches.length > 0);
   }, [query]);
 
   // Close dropdown when clicking outside
@@ -165,10 +198,14 @@ export const AISearchBar = ({ className }: { className?: string }) => {
             {/* Input */}
             <Input
               type="text"
-              placeholder="Buscar servicio…"
+              placeholder={dynamicPlaceholder || "Buscar servicio…"}
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onFocus={() => setIsOpen(true)}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                if (!e.target.value.trim()) setIsOpen(false);
+              }}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
               disabled={isLoading}
               className="h-full w-full pl-12 sm:pl-14 pr-16 sm:pr-20 text-base sm:text-lg border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 rounded-full placeholder:text-muted-foreground/60"
               style={{ fontSize: '16px', lineHeight: 'normal', WebkitAppearance: 'none', transform: 'none' }}
@@ -188,52 +225,31 @@ export const AISearchBar = ({ className }: { className?: string }) => {
             </Button>
           </div>
 
-          {/* Dropdown — search suggestions */}
+          {/* Dropdown — only when user types */}
           {isOpen && !isLoading && (
             <div className="absolute top-full left-0 right-0 mt-2 bg-card rounded-2xl shadow-floating border border-border max-h-80 overflow-y-auto z-[100] animate-fade-in">
-              <div className="p-3 sm:p-4">
-                {showPopular ? (
-                  <>
-                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                      Sugerencias
-                    </h3>
-                    <div className="space-y-0.5">
-                      {SEARCH_SUGGESTIONS.map((suggestion) => (
-                        <button
-                          key={suggestion}
-                          onClick={() => handleSuggestionClick(suggestion)}
-                          className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-accent text-foreground transition-colors text-sm sm:text-base flex items-center gap-3"
-                        >
-                          <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                          {suggestion}
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                ) : suggestions.length > 0 ? (
+              <div className="p-2 sm:p-3">
+                {suggestions.length > 0 && (
                   <div className="space-y-0.5">
                     {suggestions.map((s, i) => (
                       <button
-                        key={`${s.problem}-${i}`}
-                        onClick={() => handleSuggestionClick(s.problem)}
+                        key={`${s}-${i}`}
+                        onClick={() => handleSuggestionClick(s)}
                         className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-accent text-foreground transition-colors text-sm sm:text-base flex items-center gap-3"
                       >
                         <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                        {s.problem}
+                        {s}
                       </button>
                     ))}
                   </div>
-                ) : (
-                  <div className="py-3 text-center text-muted-foreground">
-                    <div className="mb-2 text-sm">No se encontraron coincidencias</div>
-                    <button
-                      onClick={() => handleSearch()}
-                      className="text-primary hover:text-primary/80 font-medium text-sm"
-                    >
-                      Buscar "{query}" con IA →
-                    </button>
-                  </div>
                 )}
+                <button
+                  onClick={() => handleSearch()}
+                  className="w-full mt-1 px-3 py-2.5 rounded-xl text-primary hover:bg-accent transition-colors text-sm font-medium flex items-center gap-3"
+                >
+                  <Search className="w-4 h-4 flex-shrink-0" />
+                  Buscar "{query}" con IA →
+                </button>
               </div>
             </div>
           )}
