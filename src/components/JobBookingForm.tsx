@@ -834,7 +834,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
                     {specificDate ? format(specificDate, "MMM dd") : "En una fecha"}
                   </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 bg-background" align="start">
+                    <PopoverContent className="w-auto p-0 bg-background z-50" align="start">
                       <Calendar
                         mode="single"
                         selected={specificDate}
@@ -844,6 +844,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
                         }}
                         initialFocus
                         disabled={(date) => date < new Date()}
+                        className="pointer-events-auto"
                       />
                     </PopoverContent>
                   </Popover>
