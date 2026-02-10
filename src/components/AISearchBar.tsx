@@ -5,8 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { cn } from "@/lib/utils";
+import { getSearchSuggestions } from "@/utils/searchSuggestions";
 
 const TYPING_EXAMPLES = [
   "Lavar mi carro",
@@ -17,37 +16,14 @@ const TYPING_EXAMPLES = [
   "Armar muebles",
 ];
 
-const SEARCH_SUGGESTIONS = [
-  "Lavar mi carro",
-  "Lavar tinaco",
-  "Lavado de alfombra",
-  "Cortar el pasto",
-  "Cortar árbol",
-  "Destapar mi baño",
-  "Destapar tubería",
-  "Arreglar mi lavadora",
-  "Arreglar puerta",
-  "Quitar un árbol",
-  "Instalar un ventilador",
-  "Instalar boiler",
-  "Colgar una TV",
-  "Colgar cuadros",
-  "Armar muebles",
-  "Armar cama",
-  "Pintar pared",
-  "Pintar casa",
-  "Mover muebles",
-];
-
 export const AISearchBar = ({ className }: { className?: string }) => {
   const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [dynamicPlaceholder, setDynamicPlaceholder] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<{ text: string; category: string }[]>([]);
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
   const searchRef = useRef<HTMLDivElement>(null);
 
   // Typing animation for placeholder
@@ -88,7 +64,7 @@ export const AISearchBar = ({ className }: { className?: string }) => {
     return () => clearTimeout(timeout);
   }, [isFocused, query]);
 
-  // Filter suggestions only when user types
+  // Smart suggestion matching
   useEffect(() => {
     if (!query.trim() || query.length < 2) {
       setSuggestions([]);
@@ -96,25 +72,20 @@ export const AISearchBar = ({ className }: { className?: string }) => {
       return;
     }
 
-    const normalizedQuery = query.toLowerCase().trim();
-    const matches = SEARCH_SUGGESTIONS
-      .filter((s) => s.toLowerCase().includes(normalizedQuery))
-      .slice(0, 5);
-
+    const matches = getSearchSuggestions(query, 8);
     setSuggestions(matches);
     setIsOpen(matches.length > 0);
   }, [query]);
 
-  // Close dropdown when clicking outside
+  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleSearch = async (e?: React.FormEvent, directQuery?: string) => {
@@ -136,19 +107,19 @@ export const AISearchBar = ({ className }: { className?: string }) => {
 
       if (error) throw error;
 
-      console.log('AI Search Response:', data);
+      console.log("AI Search Response:", data);
 
       if (data.confidence < 50) {
         toast.info("Búsqueda imprecisa - revisa los detalles", {
-          description: `Detectamos: ${data.keywords_detected?.join(', ') || 'consulta general'}`
+          description: `Detectamos: ${data.keywords_detected?.join(", ") || "consulta general"}`,
         });
       } else if (data.confidence < 70) {
         toast.success("Búsqueda encontrada", {
-          description: `${data.service} en ${data.category}`
+          description: `${data.service} en ${data.category}`,
         });
       } else {
         toast.success("¡Servicio encontrado!", {
-          description: `${data.service} - ${data.category}`
+          description: `${data.service} - ${data.category}`,
         });
       }
 
@@ -164,14 +135,14 @@ export const AISearchBar = ({ className }: { className?: string }) => {
     } catch (error) {
       console.error("Error searching:", error);
       const errorMessage = error instanceof Error ? error.message : "Error desconocido";
-      
+
       if (errorMessage.includes("clasificar")) {
         toast.error("No pudimos entender tu búsqueda", {
-          description: "Intenta ser más específico o usa las categorías"
+          description: "Intenta ser más específico o usa las categorías",
         });
       } else {
         toast.error("Error al buscar el servicio", {
-          description: "Por favor intenta de nuevo"
+          description: "Por favor intenta de nuevo",
         });
       }
     } finally {
@@ -188,17 +159,12 @@ export const AISearchBar = ({ className }: { className?: string }) => {
     <div ref={searchRef} className={className || "w-full max-w-none mx-auto"}>
       <form onSubmit={handleSearch}>
         <div className="relative">
-          {/* Pill-shaped search bar — soft glow, high radius */}
+          {/* Pill-shaped search bar */}
           <div className="relative flex items-center h-14 sm:h-16 bg-white dark:bg-card rounded-full shadow-[0_4px_24px_-4px_hsl(214_80%_41%/0.18)] ring-1 ring-black/[0.04] dark:ring-white/10 transition-shadow focus-within:shadow-[0_6px_32px_-4px_hsl(214_80%_41%/0.28)] focus-within:ring-primary/30">
-            {/* Search icon */}
-            <div className="absolute left-4 sm:left-5 flex items-center pointer-events-none">
-              <Search className="w-5 h-5 text-muted-foreground" />
-            </div>
-
-            {/* Input */}
+            {/* Input — no left icon */}
             <Input
               type="text"
-              placeholder={dynamicPlaceholder || "Buscar servicio…"}
+              placeholder={dynamicPlaceholder || "¿Qué necesitas?"}
               value={query}
               onChange={(e) => {
                 setQuery(e.target.value);
@@ -207,11 +173,11 @@ export const AISearchBar = ({ className }: { className?: string }) => {
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
               disabled={isLoading}
-              className="h-full w-full pl-12 sm:pl-14 pr-16 sm:pr-20 text-base sm:text-lg border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 rounded-full placeholder:text-muted-foreground/60"
-              style={{ fontSize: '16px', lineHeight: 'normal', WebkitAppearance: 'none', transform: 'none' }}
+              className="h-full w-full pl-5 sm:pl-6 pr-16 sm:pr-20 text-base sm:text-lg border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 rounded-full placeholder:text-muted-foreground/60"
+              style={{ fontSize: "16px", lineHeight: "normal", WebkitAppearance: "none", transform: "none" }}
             />
 
-            {/* Action button — circle inside the pill */}
+            {/* Right-side search button */}
             <Button
               type="submit"
               disabled={isLoading}
@@ -225,20 +191,20 @@ export const AISearchBar = ({ className }: { className?: string }) => {
             </Button>
           </div>
 
-          {/* Dropdown — only when user types */}
+          {/* Autosuggest dropdown — solid white, no transparency */}
           {isOpen && !isLoading && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-card rounded-2xl shadow-floating border border-border max-h-80 overflow-y-auto z-[100] animate-fade-in">
+            <div className="absolute top-full left-0 right-0 mt-2 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-border max-h-80 overflow-y-auto z-[100] animate-fade-in" style={{ backgroundColor: 'white' }}>
               <div className="p-2 sm:p-3">
                 {suggestions.length > 0 && (
                   <div className="space-y-0.5">
                     {suggestions.map((s, i) => (
                       <button
-                        key={`${s}-${i}`}
-                        onClick={() => handleSuggestionClick(s)}
+                        key={`${s.text}-${i}`}
+                        onClick={() => handleSuggestionClick(s.text)}
                         className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-accent text-foreground transition-colors text-sm sm:text-base flex items-center gap-3"
                       >
                         <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                        {s}
+                        <span className="text-foreground">{s.text}</span>
                       </button>
                     ))}
                   </div>
