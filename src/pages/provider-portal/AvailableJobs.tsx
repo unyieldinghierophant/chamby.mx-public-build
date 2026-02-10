@@ -6,7 +6,7 @@ import { useProviderLocation } from "@/hooks/useProviderLocation";
 import { useActiveJobs } from "@/hooks/useActiveJobs";
 import { useAuth } from "@/contexts/AuthContext";
 import { JobCardMobile } from "@/components/provider-portal/JobCardMobile";
-import { JobFeedFilters, CategoryFilter, RadiusFilter, DateFilter } from "@/components/provider-portal/JobFeedFilters";
+import { JobFeedFilters, CategoryFilter, DateFilter } from "@/components/provider-portal/JobFeedFilters";
 import { JobFeedSkeleton } from "@/components/provider-portal/JobFeedSkeleton";
 import { JobDetailSheet } from "@/components/provider-portal/JobDetailSheet";
 import { Briefcase, RefreshCw, MapPin } from "lucide-react";
@@ -23,7 +23,6 @@ const AvailableJobs = () => {
 
   // Filters
   const [category, setCategory] = useState<CategoryFilter>(null);
-  const [radius, setRadius] = useState<RadiusFilter>(null);
   const [dateFilter, setDateFilter] = useState<DateFilter>(null);
 
   // Active jobs to check if provider has one
@@ -35,7 +34,7 @@ const AvailableJobs = () => {
     jobs,
     providerLocation,
     category,
-    radius,
+    radius: null,
     dateFilter,
   });
 
@@ -55,7 +54,7 @@ const AvailableJobs = () => {
       {/* Header */}
       <div className="sticky top-14 md:top-0 z-20 bg-background/95 backdrop-blur-lg border-b border-border">
         <div className="px-4 py-3">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between">
             <div>
               <h1 className="text-lg font-bold text-foreground font-jakarta">
                 Trabajos Disponibles
@@ -64,28 +63,28 @@ const AvailableJobs = () => {
                 {filteredJobs.length} oportunidad{filteredJobs.length !== 1 ? 'es' : ''}
               </p>
             </div>
-            <button
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              className={cn(
-                "p-2 rounded-full bg-muted active:bg-muted/80 transition-colors",
-                isRefreshing && "animate-spin"
-              )}
-            >
-              <RefreshCw className="w-4 h-4 text-muted-foreground" />
-            </button>
+            <div className="flex items-center gap-2">
+              <JobFeedFilters
+                category={category}
+                onCategoryChange={setCategory}
+                radius={null}
+                onRadiusChange={() => {}}
+                dateFilter={dateFilter}
+                onDateFilterChange={setDateFilter}
+                hasLocation={!!providerLocation}
+              />
+              <button
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className={cn(
+                  "p-2 rounded-full bg-muted active:bg-muted/80 transition-colors",
+                  isRefreshing && "animate-spin"
+                )}
+              >
+                <RefreshCw className="w-4 h-4 text-muted-foreground" />
+              </button>
+            </div>
           </div>
-
-          {/* Filter Chips */}
-          <JobFeedFilters
-            category={category}
-            onCategoryChange={setCategory}
-            radius={radius}
-            onRadiusChange={setRadius}
-            dateFilter={dateFilter}
-            onDateFilterChange={setDateFilter}
-            hasLocation={!!providerLocation}
-          />
         </div>
       </div>
 
