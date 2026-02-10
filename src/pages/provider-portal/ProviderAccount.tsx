@@ -55,10 +55,10 @@ const ProviderAccount = () => {
         {
           label: "Reseñas y Calificaciones",
           icon: Star,
+          path: "/provider-portal/reviews",
           badge: providerProfile?.total_reviews
             ? `${providerProfile.total_reviews}`
             : undefined,
-          hidden: true, // Not yet implemented as standalone
         },
       ],
     },

@@ -47,6 +47,7 @@ import ProviderPortal from "./pages/ProviderPortal";
 import ProviderDashboardHome from "./pages/provider-portal/ProviderDashboardHome";
 import ProviderJobs from "./pages/provider-portal/ProviderJobs";
 import JobTimelinePage from "./pages/provider-portal/JobTimelinePage";
+import ProviderReviewsPage from "./pages/provider-portal/ProviderReviewsPage";
 import ProviderCalendar from "./pages/provider-portal/ProviderCalendar";
 import ProviderMap from "./pages/provider-portal/ProviderMap";
 // Provider payment features disabled during cleanup
@@ -194,6 +195,7 @@ const App = () => {
                 <Route path="map" element={<ProviderMap />} />
                 <Route path="verification" element={<ProviderVerification />} />
                 <Route path="profile" element={<ProviderProfileEdit />} />
+                <Route path="reviews" element={<ProviderReviewsPage />} />
                 <Route path="support" element={<ProviderSupport />} />
                 <Route path="reschedule/:id" element={<RescheduleRequest />} />
               </Route>

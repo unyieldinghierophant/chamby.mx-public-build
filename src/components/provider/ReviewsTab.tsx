@@ -11,6 +11,7 @@ interface Review {
   id: string;
   rating: number;
   comment: string | null;
+  tags: string[] | null;
   created_at: string;
   client: {
     full_name: string | null;
@@ -36,8 +37,9 @@ export const ReviewsTab = () => {
       // Fetch reviews
       const { data: reviewsData, error: reviewsError } = await supabase
         .from("reviews")
-        .select("id, rating, comment, created_at, client_id")
+        .select("id, rating, comment, created_at, client_id, tags, reviewer_role")
         .eq("provider_id", user.id)
+        .eq("reviewer_role", "client")
         .order("created_at", { ascending: false });
 
       if (reviewsError) throw reviewsError;
@@ -52,7 +54,11 @@ export const ReviewsTab = () => {
             .single();
 
           return {
-            ...review,
+            id: review.id,
+            rating: review.rating,
+            comment: review.comment,
+            tags: (review as any).tags || [],
+            created_at: review.created_at,
             client: {
               full_name: clientData?.full_name || null,
               avatar_url: clientData?.avatar_url || null,
@@ -101,6 +107,17 @@ export const ReviewsTab = () => {
     );
   }
 
+  // Calculate frequent tags
+  const tagCounts: Record<string, number> = {};
+  reviews.forEach((r) => {
+    (r.tags || []).forEach((tag) => {
+      tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+    });
+  });
+  const topTags = Object.entries(tagCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
   return (
     <div className="space-y-6">
       {/* Rating Summary */}
@@ -144,6 +161,23 @@ export const ReviewsTab = () => {
               })}
             </div>
           </div>
+
+          {/* Frequent Tags */}
+          {topTags.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-border/50">
+              <p className="text-xs text-muted-foreground mb-2">Lo que más destacan</p>
+              <div className="flex flex-wrap gap-1.5">
+                {topTags.map(([tag, count]) => (
+                  <span
+                    key={tag}
+                    className="px-2.5 py-1 rounded-full text-xs bg-primary/10 text-primary font-medium"
+                  >
+                    {tag} ({count})
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -189,6 +223,19 @@ export const ReviewsTab = () => {
                       </div>
                     </div>
                   </div>
+
+                  {review.tags && review.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 pl-12">
+                      {review.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="px-2 py-0.5 rounded-full text-[10px] bg-muted text-muted-foreground"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
 
                   {review.comment && (
                     <p className="text-sm text-muted-foreground pl-12">
