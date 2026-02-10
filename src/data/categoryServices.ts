@@ -37,6 +37,7 @@ export const categoryServicesMap: Record<string, ServiceOption[]> = {
     { name: "Limpieza Profunda", description: "Limpieza a detalle de espacios" },
     { name: "Limpieza de Cocina", description: "Desengrase y limpieza de cocina" },
     { name: "Limpieza de Baños", description: "Sanitización de baños" },
+    { name: "Retiro de Escombro y Basura", description: "Retiro de escombro, basura, chatarra y desechos de casa u obra" },
     { name: "Otros Servicios", description: "Describe el servicio que necesitas" }
   ],
   "Jardinería": [
