@@ -1,5 +1,17 @@
+import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { MapPin, X } from "lucide-react";
+import { SlidersHorizontal, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "@/components/ui/sheet";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export type CategoryFilter = string | null;
 export type RadiusFilter = number | null;
@@ -24,109 +36,135 @@ const CATEGORIES = [
   'Mudanza',
 ];
 
-const RADII = [
-  { label: '1 km', value: 1 },
-  { label: '3 km', value: 3 },
-  { label: '5 km', value: 5 },
-  { label: '10 km', value: 10 },
-];
-
 const DATE_OPTIONS: { label: string; value: DateFilter }[] = [
   { label: 'Hoy', value: 'today' },
-  { label: '3 días', value: '3days' },
+  { label: 'Próximos 3 días', value: '3days' },
   { label: 'Esta semana', value: 'week' },
 ];
-
-const Chip = ({
-  active,
-  onClick,
-  children,
-  icon,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-  icon?: React.ReactNode;
-}) => (
-  <button
-    onClick={onClick}
-    className={cn(
-      "flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all border",
-      active
-        ? "bg-primary text-primary-foreground border-primary"
-        : "bg-background text-muted-foreground border-border hover:border-foreground/30"
-    )}
-  >
-    {icon}
-    {children}
-  </button>
-);
 
 export const JobFeedFilters = ({
   category,
   onCategoryChange,
-  radius,
-  onRadiusChange,
   dateFilter,
   onDateFilterChange,
-  hasLocation,
 }: JobFeedFiltersProps) => {
-  const hasAnyFilter = category || radius || dateFilter;
+  const [open, setOpen] = useState(false);
+  const [tempCategory, setTempCategory] = useState<CategoryFilter>(category);
+  const [tempDate, setTempDate] = useState<DateFilter>(dateFilter);
+  const isMobile = useIsMobile();
+
+  const activeCount = (category ? 1 : 0) + (dateFilter ? 1 : 0);
+
+  const handleOpen = () => {
+    setTempCategory(category);
+    setTempDate(dateFilter);
+    setOpen(true);
+  };
+
+  const handleApply = () => {
+    onCategoryChange(tempCategory);
+    onDateFilterChange(tempDate);
+    setOpen(false);
+  };
+
+  const handleClear = () => {
+    setTempCategory(null);
+    setTempDate(null);
+  };
 
   return (
-    <div className="space-y-2">
-      {/* Single scrollable row of filters */}
-      <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-1 -mx-4 px-4">
-        {/* Clear all */}
-        {hasAnyFilter && (
-          <Chip
-            active={false}
-            onClick={() => {
-              onCategoryChange(null);
-              onRadiusChange(null);
-              onDateFilterChange(null);
-            }}
-            icon={<X className="w-3 h-3" />}
-          >
-            Limpiar
-          </Chip>
+    <>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleOpen}
+        className="gap-1.5 rounded-full text-xs h-8"
+      >
+        <SlidersHorizontal className="w-3.5 h-3.5" />
+        Filtros
+        {activeCount > 0 && (
+          <span className="ml-0.5 flex items-center justify-center w-4 h-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
+            {activeCount}
+          </span>
         )}
+      </Button>
 
-        {/* Categories */}
-        {CATEGORIES.map((cat) => (
-          <Chip
-            key={cat}
-            active={category === cat}
-            onClick={() => onCategoryChange(category === cat ? null : cat)}
-          >
-            {cat}
-          </Chip>
-        ))}
-      </div>
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent side={isMobile ? "bottom" : "right"} className={cn(
+          isMobile && "rounded-t-2xl max-h-[85vh]"
+        )}>
+          <SheetHeader>
+            <SheetTitle>Filtros</SheetTitle>
+            <SheetDescription>
+              Los trabajos se ordenan automáticamente del más cercano al más lejano.
+            </SheetDescription>
+          </SheetHeader>
 
-      {/* Second row: radius + date */}
-      <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-1 -mx-4 px-4">
-        {hasLocation && RADII.map((r) => (
-          <Chip
-            key={r.value}
-            active={radius === r.value}
-            onClick={() => onRadiusChange(radius === r.value ? null : r.value)}
-            icon={<MapPin className="w-3 h-3" />}
-          >
-            {r.label}
-          </Chip>
-        ))}
+          <div className="py-5 space-y-6 overflow-y-auto">
+            {/* Category */}
+            <div>
+              <h4 className="text-sm font-semibold text-foreground mb-3">Tipo de trabajo</h4>
+              <div className="space-y-2.5">
+                {CATEGORIES.map((cat) => (
+                  <label
+                    key={cat}
+                    className="flex items-center gap-3 cursor-pointer"
+                  >
+                    <Checkbox
+                      checked={tempCategory === cat}
+                      onCheckedChange={(checked) =>
+                        setTempCategory(checked ? cat : null)
+                      }
+                    />
+                    <span className="text-sm text-foreground">{cat}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
 
-        {DATE_OPTIONS.map((d) => (
-          <Chip
-            key={d.value}
-            active={dateFilter === d.value}
-            onClick={() => onDateFilterChange(dateFilter === d.value ? null : d.value)}
-          >
-            {d.label}
-          </Chip>
-        ))}
-      </div>
-    </div>
+            {/* Date */}
+            <div>
+              <h4 className="text-sm font-semibold text-foreground mb-3">Tiempo</h4>
+              <div className="flex flex-wrap gap-2">
+                {DATE_OPTIONS.map((d) => (
+                  <button
+                    key={d.value}
+                    onClick={() => setTempDate(tempDate === d.value ? null : d.value)}
+                    className={cn(
+                      "px-3.5 py-1.5 rounded-full text-xs font-medium border transition-all",
+                      tempDate === d.value
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background text-muted-foreground border-border hover:border-foreground/30"
+                    )}
+                  >
+                    {d.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <SheetFooter className="flex-row gap-2 pt-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClear}
+              className="flex-1"
+              disabled={!tempCategory && !tempDate}
+            >
+              <X className="w-3.5 h-3.5 mr-1" />
+              Limpiar
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleApply}
+              className="flex-1"
+            >
+              Aplicar filtros
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+    </>
   );
 };
