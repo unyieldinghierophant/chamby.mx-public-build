@@ -1,38 +1,44 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAvailableJobs, AvailableJob } from "@/hooks/useAvailableJobs";
-import { useJobSorting } from "@/hooks/useJobSorting";
-import { useProviderProfile } from "@/hooks/useProviderProfile";
+import { useFilteredJobs, JobWithDistance } from "@/hooks/useFilteredJobs";
+import { useProviderLocation } from "@/hooks/useProviderLocation";
 import { useActiveJobs } from "@/hooks/useActiveJobs";
 import { useAuth } from "@/contexts/AuthContext";
 import { JobCardMobile } from "@/components/provider-portal/JobCardMobile";
-import { JobSortingTabs, SortOption } from "@/components/provider-portal/JobSortingTabs";
+import { JobFeedFilters, CategoryFilter, RadiusFilter, DateFilter } from "@/components/provider-portal/JobFeedFilters";
 import { JobFeedSkeleton } from "@/components/provider-portal/JobFeedSkeleton";
 import { JobDetailSheet } from "@/components/provider-portal/JobDetailSheet";
-import { Briefcase, RefreshCw } from "lucide-react";
+import { Briefcase, RefreshCw, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const AvailableJobs = () => {
   const { user } = useAuth();
-  const { profile: providerProfile } = useProviderProfile(user?.id);
-  const [sortOption, setSortOption] = useState<SortOption>('for-you');
+  const { location: providerLocation, permissionDenied, requestLocation } = useProviderLocation();
   const { jobs, loading, refetch, acceptJob } = useAvailableJobs();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedJob, setSelectedJob] = useState<AvailableJob | null>(null);
   const [showJobDetail, setShowJobDetail] = useState(false);
-  
+
+  // Filters
+  const [category, setCategory] = useState<CategoryFilter>(null);
+  const [radius, setRadius] = useState<RadiusFilter>(null);
+  const [dateFilter, setDateFilter] = useState<DateFilter>(null);
+
   // Active jobs to check if provider has one
   const { jobs: activeJobs } = useActiveJobs();
   const hasActiveJob = activeJobs.length > 0;
 
-  // Get sorted jobs with match indicators
-  const sortedJobs = useJobSorting({
+  // Filtered and distance-sorted jobs
+  const filteredJobs = useFilteredJobs({
     jobs,
-    sortOption,
-    providerSkills: providerProfile?.skills || []
+    providerLocation,
+    category,
+    radius,
+    dateFilter,
   });
 
-  // Pull to refresh handler
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     await refetch();
@@ -46,17 +52,16 @@ const AvailableJobs = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Mobile Header - Compact */}
-      <div className="sticky top-14 md:top-0 z-20 bg-background/95 backdrop-blur-lg border-b border-border md:hidden">
+      {/* Header */}
+      <div className="sticky top-14 md:top-0 z-20 bg-background/95 backdrop-blur-lg border-b border-border">
         <div className="px-4 py-3">
-          {/* Title Row */}
           <div className="flex items-center justify-between mb-3">
             <div>
-            <h1 className="text-lg font-bold text-foreground font-jakarta">
+              <h1 className="text-lg font-bold text-foreground font-jakarta">
                 Trabajos Disponibles
               </h1>
               <p className="text-xs text-muted-foreground">
-                {sortedJobs.length} oportunidad{sortedJobs.length !== 1 ? 'es' : ''}
+                {filteredJobs.length} oportunidad{filteredJobs.length !== 1 ? 'es' : ''}
               </p>
             </div>
             <button
@@ -71,48 +76,37 @@ const AvailableJobs = () => {
             </button>
           </div>
 
-          {/* Sorting Tabs */}
-          <JobSortingTabs
-            activeSort={sortOption}
-            onSortChange={setSortOption}
+          {/* Filter Chips */}
+          <JobFeedFilters
+            category={category}
+            onCategoryChange={setCategory}
+            radius={radius}
+            onRadiusChange={setRadius}
+            dateFilter={dateFilter}
+            onDateFilterChange={setDateFilter}
+            hasLocation={!!providerLocation}
           />
         </div>
       </div>
 
-      {/* Desktop Header */}
-      <div className="hidden md:block px-6 py-4">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground font-jakarta">
-              Trabajos Disponibles
-            </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              {sortedJobs.length} oportunidad{sortedJobs.length !== 1 ? 'es' : ''} disponible{sortedJobs.length !== 1 ? 's' : ''}
-            </p>
+      {/* Location CTA */}
+      {permissionDenied && (
+        <div className="mx-4 mt-3 p-3 bg-muted/50 rounded-xl border border-border flex items-center gap-3">
+          <div className="p-2 rounded-full bg-primary/10">
+            <MapPin className="w-4 h-4 text-primary" />
           </div>
-          <button
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className={cn(
-              "flex items-center gap-2 px-3 py-2 rounded-lg bg-muted hover:bg-muted/80 transition-colors text-sm font-medium",
-              isRefreshing && "opacity-50"
-            )}
-          >
-            <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
-            Actualizar
-          </button>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium text-foreground">Habilita tu ubicación</p>
+            <p className="text-[10px] text-muted-foreground">Para ver trabajos cercanos y filtrar por distancia</p>
+          </div>
+          <Button size="sm" variant="outline" className="text-xs h-7" onClick={requestLocation}>
+            Activar
+          </Button>
         </div>
-
-        {/* Desktop Sorting Tabs */}
-        <JobSortingTabs
-          activeSort={sortOption}
-          onSortChange={setSortOption}
-        />
-      </div>
+      )}
 
       {/* Job Feed */}
-      <div className="px-4 pb-24 md:px-6 md:pb-6">
-        {/* Refresh indicator */}
+      <div className="px-4 pb-24 md:px-6 md:pb-6 mt-3">
         <AnimatePresence>
           {isRefreshing && (
             <motion.div
@@ -131,7 +125,7 @@ const AvailableJobs = () => {
 
         {loading ? (
           <JobFeedSkeleton count={4} />
-        ) : sortedJobs.length === 0 ? (
+        ) : filteredJobs.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -152,22 +146,21 @@ const AvailableJobs = () => {
             "space-y-3 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 md:space-y-0",
             hasActiveJob && "opacity-50 grayscale pointer-events-none"
           )}>
-            {sortedJobs.map((job, index) => (
+            {filteredJobs.map((job, index) => (
               <JobCardMobile
                 key={job.id}
                 job={job}
                 onAccept={acceptJob}
                 onViewDetails={handleViewJobDetails}
-                isMatch={job.isMatch}
                 index={index}
                 disabled={hasActiveJob}
+                distanceKm={job.distanceKm}
               />
             ))}
           </div>
         )}
 
-        {/* Active job warning */}
-        {hasActiveJob && sortedJobs.length > 0 && (
+        {hasActiveJob && filteredJobs.length > 0 && (
           <div className="mt-4 p-3 bg-muted/50 rounded-lg border border-border text-center">
             <p className="text-sm text-muted-foreground">
               Finaliza tu trabajo activo para aceptar otro
@@ -176,7 +169,6 @@ const AvailableJobs = () => {
         )}
       </div>
 
-      {/* Job Detail Sheet */}
       <JobDetailSheet
         job={selectedJob}
         isOpen={showJobDetail}
