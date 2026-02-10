@@ -2,13 +2,11 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Briefcase, ArrowRight, RefreshCw } from "lucide-react";
+import { Briefcase, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AvailableJob } from "@/hooks/useAvailableJobs";
 import { JobCardMobile } from "./JobCardMobile";
 import { JobFeedSkeleton } from "./JobFeedSkeleton";
-import { useJobSorting } from "@/hooks/useJobSorting";
-import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface AvailableJobsSectionProps {
@@ -19,15 +17,6 @@ interface AvailableJobsSectionProps {
 
 export const AvailableJobsSection = ({ jobs, loading, onAcceptJob }: AvailableJobsSectionProps) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { profile: providerProfile } = useProviderProfile(user?.id);
-
-  // Get sorted jobs with match indicators
-  const sortedJobs = useJobSorting({
-    jobs,
-    sortOption: 'for-you',
-    providerSkills: providerProfile?.skills || []
-  });
 
   if (loading) {
     return (
@@ -96,12 +85,11 @@ export const AvailableJobsSection = ({ jobs, loading, onAcceptJob }: AvailableJo
           </motion.div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
-            {sortedJobs.slice(0, 4).map((job, index) => (
+            {jobs.slice(0, 4).map((job, index) => (
               <JobCardMobile
                 key={job.id}
                 job={job}
                 onAccept={onAcceptJob}
-                isMatch={job.isMatch}
                 index={index}
               />
             ))}

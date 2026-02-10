@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
-import { useJobSorting } from "@/hooks/useJobSorting";
+import { useFilteredJobs } from "@/hooks/useFilteredJobs";
+import { useProviderLocation } from "@/hooks/useProviderLocation";
 import { useActiveJobs } from "@/hooks/useActiveJobs";
 import { JobCardMobile } from "@/components/provider-portal/JobCardMobile";
-import { JobSortingTabs, SortOption } from "@/components/provider-portal/JobSortingTabs";
+import { JobFeedFilters, CategoryFilter, RadiusFilter, DateFilter } from "@/components/provider-portal/JobFeedFilters";
 import { JobFeedSkeleton } from "@/components/provider-portal/JobFeedSkeleton";
 import { AvailabilityButton } from "@/components/provider-portal/AvailabilityButton";
 import { ActiveJobCard } from "@/components/provider-portal/ActiveJobCard";
@@ -78,22 +79,28 @@ const ProviderDashboardHome = () => {
     documentsCount: 0
   });
   const [showJobsAlert, setShowJobsAlert] = useState(false);
-  const [sortOption, setSortOption] = useState<SortOption>('for-you');
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>(null);
+  const [radiusFilter, setRadiusFilter] = useState<RadiusFilter>(null);
+  const [dateFilter, setDateFilter] = useState<DateFilter>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [verificationDismissed, setVerificationDismissed] = useState(false);
   const [selectedJob, setSelectedJob] = useState<AvailableJob | null>(null);
   const [showJobDetail, setShowJobDetail] = useState(false);
+  
+  const { location: providerLocation } = useProviderLocation();
   
   const handleViewJobDetails = (job: AvailableJob) => {
     setSelectedJob(job);
     setShowJobDetail(true);
   };
   
-  // Sorted jobs for feed
-  const sortedJobs = useJobSorting({
+  // Filtered jobs for feed
+  const filteredJobs = useFilteredJobs({
     jobs: availableJobs,
-    sortOption,
-    providerSkills: providerProfile?.skills || []
+    providerLocation,
+    category: categoryFilter,
+    radius: radiusFilter,
+    dateFilter,
   });
   
   // Show popup alert when there are available jobs
@@ -368,10 +375,15 @@ const ProviderDashboardHome = () => {
               </motion.button>
             </div>
 
-            {/* Sorting Tabs - Light segmented */}
-            <JobSortingTabs
-              activeSort={sortOption}
-              onSortChange={setSortOption}
+            {/* Filter Chips */}
+            <JobFeedFilters
+              category={categoryFilter}
+              onCategoryChange={setCategoryFilter}
+              radius={radiusFilter}
+              onRadiusChange={setRadiusFilter}
+              dateFilter={dateFilter}
+              onDateFilterChange={setDateFilter}
+              hasLocation={!!providerLocation}
             />
           </div>
 
@@ -395,7 +407,7 @@ const ProviderDashboardHome = () => {
 
             {availableJobsLoading ? (
               <JobFeedSkeleton count={2} />
-            ) : sortedJobs.length === 0 ? (
+            ) : filteredJobs.length === 0 ? (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -416,26 +428,26 @@ const ProviderDashboardHome = () => {
                 "space-y-2.5 md:grid md:grid-cols-2 md:gap-4 md:space-y-0",
                 hasActiveJob && "opacity-50 grayscale"
               )}>
-                {sortedJobs.slice(0, 4).map((job, index) => (
+                {filteredJobs.slice(0, 4).map((job, index) => (
                   <JobCardMobile
                     key={job.id}
                     job={job}
                     onAccept={acceptJob}
                     onViewDetails={handleViewJobDetails}
-                    isMatch={job.isMatch}
                     index={index}
                     disabled={hasActiveJob}
+                    distanceKm={job.distanceKm}
                   />
                 ))}
 
-                {sortedJobs.length > 4 && (
+                {filteredJobs.length > 4 && (
                   <Button
                     variant="outline"
                     className="w-full h-10 text-sm md:col-span-2"
                     onClick={() => navigate("/provider-portal/available-jobs")}
                     disabled={hasActiveJob}
                   >
-                    Ver {sortedJobs.length - 4} trabajo{sortedJobs.length - 4 !== 1 ? 's' : ''} más
+                    Ver {filteredJobs.length - 4} trabajo{filteredJobs.length - 4 !== 1 ? 's' : ''} más
                     <ChevronRight className="w-4 h-4 ml-1" />
                   </Button>
                 )}
