@@ -294,15 +294,16 @@ export const VisitFeeAuthorizationSection = ({
       </CardHeader>
       <CardContent className="pt-4 sm:pt-6 space-y-4 sm:space-y-6 px-3 sm:px-6">
         {/* Explanation */}
-        <div className="bg-muted/50 rounded-xl p-3 sm:p-4 space-y-2">
+        <div className="bg-muted/50 rounded-xl p-3 sm:p-4 space-y-2.5">
           <div className="flex items-start gap-2 sm:gap-3">
             <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-primary mt-0.5 flex-shrink-0" />
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <p className="text-xs sm:text-sm font-medium text-foreground">
-                Para asegurar tu visita, vamos a preautorizar $350 MXN en tu tarjeta.
+                Pago por visita y gestión de asignación — $350 MXN
               </p>
               <p className="text-xs text-muted-foreground">
-                No se te cobrará todavía; el cargo solo se realizará si el proveedor marca la primera visita como completada.
+                Buscaremos un profesional verificado para tu servicio en un máximo de 4 horas. 
+                Si no se asigna proveedor, puedes reagendar o solicitar reembolso completo.
               </p>
             </div>
           </div>
