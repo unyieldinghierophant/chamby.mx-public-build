@@ -170,6 +170,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
   const [currentStep, setCurrentStep] = useState(1);
   const [taskDescription, setTaskDescription] = useState(initialService || "");
   const [datePreference, setDatePreference] = useState<DatePreference>('specific');
+  const [datePopoverOpen, setDatePopoverOpen] = useState(false);
   const [specificDate, setSpecificDate] = useState<Date>();
   const [needsSpecificTime, setNeedsSpecificTime] = useState(false);
   const [selectedTimeSlots, setSelectedTimeSlots] = useState<TimeOfDayOption[]>([]);
@@ -284,6 +285,14 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
       saveFormData(formData);
     }
   }, [taskDescription, datePreference, specificDate, needsSpecificTime, selectedTimeSlots, location, details, currentStep, coordinates]);
+
+  // Auto-open date picker when user has filled the service and reaches the date section
+  useEffect(() => {
+    if (currentStep === 1 && taskDescription.trim().length > 0 && !specificDate && datePreference === 'specific') {
+      const timer = setTimeout(() => setDatePopoverOpen(true), 400);
+      return () => clearTimeout(timer);
+    }
+  }, [currentStep, taskDescription, specificDate, datePreference]);
 
   // Update suggestions based on category and user input
   useEffect(() => {
@@ -821,7 +830,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
                   ¿Cuándo necesitas que se haga?
                 </Label>
                 <div className="flex gap-3 flex-wrap">
-                  <Popover>
+                  <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
                     <PopoverTrigger asChild>
                   <Button
                     variant={datePreference === 'specific' ? "default" : "outline"}
@@ -841,6 +850,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
                         onSelect={(date) => {
                           setSpecificDate(date);
                           setDatePreference('specific');
+                          setDatePopoverOpen(false);
                         }}
                         initialFocus
                         disabled={(date) => date < new Date()}
