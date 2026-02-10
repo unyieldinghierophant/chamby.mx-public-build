@@ -148,6 +148,7 @@ export type Database = {
         Row: {
           amount_booking_fee: number | null
           amount_service_total: number | null
+          assignment_deadline: string | null
           budget: string | null
           category: string
           client_confirmed_visit: boolean | null
@@ -188,6 +189,7 @@ export type Database = {
         Insert: {
           amount_booking_fee?: number | null
           amount_service_total?: number | null
+          assignment_deadline?: string | null
           budget?: string | null
           category: string
           client_confirmed_visit?: boolean | null
@@ -228,6 +230,7 @@ export type Database = {
         Update: {
           amount_booking_fee?: number | null
           amount_service_total?: number | null
+          assignment_deadline?: string | null
           budget?: string | null
           category?: string
           client_confirmed_visit?: boolean | null

@@ -52,7 +52,7 @@ const AvailableJobs = () => {
           {/* Title Row */}
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h1 className="text-lg font-bold text-foreground font-jakarta">
+            <h1 className="text-lg font-bold text-foreground font-jakarta">
                 Trabajos Disponibles
               </h1>
               <p className="text-xs text-muted-foreground">

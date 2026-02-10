@@ -44,7 +44,7 @@ export const usePublicAvailableJobs = () => {
         const { data, error } = await supabase
           .from('jobs')
           .select('title, category, rate, location')
-          .eq('status', 'active')
+          .in('status', ['searching', 'active'])
           .eq('visit_fee_paid', true)
           .is('provider_id', null)
           .order('created_at', { ascending: false })

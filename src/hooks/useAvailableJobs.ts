@@ -50,14 +50,16 @@ export const useAvailableJobs = (): UseAvailableJobsResult => {
     try {
       setLoading(true);
       
-      // Only show paid, valid, unassigned active jobs to providers
+      // Only show paid, valid, unassigned jobs in 'searching' state to providers
+      // Also check assignment_deadline hasn't expired
       const { data: jobsData, error: fetchError } = await supabase
         .from('jobs')
         .select('*')
-        .eq('status', 'active')
+        .eq('status', 'searching')
         .eq('visit_fee_paid', true)
         .is('provider_id', null)
         .not('scheduled_at', 'is', null)
+        .gte('assignment_deadline', new Date().toISOString())
         .order('created_at', { ascending: false });
 
       if (fetchError) throw fetchError;
@@ -112,18 +114,22 @@ export const useAvailableJobs = (): UseAvailableJobsResult => {
     }
 
     try {
-      // Verify job is paid before accepting
+      // Verify job is paid and in searching state before accepting
       const { data: jobToAccept } = await supabase
         .from('jobs')
-        .select('visit_fee_paid, status')
+        .select('visit_fee_paid, status, assignment_deadline')
         .eq('id', jobId)
         .single();
 
       if (!jobToAccept?.visit_fee_paid) {
         throw new Error('Este trabajo no tiene pago de visita confirmado.');
       }
-      if (jobToAccept.status !== 'active') {
+      if (jobToAccept.status !== 'searching') {
         throw new Error('Este trabajo ya no está disponible.');
+      }
+      // Check assignment window hasn't expired
+      if (jobToAccept.assignment_deadline && new Date(jobToAccept.assignment_deadline) < new Date()) {
+        throw new Error('La ventana de asignación ha expirado para este trabajo.');
       }
 
       // Update job with provider_id and change status to accepted
@@ -136,6 +142,7 @@ export const useAvailableJobs = (): UseAvailableJobsResult => {
         })
         .eq('id', jobId)
         .eq('visit_fee_paid', true)
+        .in('status', ['searching', 'active'])
         .is('provider_id', null); // Only accept if not already taken
 
       if (updateError) throw updateError;
@@ -187,7 +194,7 @@ export const useAvailableJobs = (): UseAvailableJobsResult => {
           event: '*',
           schema: 'public',
           table: 'jobs',
-          filter: 'status=eq.active'
+          filter: 'status=eq.searching'
         },
         () => {
           fetchJobs();
