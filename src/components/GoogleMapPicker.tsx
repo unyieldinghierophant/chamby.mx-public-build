@@ -802,10 +802,10 @@ export const GoogleMapPicker = ({ onLocationSelect, initialLocation, onConfirm }
           </button>
         </div>
 
-        {/* Address Card - Below map on mobile */}
-        <div className="bg-card rounded-2xl shadow-raised border border-border p-4 md:p-6 max-w-2xl mx-auto">
+        {/* Address Card & Additional Details - Below map */}
+        <div className="bg-card rounded-2xl shadow-raised border border-border p-4 md:p-6 max-w-2xl mx-auto space-y-4">
           {/* Address Display */}
-          <div className="flex items-start gap-3 mb-4">
+          <div className="flex items-start gap-3">
             <MapPin className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
             <div className="flex-1 min-w-0">
               {isGeocoding ? (
@@ -826,29 +826,33 @@ export const GoogleMapPicker = ({ onLocationSelect, initialLocation, onConfirm }
             </div>
           </div>
           
-          {/* Interior Number Input */}
-          <div className="relative">
-            <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
-            <Input
-              value={interiorNumber}
-              onChange={(e) => {
-                const value = e.target.value.slice(0, 50);
-                setInteriorNumber(value);
-                if (currentAddress) {
-                  const fullAddress = value ? `${currentAddress}, ${value}` : currentAddress;
-                  onLocationSelect(center.lat, center.lng, fullAddress);
-                }
-              }}
-              placeholder="Interior, depto, torre (opcional)"
-              className="h-11 text-sm pl-10 bg-secondary border-border"
-              maxLength={50}
-            />
+          {/* Separator */}
+          <div className="border-t border-border" />
+
+          {/* Additional Details Group */}
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-muted-foreground">
+              📍 Ayúdanos a encontrarte mejor (opcional)
+            </p>
+            <div className="relative">
+              <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+              <Input
+                value={interiorNumber}
+                onChange={(e) => {
+                  const value = e.target.value.slice(0, 50);
+                  setInteriorNumber(value);
+                  if (currentAddress) {
+                    const fullAddress = value ? `${currentAddress}, ${value}` : currentAddress;
+                    onLocationSelect(center.lat, center.lng, fullAddress);
+                  }
+                }}
+                placeholder="Interior, depto, torre, referencias..."
+                className="h-12 text-sm pl-10 bg-secondary border-border"
+                maxLength={50}
+              />
+            </div>
           </div>
         </div>
-        
-        <p className="text-sm text-muted-foreground text-center">
-          💡 Arrastra el mapa para ajustar la ubicación exacta del pin central
-        </p>
     </div>
   );
 };

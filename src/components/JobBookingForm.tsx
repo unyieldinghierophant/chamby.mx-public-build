@@ -927,8 +927,12 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
 
           {/* Step 2: Location */}
           {currentStep === 2 && (
-            <div className="space-y-8 pb-24 md:pb-0">
-              <h1 className="text-4xl font-jakarta font-medium text-foreground mb-8">¿Dónde necesitas que se haga?</h1>
+            <div className="space-y-6 pb-28 md:pb-0">
+              {/* Sticky title on mobile */}
+              <div className="sticky top-0 z-20 bg-background pt-2 pb-4 -mx-4 px-4 md:static md:mx-0 md:px-0 md:pt-0 md:pb-0">
+                <h1 className="text-3xl md:text-4xl font-jakarta font-medium text-foreground">¿Dónde necesitas que se haga?</h1>
+                <p className="text-sm text-muted-foreground mt-1">Busca tu dirección o arrastra el mapa para ubicar el pin.</p>
+              </div>
               
               <GoogleMapPicker 
                 onLocationSelect={handleMapLocationSelect}
