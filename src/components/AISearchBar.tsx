@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Loader2, Sparkles, Clock } from "lucide-react";
+import { Search, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,65 +8,25 @@ import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
-const EXAMPLE_QUERIES = [
-  "mi lavabo está goteando, necesito cambiar una batería...",
-  "necesito pintar mi sala y cocina...",
-  "tengo un enchufe que no funciona...",
-  "quiero instalar un aire acondicionado...",
-  "necesito reparar una gotera en el techo...",
-  "mi jardín necesita mantenimiento...",
+const PLACEHOLDER_EXAMPLES = [
+  "Lavar mi carro",
+  "Cortar el pasto",
+  "Destapar mi baño",
+  "Arreglar mi lavadora",
 ];
 
-const SERVICE_TAXONOMY: Record<string, string[]> = {
-  "fontanería": [
-    "fuga de agua",
-    "arreglar regadera",
-    "destapar baño",
-    "instalar boiler",
-    "cambiar llave",
-    "revisar presión de agua"
-  ],
-  "electricidad": [
-    "cambiar enchufe",
-    "instalar lámpara",
-    "revisar cortocircuito",
-    "colocar ventilador",
-    "fallas eléctricas"
-  ],
-  "pintura": [
-    "pintar casa",
-    "pintar recámara",
-    "retocar paredes",
-    "pintar exterior"
-  ],
-  "trabajos generales": [
-    "mover muebles",
-    "colgar cuadros",
-    "limpieza profunda",
-    "armar muebles",
-    "reparaciones menores"
-  ],
-  "carpintería": [
-    "reparar puerta",
-    "fabricar mueble",
-    "ajustar clóset",
-    "cambiar bisagras"
-  ],
-  "jardinería": [
-    "cortar pasto",
-    "podar árbol",
-    "limpiar jardín",
-    "instalar sistema de riego"
-  ],
-  "auto y lavado": [
-    "lavado completo",
-    "aspirado interior",
-    "encerado",
-    "cambio de batería"
-  ]
-};
+const SEARCH_SUGGESTIONS = [
+  "Lavar mi carro",
+  "Cortar el pasto",
+  "Destapar mi baño",
+  "Arreglar mi lavadora",
+  "Quitar un árbol",
+  "Instalar un ventilador",
+  "Colgar una TV",
+  "Armar muebles",
+];
 
-interface TaxonomySuggestion {
+interface FilteredSuggestion {
   serviceType: string;
   problem: string;
 }
@@ -77,7 +37,7 @@ export const AISearchBar = ({ className }: { className?: string }) => {
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [fade, setFade] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
-  const [suggestions, setSuggestions] = useState<TaxonomySuggestion[]>([]);
+  const [suggestions, setSuggestions] = useState<FilteredSuggestion[]>([]);
   const [showPopular, setShowPopular] = useState(true);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -87,7 +47,7 @@ export const AISearchBar = ({ className }: { className?: string }) => {
     const interval = setInterval(() => {
       setFade(false);
       setTimeout(() => {
-        setPlaceholderIndex((prev) => (prev + 1) % EXAMPLE_QUERIES.length);
+        setPlaceholderIndex((prev) => (prev + 1) % PLACEHOLDER_EXAMPLES.length);
         setFade(true);
       }, 300);
     }, 3000);
@@ -95,7 +55,7 @@ export const AISearchBar = ({ className }: { className?: string }) => {
     return () => clearInterval(interval);
   }, []);
 
-  // Search taxonomy for suggestions
+  // Filter suggestions based on query
   useEffect(() => {
     if (!query.trim() || query.length < 2) {
       setSuggestions([]);
@@ -105,17 +65,11 @@ export const AISearchBar = ({ className }: { className?: string }) => {
 
     setShowPopular(false);
     const normalizedQuery = query.toLowerCase().trim();
-    const matches: TaxonomySuggestion[] = [];
+    const matches = SEARCH_SUGGESTIONS
+      .filter((s) => s.toLowerCase().includes(normalizedQuery))
+      .map((s) => ({ serviceType: "", problem: s }));
 
-    Object.entries(SERVICE_TAXONOMY).forEach(([serviceType, problems]) => {
-      problems.forEach((problem) => {
-        if (problem.toLowerCase().includes(normalizedQuery)) {
-          matches.push({ serviceType, problem });
-        }
-      });
-    });
-
-    setSuggestions(matches.slice(0, 5)); // Limit to 5 suggestions
+    setSuggestions(matches.slice(0, 5));
   }, [query]);
 
   // Close dropdown when clicking outside
@@ -151,25 +105,20 @@ export const AISearchBar = ({ className }: { className?: string }) => {
 
       console.log('AI Search Response:', data);
 
-      // Handle confidence levels
       if (data.confidence < 50) {
-        // Low confidence - show warning but still proceed
         toast.info("Búsqueda imprecisa - revisa los detalles", {
           description: `Detectamos: ${data.keywords_detected?.join(', ') || 'consulta general'}`
         });
       } else if (data.confidence < 70) {
-        // Medium confidence - subtle feedback
         toast.success("Búsqueda encontrada", {
           description: `${data.service} en ${data.category}`
         });
       } else {
-        // High confidence - positive feedback
         toast.success("¡Servicio encontrado!", {
           description: `${data.service} - ${data.category}`
         });
       }
 
-      // Navigate to book-job with the AI-interpreted service details
       navigate("/book-job", {
         state: {
           category: data.category,
@@ -181,8 +130,6 @@ export const AISearchBar = ({ className }: { className?: string }) => {
       });
     } catch (error) {
       console.error("Error searching:", error);
-      
-      // Better error messages
       const errorMessage = error instanceof Error ? error.message : "Error desconocido";
       
       if (errorMessage.includes("clasificar")) {
@@ -199,14 +146,9 @@ export const AISearchBar = ({ className }: { className?: string }) => {
     }
   };
 
-  const handleCategoryClick = (category: string) => {
-    setQuery(category);
-    handleSearch(undefined, category);
-  };
-
-  const handleSuggestionClick = (suggestion: TaxonomySuggestion) => {
-    setQuery(suggestion.problem);
-    handleSearch(undefined, suggestion.problem);
+  const handleSuggestionClick = (text: string) => {
+    setQuery(text);
+    handleSearch(undefined, text);
   };
 
   return (
@@ -246,59 +188,53 @@ export const AISearchBar = ({ className }: { className?: string }) => {
             </Button>
           </div>
 
-          {/* Dropdown */}
+          {/* Dropdown — search suggestions */}
           {isOpen && !isLoading && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-card rounded-2xl shadow-floating border border-border max-h-80 overflow-y-auto z-50 animate-fade-in">
-              {showPopular && (
-                <div className="p-3 sm:p-4">
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                    Categorías Populares
-                  </h3>
-                  <div className="space-y-0.5">
-                    {Object.keys(SERVICE_TAXONOMY).map((category) => (
-                      <button
-                        key={category}
-                        onClick={() => handleCategoryClick(category)}
-                        className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-accent text-foreground transition-colors capitalize text-sm sm:text-base flex items-center gap-3"
-                      >
-                        <Clock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                        {category}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {!showPopular && (
-                <div className="p-2">
-                  {suggestions.length > 0 ? (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-card rounded-2xl shadow-floating border border-border max-h-80 overflow-y-auto z-[100] animate-fade-in">
+              <div className="p-3 sm:p-4">
+                {showPopular ? (
+                  <>
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                      Sugerencias
+                    </h3>
                     <div className="space-y-0.5">
-                      {suggestions.map((suggestion, index) => (
+                      {SEARCH_SUGGESTIONS.map((suggestion) => (
                         <button
-                          key={`${suggestion.serviceType}-${suggestion.problem}-${index}`}
+                          key={suggestion}
                           onClick={() => handleSuggestionClick(suggestion)}
-                          className="w-full text-left p-3 rounded-xl hover:bg-accent transition-colors"
+                          className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-accent text-foreground transition-colors text-sm sm:text-base flex items-center gap-3"
                         >
-                          <div className="font-medium text-foreground text-sm sm:text-base capitalize">{suggestion.problem}</div>
-                          <div className="text-xs text-muted-foreground mt-0.5 capitalize">{suggestion.serviceType}</div>
+                          <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                          {suggestion}
                         </button>
                       ))}
                     </div>
-                  ) : (
-                    <div className="p-4 text-center text-muted-foreground">
-                      <div className="mb-2 text-sm">
-                        No se encontraron coincidencias
-                      </div>
-                      <button 
-                        onClick={() => handleSearch()}
-                        className="text-primary hover:text-primary/80 font-medium text-sm"
+                  </>
+                ) : suggestions.length > 0 ? (
+                  <div className="space-y-0.5">
+                    {suggestions.map((s, i) => (
+                      <button
+                        key={`${s.problem}-${i}`}
+                        onClick={() => handleSuggestionClick(s.problem)}
+                        className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-accent text-foreground transition-colors text-sm sm:text-base flex items-center gap-3"
                       >
-                        Buscar "{query}" con IA →
+                        <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                        {s.problem}
                       </button>
-                    </div>
-                  )}
-                </div>
-              )}
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-3 text-center text-muted-foreground">
+                    <div className="mb-2 text-sm">No se encontraron coincidencias</div>
+                    <button
+                      onClick={() => handleSearch()}
+                      className="text-primary hover:text-primary/80 font-medium text-sm"
+                    >
+                      Buscar "{query}" con IA →
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
