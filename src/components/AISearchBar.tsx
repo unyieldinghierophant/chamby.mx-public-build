@@ -213,66 +213,55 @@ export const AISearchBar = ({ className }: { className?: string }) => {
     <div ref={searchRef} className={className || "w-full max-w-none mx-auto"}>
       <form onSubmit={handleSearch}>
         <div className="relative">
-          {/* Pill-shaped container with border */}
-          <div className="relative flex items-center h-12 sm:h-14 md:h-16 bg-background border border-border rounded-full overflow-hidden shadow-sm">
-            {/* Search icon on left */}
-            <div className="absolute left-4 sm:left-5 flex items-center">
-              <Search className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground" />
+          {/* Pill-shaped search bar — soft glow, high radius */}
+          <div className="relative flex items-center h-14 sm:h-16 bg-white dark:bg-card rounded-full shadow-[0_4px_24px_-4px_hsl(214_80%_41%/0.18)] ring-1 ring-black/[0.04] dark:ring-white/10 transition-shadow focus-within:shadow-[0_6px_32px_-4px_hsl(214_80%_41%/0.28)] focus-within:ring-primary/30">
+            {/* Search icon */}
+            <div className="absolute left-4 sm:left-5 flex items-center pointer-events-none">
+              <Search className="w-5 h-5 text-muted-foreground" />
             </div>
 
-            {/* Input field */}
+            {/* Input */}
             <Input
               type="text"
-              placeholder={
-                isMobile 
-                  ? EXAMPLE_QUERIES[placeholderIndex].substring(0, 30) + "..." 
-                  : EXAMPLE_QUERIES[placeholderIndex]
-              }
+              placeholder="Buscar servicio…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onFocus={() => setIsOpen(true)}
               disabled={isLoading}
-              className={cn(
-                "h-full w-full pl-11 sm:pl-14 pr-16 sm:pr-24 text-base sm:text-lg border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0",
-                fade ? "placeholder:opacity-100" : "placeholder:opacity-0",
-                "placeholder:transition-opacity placeholder:duration-300"
-              )}
+              className="h-full w-full pl-12 sm:pl-14 pr-16 sm:pr-20 text-base sm:text-lg border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 rounded-full placeholder:text-muted-foreground/60"
               style={{ fontSize: '16px', lineHeight: 'normal', WebkitAppearance: 'none', transform: 'none' }}
             />
 
-            {/* Submit button - integrated on right */}
+            {/* Action button — circle inside the pill */}
             <Button
               type="submit"
               disabled={isLoading}
-              className="absolute right-0 top-0 h-full rounded-l-none rounded-r-full bg-primary hover:bg-primary/90 text-primary-foreground px-5 sm:px-8"
+              className="absolute right-2 h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground p-0 shadow-md hover:shadow-lg transition-all hover:scale-105 active:scale-95"
             >
               {isLoading ? (
-                <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" />
+                <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
-                <Search className="w-5 h-5 sm:w-6 sm:h-6" />
+                <Search className="w-5 h-5" />
               )}
             </Button>
           </div>
 
-          {/* Autofill Dropdown - Positioned directly under input */}
+          {/* Dropdown */}
           {isOpen && !isLoading && (
-            <div className="absolute top-full left-0 right-0 mt-0.5 bg-card/95 backdrop-blur-sm rounded-2xl rounded-t-lg shadow-xl border border-white/20 border-t-white/10 max-h-80 overflow-y-auto z-50 animate-fade-in">
+            <div className="absolute top-full left-0 right-0 mt-2 bg-card rounded-2xl shadow-floating border border-border max-h-80 overflow-y-auto z-50 animate-fade-in">
               {showPopular && (
                 <div className="p-3 sm:p-4">
-                  <h3 className="text-sm sm:text-base font-medium text-foreground mb-3">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
                     Categorías Populares
                   </h3>
-                  <div className="space-y-1">
+                  <div className="space-y-0.5">
                     {Object.keys(SERVICE_TAXONOMY).map((category) => (
                       <button
                         key={category}
                         onClick={() => handleCategoryClick(category)}
-                        className={cn(
-                          "w-full text-left px-3 py-2 sm:py-2.5 rounded-md hover:bg-accent text-foreground transition-colors capitalize text-sm sm:text-base",
-                          "flex items-center gap-2"
-                        )}
+                        className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-accent text-foreground transition-colors capitalize text-sm sm:text-base flex items-center gap-3"
                       >
-                        <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground" />
+                        <Clock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                         {category}
                       </button>
                     ))}
@@ -283,23 +272,21 @@ export const AISearchBar = ({ className }: { className?: string }) => {
               {!showPopular && (
                 <div className="p-2">
                   {suggestions.length > 0 ? (
-                    <div className="space-y-1">
+                    <div className="space-y-0.5">
                       {suggestions.map((suggestion, index) => (
                         <button
                           key={`${suggestion.serviceType}-${suggestion.problem}-${index}`}
                           onClick={() => handleSuggestionClick(suggestion)}
-                          className={cn(
-                            "w-full text-left p-2.5 sm:p-3 rounded-md hover:bg-accent transition-colors text-sm sm:text-base"
-                          )}
+                          className="w-full text-left p-3 rounded-xl hover:bg-accent transition-colors"
                         >
-                          <div className="font-medium text-foreground capitalize">{suggestion.problem}</div>
-                          <div className="text-xs sm:text-sm text-muted-foreground mt-1 capitalize">{suggestion.serviceType}</div>
+                          <div className="font-medium text-foreground text-sm sm:text-base capitalize">{suggestion.problem}</div>
+                          <div className="text-xs text-muted-foreground mt-0.5 capitalize">{suggestion.serviceType}</div>
                         </button>
                       ))}
                     </div>
                   ) : (
                     <div className="p-4 text-center text-muted-foreground">
-                      <div className="mb-2 text-sm sm:text-base">
+                      <div className="mb-2 text-sm">
                         No se encontraron coincidencias
                       </div>
                       <button 
@@ -315,10 +302,7 @@ export const AISearchBar = ({ className }: { className?: string }) => {
             </div>
           )}
         </div>
-
       </form>
-
-      {/* Autofill Dropdown - Now removed from here */}
     </div>
   );
 };
