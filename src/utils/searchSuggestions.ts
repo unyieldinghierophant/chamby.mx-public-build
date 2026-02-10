@@ -82,6 +82,16 @@ const SUGGESTIONS: TaggedSuggestion[] = [
   { text: "Lavado de muebles", category: "limpieza" },
   { text: "Lavado de cortinas", category: "limpieza" },
   { text: "Limpiar cochera", category: "limpieza" },
+  { text: "Quitar basura", category: "limpieza" },
+  { text: "Retiro de basura", category: "limpieza" },
+  { text: "Llevarse basura", category: "limpieza" },
+  { text: "Sacar basura", category: "limpieza" },
+  { text: "Sacar escombro", category: "limpieza" },
+  { text: "Retiro de escombro", category: "limpieza" },
+  { text: "Sacar plantas", category: "limpieza" },
+  { text: "Sacar llantas", category: "limpieza" },
+  { text: "Sacar chatarra", category: "limpieza" },
+  { text: "Retiro de chatarra", category: "limpieza" },
 
   // ── Handyman ──
   { text: "Colgar una TV", category: "handyman" },
