@@ -1,5 +1,6 @@
 import { JobBookingForm } from "@/components/JobBookingForm";
 import { HandymanBookingFlow } from "@/components/handyman/HandymanBookingFlow";
+import { GardeningBookingFlow } from "@/components/gardening/GardeningBookingFlow";
 import { X } from "lucide-react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import logo from "@/assets/chamby-logo-new-horizontal.png";
@@ -20,9 +21,10 @@ const BookJob = () => {
   const serviceParam = searchParams.get('service');
   const descriptionParam = searchParams.get('description');
   
-  // Determine if this is a Handyman category flow
+  // Determine category-specific flow
   const category = prefillData?.category;
   const isHandyman = category?.toLowerCase() === 'handyman';
+  const isGardening = category?.toLowerCase() === 'jardinería';
   
   return (
     <>
@@ -39,6 +41,8 @@ const BookJob = () => {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-background to-blue-50/30 dark:from-blue-950/20 dark:via-background dark:to-blue-950/10 pt-24 pb-12 px-4 md:px-8">
         {isHandyman ? (
           <HandymanBookingFlow />
+        ) : isGardening ? (
+          <GardeningBookingFlow />
         ) : (
           <JobBookingForm 
             initialService={serviceParam || prefillData?.service} 
