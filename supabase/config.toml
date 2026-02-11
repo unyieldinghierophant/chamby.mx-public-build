@@ -89,3 +89,6 @@ verify_jwt = true
 
 [functions.notify-provider-assigned]
 verify_jwt = false
+
+[functions.send-signup-confirmation]
+verify_jwt = false
