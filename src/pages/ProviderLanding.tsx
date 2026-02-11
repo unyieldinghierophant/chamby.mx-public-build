@@ -72,21 +72,21 @@ const ProviderLanding = () => {
       if (role === 'provider') {
         navigate('/provider-portal');
       } else {
-        navigate('/auth/provider');
+        navigate('/provider/onboarding');
       }
     } else {
       // Usuario no logueado - llevar a registro con tab de signup
-      navigate('/auth/provider?tab=signup');
+      navigate('/provider/onboarding?tab=signup');
     }
   };
 
   const handleListServices = () => {
     if (!user) {
       // No logueado - llevar a registro
-      navigate('/auth/provider?tab=signup');
+      navigate('/provider/onboarding?tab=signup');
     } else if (role !== 'provider') {
       // Logueado pero no es proveedor - llevar a auth
-      navigate('/auth/provider');
+      navigate('/provider/onboarding');
     } else if (!isVerified) {
       // Es provider pero no verificado - llevar a verificación
       navigate('/provider-verification');

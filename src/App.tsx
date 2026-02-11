@@ -150,6 +150,8 @@ const App = () => {
               <Route path={ROUTES.PROVIDER_LOGIN} element={<ProviderLogin />} />
               <Route path={ROUTES.USER_AUTH} element={<UserOnboardingWizard />} />
               <Route path={ROUTES.PROVIDER_AUTH} element={<ProviderOnboardingWizard />} />
+              {/* Redirect legacy auth/provider route to canonical /provider/onboarding */}
+              <Route path="/auth/provider" element={<Navigate to={ROUTES.PROVIDER_AUTH} replace />} />
               
               <Route path={ROUTES.CHOOSE_ROLE} element={<RoleSelection />} />
               <Route path={ROUTES.AUTH_CALLBACK} element={<AuthCallback />} />
@@ -200,7 +202,7 @@ const App = () => {
                 <Route path="reschedule/:id" element={<RescheduleRequest />} />
               </Route>
               <Route path={ROUTES.PROVIDER_SKILLS_SELECTION} element={<ProtectedRoute requireProvider><ProviderSkillsSelection /></ProtectedRoute>} />
-              {/* Redirect old onboarding routes to canonical /auth/provider */}
+              {/* Redirect old onboarding routes to canonical /provider/onboarding */}
               <Route path="/provider-portal/onboarding" element={<Navigate to={ROUTES.PROVIDER_AUTH} replace />} />
               <Route path="/provider-onboarding" element={<Navigate to={ROUTES.PROVIDER_AUTH} replace />} />
               <Route

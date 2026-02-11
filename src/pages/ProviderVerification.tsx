@@ -177,7 +177,7 @@ const ProviderVerification = () => {
                   </Button>
                 </Link>
               ) : (profile?.verification_status === 'pending' || profile?.verification_status === 'rejected') && (
-                <Link to="/auth/provider">
+                <Link to="/provider/onboarding">
                   <Button className="w-full">
                     <Upload className="w-4 h-4 mr-2" />
                     {profile?.verification_status === 'rejected' ? 'Actualizar Documentos' : 'Completar Verificación'}
