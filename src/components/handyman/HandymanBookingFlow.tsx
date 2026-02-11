@@ -69,7 +69,30 @@ const handymanSuggestions = [
 
 const TOTAL_STEPS = 7;
 
-export const HandymanBookingFlow = () => {
+// ---- Keyword → WorkType mapping ----
+const WORK_TYPE_KEYWORDS: Record<WorkType, string[]> = {
+  armado: ["armar", "ensamblar", "montar", "mueble", "muebles", "cama", "escritorio", "librero", "estante", "gabinete"],
+  reparacion: ["reparar", "arreglar", "componer", "ajustar", "bisagra", "manija", "puerta", "ventana", "cajón", "cajones", "silla"],
+  instalacion: ["instalar", "colgar", "colocar", "poner", "cortina", "persiana", "repisa", "espejo", "cuadro", "tv", "televisión", "barra", "mosquitero", "gancho"],
+  ajuste: ["ajustar", "manteni", "calibrar", "chapa", "cerradura"],
+};
+
+function detectWorkType(text: string): WorkType | null {
+  const normalized = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  let best: WorkType | null = null;
+  let bestCount = 0;
+  for (const [type, keywords] of Object.entries(WORK_TYPE_KEYWORDS) as [WorkType, string[]][]) {
+    const count = keywords.filter(k => normalized.includes(k)).length;
+    if (count > bestCount) { best = type; bestCount = count; }
+  }
+  return best;
+}
+
+interface HandymanBookingFlowProps {
+  intentText?: string;
+}
+
+export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -118,6 +141,18 @@ export const HandymanBookingFlow = () => {
     }
     setIsLoading(false);
   }, []);
+
+  // Pre-fill from search intent
+  useEffect(() => {
+    if (intentText && intentText.trim().length > 0 && !formData.description) {
+      const detectedType = detectWorkType(intentText);
+      setFormData(prev => ({
+        ...prev,
+        description: prev.description || intentText,
+        workType: prev.workType || detectedType,
+      }));
+    }
+  }, [intentText]);
 
   // Auto-save
   useEffect(() => {
