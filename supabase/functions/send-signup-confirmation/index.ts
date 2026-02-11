@@ -76,19 +76,13 @@ serve(async (req) => {
       })
     );
 
-    const confirmationUrl = `${supabaseUrl}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(redirect_to)}`;
-
     const textContent = `¡Bienvenido a Chamby!
 
 Gracias por registrarte en Chamby, tu plataforma de confianza para conectar con profesionales verificados.
 
-Para completar tu registro y comenzar a disfrutar de nuestros servicios, confirma tu correo electrónico haciendo clic en el siguiente enlace:
+Para completar tu registro, usa este código de verificación: ${token}
 
-${confirmationUrl}
-
-O copia y pega este código de confirmación: ${token}
-
-Este enlace y código son válidos por 24 horas.
+Este código es válido por 24 horas.
 
 Si no solicitaste esta cuenta, puedes ignorar este correo de forma segura.
 
