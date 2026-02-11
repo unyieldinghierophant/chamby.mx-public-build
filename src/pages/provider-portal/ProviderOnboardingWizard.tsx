@@ -1265,13 +1265,13 @@ export default function ProviderOnboardingWizard() {
         )}
 
         <p className="text-center text-sm text-muted-foreground pt-2">
-          ¿Buscas servicios?{' '}
+          ¿Ya tienes cuenta?{' '}
           <button
             type="button"
-            onClick={() => navigate(ROUTES.USER_AUTH)}
+            onClick={() => navigate(ROUTES.PROVIDER_LOGIN)}
             className="text-primary hover:underline font-medium"
           >
-            Regístrate como cliente
+            Inicia sesión
           </button>
         </p>
       </div>
