@@ -24,7 +24,8 @@ serve(async (req) => {
     if (!stripeKey) {
       throw new Error("STRIPE_SECRET_KEY not configured");
     }
-    logStep("🔴 Using Stripe LIVE mode");
+    const isTestMode = stripeKey.startsWith("sk_test_");
+    logStep(isTestMode ? "🟡 Using Stripe TEST mode" : "🔴 Using Stripe LIVE mode");
 
     // Use service role key to update users table
     const supabaseClient = createClient(
@@ -122,10 +123,23 @@ serve(async (req) => {
 
     let stripeCustomerId = userRecord?.stripe_customer_id;
 
+    // Validate existing customer ID works with current Stripe mode
+    if (stripeCustomerId) {
+      try {
+        await stripe.customers.retrieve(stripeCustomerId);
+        logStep("Verified existing Stripe customer", { customerId: stripeCustomerId });
+      } catch (custErr: any) {
+        logStep("Stored customer ID invalid in current mode, will create new one", { 
+          oldId: stripeCustomerId, 
+          error: custErr.message 
+        });
+        stripeCustomerId = null; // Force re-creation
+      }
+    }
+
     if (!stripeCustomerId) {
-      logStep("No Stripe customer ID found, checking Stripe by email");
+      logStep("No valid Stripe customer, checking by email");
       
-      // Check if customer exists in Stripe by email
       const customerEmail = userRecord?.email || user.email;
       if (customerEmail) {
         const existingCustomers = await stripe.customers.list({ 
@@ -139,34 +153,28 @@ serve(async (req) => {
         }
       }
 
-      // If still no customer, create one
       if (!stripeCustomerId) {
         logStep("Creating new Stripe customer");
         const newCustomer = await stripe.customers.create({
           email: customerEmail || undefined,
           name: userRecord?.full_name || undefined,
-          metadata: {
-            supabase_user_id: user.id
-          }
+          metadata: { supabase_user_id: user.id }
         });
         stripeCustomerId = newCustomer.id;
         logStep("Created new Stripe customer", { customerId: stripeCustomerId });
       }
 
-      // Save customer ID to users table
+      // Save new customer ID
       const { error: updateError } = await supabaseClient
         .from("users")
         .update({ stripe_customer_id: stripeCustomerId })
         .eq("id", user.id);
 
       if (updateError) {
-        logStep("Warning: Failed to save stripe_customer_id to users table", { error: updateError.message });
-        // Don't throw - continue with the payment intent creation
+        logStep("Warning: Failed to save stripe_customer_id", { error: updateError.message });
       } else {
         logStep("Saved stripe_customer_id to users table");
       }
-    } else {
-      logStep("Using existing Stripe customer", { customerId: stripeCustomerId });
     }
 
     // Step 2: Create PaymentIntent with manual capture
