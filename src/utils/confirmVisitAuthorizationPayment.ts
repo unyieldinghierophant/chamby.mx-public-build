@@ -1,16 +1,7 @@
-import { loadStripe, Stripe, StripeError } from "@stripe/stripe-js";
+import { StripeError } from "@stripe/stripe-js";
+import { stripePromise } from "@/lib/stripe";
 
-// Stripe publishable key for Chamby (LIVE mode)
-const STRIPE_PUBLISHABLE_KEY = "pk_test_51S97FmEZPwoUz41xz8Cg1rUooVh7FS9TvfeXUfvFgPjhAE2gklqVF0kdpZdvByo3XVf76aTfcmHkH39fOQX9yVnQ00801XKEJu";
-
-let stripePromise: Promise<Stripe | null> | null = null;
-
-const getStripe = () => {
-  if (!stripePromise) {
-    stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
-  }
-  return stripePromise;
-};
+const getStripe = () => stripePromise;
 
 export interface VisitAuthorizationResult {
   success: boolean;
