@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { loadStripe } from "@stripe/stripe-js";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ModernButton } from "@/components/ui/modern-button";
@@ -25,10 +24,7 @@ import { useVisitAuthorization } from "@/hooks/useVisitAuthorization";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
-// Stripe publishable key for Chamby (LIVE mode)
-const STRIPE_PUBLISHABLE_KEY = "pk_live_51S97FmEZPwoUz41xy5reckT8yeYIP9xrJp1PRzJfarAIt5W57Y3ezZH09REHJNIbNK1oSvb8aHbdMEOad8ZraLq800FTBvPswi";
-
-const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
+import { stripePromise } from "@/lib/stripe";
 
 // Payment form component
 const VisitPaymentForm = ({ 
