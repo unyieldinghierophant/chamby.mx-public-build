@@ -146,7 +146,7 @@ const ProviderVerification = () => {
             <Button 
               className="mt-3" 
               size="sm"
-              onClick={() => navigate('/provider-onboarding')}
+              onClick={() => navigate('/auth/provider')}
             >
               Actualizar Documentos
             </Button>
