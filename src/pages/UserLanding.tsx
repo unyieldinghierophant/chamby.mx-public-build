@@ -18,7 +18,7 @@ import {
   AccordionTrigger 
 } from "@/components/ui/accordion";
 import { ROUTES } from "@/constants/routes";
-import { HeroSearchBar } from "@/components/HeroSearchBar";
+import { AISearchBar } from "@/components/AISearchBar";
 import logo from "@/assets/chamby-logo-new-horizontal.png";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -273,7 +273,7 @@ const UserLanding = () => {
             </p>
             {/* Interactive Search Bar with Rotating Gradient */}
             <div className="w-full max-w-xl mx-auto px-4 relative z-20">
-              <HeroSearchBar />
+              <AISearchBar className="w-full" />
             </div>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 text-sm text-white/90">
               <div className="flex items-center space-x-2">
