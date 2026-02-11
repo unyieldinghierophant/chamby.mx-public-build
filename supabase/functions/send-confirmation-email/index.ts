@@ -24,9 +24,20 @@ serve(async (req) => {
 
   try {
     const payload = await req.text();
-    const headers = Object.fromEntries(req.headers);
     
     console.log("Received webhook request");
+
+    // Build headers object manually to ensure all webhook headers are captured
+    const headers: Record<string, string> = {};
+    req.headers.forEach((value, key) => {
+      headers[key] = value;
+    });
+
+    // Log webhook-related headers for debugging (names only, not values)
+    const webhookHeaderKeys = Object.keys(headers).filter(k => 
+      k.startsWith('webhook-') || k.startsWith('svix-')
+    );
+    console.log("Webhook headers found:", webhookHeaderKeys.join(", ") || "NONE");
 
     // Verify webhook signature if secret is configured
     if (hookSecret) {
@@ -36,6 +47,8 @@ serve(async (req) => {
         console.log("Webhook signature verified");
       } catch (err) {
         console.error("Webhook verification failed:", err);
+        // Log available headers to help debug
+        console.error("Available header keys:", Object.keys(headers).join(", "));
         return new Response(
           JSON.stringify({ error: "Invalid webhook signature" }),
           { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
