@@ -1,7 +1,7 @@
 import { loadStripe, Stripe, StripeError } from "@stripe/stripe-js";
 
 // Stripe publishable key for Chamby (LIVE mode)
-const STRIPE_PUBLISHABLE_KEY = "pk_live_51S97FmEZPwoUz41xy5reckT8yeYIP9xrJp1PRzJfarAIt5W57Y3ezZH09REHJNIbNK1oSvb8aHbdMEOad8ZraLq800FTBvPswi";
+const STRIPE_PUBLISHABLE_KEY = "pk_test_51S97FmEZPwoUz41xz8Cg1rUooVh7FS9TvfeXUfvFgPjhAE2gklqVF0kdpZdvByo3XVf76aTfcmHkH39fOQX9yVnQ00801XKEJu";
 
 let stripePromise: Promise<Stripe | null> | null = null;
 
