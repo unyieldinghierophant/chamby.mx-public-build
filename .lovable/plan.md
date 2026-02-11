@@ -1,58 +1,55 @@
 
 
-# Fix: Stripe Key Mismatch (Live vs Test Mode)
+# Fix: Handyman Search Intent Not Passed Through
 
-## Problem Identified
+## Problem
 
-The payment is failing because of a **key mode mismatch**:
+When a user searches "armar muebles" from the landing page, the system correctly routes them to the Handyman booking flow. However, the search text is never passed to `HandymanBookingFlow` -- unlike `ElectricalBookingFlow` which already receives an `intentText` prop. As a result:
 
-- **Backend** (edge function `create-visit-authorization`): Uses `STRIPE_SECRET_KEY` which is a **test** key (`sk_test_...`). The PaymentIntent is created successfully in test mode.
-- **Frontend** (`VisitFeePaymentPage.tsx` and `VisitFeeAuthorizationSection.tsx`): Uses a **hardcoded live publishable key** (`pk_live_...`).
+- The description field starts empty
+- The suggestion dropdown shows "Colgar una TV" as the first option
+- The user's original search intent is lost
 
-When the frontend tries to confirm a test-mode PaymentIntent using a live-mode publishable key, Stripe rejects it because the keys belong to different environments.
+## Root Cause
 
-## Files to Fix
+In `BookJob.tsx` (line 58), `HandymanBookingFlow` is rendered without any props:
+```
+<HandymanBookingFlow />
+```
 
-Three files have hardcoded Stripe publishable keys:
-
-| File | Current Key | Needs Change |
-|------|------------|--------------|
-| `src/pages/VisitFeePaymentPage.tsx` (line 29) | `pk_live_...` | Yes - change to `pk_test_...` |
-| `src/components/payments/VisitFeeAuthorizationSection.tsx` (line 12) | `pk_live_...` | Yes - change to `pk_test_...` |
-| `src/utils/confirmVisitAuthorizationPayment.ts` (line 4) | `pk_test_...` | Already correct |
+While `ElectricalBookingFlow` (line 64) already receives the intent:
+```
+<ElectricalBookingFlow intentText={...} />
+```
 
 ## Plan
 
-### Step 1: Centralize the Stripe publishable key
+### Step 1: Add `intentText` prop to HandymanBookingFlow
 
-Create a single shared constant so the key only needs to be updated in one place when switching between test and live modes.
+- Accept an optional `intentText` string prop
+- On mount, if `intentText` is provided and the description is empty, pre-fill the description field with it
+- Auto-detect `workType` from keywords (e.g., "armar" selects "armado", "reparar" selects "reparacion", "instalar" selects "instalacion")
 
-- Create `src/lib/stripe.ts` with:
-  - The publishable key constant (set to `pk_test_...` for now)
-  - A shared `stripePromise` using `loadStripe`
-  - A comment explaining how to switch modes
+### Step 2: Pass intentText from BookJob.tsx
 
-### Step 2: Update all three files to import from the shared module
-
-- `src/pages/VisitFeePaymentPage.tsx` -- remove local key + `loadStripe`, import from `src/lib/stripe.ts`
-- `src/components/payments/VisitFeeAuthorizationSection.tsx` -- same
-- `src/utils/confirmVisitAuthorizationPayment.ts` -- same
-
-### Step 3: Deploy and verify
-
-- No edge function changes needed (backend is already correct in test mode)
-- Test the payment flow end-to-end
-
-## Technical Details
-
-The centralized module (`src/lib/stripe.ts`) will look like:
-
-```text
-// Current mode: TEST
-const STRIPE_PUBLISHABLE_KEY = "pk_test_51S97Fm...";
-export const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
-export { STRIPE_PUBLISHABLE_KEY };
+Update the HandymanBookingFlow rendering in `BookJob.tsx` to pass the same intent text that Electrical already receives:
+```
+<HandymanBookingFlow intentText={prefillData?.description || prefillData?.service || descriptionParam || serviceParam || ''} />
 ```
 
-This prevents future mode mismatches by having a single source of truth for the Stripe publishable key across the entire frontend.
+### Keyword-to-WorkType Mapping
+
+| Keywords | WorkType |
+|----------|----------|
+| armar, ensamblar, montar, mueble | armado |
+| reparar, arreglar, componer, ajustar, bisagra | reparacion |
+| instalar, colgar, montar tv, colocar, poner | instalacion |
+| ajustar, manteni, calibrar | ajuste |
+
+### Files Changed
+
+| File | Change |
+|------|--------|
+| `src/pages/BookJob.tsx` | Pass `intentText` prop to HandymanBookingFlow |
+| `src/components/handyman/HandymanBookingFlow.tsx` | Accept `intentText` prop, pre-fill description, auto-select workType |
 
