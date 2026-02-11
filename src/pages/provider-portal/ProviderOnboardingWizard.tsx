@@ -217,10 +217,21 @@ export default function ProviderOnboardingWizard() {
   const [onboardingComplete, setOnboardingComplete] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(false);
 
+  // Reset onboarding check when user changes (new session after email verification)
+  const lastCheckedUserId = useRef<string | null>(null);
+  
+  useEffect(() => {
+    if (user && lastCheckedUserId.current !== user.id) {
+      hasCheckedOnboarding.current = false;
+      lastCheckedUserId.current = user.id;
+    }
+  }, [user]);
+
   useEffect(() => {
     if (user) {
       // Skip if we've already checked onboarding status for this user session
-      if (hasCheckedOnboarding.current) {
+      // BUT always re-check if we're on the auth step (step 2) to ensure advancement
+      if (hasCheckedOnboarding.current && currentStep !== 2) {
         return;
       }
       
@@ -261,8 +272,7 @@ export default function ProviderOnboardingWizard() {
         // Mark that we've checked onboarding - don't run this again
         hasCheckedOnboarding.current = true;
         
-        // User needs to complete onboarding - only set step 3 if currently at step 2 (auth step)
-        // This prevents resetting the step when user is already further along
+        // User needs to complete onboarding - advance past auth step
         if (currentStep <= 2) {
           setCurrentStep(3);
         }
@@ -313,6 +323,7 @@ export default function ProviderOnboardingWizard() {
   const [verificationEmail, setVerificationEmail] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [verifyingCode, setVerifyingCode] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   const handleSignup = async () => {
     setSignupErrors({});
@@ -351,9 +362,24 @@ export default function ProviderOnboardingWizard() {
       if (error.message.toLowerCase().includes('weak') || error.message.toLowerCase().includes('password') || error.message.toLowerCase().includes('easy to guess')) {
         errorMessage = 'Elige una contraseña más única. Prueba añadir números, mayúsculas o símbolos.';
         errorField = 'password';
-      } else if (error.message.includes('already registered') || error.message.includes('already exists')) {
-        errorMessage = 'Este email ya está registrado. Intenta iniciar sesión.';
+      } else if (error.message.includes('already registered') || error.message.includes('already exists') || error.message.includes('User already registered')) {
+        errorMessage = 'Este correo ya tiene cuenta.';
         errorField = 'email';
+        // Show inline actions for existing email
+        toast.error('Este correo ya está registrado', {
+          description: 'Puedes iniciar sesión o reenviar el código de verificación.',
+          duration: 8000,
+          action: {
+            label: 'Iniciar sesión',
+            onClick: () => {
+              setAuthMode('login');
+              setLoginData({ email: signupData.email, password: '' });
+            }
+          }
+        });
+        setSignupErrors({ [errorField]: errorMessage });
+        setSaving(false);
+        return;
       }
       
       toast.error('Error en el registro', { description: errorMessage });
@@ -451,7 +477,21 @@ export default function ProviderOnboardingWizard() {
     setSaving(false);
   };
 
+  const startResendCooldown = useCallback(() => {
+    setResendCooldown(60);
+    const interval = setInterval(() => {
+      setResendCooldown(prev => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
+
   const handleResendVerification = async (email: string) => {
+    if (resendCooldown > 0) return;
     setSaving(true);
     const { error } = await supabase.auth.resend({
       type: 'signup',
@@ -467,6 +507,7 @@ export default function ProviderOnboardingWizard() {
       toast.success('Correo reenviado', {
         description: 'Revisa tu bandeja de entrada'
       });
+      startResendCooldown();
     }
     setSaving(false);
   };
@@ -925,7 +966,37 @@ export default function ProviderOnboardingWizard() {
                 )}
               />
               {signupErrors.email && (
-                <p className="text-destructive text-sm">{signupErrors.email}</p>
+                <div className="space-y-1.5">
+                  <p className="text-destructive text-sm">{signupErrors.email}</p>
+                  {signupErrors.email.includes('ya tiene cuenta') && (
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAuthMode('login');
+                          setLoginData({ email: signupData.email, password: '' });
+                          setSignupErrors({});
+                        }}
+                        className="text-sm text-primary font-medium hover:underline"
+                      >
+                        Iniciar sesión
+                      </button>
+                      <span className="text-muted-foreground text-sm">·</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setVerificationEmail(signupData.email);
+                          handleResendVerification(signupData.email);
+                          setShowVerificationPending(true);
+                          setSignupErrors({});
+                        }}
+                        className="text-sm text-primary font-medium hover:underline"
+                      >
+                        Reenviar código
+                      </button>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
 
@@ -1449,7 +1520,7 @@ export default function ProviderOnboardingWizard() {
         {showVerificationPending && (
           <div className="fixed inset-0 bg-background/95 flex items-center justify-center z-50 p-4">
             <Card className="w-full max-w-md shadow-floating border-2">
-              <div className="p-8 text-center space-y-6">
+              <div className="p-6 sm:p-8 text-center space-y-5">
                 <div className="mx-auto w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
                   <Mail className="w-10 h-10 text-primary" />
                 </div>
@@ -1459,6 +1530,16 @@ export default function ProviderOnboardingWizard() {
                     Te enviamos un enlace a{' '}
                     <span className="font-semibold text-foreground">{verificationEmail}</span>
                   </p>
+                </div>
+
+                {/* Help microcopy */}
+                <div className="bg-accent/20 border border-accent rounded-lg p-3 text-left text-sm space-y-1">
+                  <p className="font-medium text-foreground">💡 ¿No lo ves?</p>
+                  <ul className="text-muted-foreground space-y-0.5 list-disc list-inside">
+                    <li>Revisa tu carpeta de <strong>spam</strong> o <strong>promociones</strong></li>
+                    <li>Verifica que el email sea correcto</li>
+                    <li>Espera unos minutos, a veces tarda</li>
+                  </ul>
                 </div>
                 
                 <div className="space-y-3 pt-2 border-t">
@@ -1484,26 +1565,54 @@ export default function ProviderOnboardingWizard() {
                     onClick={() => handleResendVerification(verificationEmail)}
                     variant="outline"
                     className="w-full"
-                    disabled={saving}
+                    disabled={saving || resendCooldown > 0}
                   >
-                    Reenviar correo
+                    {resendCooldown > 0 
+                      ? `Reenviar en ${resendCooldown}s` 
+                      : 'Reenviar correo'}
                   </Button>
-                  <Button
-                    variant="ghost"
-                    onClick={() => {
-                      setShowVerificationPending(false);
-                      setAuthMode('login');
-                      setLoginData({ email: verificationEmail, password: '' });
-                    }}
-                    className="w-full"
-                  >
-                    Ya verifiqué, iniciar sesión
-                  </Button>
+                  
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setShowVerificationPending(false);
+                        setVerificationEmail('');
+                        setVerificationCode('');
+                      }}
+                      className="flex-1 text-sm"
+                    >
+                      <ArrowLeft className="w-4 h-4 mr-1" />
+                      Cambiar correo
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setShowVerificationPending(false);
+                        setAuthMode('login');
+                        setLoginData({ email: verificationEmail, password: '' });
+                      }}
+                      className="flex-1 text-sm"
+                    >
+                      Ya verifiqué
+                    </Button>
+                  </div>
+
+                  <p className="text-xs text-muted-foreground pt-1">
+                    ¿Sigues sin recibir el correo?{' '}
+                    <a href="mailto:soporte@chamby.mx" className="text-primary hover:underline">
+                      Contacta soporte
+                    </a>
+                  </p>
                 </div>
               </div>
             </Card>
           </div>
         )}
+
+
 
         {/* Password Reset Modal */}
         <Dialog open={showResetPassword} onOpenChange={(open) => {

@@ -20,7 +20,7 @@ import ProviderOnboardingWizard from "./pages/provider-portal/ProviderOnboarding
 import ProviderLanding from "./pages/ProviderLanding";
 import UserLanding from "./pages/UserLanding";
 import AuthCallback from "./pages/AuthCallback";
-import ProviderOnboarding from "./pages/ProviderOnboarding";
+// ProviderOnboarding removed - consolidated into ProviderOnboardingWizard
 import ProviderVerificationPage from "./pages/ProviderVerification";
 import ProviderProfile from "./pages/ProviderProfile";
 import UserProfile from "./pages/UserProfile";
@@ -200,7 +200,9 @@ const App = () => {
                 <Route path="reschedule/:id" element={<RescheduleRequest />} />
               </Route>
               <Route path={ROUTES.PROVIDER_SKILLS_SELECTION} element={<ProtectedRoute requireProvider><ProviderSkillsSelection /></ProtectedRoute>} />
-              <Route path={ROUTES.PROVIDER_ONBOARDING_WIZARD} element={<ProviderOnboardingWizard />} />
+              {/* Redirect old onboarding routes to canonical /auth/provider */}
+              <Route path="/provider-portal/onboarding" element={<Navigate to={ROUTES.PROVIDER_AUTH} replace />} />
+              <Route path="/provider-onboarding" element={<Navigate to={ROUTES.PROVIDER_AUTH} replace />} />
               <Route
                 path="/profile"
                 element={

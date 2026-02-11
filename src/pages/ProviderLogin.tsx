@@ -12,6 +12,7 @@ import { z } from 'zod';
 import { AuthSuccessOverlay } from '@/components/AuthSuccessOverlay';
 import logo from '@/assets/chamby-logo-new-horizontal.png';
 import { supabase } from '@/integrations/supabase/client';
+import { ROUTES } from '@/constants/routes';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -131,7 +132,7 @@ const ProviderLogin = () => {
         navigate('/provider-portal');
       } else {
         // Redirect to onboarding wizard to complete profile
-        navigate('/auth/provider');
+        navigate(ROUTES.PROVIDER_AUTH);
       }
     } else {
       navigate('/provider-portal');
