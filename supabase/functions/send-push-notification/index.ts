@@ -43,8 +43,12 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Verify caller is admin
-    const { data: adminRole } = await supabaseAuth
+    // Verify caller is admin using service role (bypasses RLS for defense-in-depth)
+    const supabaseAdmin = createClient(
+      supabaseUrl,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+    const { data: adminRole } = await supabaseAdmin
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
@@ -58,11 +62,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Use service role for DB operations
-    const supabase = createClient(
-      supabaseUrl,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    // Reuse service role client for DB operations
+    const supabase = supabaseAdmin;
 
     const { job_id, user_ids, type, title, body, data } = await req.json() as PushNotificationRequest;
 
