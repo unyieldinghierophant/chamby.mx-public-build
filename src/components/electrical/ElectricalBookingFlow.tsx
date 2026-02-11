@@ -56,7 +56,40 @@ interface ElectricalFormData {
 
 const TOTAL_STEPS = 10;
 
-export const ElectricalBookingFlow = () => {
+// Keyword → service mapping for intent matching
+const SERVICE_KEYWORDS: Record<ElectricalService, string[]> = {
+  apagon: ["apagon", "apagón", "sin luz", "no hay luz", "se fue la luz", "falla", "no funciona la luz", "no prende"],
+  corto: ["corto", "cortocircuito", "breaker", "se baja", "se dispara", "chispazo", "truena"],
+  instalacion: ["instalar", "instalacion", "instalación", "poner", "colocar", "montar", "lampara", "lámpara", "ventilador", "contacto", "techo"],
+  reemplazo: ["cambiar", "reemplazar", "reemplazo", "apagador", "foco", "focos", "toma", "switch", "bombilla"],
+  nuevo_punto: ["nuevo punto", "punto electrico", "punto eléctrico", "agregar contacto", "nueva toma", "nuevo enchufe"],
+  diagnostico: ["diagnostico", "diagnóstico", "revisar", "revision", "revisión", "checar", "verificar", "inspeccionar"],
+  emergencia: ["emergencia", "urgente", "riesgo", "humo", "quemado", "fuego", "olor a quemado", "chispas"],
+};
+
+function matchIntentToService(intent: string): { service: ElectricalService | null; additionalNotes: string } {
+  if (!intent.trim()) return { service: null, additionalNotes: "" };
+  const q = intent.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  let bestMatch: ElectricalService | null = null;
+  let bestScore = 0;
+
+  for (const [svc, keywords] of Object.entries(SERVICE_KEYWORDS) as [ElectricalService, string[]][]) {
+    for (const kw of keywords) {
+      const nkw = kw.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      if (q.includes(nkw)) {
+        const score = nkw.length;
+        if (score > bestScore) { bestScore = score; bestMatch = svc; }
+      }
+    }
+  }
+  return { service: bestMatch, additionalNotes: intent };
+}
+
+interface ElectricalBookingFlowProps {
+  intentText?: string;
+}
+
+export const ElectricalBookingFlow = ({ intentText = "" }: ElectricalBookingFlowProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -95,9 +128,18 @@ export const ElectricalBookingFlow = () => {
     if (saved?.electricalFormData) {
       setFormData(prev => ({ ...prev, ...saved.electricalFormData, photos: [] }));
       setCurrentStep(saved.currentStep || 1);
+    } else if (intentText) {
+      // Auto-match search intent to a service pill
+      const { service, additionalNotes } = matchIntentToService(intentText);
+      setFormData(prev => ({
+        ...prev,
+        service,
+        additionalNotes: additionalNotes || prev.additionalNotes,
+      }));
     }
     setIsLoading(false);
   }, []);
+
 
   useEffect(() => {
     if (formData.service) {
