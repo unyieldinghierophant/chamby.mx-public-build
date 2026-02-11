@@ -303,7 +303,7 @@ export default function ProviderOnboardingWizard() {
 
       checkOnboardingStatus();
     }
-  }, [user, authMode, navigate, currentStep]);
+  }, [user, authMode, navigate]);
 
   const totalSteps = 8;
   const progress = Math.max(0, ((currentStep - 1) / (totalSteps - 2)) * 100);
@@ -837,8 +837,11 @@ export default function ProviderOnboardingWizard() {
 
   function renderAuthStep() {
     if (user) {
-      goToNext();
-      return null;
+      return (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        </div>
+      );
     }
 
     return (
