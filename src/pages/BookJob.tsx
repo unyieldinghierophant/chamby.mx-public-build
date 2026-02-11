@@ -61,7 +61,7 @@ const BookJob = () => {
         ) : isPlumbing ? (
           <PlumbingBookingFlow />
         ) : isElectrical ? (
-          <ElectricalBookingFlow />
+          <ElectricalBookingFlow intentText={prefillData?.description || prefillData?.service || descriptionParam || serviceParam || ''} />
         ) : isCleaning ? (
           <CleaningBookingFlow />
         ) : isAutoWash ? (
