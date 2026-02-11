@@ -55,7 +55,7 @@ const BookJob = () => {
       </header>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-background to-blue-50/30 dark:from-blue-950/20 dark:via-background dark:to-blue-950/10 pt-24 pb-12 px-4 md:px-8">
         {isHandyman ? (
-          <HandymanBookingFlow />
+          <HandymanBookingFlow intentText={prefillData?.description || prefillData?.service || descriptionParam || serviceParam || ''} />
         ) : isGardening ? (
           <GardeningBookingFlow />
         ) : isPlumbing ? (
