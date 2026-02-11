@@ -1,74 +1,58 @@
 
-# Provider "Mensajes" Screen
 
-## Overview
-Replace the current placeholder `ProviderMessages.tsx` with a full mobile-first messaging screen featuring a search bar, tabbed navigation (Soporte / Clientes), mock conversation lists, and polished empty states.
+# Fix: Stripe Key Mismatch (Live vs Test Mode)
 
-## UI Structure
+## Problem Identified
+
+The payment is failing because of a **key mode mismatch**:
+
+- **Backend** (edge function `create-visit-authorization`): Uses `STRIPE_SECRET_KEY` which is a **test** key (`sk_test_...`). The PaymentIntent is created successfully in test mode.
+- **Frontend** (`VisitFeePaymentPage.tsx` and `VisitFeeAuthorizationSection.tsx`): Uses a **hardcoded live publishable key** (`pk_live_...`).
+
+When the frontend tries to confirm a test-mode PaymentIntent using a live-mode publishable key, Stripe rejects it because the keys belong to different environments.
+
+## Files to Fix
+
+Three files have hardcoded Stripe publishable keys:
+
+| File | Current Key | Needs Change |
+|------|------------|--------------|
+| `src/pages/VisitFeePaymentPage.tsx` (line 29) | `pk_live_...` | Yes - change to `pk_test_...` |
+| `src/components/payments/VisitFeeAuthorizationSection.tsx` (line 12) | `pk_live_...` | Yes - change to `pk_test_...` |
+| `src/utils/confirmVisitAuthorizationPayment.ts` (line 4) | `pk_test_...` | Already correct |
+
+## Plan
+
+### Step 1: Centralize the Stripe publishable key
+
+Create a single shared constant so the key only needs to be updated in one place when switching between test and live modes.
+
+- Create `src/lib/stripe.ts` with:
+  - The publishable key constant (set to `pk_test_...` for now)
+  - A shared `stripePromise` using `loadStripe`
+  - A comment explaining how to switch modes
+
+### Step 2: Update all three files to import from the shared module
+
+- `src/pages/VisitFeePaymentPage.tsx` -- remove local key + `loadStripe`, import from `src/lib/stripe.ts`
+- `src/components/payments/VisitFeeAuthorizationSection.tsx` -- same
+- `src/utils/confirmVisitAuthorizationPayment.ts` -- same
+
+### Step 3: Deploy and verify
+
+- No edge function changes needed (backend is already correct in test mode)
+- Test the payment flow end-to-end
+
+## Technical Details
+
+The centralized module (`src/lib/stripe.ts`) will look like:
 
 ```text
-+----------------------------------+
-|  Mensajes              (title)   |
-|  [  Search bar               ]   |
-+----------------------------------+
-|  [ Soporte ]  [ Clientes ]       |  <-- Tabs
-+----------------------------------+
-|                                  |
-|  Conversation list items:        |
-|  +------------------------------+|
-|  | Avatar | Title        time   ||
-|  |        | Preview...   * dot  ||
-|  +------------------------------+|
-|  | Avatar | Title        time   ||
-|  |        | Preview...          ||
-|  +------------------------------+|
-|                                  |
-|  -- or Empty State --            |
-|  Icon + message                  |
-+----------------------------------+
+// Current mode: TEST
+const STRIPE_PUBLISHABLE_KEY = "pk_test_51S97Fm...";
+export const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
+export { STRIPE_PUBLISHABLE_KEY };
 ```
 
-## Details
+This prevents future mode mismatches by having a single source of truth for the Stripe publishable key across the entire frontend.
 
-### 1. Header
-- "Mensajes" as a bold page title (`text-xl font-bold font-jakarta`)
-- Search input below with a `Search` icon, placeholder "Buscar conversaciones..."
-
-### 2. Tabs (Radix Tabs)
-- Two tabs: **Soporte** and **Clientes**
-- Default active: **Soporte**
-- Uses existing `Tabs`, `TabsList`, `TabsTrigger`, `TabsContent` components
-
-### 3. Conversation List Items
-- Mock data array within the component (no backend calls)
-- Each item renders:
-  - **Avatar**: `Headset` icon in a colored circle for support threads; customer initial letter for client threads
-  - **Title**: "Soporte Chamby" or "Cliente: {name}"
-  - **Last message preview**: single line, truncated
-  - **Timestamp**: relative time string (e.g., "hace 2 min")
-  - **Unread indicator**: small primary-colored dot if `unread: true`
-- Items use `motion.div` with `whileTap={{ scale: 0.98 }}` for subtle press feedback
-- Clicking a conversation is a no-op for now (or shows a toast "Proximamente")
-
-### 4. Empty States
-- **Soporte tab**: `Headset` icon + "Escribenos si necesitas ayuda" + subtle secondary text
-- **Clientes tab**: `MessageSquare` icon + "Aun no tienes conversaciones con clientes"
-- Both use `motion.div` fade-in animation, consistent with existing portal empty states
-
-### 5. Search Filtering
-- Filters mock conversations by title or last message content (client-side only)
-
-## Technical Plan
-
-### File: `src/pages/provider-portal/ProviderMessages.tsx`
-Rewrite this single file with:
-- Imports: `useState` from React, `motion` from framer-motion, UI components (`Input`, `Tabs`/`TabsList`/`TabsTrigger`/`TabsContent`), Lucide icons (`Search`, `Headset`, `MessageSquare`)
-- Mock data: two arrays (`supportThreads`, `clientThreads`) with `id`, `title`, `lastMessage`, `timestamp`, `unread`, `avatarInitial?` fields
-- `ConversationItem` inline component rendering each row
-- Empty state components per tab
-- Search state filtering both lists
-
-### No other files changed
-- Routing already exists (`/provider-portal/messages`)
-- Bottom nav already wired with unread badge
-- No backend, no new hooks, no new dependencies
