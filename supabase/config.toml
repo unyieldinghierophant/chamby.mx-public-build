@@ -86,3 +86,6 @@ verify_jwt = true
 
 [functions.get-visit-authorization-status]
 verify_jwt = true
+
+[functions.notify-provider-assigned]
+verify_jwt = false

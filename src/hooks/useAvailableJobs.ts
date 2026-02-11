@@ -174,6 +174,11 @@ export const useAvailableJobs = (): UseAvailableJobsResult => {
         .eq('type', 'new_job_available')
         .contains('data', { job_id: jobId });
 
+      // Send email notification to client (fire-and-forget)
+      supabase.functions.invoke('notify-provider-assigned', {
+        body: { jobId, providerId: user.id },
+      }).catch(err => console.error('Email notification failed:', err));
+
       // Refetch jobs after accepting
       await fetchJobs();
     } catch (err: any) {
