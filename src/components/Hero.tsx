@@ -32,19 +32,15 @@ const Hero = () => {
             transition={{ duration: 0.6, ease: "easeOut" }}
             className="relative rounded-[1.5rem] md:rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] border border-primary-foreground/20 bg-primary"
           >
-            {/* Background video with overlay */}
+            {/* Subtle grid pattern background */}
             <div className="absolute inset-0 overflow-hidden rounded-[1.5rem] md:rounded-[2.5rem]">
-              <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="absolute inset-0 w-full h-full object-cover"
-              >
-                <source src={heroBgVideo} type="video/mp4" />
-              </video>
-              {/* Dark overlay for text readability */}
-              <div className="absolute inset-0 bg-primary/75" />
+              <div 
+                className="absolute inset-0 opacity-[0.05]"
+                style={{
+                  backgroundImage: 'linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)',
+                  backgroundSize: '60px 60px',
+                }}
+              />
             </div>
             
             {/* Main Content */}
