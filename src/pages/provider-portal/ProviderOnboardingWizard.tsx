@@ -346,7 +346,7 @@ export default function ProviderOnboardingWizard() {
 
     setSaving(true);
     const formattedPhone = formatPhoneForStorage(signupData.phone);
-    const { error } = await signUp(
+    const { error, data } = await signUp(
       signupData.email,
       signupData.password,
       signupData.fullName,
@@ -365,7 +365,6 @@ export default function ProviderOnboardingWizard() {
       } else if (error.message.includes('already registered') || error.message.includes('already exists') || error.message.includes('User already registered')) {
         errorMessage = 'Este correo ya tiene cuenta.';
         errorField = 'email';
-        // Show inline actions for existing email
         toast.error('Este correo ya está registrado', {
           description: 'Puedes iniciar sesión o reenviar el código de verificación.',
           duration: 8000,
@@ -388,11 +387,43 @@ export default function ProviderOnboardingWizard() {
       return;
     }
 
+    // Detect already-confirmed users (empty identities = email already verified & registered)
+    if (data?.user?.identities?.length === 0) {
+      toast.error('Este correo ya tiene cuenta verificada', {
+        description: 'Inicia sesión con tu contraseña.',
+        duration: 8000,
+        action: {
+          label: 'Iniciar sesión',
+          onClick: () => {
+            setAuthMode('login');
+            setLoginData({ email: signupData.email, password: '' });
+          }
+        }
+      });
+      setSaving(false);
+      return;
+    }
+
+    // Auto-resend to cover repeated signup case (Supabase silently skips email for unconfirmed re-signups)
+    console.log('[Onboarding] Signup success, triggering resend for email delivery reliability');
+    try {
+      await supabase.auth.resend({
+        type: 'signup',
+        email: signupData.email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback?login_context=provider`
+        }
+      });
+    } catch (resendErr) {
+      console.warn('[Onboarding] Resend after signup failed (non-critical):', resendErr);
+    }
+
     localStorage.setItem('new_provider_signup', 'true');
     localStorage.setItem('login_context', 'provider');
     
     setVerificationEmail(signupData.email);
     setShowEmailVerification(true);
+    startResendCooldown();
     
     setSaving(false);
   };
