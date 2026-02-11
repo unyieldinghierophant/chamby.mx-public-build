@@ -714,7 +714,7 @@ export default function ProviderOnboardingWizard() {
         }
         return true;
       case 3:
-        return profileData.avatarUrl.length > 0 && profileData.bio.trim().length > 0;
+        return (profileData.avatarUrl || '').length > 0 && (profileData.bio || '').trim().length > 0;
       case 4:
         return selectedSkills.length > 0;
       case 5:
