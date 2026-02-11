@@ -312,9 +312,11 @@ export const HandymanBookingFlow = () => {
 
   const handleAuthLogin = () => {
     saveFormData({ handymanFormData: { ...formData, photos: [] }, currentStep });
-    sessionStorage.setItem('auth_return_to', '/book-job');
-    localStorage.setItem('auth_return_to', '/book-job');
-    navigate('/login', { state: { returnTo: '/book-job' } });
+    const returnPath = '/book-job?category=Handyman';
+    sessionStorage.setItem('auth_return_to', returnPath);
+    localStorage.setItem('auth_return_to', returnPath);
+    localStorage.setItem('booking_category', 'Handyman');
+    navigate('/login', { state: { returnTo: returnPath } });
   };
 
   const handleVisitFeeAuthorized = () => {

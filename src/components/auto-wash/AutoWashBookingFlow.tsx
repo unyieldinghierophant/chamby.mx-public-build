@@ -270,9 +270,11 @@ export const AutoWashBookingFlow = () => {
 
   const handleAuthLogin = () => {
     saveFormData({ autoWashFormData: { ...formData, photos: [] }, currentStep });
-    sessionStorage.setItem('auth_return_to', '/book-job');
-    localStorage.setItem('auth_return_to', '/book-job');
-    navigate('/login', { state: { returnTo: '/book-job' } });
+    const returnPath = '/book-job?category=Auto %26 Lavado';
+    sessionStorage.setItem('auth_return_to', returnPath);
+    localStorage.setItem('auth_return_to', returnPath);
+    localStorage.setItem('booking_category', 'Auto & Lavado');
+    navigate('/login', { state: { returnTo: returnPath } });
   };
 
   const handleVisitFeeAuthorized = () => { setVisitFeeAuthorized(true); setShowVisitFeeAuth(false); setShowSuccess(true); };

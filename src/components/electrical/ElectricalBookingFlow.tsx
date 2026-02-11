@@ -307,9 +307,11 @@ export const ElectricalBookingFlow = () => {
 
   const handleAuthLogin = () => {
     saveFormData({ electricalFormData: { ...formData, photos: [] }, currentStep });
-    sessionStorage.setItem('auth_return_to', '/book-job');
-    localStorage.setItem('auth_return_to', '/book-job');
-    navigate('/login', { state: { returnTo: '/book-job' } });
+    const returnPath = '/book-job?category=Electricidad';
+    sessionStorage.setItem('auth_return_to', returnPath);
+    localStorage.setItem('auth_return_to', returnPath);
+    localStorage.setItem('booking_category', 'Electricidad');
+    navigate('/login', { state: { returnTo: returnPath } });
   };
 
   const handleVisitFeeAuthorized = () => { setVisitFeeAuthorized(true); setShowVisitFeeAuth(false); setShowSuccess(true); };
