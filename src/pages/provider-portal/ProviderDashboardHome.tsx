@@ -11,7 +11,6 @@ import { useActiveJobs } from "@/hooks/useActiveJobs";
 import { JobCardMobile } from "@/components/provider-portal/JobCardMobile";
 import { JobFeedFilters, CategoryFilter, RadiusFilter, DateFilter } from "@/components/provider-portal/JobFeedFilters";
 import { JobFeedSkeleton } from "@/components/provider-portal/JobFeedSkeleton";
-import { AvailabilityButton } from "@/components/provider-portal/AvailabilityButton";
 import { ActiveJobCard } from "@/components/provider-portal/ActiveJobCard";
 import { JobDetailSheet } from "@/components/provider-portal/JobDetailSheet";
 import { AvailableJob } from "@/hooks/useAvailableJobs";
@@ -283,42 +282,103 @@ const ProviderDashboardHome = () => {
         onClose={() => setShowJobsAlert(false)}
       />
 
-      {/* Verification Banner - Minimal system status */}
+      {/* Verification Banner - Yellow pill below header */}
       {showVerificationBanner && (
-        <motion.button
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          onClick={() => navigate("/provider-portal/verification")}
-          className={cn(
-            "mx-4 mt-2 py-1.5 px-3 rounded-lg flex items-center gap-2 w-[calc(100%-2rem)] text-left",
-            status === 'rejected' 
-              ? "bg-destructive/5" 
-              : "bg-muted/50"
-          )}
-        >
-          {status === 'rejected' ? (
-            <XCircle className="w-3.5 h-3.5 text-destructive/70 flex-shrink-0" />
-          ) : status === 'pending' ? (
-            <Clock className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-          ) : (
-            <AlertCircle className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-          )}
-          <span className="text-[11px] text-muted-foreground flex-1">
-            {status === 'rejected' ? 'Verificación rechazada' :
-             status === 'pending' ? 'Verificación en revisión' :
-             'Completa tu verificación'}
-          </span>
-          <span className="text-[10px] text-muted-foreground/70">Ver estado →</span>
-        </motion.button>
+        <div className="px-4 mt-2 flex justify-center">
+          <motion.button
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            onClick={() => navigate("/provider-portal/verification")}
+            className={cn(
+              "inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-[11px] font-medium border transition-colors",
+              status === 'rejected' 
+                ? "border-destructive/50 bg-destructive/5 text-destructive" 
+                : status === 'pending'
+                  ? "border-yellow-400 bg-yellow-50 text-yellow-700 dark:border-yellow-500/50 dark:bg-yellow-900/20 dark:text-yellow-400"
+                  : "border-muted-foreground/30 bg-muted/30 text-muted-foreground"
+            )}
+          >
+            {status === 'rejected' ? (
+              <XCircle className="w-3 h-3 flex-shrink-0" />
+            ) : status === 'pending' ? (
+              <Clock className="w-3 h-3 flex-shrink-0" />
+            ) : (
+              <AlertCircle className="w-3 h-3 flex-shrink-0" />
+            )}
+            <span>
+              {status === 'rejected' ? 'Verificación rechazada' :
+               status === 'pending' ? 'Verificación en revisión' :
+               'Completa tu verificación'}
+            </span>
+            <span className="opacity-60">→</span>
+          </motion.button>
+        </div>
       )}
 
-      {/* Availability Button - Primary action */}
-      <div className="px-4 mt-3">
-        <AvailabilityButton 
-          isAvailable={isAvailable} 
-          onToggle={setIsAvailable} 
-        />
+      {/* Availability Button - Large Circle */}
+      <div className="px-4 mt-4 flex justify-center">
+        <motion.button
+          whileTap={{ scale: 0.93 }}
+          onClick={() => setIsAvailable(!isAvailable)}
+          className="relative flex items-center justify-center"
+        >
+          {/* Animated aura rings */}
+          <motion.div
+            className={cn(
+              "absolute rounded-full",
+              isAvailable ? "bg-emerald-400/20" : "bg-red-400/20"
+            )}
+            animate={{
+              width: [100, 130, 100],
+              height: [100, 130, 100],
+              opacity: [0.4, 0.1, 0.4],
+            }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div
+            className={cn(
+              "absolute rounded-full",
+              isAvailable ? "bg-emerald-400/15" : "bg-red-400/15"
+            )}
+            animate={{
+              width: [110, 150, 110],
+              height: [110, 150, 110],
+              opacity: [0.3, 0.05, 0.3],
+            }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+          />
+          {/* Main circle */}
+          <div className={cn(
+            "relative w-24 h-24 rounded-full flex flex-col items-center justify-center transition-all duration-500 shadow-lg",
+            isAvailable 
+              ? "bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-emerald-400/30" 
+              : "bg-gradient-to-br from-red-400 to-red-600 shadow-red-400/30"
+          )}>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={isAvailable ? 'on' : 'off'}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.2 }}
+                className="flex flex-col items-center"
+              >
+                {isAvailable ? (
+                  <CheckCircle className="w-7 h-7 text-white mb-0.5" />
+                ) : (
+                  <XCircle className="w-7 h-7 text-white mb-0.5" />
+                )}
+                <span className="text-[9px] font-bold text-white/90 uppercase tracking-wider">
+                  {isAvailable ? 'Disponible' : 'No disponible'}
+                </span>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </motion.button>
       </div>
+      <p className="text-[10px] text-muted-foreground/60 text-center mt-1">
+        Toca para cambiar tu disponibilidad
+      </p>
 
       {/* Jobs Feed Section */}
       <div className="mt-3">

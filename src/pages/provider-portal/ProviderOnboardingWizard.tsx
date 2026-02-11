@@ -148,7 +148,8 @@ export default function ProviderOnboardingWizard() {
   const [profileData, setProfileData] = useState({
     displayName: '',
     phone: '',
-    bio: ''
+    bio: '',
+    avatarUrl: ''
   });
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [customSkill, setCustomSkill] = useState('');
@@ -284,11 +285,11 @@ export default function ProviderOnboardingWizard() {
           .single();
 
         if (userData) {
-          setProfileData({
+          setProfileData(prev => ({
+            ...prev,
             displayName: userData.full_name || '',
             phone: userData.phone || '',
-            bio: ''
-          });
+          }));
           setSignupData(prev => ({
             ...prev,
             fullName: userData.full_name || '',
@@ -305,6 +306,15 @@ export default function ProviderOnboardingWizard() {
               ...prev,
               displayName: providerData.display_name || prev.displayName
             }));
+          }
+          // Load existing avatar
+          const { data: providerFull } = await supabase
+            .from('providers')
+            .select('avatar_url')
+            .eq('user_id', user.id)
+            .single();
+          if (providerFull?.avatar_url) {
+            setProfileData(prev => ({ ...prev, avatarUrl: providerFull.avatar_url || '' }));
           }
         }
         
@@ -704,7 +714,7 @@ export default function ProviderOnboardingWizard() {
         }
         return true;
       case 3:
-        return profileData.displayName.trim().length > 0;
+        return profileData.avatarUrl.length > 0 && profileData.bio.trim().length > 0;
       case 4:
         return selectedSkills.length > 0;
       case 5:
@@ -949,18 +959,7 @@ export default function ProviderOnboardingWizard() {
           Continuar con Google
         </Button>
         
-        {/* Sign-in link for existing users - redirects to dedicated login page */}
-        <p className="text-center text-sm text-muted-foreground">
-          ¿Ya tienes cuenta?{' '}
-          <button
-            type="button"
-            onClick={() => navigate('/provider/login')}
-            className="text-primary font-medium hover:underline"
-          >
-            Iniciar sesión
-          </button>
-        </p>
-        
+        {/* Existing account detection happens inline at email validation */}
 
         <div className="relative">
           <Separator />
@@ -1190,59 +1189,97 @@ export default function ProviderOnboardingWizard() {
   }
 
   function renderProfileStep() {
+    const handleProfilePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file || !user) return;
+
+      setSaving(true);
+      try {
+        const fileExt = file.name.split('.').pop();
+        const filePath = `${user.id}/avatar.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(filePath, file, { upsert: true });
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(filePath);
+
+        // Update both tables
+        await supabase.from('users').update({ avatar_url: publicUrl }).eq('id', user.id);
+        await supabase.from('providers').update({ avatar_url: publicUrl }).eq('user_id', user.id);
+
+        setProfileData(prev => ({ ...prev, avatarUrl: publicUrl }));
+        toast.success('¡Foto actualizada!');
+      } catch (err: any) {
+        console.error('Error uploading photo:', err);
+        toast.error('Error al subir la foto');
+      } finally {
+        setSaving(false);
+      }
+    };
+
     return (
       <div className="space-y-6">
-        <div className="mb-8">
+        <div className="mb-6">
           <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
-            ¿Cómo te llamas?
+            Tu perfil profesional
           </h2>
           <p className="text-muted-foreground">
-            Este nombre aparecerá en tu perfil profesional
+            Agrega una foto y describe tu experiencia
           </p>
         </div>
 
-        {/* Skip to portal option for existing providers */}
-        {hasProviderRole && (
-          <div className="bg-accent/20 border border-accent rounded-xl p-4 mb-4">
-            <p className="text-sm text-foreground mb-3">
-              Ya tienes una cuenta de proveedor. Puedes completar tu perfil ahora o hacerlo después.
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate(ROUTES.PROVIDER_PORTAL)}
-              className="w-full"
-            >
-              Ir al portal sin completar
-            </Button>
-          </div>
-        )}
-        
-        <div className="space-y-5">
-          <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
-              NOMBRE PARA MOSTRAR
-            </Label>
-            <Input
-              placeholder="Juan Pérez"
-              value={profileData.displayName}
-              onChange={(e) => setProfileData({ ...profileData, displayName: e.target.value })}
-              className="h-14 text-base border-2 rounded-xl px-4"
-            />
-          </div>
+        {/* Profile Photo Upload - Mandatory */}
+        <div className="flex flex-col items-center gap-3">
+          <label htmlFor="profile-photo-upload" className="cursor-pointer group">
+            <div className={cn(
+              "w-28 h-28 rounded-full border-4 border-dashed flex items-center justify-center overflow-hidden transition-all",
+              profileData.avatarUrl 
+                ? "border-primary" 
+                : "border-muted-foreground/30 group-hover:border-primary/50"
+            )}>
+              {profileData.avatarUrl ? (
+                <img src={profileData.avatarUrl} alt="Foto de perfil" className="w-full h-full object-cover" />
+              ) : (
+                <div className="text-center p-2">
+                  <User className="w-8 h-8 mx-auto text-muted-foreground/50 mb-1" />
+                  <span className="text-[10px] text-muted-foreground">Toca para subir</span>
+                </div>
+              )}
+            </div>
+          </label>
+          <input
+            id="profile-photo-upload"
+            type="file"
+            accept="image/*"
+            capture="user"
+            className="hidden"
+            onChange={handleProfilePhotoUpload}
+          />
+          <p className="text-xs text-muted-foreground">
+            Foto de perfil <span className="text-destructive">*</span> obligatoria
+          </p>
+        </div>
 
-          <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
-              DESCRIPCIÓN BREVE <span className="text-muted-foreground/60">(OPCIONAL)</span>
-            </Label>
-            <Textarea
-              placeholder="Electricista con 10 años de experiencia..."
-              value={profileData.bio}
-              onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
-              className="text-base border-2 rounded-xl px-4 py-3 resize-none min-h-[100px]"
-              rows={3}
-            />
-          </div>
+        {/* Work Experience Description */}
+        <div className="space-y-2">
+          <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+            EXPERIENCIA LABORAL <span className="text-destructive">*</span>
+          </Label>
+          <Textarea
+            placeholder="Describe tu experiencia: ¿Qué tipo de trabajos has realizado? ¿Cuántos años de experiencia tienes?"
+            value={profileData.bio}
+            onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
+            className="text-base border-2 rounded-xl px-4 py-3 resize-none min-h-[120px]"
+            rows={4}
+          />
+          <p className="text-[11px] text-muted-foreground">
+            Esto ayudará a los clientes a conocer tu trabajo
+          </p>
         </div>
       </div>
     );
@@ -1256,12 +1293,12 @@ export default function ProviderOnboardingWizard() {
             ¿Qué servicios ofreces?
           </h2>
           <p className="text-muted-foreground">
-            Selecciona todas las que apliquen
+            Selecciona al menos 1 habilidad
           </p>
         </div>
 
-        {/* Visual Skill Grid */}
-        <div className="grid grid-cols-3 gap-3">
+        {/* Visual Skill Grid - 2 columns, larger cards */}
+        <div className="grid grid-cols-2 gap-3">
           {SKILL_OPTIONS.map((skill) => {
             const Icon = skill.icon;
             const isSelected = selectedSkills.includes(skill.name);
@@ -1271,25 +1308,23 @@ export default function ProviderOnboardingWizard() {
                 key={skill.name}
                 onClick={() => toggleSkill(skill.name)}
                 className={cn(
-                  "flex flex-col items-center p-3 md:p-4 rounded-xl border-2 transition-all",
+                  "flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left",
                   isSelected
                     ? "border-primary bg-primary/5 shadow-md"
                     : "border-muted hover:border-primary/50"
                 )}
               >
                 <div className={cn(
-                  "w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center mb-2",
+                  "w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0",
                   skill.bgColor
                 )}>
-                  <Icon className={cn("w-5 h-5 md:w-6 md:h-6", skill.iconColor)} />
+                  <Icon className={cn("w-5 h-5", skill.iconColor)} />
                 </div>
-                <span className="text-[11px] md:text-xs font-medium text-center leading-tight">
+                <span className="text-xs font-medium leading-tight flex-1">
                   {skill.name}
                 </span>
                 {isSelected && (
-                  <div className="mt-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
-                    <CheckCircle2 className="w-3 h-3 text-primary-foreground" />
-                  </div>
+                  <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
                 )}
               </button>
             );
@@ -1338,8 +1373,14 @@ export default function ProviderOnboardingWizard() {
           </div>
         )}
 
-        <p className="text-sm text-muted-foreground text-center">
-          {selectedSkills.length} habilidad{selectedSkills.length !== 1 ? 'es' : ''} seleccionada{selectedSkills.length !== 1 ? 's' : ''}
+        <p className={cn(
+          "text-sm text-center font-medium",
+          selectedSkills.length === 0 ? "text-destructive/70" : "text-muted-foreground"
+        )}>
+          {selectedSkills.length === 0 
+            ? 'Selecciona al menos 1 habilidad para continuar'
+            : `${selectedSkills.length} habilidad${selectedSkills.length !== 1 ? 'es' : ''} seleccionada${selectedSkills.length !== 1 ? 's' : ''}`
+          }
         </p>
       </div>
     );
