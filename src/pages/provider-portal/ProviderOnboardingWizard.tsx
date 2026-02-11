@@ -228,10 +228,19 @@ export default function ProviderOnboardingWizard() {
     }
   }, [user]);
 
+  // Map step numbers to DB step names
+  const STEP_NAME_MAP: Record<number, string> = {
+    2: 'auth', 3: 'profile', 4: 'skills', 5: 'zone', 6: 'documents', 7: 'review', 8: 'complete'
+  };
+  const STEP_NUMBER_MAP: Record<string, number> = {
+    'auth': 2, 'profile': 3, 'skills': 4, 'zone': 5, 'documents': 6, 'review': 7, 'complete': 8, 'completed': 8
+  };
+
+  // Debug state for dev mode
+  const [debugInfo, setDebugInfo] = useState<{ userId?: string; onboardingComplete?: boolean; dbStep?: string | null }>({});
+
   useEffect(() => {
     if (user) {
-      // Skip if we've already checked onboarding status for this user session
-      // BUT always re-check if we're on the auth step (step 2) to ensure advancement
       if (hasCheckedOnboarding.current && currentStep !== 2) {
         return;
       }
@@ -239,7 +248,6 @@ export default function ProviderOnboardingWizard() {
       const checkOnboardingStatus = async () => {
         setCheckingStatus(true);
         
-        // Check if user has provider role in user_roles table
         const { data: roles } = await supabase
           .from('user_roles')
           .select('role')
@@ -249,33 +257,36 @@ export default function ProviderOnboardingWizard() {
         const isAdmin = roles?.some(r => r.role === 'admin');
         setHasProviderRole(isProvider || isAdmin);
         
-        // Check if provider profile is ACTUALLY complete (has skills)
+        // Read onboarding state from DB (single source of truth)
         const { data: providerData } = await supabase
           .from('providers')
-          .select('skills, zone_served, display_name')
+          .select('skills, zone_served, display_name, avatar_url, onboarding_complete, onboarding_step')
           .eq('user_id', user.id)
           .maybeSingle();
         
-        const hasCompletedProfile = providerData && 
-          providerData.skills && 
-          providerData.skills.length > 0 &&
-          (providerData.zone_served || providerData.display_name);
+        const dbComplete = providerData?.onboarding_complete === true;
+        const dbStep = providerData?.onboarding_step;
         
-        setOnboardingComplete(!!hasCompletedProfile);
+        console.log('[Onboarding] DB check:', { userId: user.id, dbComplete, dbStep, isProvider, skills: providerData?.skills?.length });
+        setDebugInfo({ userId: user.id, onboardingComplete: dbComplete, dbStep });
+        setOnboardingComplete(dbComplete);
         
-        // Only redirect to portal if user has role AND completed onboarding
-        if ((isProvider || isAdmin) && hasCompletedProfile) {
+        // If DB says complete, redirect immediately
+        if (dbComplete && (isProvider || isAdmin)) {
+          console.log('[Onboarding] onboarding_complete=true, redirecting to portal');
           navigate(ROUTES.PROVIDER_PORTAL, { replace: true });
           setCheckingStatus(false);
           return;
         }
         
-        // Mark that we've checked onboarding - don't run this again
         hasCheckedOnboarding.current = true;
         
-        // User needs to complete onboarding - advance past auth step
+        // Resume from saved DB step (if past auth)
+        const resumeStep = dbStep ? (STEP_NUMBER_MAP[dbStep] || 3) : 3;
         if (currentStep <= 2) {
-          setCurrentStep(3);
+          const targetStep = Math.max(3, resumeStep);
+          console.log('[Onboarding] Resuming from step:', targetStep, '(db:', dbStep, ')');
+          setCurrentStep(targetStep);
         }
         
         const { data: userData } = await supabase
@@ -297,7 +308,7 @@ export default function ProviderOnboardingWizard() {
           }));
         }
         
-        // Pre-populate existing provider data if any
+        // Pre-populate existing provider data
         if (providerData) {
           if (providerData.skills) setSelectedSkills(providerData.skills);
           if (providerData.zone_served) setWorkZone(providerData.zone_served);
@@ -307,14 +318,8 @@ export default function ProviderOnboardingWizard() {
               displayName: providerData.display_name || prev.displayName
             }));
           }
-          // Load existing avatar
-          const { data: providerFull } = await supabase
-            .from('providers')
-            .select('avatar_url')
-            .eq('user_id', user.id)
-            .single();
-          if (providerFull?.avatar_url) {
-            setProfileData(prev => ({ ...prev, avatarUrl: providerFull.avatar_url || '' }));
+          if (providerData.avatar_url) {
+            setProfileData(prev => ({ ...prev, avatarUrl: providerData.avatar_url || '' }));
           }
         }
         
@@ -621,10 +626,23 @@ export default function ProviderOnboardingWizard() {
     }
   };
 
+  // Persist current step to DB when advancing
+  const persistStepToDB = useCallback(async (stepNum: number) => {
+    if (!user) return;
+    const stepName = STEP_NAME_MAP[stepNum] || 'auth';
+    console.log('[Onboarding] Persisting step to DB:', stepName);
+    await supabase
+      .from('providers')
+      .update({ onboarding_step: stepName })
+      .eq('user_id', user.id);
+  }, [user]);
+
   const goToNext = () => {
     if (currentStep < totalSteps) {
+      const nextStep = currentStep + 1;
       setSlideDirection('forward');
-      setCurrentStep(currentStep + 1);
+      setCurrentStep(nextStep);
+      persistStepToDB(nextStep);
     }
   };
 
@@ -693,11 +711,14 @@ export default function ProviderOnboardingWizard() {
           zone_served: workZone || `${workZoneRadius}km radius`,
           current_latitude: workZoneCoords?.lat || null,
           current_longitude: workZoneCoords?.lng || null,
+          onboarding_complete: true,
+          onboarding_step: 'completed',
           updated_at: new Date().toISOString()
         })
         .eq('user_id', user.id);
 
       if (providerError) throw providerError;
+      console.log('[ProviderOnboarding] DB updated: onboarding_complete=true');
 
       const { error: userError } = await supabase
         .from('users')
@@ -710,7 +731,32 @@ export default function ProviderOnboardingWizard() {
 
       if (userError) throw userError;
 
-      // Set selected role in localStorage for proper redirection
+      // Ensure provider_details record is linked
+      const { data: existingDetails } = await supabase
+        .from('provider_details')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (!existingDetails) {
+        const { data: providerRecord } = await supabase
+          .from('providers')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (providerRecord) {
+          await supabase
+            .from('provider_details')
+            .insert({
+              provider_id: providerRecord.id,
+              user_id: user.id,
+              verification_status: 'pending'
+            });
+          console.log('[ProviderOnboarding] provider_details created');
+        }
+      }
+
       localStorage.setItem('selected_role', 'provider');
 
       toast.success('¡Perfil completado!', {
@@ -718,11 +764,10 @@ export default function ProviderOnboardingWizard() {
       });
 
       localStorage.removeItem('new_provider_signup');
-      clearFormData(); // Clear saved form progress
+      clearFormData();
 
-      setTimeout(() => {
-        navigate(ROUTES.PROVIDER_PORTAL);
-      }, 1500);
+      // Only redirect AFTER DB write succeeds
+      navigate(ROUTES.PROVIDER_PORTAL, { replace: true });
     } catch (error: any) {
       console.error('Error saving profile:', error);
       toast.error('Error al guardar', {
@@ -797,6 +842,15 @@ export default function ProviderOnboardingWizard() {
   // Main wizard layout for steps 2-7
   return (
     <div className="min-h-screen bg-background md:bg-gradient-to-br md:from-primary/5 md:via-background md:to-accent/10">
+      {/* Dev debug panel */}
+      {import.meta.env.DEV && debugInfo.userId && (
+        <div className="fixed bottom-2 left-2 z-50 bg-card/90 border border-border text-xs p-2 rounded shadow max-w-[250px] font-mono text-muted-foreground">
+          <div>uid: {debugInfo.userId.slice(0, 8)}…</div>
+          <div>onboarding_complete: {String(debugInfo.onboardingComplete ?? 'n/a')}</div>
+          <div>db_step: {debugInfo.dbStep ?? 'n/a'}</div>
+          <div>ui_step: {currentStep}</div>
+        </div>
+      )}
       {/* Mobile Header */}
       <div className="md:hidden sticky top-0 z-20 bg-background border-b">
         <div className="flex items-center justify-between px-4 py-3">
