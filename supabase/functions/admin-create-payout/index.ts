@@ -42,8 +42,9 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Check if user is admin
-    const { data: roles } = await supabaseAuth
+    // Check if user is admin using service role (bypasses RLS for defense-in-depth)
+    const supabaseAdminAuth = createClient(supabaseUrl, supabaseServiceKey)
+    const { data: roles } = await supabaseAdminAuth
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
