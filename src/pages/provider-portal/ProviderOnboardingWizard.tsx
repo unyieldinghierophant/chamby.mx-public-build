@@ -612,7 +612,7 @@ export default function ProviderOnboardingWizard() {
       const { error } = await supabase.auth.verifyOtp({
         email: verificationEmail,
         token: verificationCode.trim(),
-        type: 'signup'
+        type: 'magiclink'
       });
 
       if (error) {

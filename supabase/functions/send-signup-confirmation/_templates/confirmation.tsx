@@ -68,20 +68,7 @@ export const ConfirmationEmail = ({
           </Text>
           
           <Text style={text}>
-            Para activar tu cuenta, haz clic en el siguiente botón:
-          </Text>
-          
-          <Section style={buttonSection}>
-            <Link
-              href={`${supabase_url}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(redirect_to)}`}
-              style={button}
-            >
-              Confirmar mi correo electrónico
-            </Link>
-          </Section>
-          
-          <Text style={orText}>
-            o usa este código de verificación:
+            Usa este código de verificación para activar tu cuenta:
           </Text>
           
           <Section style={codeSection}>
@@ -219,32 +206,6 @@ const brandText = {
   color: chambyBlue,
 }
 
-const buttonSection = {
-  textAlign: 'center' as const,
-  margin: '32px 0 24px',
-}
-
-const button = {
-  backgroundColor: chambyBlue,
-  borderRadius: '10px',
-  color: '#ffffff',
-  fontSize: '16px',
-  fontWeight: 'bold',
-  textDecoration: 'none',
-  textAlign: 'center' as const,
-  display: 'inline-block',
-  padding: '16px 40px',
-  boxShadow: `0 4px 14px ${chambyBlue}40`,
-}
-
-const orText = {
-  color: '#898989',
-  fontSize: '14px',
-  textAlign: 'center' as const,
-  margin: '24px 0 16px',
-  textTransform: 'uppercase' as const,
-  letterSpacing: '1px',
-}
 
 const codeSection = {
   textAlign: 'center' as const,
