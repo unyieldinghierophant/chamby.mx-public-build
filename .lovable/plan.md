@@ -1,107 +1,99 @@
 
 
-# Fix: Provider Onboarding and Auth Flows
+# Fix: Email Delivery and Provider Onboarding Cleanup
 
-## Current Problems Summary
+## Problem Analysis
 
-1. **Three duplicate routes** for provider onboarding:
-   - `/auth/provider` -- ProviderOnboardingWizard (signup + onboarding combined)
-   - `/provider-portal/onboarding` -- same ProviderOnboardingWizard component
-   - `/provider-onboarding` -- old ProviderOnboarding page (completely separate, outdated)
+### Why emails aren't arriving
 
-2. **Post-signup redirect loop**: After email verification, AuthCallback redirects to `/provider-portal/onboarding`, which re-checks onboarding status and may loop back or show a spinner indefinitely because `renderAuthStep()` returns a spinner when user exists but the `useEffect` that advances to step 3 has `hasCheckedOnboarding.current` already set to true from a previous run.
+There are two separate issues:
 
-3. **"Revisar correo" screen** lacks resend cooldown timer, "Cambiar correo", help microcopy, and clear exit path.
+1. **Repeated signup silently skips email**: When a user tries to sign up with an email that already exists but isn't confirmed, Supabase returns success (HTTP 200, no error) but does NOT send a new confirmation email. The wizard shows "Revisa tu correo" but nothing arrives. The auth logs confirm: `user_repeated_signup` for `asaga2003+4@gmail.com`.
 
-4. **Existing email errors** are not surfaced clearly enough.
+2. **Auth Hook may need re-verification**: The `send-confirmation-email` edge function shows zero logs, meaning it's either not being called by Supabase Auth, or Supabase is using its built-in email sender instead. The function was just redeployed and is responding correctly (returns 401 for unsigned requests, as expected). You may need to verify the Auth Hook is enabled in the Supabase Dashboard under Authentication > Hooks > Send Email.
 
-5. **ProviderLogin** redirects incomplete providers to `/auth/provider` which shows signup UI instead of continuing onboarding.
+### What's already working
 
-## Plan
+- Routes are consolidated: `/provider/onboarding` is canonical
+- `/auth/provider` and `/provider-onboarding` redirect correctly
+- The wizard flow (steps 2-8) works when auth succeeds
+- Verification code input, resend button, and "Cambiar correo" already exist
 
-### Step 1: Consolidate Routes
+## Changes
 
-**Canonical route**: `/auth/provider` (already the main entry point)
+### 1. Fix repeated signup email delivery (ProviderOnboardingWizard.tsx)
 
-Changes in `src/App.tsx`:
-- Remove the `/provider-portal/onboarding` route (line 203) -- it's redundant
-- Replace the `/provider-onboarding` import with a `Navigate` redirect to `/auth/provider`
-- Remove the `ProviderOnboarding` import (line 23)
+After a successful signup call, automatically trigger a `resend` to ensure the confirmation email is sent even for repeated signups:
 
-Changes in `src/constants/routes.ts`:
-- Update `PROVIDER_ONBOARDING_WIZARD` to point to `/auth/provider` instead of `/provider-portal/onboarding`
-- Keep `PROVIDER_ONBOARDING` pointing to `/provider-onboarding` (used by redirect)
+```
+// In handleSignup, after successful signUp call (line 390):
+// Trigger resend to cover repeated signup case
+await supabase.auth.resend({
+  type: 'signup',
+  email: signupData.email,
+  options: {
+    emailRedirectTo: `${window.location.origin}/auth/callback?login_context=provider`
+  }
+});
+startResendCooldown(); // Start cooldown so user doesn't spam
+```
 
-### Step 2: Fix Redirect References
+This ensures that even if Supabase silently ignores a repeated signup, the explicit `resend` call will send the email.
 
-Update files that reference `/provider-onboarding` to use `ROUTES.PROVIDER_AUTH`:
-- `src/pages/ProviderVerification.tsx` (line 180)
-- `src/pages/provider-portal/ProviderVerification.tsx` (line 149)
-- `src/components/VerificationOverlay.tsx` (line 137)
+### 2. Better detection of "already registered" users (ProviderOnboardingWizard.tsx)
 
-Update `src/pages/ProviderLogin.tsx` (line 134): Change redirect from `/auth/provider` to `ROUTES.PROVIDER_AUTH` (same value, but use the constant).
+Supabase with `email confirmation` enabled returns a fake success for already-registered-and-confirmed users (returns a user with empty `identities` array). Detect this case:
 
-### Step 3: Fix the Post-Auth Step Advancement Bug
+```
+// In handleSignup, check the signUp response data
+// If user has empty identities, the email is already confirmed and registered
+if (data?.user?.identities?.length === 0) {
+  // Email already confirmed - user should login instead
+  toast.error('Este correo ya tiene cuenta verificada', {
+    description: 'Inicia sesion con tu contrasena.',
+    action: { label: 'Iniciar sesion', onClick: () => switchToLogin() }
+  });
+  return;
+}
+```
 
-In `src/pages/provider-portal/ProviderOnboardingWizard.tsx`:
+This requires modifying `AuthContext.signUp` to return `data` along with `error`.
 
-The core bug: when a user arrives authenticated (e.g., after email verification redirect), `hasCheckedOnboarding.current` may prevent the `useEffect` from running, leaving the user stuck on step 2's spinner.
+### 3. Update AuthContext.signUp to return data (AuthContext.tsx)
 
-Fix:
-- Reset `hasCheckedOnboarding.current = false` when the `user` value changes (new user session)
-- In the `useEffect`, remove the early return for `hasCheckedOnboarding.current` when `currentStep === 2` (auth step) -- always re-check if we're on the auth step to ensure advancement
-- After checking status and determining user needs onboarding, reliably set step to 3
+Change the return type to include the signup response data so the wizard can inspect `user.identities`:
 
-### Step 4: Fix "Onboarding Complete" Re-entry
+```
+// Before: return { error };
+// After: return { error, data };
+```
 
-In `ProviderOnboardingWizard.tsx`, the `useEffect` already redirects to portal if onboarding is complete. This is correct. No change needed here.
+### 4. Delete dead ProviderOnboarding.tsx
 
-Add a guard: if user visits `/auth/provider` while already having a complete profile, redirect immediately (already handled by the existing useEffect).
+Remove `src/pages/ProviderOnboarding.tsx` -- it's 350 lines of dead code no longer imported anywhere. It was the old standalone onboarding page that has been replaced by `ProviderOnboardingWizard.tsx`.
 
-### Step 5: Improve "Revisar correo" Screen (Email Verification UX)
+### 5. Verify Auth Hook configuration (Manual step -- user action needed)
 
-In `ProviderOnboardingWizard.tsx`, update the `showVerificationPending` overlay (lines 1449-1506):
+The `send-confirmation-email` edge function has been redeployed. You need to verify it's enabled in the Supabase Dashboard:
 
-1. Add a **cooldown timer** (60s) on the "Reenviar correo" button
-2. Add **"Cambiar correo"** button that closes the overlay and returns to the signup form
-3. Add **microcopy**: "Revisa tu carpeta de spam o promociones" and "Verifica que el email sea correcto"
-4. Add a **"Volver"** exit button to return to the auth step
-5. Add **help link** text: "Si sigues sin recibir el correo, contacta soporte"
+1. Go to Supabase Dashboard > Authentication > Hooks
+2. Verify "Send Email" hook is enabled and pointing to the `send-confirmation-email` function
+3. Verify the `SEND_EMAIL_HOOK_SECRET` matches what's configured in the hook
 
-### Step 6: Improve Error Handling for Existing Emails
-
-In `ProviderOnboardingWizard.tsx`, update `handleSignup` (lines 347-363):
-
-- When error contains "already registered" or "already exists", show a clear message with two CTAs:
-  - "Iniciar sesion" -- switches to login mode with email pre-filled
-  - "Reenviar codigo" -- triggers resend verification
-
-Update the error display to show inline action buttons rather than just a toast.
-
-### Step 7: Fix ProviderLogin Post-Success Routing
-
-In `src/pages/ProviderLogin.tsx`, update `handleSuccessComplete` (line 123-139):
-- Use `ROUTES.PROVIDER_AUTH` constant instead of hardcoded `/auth/provider`
-- This ensures incomplete providers land on the canonical onboarding wizard
+If the hook is not configured, Supabase uses its built-in email templates instead. The built-in emails will still work for sending confirmation, just without the custom Chamby branding via Postmark.
 
 ## Files Changed
 
 | File | Change |
 |------|--------|
-| `src/App.tsx` | Remove duplicate routes, add redirect for `/provider-onboarding` |
-| `src/constants/routes.ts` | Update `PROVIDER_ONBOARDING_WIZARD` to `/auth/provider` |
-| `src/pages/provider-portal/ProviderOnboardingWizard.tsx` | Fix step advancement bug, improve email verification UX, better error handling |
-| `src/pages/ProviderLogin.tsx` | Use route constant for redirect |
-| `src/pages/ProviderVerification.tsx` | Update link to use canonical route |
-| `src/pages/provider-portal/ProviderVerification.tsx` | Update link to use canonical route |
-| `src/components/VerificationOverlay.tsx` | Update link to use canonical route |
+| `src/pages/provider-portal/ProviderOnboardingWizard.tsx` | Auto-resend after signup, detect already-confirmed emails |
+| `src/contexts/AuthContext.tsx` | Return signup data from signUp function |
+| `src/pages/ProviderOnboarding.tsx` | Delete (dead code) |
 
-## Non-Regression Guarantees
+## What This Does NOT Change
 
-- Provider portal routes (`/provider-portal/*`) are untouched
-- ProtectedRoute logic unchanged
-- Job notifications, available jobs feed, provider data fields unchanged
-- AuthCallback routing logic preserved (it already uses `ROUTES.PROVIDER_ONBOARDING_WIZARD` which will now point to `/auth/provider`)
-- Form persistence via localStorage preserved
-- Provider role creation logic in `handleFinish` and `AuthCallback` unchanged
-
+- Provider portal routes, job feed, notifications -- untouched
+- Route consolidation -- already correct
+- Verification UI (code input, resend, change email) -- already implemented
+- AuthCallback logic -- already correct
+- Database writes (providers, provider_details) -- already correct
