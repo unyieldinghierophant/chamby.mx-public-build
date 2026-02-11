@@ -6,7 +6,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string, phone?: string, isProvider?: boolean, role?: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName: string, phone?: string, isProvider?: boolean, role?: string) => Promise<{ error: any; data?: any }>;
   signIn: (email: string, password: string, loginContext?: 'client' | 'provider') => Promise<{ error: any }>;
   signInWithGoogle: (isProvider?: boolean, loginContext?: 'client' | 'provider') => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -86,10 +86,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (!error && data.user && !data.session) {
       // User needs to confirm email
-      return { error: null };
+      return { error: null, data };
     }
 
-    return { error };
+    return { error, data };
   };
 
   const signIn = async (email: string, password: string, loginContext?: 'client' | 'provider') => {
