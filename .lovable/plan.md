@@ -1,55 +1,55 @@
 
-
-# Fix: Handyman Search Intent Not Passed Through
-
-## Problem
-
-When a user searches "armar muebles" from the landing page, the system correctly routes them to the Handyman booking flow. However, the search text is never passed to `HandymanBookingFlow` -- unlike `ElectricalBookingFlow` which already receives an `intentText` prop. As a result:
-
-- The description field starts empty
-- The suggestion dropdown shows "Colgar una TV" as the first option
-- The user's original search intent is lost
+# Fix: Provider Signup "Sent Back to Beginning"
 
 ## Root Cause
 
-In `BookJob.tsx` (line 58), `HandymanBookingFlow` is rendered without any props:
+In `ProviderOnboardingWizard.tsx`, the `renderAuthStep()` function (line 839) calls `goToNext()` during render when a user is already logged in. This triggers a `setState` during render -- a React anti-pattern that causes unpredictable behavior: the state update can be discarded or trigger re-render loops, effectively resetting the wizard to the beginning.
+
+Additionally, the onboarding-check `useEffect` (line 306) includes `currentStep` in its dependency array, which means any step change re-triggers the async check, potentially causing race conditions with the render-time `goToNext()`.
+
+## Fix (2 changes in 1 file)
+
+### Change 1: Fix `renderAuthStep()` (line 838-842)
+
+Instead of calling `goToNext()` during render, return a loading indicator and let the existing `useEffect` handle the step transition (it already advances past step 2 when `user` exists).
+
+**Before:**
 ```
-<HandymanBookingFlow />
-```
-
-While `ElectricalBookingFlow` (line 64) already receives the intent:
-```
-<ElectricalBookingFlow intentText={...} />
-```
-
-## Plan
-
-### Step 1: Add `intentText` prop to HandymanBookingFlow
-
-- Accept an optional `intentText` string prop
-- On mount, if `intentText` is provided and the description is empty, pre-fill the description field with it
-- Auto-detect `workType` from keywords (e.g., "armar" selects "armado", "reparar" selects "reparacion", "instalar" selects "instalacion")
-
-### Step 2: Pass intentText from BookJob.tsx
-
-Update the HandymanBookingFlow rendering in `BookJob.tsx` to pass the same intent text that Electrical already receives:
-```
-<HandymanBookingFlow intentText={prefillData?.description || prefillData?.service || descriptionParam || serviceParam || ''} />
+function renderAuthStep() {
+    if (user) {
+      goToNext();
+      return null;
+    }
 ```
 
-### Keyword-to-WorkType Mapping
+**After:**
+```
+function renderAuthStep() {
+    if (user) {
+      return (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        </div>
+      );
+    }
+```
 
-| Keywords | WorkType |
-|----------|----------|
-| armar, ensamblar, montar, mueble | armado |
-| reparar, arreglar, componer, ajustar, bisagra | reparacion |
-| instalar, colgar, montar tv, colocar, poner | instalacion |
-| ajustar, manteni, calibrar | ajuste |
+### Change 2: Remove `currentStep` from useEffect dependency (line 306)
 
-### Files Changed
+Remove `currentStep` from the dependency array of the onboarding-check effect to prevent it from re-triggering every time the step changes. The effect only needs to run when `user` or `authMode` changes.
+
+**Before:**
+```
+}, [user, authMode, navigate, currentStep]);
+```
+
+**After:**
+```
+}, [user, authMode, navigate]);
+```
+
+### File Changed
 
 | File | Change |
 |------|--------|
-| `src/pages/BookJob.tsx` | Pass `intentText` prop to HandymanBookingFlow |
-| `src/components/handyman/HandymanBookingFlow.tsx` | Accept `intentText` prop, pre-fill description, auto-select workType |
-
+| `src/pages/provider-portal/ProviderOnboardingWizard.tsx` | Fix setState-during-render bug, remove `currentStep` from effect deps |
