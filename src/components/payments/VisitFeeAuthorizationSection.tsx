@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, ShieldCheck, CreditCard, CheckCircle, AlertCircle, RefreshCw, Lock } from "lucide-react";
 import { useVisitAuthorization } from "@/hooks/useVisitAuthorization";
+import { supabase } from "@/integrations/supabase/client";
 
 import { stripePromise } from "@/lib/stripe";
 
@@ -18,9 +19,11 @@ interface VisitFeeAuthorizationSectionProps {
 
 // Inner component that uses Stripe hooks
 const VisitFeeForm = ({ 
+  jobId,
   onAuthorized, 
   onFailed 
 }: { 
+  jobId: string;
   onAuthorized?: () => void; 
   onFailed?: (error: string) => void;
 }) => {
@@ -85,6 +88,23 @@ const VisitFeeForm = ({
           paymentIntent.status === "processing";
         
         if (isSuccessful) {
+          // Update job status to 'searching' with visit_fee_paid and assignment deadline
+          const assignmentDeadline = new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString();
+          const { error: updateError } = await supabase
+            .from('jobs')
+            .update({
+              visit_fee_paid: true,
+              status: 'searching',
+              assignment_deadline: assignmentDeadline,
+            })
+            .eq('id', jobId);
+          
+          if (updateError) {
+            console.error('[VisitFeeForm] Failed to update job status:', updateError);
+          } else {
+            console.log('[VisitFeeForm] Job updated to searching status');
+          }
+          
           setStatus("success");
           onAuthorized?.();
         } else if (paymentIntent.status === "requires_action") {
@@ -323,7 +343,7 @@ export const VisitFeeAuthorizationSection = ({
             },
           }}
         >
-          <VisitFeeForm onAuthorized={onAuthorized} onFailed={onFailed} />
+          <VisitFeeForm jobId={jobId} onAuthorized={onAuthorized} onFailed={onFailed} />
         </Elements>
       </CardContent>
     </Card>
