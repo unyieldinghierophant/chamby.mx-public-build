@@ -455,18 +455,22 @@ export default function ProviderOnboardingWizard() {
       console.log('[Onboarding Signup] Branch: new signup — proceeding to verification');
     }
 
-    // Auto-resend to cover repeated signup case (Supabase silently skips email for unconfirmed re-signups)
-    console.log('[Onboarding] Signup success, triggering resend for email delivery reliability');
+    // Send confirmation email directly via edge function (bypasses unconfigured Auth Hook)
+    console.log('[Onboarding] Sending confirmation email via send-signup-confirmation edge function');
     try {
-      await supabase.auth.resend({
-        type: 'signup',
-        email: signupData.email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?login_context=provider`
+      const { error: emailError } = await supabase.functions.invoke('send-signup-confirmation', {
+        body: {
+          email: signupData.email,
+          redirectTo: `${window.location.origin}/auth/callback?login_context=provider`
         }
       });
-    } catch (resendErr) {
-      console.warn('[Onboarding] Resend after signup failed (non-critical):', resendErr);
+      if (emailError) {
+        console.warn('[Onboarding] Edge function email send failed:', emailError);
+      } else {
+        console.log('[Onboarding] Confirmation email sent successfully');
+      }
+    } catch (emailErr) {
+      console.warn('[Onboarding] Edge function email call failed (non-critical):', emailErr);
     }
 
     localStorage.setItem('new_provider_signup', 'true');
@@ -575,22 +579,24 @@ export default function ProviderOnboardingWizard() {
   const handleResendVerification = async (email: string) => {
     if (resendCooldown > 0) return;
     setSaving(true);
-    const { error } = await supabase.auth.resend({
-      type: 'signup',
-      email: email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?login_context=provider`
-        // Note: emailRedirectTo still goes to /auth/callback which handles the session and redirects appropriately
-      }
-    });
-    
-    if (error) {
-      toast.error('Error al reenviar', { description: error.message });
-    } else {
-      toast.success('Correo reenviado', {
-        description: 'Revisa tu bandeja de entrada'
+    try {
+      const { error } = await supabase.functions.invoke('send-signup-confirmation', {
+        body: {
+          email,
+          redirectTo: `${window.location.origin}/auth/callback?login_context=provider`
+        }
       });
-      startResendCooldown();
+      
+      if (error) {
+        toast.error('Error al reenviar', { description: error.message });
+      } else {
+        toast.success('Correo reenviado', {
+          description: 'Revisa tu bandeja de entrada'
+        });
+        startResendCooldown();
+      }
+    } catch (err: any) {
+      toast.error('Error al reenviar', { description: err.message || 'Error desconocido' });
     }
     setSaving(false);
   };
