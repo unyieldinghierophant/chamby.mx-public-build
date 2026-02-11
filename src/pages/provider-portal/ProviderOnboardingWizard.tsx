@@ -700,7 +700,14 @@ export default function ProviderOnboardingWizard() {
   // Show loading state while checking user status
   if (user && checkingStatus) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center relative">
+        <button
+          onClick={() => navigate(hasProviderRole ? ROUTES.PROVIDER_PORTAL : ROUTES.HOME)}
+          className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground z-10"
+          title="Salir"
+        >
+          <X className="w-6 h-6" />
+        </button>
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-muted-foreground">Cargando tu perfil...</p>
