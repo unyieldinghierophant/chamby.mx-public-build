@@ -343,7 +343,7 @@ const ProviderLogin = () => {
                   <p className="text-xs sm:text-sm text-muted-foreground">
                     ¿No tienes cuenta?{' '}
                     <Link 
-                      to="/auth/provider" 
+                      to="/provider/onboarding" 
                       className="text-primary font-medium hover:underline"
                     >
                       Regístrate como Chambynauta

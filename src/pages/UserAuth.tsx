@@ -432,7 +432,7 @@ const UserAuth = () => {
                   ¿Eres proveedor de servicios?
                 </p>
                 <Link 
-                  to="/auth/provider" 
+                  to="/provider/onboarding" 
                   className="inline-flex items-center text-primary hover:text-primary-dark transition-colors font-medium text-sm"
                 >
                   Regístrate como proveedor

@@ -113,7 +113,7 @@ const ProviderOnboarding = () => {
 
   // Redirect if not authenticated
   if (loading) return <div>Cargando...</div>;
-  if (!user) return <Navigate to="/auth/provider" replace />;
+  if (!user) return <Navigate to="/provider/onboarding" replace />;
   
   // Check if user is a provider from user_metadata first, then from profile
   const isProvider = user.user_metadata?.is_provider || user.user_metadata?.is_tasker || profile?.is_provider;

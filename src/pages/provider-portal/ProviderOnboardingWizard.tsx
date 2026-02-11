@@ -498,6 +498,7 @@ export default function ProviderOnboardingWizard() {
       email: email,
       options: {
         emailRedirectTo: `${window.location.origin}/auth/callback?login_context=provider`
+        // Note: emailRedirectTo still goes to /auth/callback which handles the session and redirects appropriately
       }
     });
     

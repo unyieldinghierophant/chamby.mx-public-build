@@ -10,9 +10,9 @@ export const ROUTES = {
   LOGIN: '/login',
   LOGIN_SIGNUP: '/login?mode=signup',
   PROVIDER_LOGIN: '/provider/login',
-  PROVIDER_AUTH: '/auth/provider',
+  PROVIDER_AUTH: '/provider/onboarding',
   PROVIDER_LANDING: '/provider-landing',
-  PROVIDER_ONBOARDING: '/provider-onboarding',
+  PROVIDER_ONBOARDING: '/provider/onboarding',
   PROVIDER_VERIFICATION_PAGE: '/provider-verification',
   PROVIDER_PROFILE_PAGE: '/provider-profile',
   PROVIDER_PORTAL: '/provider-portal',
@@ -49,7 +49,7 @@ export const ROUTES = {
   PROVIDER_PROFILE_EDIT: '/provider-portal/profile/edit',
   PROVIDER_SKILLS_SELECTION: '/provider-portal/skills-selection',
   PROVIDER_SUPPORT: '/provider-portal/support',
-  PROVIDER_ONBOARDING_WIZARD: '/auth/provider',
+  PROVIDER_ONBOARDING_WIZARD: '/provider/onboarding',
 } as const;
 
 export type AppRoute = typeof ROUTES[keyof typeof ROUTES];
