@@ -15,7 +15,7 @@ const BookJob = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   
-  // Get prefill data from either location state or URL params
+  // Get prefill data from either location state, URL params, or localStorage (post-auth return)
   const prefillData = location.state as {
     category?: string;
     service?: string;
@@ -24,9 +24,16 @@ const BookJob = () => {
   
   const serviceParam = searchParams.get('service');
   const descriptionParam = searchParams.get('description');
+  const categoryParam = searchParams.get('category');
   
-  // Determine category-specific flow
-  const category = prefillData?.category;
+  // Determine category: location.state > URL param > localStorage fallback
+  const category = prefillData?.category || categoryParam || localStorage.getItem('booking_category') || undefined;
+  
+  // Clear stored category after reading (one-time use)
+  if (localStorage.getItem('booking_category') && category) {
+    localStorage.removeItem('booking_category');
+  }
+  
   const isHandyman = category?.toLowerCase() === 'handyman';
   const isGardening = category?.toLowerCase() === 'jardinería';
   const isPlumbing = category?.toLowerCase() === 'fontanería';
