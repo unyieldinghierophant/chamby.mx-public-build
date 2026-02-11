@@ -23,6 +23,7 @@ import logo from "@/assets/chamby-logo-new-horizontal.png";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CategoryTabs } from "@/components/CategoryTabs";
+import { SearchingJobBanner } from "@/components/SearchingJobBanner";
 const faqs = [
   {
     question: "¿Cómo funciona Chamby?",
@@ -294,6 +295,9 @@ const UserLanding = () => {
       </section>
 
       <main className="container mx-auto px-4 pb-24">
+        {/* Searching job banner */}
+        <SearchingJobBanner />
+
         {/* Category Tabs - Using shared component */}
         <div className="mb-8 md:mb-12 -mt-8">
           <CategoryTabs />
