@@ -273,13 +273,12 @@ const AuthCallback = () => {
         // Check if provider has completed their profile (has skills set)
         const { data: providerData } = await supabase
           .from('providers')
-          .select('skills, zone_served')
+          .select('skills, zone_served, onboarding_complete')
           .eq('user_id', user.id)
           .maybeSingle();
         
-        const hasCompletedProfile = providerData && 
-          providerData.skills && 
-          providerData.skills.length > 0;
+        const hasCompletedProfile = providerData?.onboarding_complete === true ||
+          (providerData && providerData.skills && providerData.skills.length > 0);
         
         // If new signup OR profile incomplete, redirect to onboarding wizard
         if (isNewProviderSignup || !hasCompletedProfile) {

@@ -542,6 +542,8 @@ export type Database = {
           hourly_rate: number | null
           id: string
           last_location_update: string | null
+          onboarding_complete: boolean
+          onboarding_step: string | null
           rating: number | null
           skills: string[] | null
           specialty: string | null
@@ -564,6 +566,8 @@ export type Database = {
           hourly_rate?: number | null
           id?: string
           last_location_update?: string | null
+          onboarding_complete?: boolean
+          onboarding_step?: string | null
           rating?: number | null
           skills?: string[] | null
           specialty?: string | null
@@ -586,6 +590,8 @@ export type Database = {
           hourly_rate?: number | null
           id?: string
           last_location_update?: string | null
+          onboarding_complete?: boolean
+          onboarding_step?: string | null
           rating?: number | null
           skills?: string[] | null
           specialty?: string | null
