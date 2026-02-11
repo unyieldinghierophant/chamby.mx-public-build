@@ -366,13 +366,25 @@ export default function ProviderOnboardingWizard() {
     );
 
     if (error) {
-      let errorMessage = error.message;
+      const errMsg = error.message || '';
+      const errStatus = (error as any).status || (error as any).statusCode;
+      console.log('[Onboarding Signup] Auth error:', { message: errMsg, status: errStatus, code: (error as any).code });
+
+      let errorMessage = errMsg;
       let errorField = 'email';
       
-      if (error.message.toLowerCase().includes('weak') || error.message.toLowerCase().includes('password') || error.message.toLowerCase().includes('easy to guess')) {
+      // Only treat as "already exists" for very specific Supabase error strings
+      const isAlreadyRegistered = 
+        errMsg.includes('User already registered') ||
+        errMsg.includes('already registered') ||
+        (errMsg.includes('duplicate key') && errMsg.includes('auth'));
+
+      if (errMsg.toLowerCase().includes('weak') || errMsg.toLowerCase().includes('password') || errMsg.toLowerCase().includes('easy to guess')) {
+        console.log('[Onboarding Signup] Branch: weak password');
         errorMessage = 'Elige una contraseña más única. Prueba añadir números, mayúsculas o símbolos.';
         errorField = 'password';
-      } else if (error.message.includes('already registered') || error.message.includes('already exists') || error.message.includes('User already registered')) {
+      } else if (isAlreadyRegistered) {
+        console.log('[Onboarding Signup] Branch: already registered (explicit error)');
         errorMessage = 'Este correo ya tiene cuenta.';
         errorField = 'email';
         toast.error('Este correo ya está registrado', {
@@ -389,6 +401,8 @@ export default function ProviderOnboardingWizard() {
         setSignupErrors({ [errorField]: errorMessage });
         setSaving(false);
         return;
+      } else {
+        console.log('[Onboarding Signup] Branch: generic error');
       }
       
       toast.error('Error en el registro', { description: errorMessage });
@@ -397,8 +411,23 @@ export default function ProviderOnboardingWizard() {
       return;
     }
 
-    // Detect already-confirmed users (empty identities = email already verified & registered)
-    if (data?.user?.identities?.length === 0) {
+    // Log signup response for debugging
+    const identities = data?.user?.identities;
+    const userConfirmedAt = data?.user?.confirmed_at;
+    const userCreatedAt = data?.user?.created_at;
+    console.log('[Onboarding Signup] Success response:', {
+      hasUser: !!data?.user,
+      identitiesCount: identities?.length,
+      confirmedAt: userConfirmedAt,
+      createdAt: userCreatedAt,
+      hasSession: !!data?.session,
+    });
+
+    // Detect TRULY already-confirmed users:
+    // Empty identities AND user has confirmed_at set = genuine existing confirmed account
+    // Empty identities WITHOUT confirmed_at = repeated signup of unconfirmed user (allow to proceed)
+    if (identities?.length === 0 && userConfirmedAt) {
+      console.log('[Onboarding Signup] Branch: already confirmed account (identities=0, confirmed_at set)');
       toast.error('Este correo ya tiene cuenta verificada', {
         description: 'Inicia sesión con tu contraseña.',
         duration: 8000,
@@ -412,6 +441,13 @@ export default function ProviderOnboardingWizard() {
       });
       setSaving(false);
       return;
+    }
+
+    // If identities is empty but not confirmed, this is a repeated unconfirmed signup — proceed normally
+    if (identities?.length === 0 && !userConfirmedAt) {
+      console.log('[Onboarding Signup] Branch: repeated signup of unconfirmed user — proceeding to verification');
+    } else {
+      console.log('[Onboarding Signup] Branch: new signup — proceeding to verification');
     }
 
     // Auto-resend to cover repeated signup case (Supabase silently skips email for unconfirmed re-signups)
