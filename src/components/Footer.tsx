@@ -40,28 +40,33 @@ const Footer = () => {
             <h4 className="text-lg font-semibold mb-4">Servicios</h4>
             <ul className="space-y-2 text-muted-foreground">
               <li>
-                <button onClick={() => navigate('/book-job', { state: { service: "Limpieza del hogar" }})} className="hover:text-primary transition-colors text-left">
-                  Limpieza del hogar
+                <button onClick={() => navigate('/book-job', { state: { category: 'Fontanería' }})} className="hover:text-primary transition-colors text-left">
+                  Fontanería en Guadalajara
                 </button>
               </li>
               <li>
-                <button onClick={() => navigate('/book-job', { state: { service: "Reparaciones" }})} className="hover:text-primary transition-colors text-left">
-                  Reparaciones
+                <button onClick={() => navigate('/book-job', { state: { category: 'Electricidad' }})} className="hover:text-primary transition-colors text-left">
+                  Electricistas en Guadalajara
                 </button>
               </li>
               <li>
-                <button onClick={() => navigate('/book-job', { state: { service: "Jardinería" }})} className="hover:text-primary transition-colors text-left">
+                <button onClick={() => navigate('/book-job', { state: { category: 'Jardinería' }})} className="hover:text-primary transition-colors text-left">
                   Jardinería
                 </button>
               </li>
               <li>
-                <button onClick={() => navigate('/book-job', { state: { service: "Pintura" }})} className="hover:text-primary transition-colors text-left">
-                  Pintura
+                <button onClick={() => navigate('/book-job', { state: { category: 'Limpieza' }})} className="hover:text-primary transition-colors text-left">
+                  Limpieza a domicilio
                 </button>
               </li>
               <li>
-                <button onClick={() => navigate('/book-job', { state: { service: "Instalaciones" }})} className="hover:text-primary transition-colors text-left">
-                  Instalaciones
+                <button onClick={() => navigate('/book-job', { state: { category: 'Auto y Lavado' }})} className="hover:text-primary transition-colors text-left">
+                  Lavado de auto a domicilio
+                </button>
+              </li>
+              <li>
+                <button onClick={() => navigate('/book-job', { state: { category: 'Handyman' }})} className="hover:text-primary transition-colors text-left">
+                  Handyman y manitas
                 </button>
               </li>
             </ul>
@@ -73,7 +78,7 @@ const Footer = () => {
             <ul className="space-y-2 text-muted-foreground">
               <li><a href="#" className="hover:text-primary transition-colors">Acerca de nosotros</a></li>
               <li><a href="#" className="hover:text-primary transition-colors">Cómo funciona</a></li>
-              <li><a href="/provider-landing" className="hover:text-primary transition-colors">Ser profesional</a></li>
+              <li><Link to="/provider/onboarding" className="hover:text-primary transition-colors font-medium">Conviértete en Chambynauta</Link></li>
               <li><a href="/help-center" className="hover:text-primary transition-colors">Centro de ayuda</a></li>
               <li><a href="/blog" className="hover:text-primary transition-colors">Blog</a></li>
             </ul>
@@ -99,8 +104,15 @@ const Footer = () => {
           </div>
         </div>
 
+        {/* SEO: Keyword-rich section for search visibility */}
+        <div className="border-t border-border mt-8 pt-6">
+          <p className="text-xs text-muted-foreground/60 leading-relaxed max-w-4xl">
+            Chamby.mx es la plataforma líder de servicios del hogar en Guadalajara, Jalisco. Ofrecemos fontaneros, electricistas, jardineros, limpieza a domicilio, lavado de auto a domicilio y handyman en zonas como Providencia, Punto Sur, Zona Sur, Andares, Zapopan y toda la zona metropolitana de Guadalajara. Ya sea que busques chamby, chanby, chanbi, chami, chamy, chanvi o chambitas — aquí encuentras al profesional verificado que necesitas. Servicios del hogar confiables: manitas, reparaciones, instalaciones y más.
+          </p>
+        </div>
+
         {/* Bottom Section */}
-        <div className="border-t border-border mt-8 pt-8">
+        <div className="border-t border-border mt-4 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="text-muted-foreground text-sm mb-4 md:mb-0">© 2025 Chamby.mx. Todos los derechos reservados.</div>
             <div className="flex flex-wrap justify-center md:justify-end gap-4 md:gap-6 text-sm text-muted-foreground">
