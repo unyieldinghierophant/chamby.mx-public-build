@@ -1,34 +1,109 @@
 
 
-# Fix: Email Verification Code and Remove Button
+# Fix: Provider Data Not Saving to Supabase Tables
 
 ## Root Cause
 
-Two problems:
+Two issues prevent data from being stored:
 
-1. **OTP code doesn't work**: The edge function generates the link/OTP using `type: "magiclink"`, but the client-side verification calls `supabase.auth.verifyOtp()` with `type: "signup"`. These types must match for Supabase to accept the code.
+1. **No `providers` row exists**: The `handleFinish` function and `persistStepToDB` both use `.update()` on the `providers` table. If the `handle_new_user` trigger didn't create the row (common with Google OAuth or race conditions), the update silently affects zero rows -- no error is thrown, but nothing is saved.
 
-2. **Button redirects wrong**: The "Confirmar mi correo" button in the email template uses `type=signup` in the URL (mismatched again), and the redirect URL points to `/auth/callback` which routes to the provider login instead of resuming onboarding. Per your request, we'll remove this button entirely.
+2. **Data only saved at final step**: Profile data (display name, bio, avatar), skills, and zone are only written to the database when the user clicks "Finish" on the last step. If anything interrupts that final call, all data is lost (only localStorage has it).
 
-## Changes
+## Solution
 
-### 1. Fix OTP verification type (`ProviderOnboardingWizard.tsx`)
+### 1. Guarantee `providers` row exists before any DB write
 
-Change the `verifyOtp` call from `type: 'signup'` to `type: 'magiclink'` so it matches what `generateLink` produced.
+Add an `ensureProviderRow` helper that runs an **upsert** (insert-on-conflict-do-nothing) before the first DB write. Call it:
+- When the user reaches step 3 (profile) after authentication
+- At the start of `handleFinish`
 
-### 2. Remove button from email template (`send-signup-confirmation/_templates/confirmation.tsx`)
+```typescript
+const ensureProviderRow = async () => {
+  if (!user) return;
+  const { error } = await supabase
+    .from('providers')
+    .upsert(
+      { user_id: user.id, display_name: user.user_metadata?.full_name || '' },
+      { onConflict: 'user_id' }
+    );
+  if (error) console.error('[Onboarding] Failed to ensure provider row:', error);
+};
+```
 
-Remove the "Confirmar mi correo electrónico" button and the "Para activar tu cuenta, haz clic en el siguiente botón:" text. Keep only the verification code section.
+### 2. Save data incrementally at each step transition
 
-### 3. Clean up edge function text fallback (`send-signup-confirmation/index.ts`)
+Update `persistStepToDB` to also save the relevant data for the step being completed:
 
-Remove the confirmation URL from the plain-text email body since we're removing the button. Keep only the OTP code.
+- **After profile step (step 3 to 4)**: Save `display_name`, `avatar_url` to `providers`; save `full_name`, `phone`, `bio` to `users`
+- **After skills step (step 4 to 5)**: Save `skills` to `providers`
+- **After zone step (step 5 to 6)**: Save `zone_served`, `current_latitude`, `current_longitude` to `providers`
+
+This ensures data survives browser crashes, tab closures, or network hiccups between steps.
+
+### 3. Use upsert in `handleFinish` instead of update
+
+Change the final `.update()` to `.upsert()` with `onConflict: 'user_id'` so the finish step works even if previous saves failed.
+
+### 4. Ensure `provider_details` row is created early
+
+Move the `provider_details` creation from `handleFinish` to `ensureProviderRow`, so it's linked as soon as the provider row exists.
 
 ## Files Changed
 
 | File | Change |
 |------|--------|
-| `src/pages/provider-portal/ProviderOnboardingWizard.tsx` | Change `verifyOtp` type from `'signup'` to `'magiclink'` |
-| `supabase/functions/send-signup-confirmation/_templates/confirmation.tsx` | Remove button + related text, keep code only |
-| `supabase/functions/send-signup-confirmation/index.ts` | Remove confirmation URL from plain-text body |
+| `src/pages/provider-portal/ProviderOnboardingWizard.tsx` | Add `ensureProviderRow` helper; update `persistStepToDB` to save step data incrementally; change `handleFinish` to use upsert; create `provider_details` early |
+
+## Technical Details
+
+### `persistStepToDB` updated logic
+
+```typescript
+const persistStepToDB = useCallback(async (stepNum: number) => {
+  if (!user) return;
+  const stepName = STEP_NAME_MAP[stepNum] || 'auth';
+
+  // Base update: always persist the step name
+  let providerUpdate: Record<string, any> = { onboarding_step: stepName };
+
+  // Attach step-specific data
+  if (stepNum === 4) {
+    // Leaving profile step
+    providerUpdate.display_name = profileData.displayName;
+    providerUpdate.avatar_url = profileData.avatarUrl;
+  }
+  if (stepNum === 5) {
+    // Leaving skills step
+    providerUpdate.skills = selectedSkills;
+  }
+  if (stepNum === 6) {
+    // Leaving zone step
+    providerUpdate.zone_served = workZone || `${workZoneRadius}km radius`;
+    providerUpdate.current_latitude = workZoneCoords?.lat || null;
+    providerUpdate.current_longitude = workZoneCoords?.lng || null;
+  }
+
+  await supabase
+    .from('providers')
+    .update(providerUpdate)
+    .eq('user_id', user.id);
+
+  // Also persist users table data after profile step
+  if (stepNum === 4) {
+    await supabase
+      .from('users')
+      .update({ full_name: profileData.displayName, phone: profileData.phone, bio: profileData.bio })
+      .eq('id', user.id);
+  }
+}, [user, profileData, selectedSkills, workZone, workZoneCoords, workZoneRadius]);
+```
+
+### `ensureProviderRow` called when user reaches step 3
+
+Inside the `checkOnboardingStatus` effect, after confirming the user is authenticated and moving to step 3, call `ensureProviderRow`. This guarantees the row exists before any `persistStepToDB` call.
+
+### `handleFinish` uses upsert
+
+The final save changes from `.update()` to `.upsert({ ... }, { onConflict: 'user_id' })` as a safety net, ensuring the complete profile is written even if intermediate saves failed.
 
