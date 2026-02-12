@@ -1,109 +1,92 @@
 
 
-# Fix: Provider Data Not Saving to Supabase Tables
+# Fix: Provider Onboarding Data Not Persisting to Supabase
 
 ## Root Cause
 
-Two issues prevent data from being stored:
+After thorough investigation, the DB shows partial data saved (skills, zone_served, avatar_url) but `onboarding_complete` remains `false` and `onboarding_step` remains `auth`. This means:
 
-1. **No `providers` row exists**: The `handleFinish` function and `persistStepToDB` both use `.update()` on the `providers` table. If the `handle_new_user` trigger didn't create the row (common with Google OAuth or race conditions), the update silently affects zero rows -- no error is thrown, but nothing is saved.
+1. **`persistStepToDB` partially works** -- it saves step-specific data (skills, zone) but the `onboarding_step` field is not being reliably updated alongside it, OR a subsequent operation resets it.
+2. **`handleFinish` silently fails** -- the upsert that sets `onboarding_complete: true` either errors out or never executes. The error toast is easy to miss, so the user sees the completion screen (step 8) but the DB was never updated.
+3. **Redirect loop** -- When the user next visits, `ProviderPortal` or the wizard checks DB, finds `onboarding_complete: false`, and sends them back to step 3.
 
-2. **Data only saved at final step**: Profile data (display name, bio, avatar), skills, and zone are only written to the database when the user clicks "Finish" on the last step. If anything interrupts that final call, all data is lost (only localStorage has it).
+The core problem is that there is **no verification that writes actually succeeded** and **no unmissable error feedback**.
 
-## Solution
+## Solution (3 changes, 1 file)
 
-### 1. Guarantee `providers` row exists before any DB write
+All changes are in `src/pages/provider-portal/ProviderOnboardingWizard.tsx`.
 
-Add an `ensureProviderRow` helper that runs an **upsert** (insert-on-conflict-do-nothing) before the first DB write. Call it:
-- When the user reaches step 3 (profile) after authentication
-- At the start of `handleFinish`
+### 1. Bulletproof `handleFinish` with write verification
 
-```typescript
-const ensureProviderRow = async () => {
-  if (!user) return;
-  const { error } = await supabase
-    .from('providers')
-    .upsert(
-      { user_id: user.id, display_name: user.user_metadata?.full_name || '' },
-      { onConflict: 'user_id' }
-    );
-  if (error) console.error('[Onboarding] Failed to ensure provider row:', error);
-};
-```
+- After the upsert, **SELECT the row back** to confirm `onboarding_complete = true` is actually in the DB.
+- If the read-back shows the flag is still `false`, fall back to a direct `.update()` call as a retry.
+- If that also fails, show a **full-screen error overlay** (not just a toast) so the user cannot miss it.
+- Only navigate to the portal after verified success.
 
-### 2. Save data incrementally at each step transition
+### 2. Make `persistStepToDB` more robust
 
-Update `persistStepToDB` to also save the relevant data for the step being completed:
+- Wrap in try/catch with error logging.
+- After the `.update()`, check the response for errors and show a warning toast if the step save fails (non-blocking, but visible).
+- Log the exact payload being sent for debugging.
 
-- **After profile step (step 3 to 4)**: Save `display_name`, `avatar_url` to `providers`; save `full_name`, `phone`, `bio` to `users`
-- **After skills step (step 4 to 5)**: Save `skills` to `providers`
-- **After zone step (step 5 to 6)**: Save `zone_served`, `current_latitude`, `current_longitude` to `providers`
+### 3. Fix `ProviderPortal` redirect as a safety net
 
-This ensures data survives browser crashes, tab closures, or network hiccups between steps.
-
-### 3. Use upsert in `handleFinish` instead of update
-
-Change the final `.update()` to `.upsert()` with `onConflict: 'user_id'` so the finish step works even if previous saves failed.
-
-### 4. Ensure `provider_details` row is created early
-
-Move the `provider_details` creation from `handleFinish` to `ensureProviderRow`, so it's linked as soon as the provider row exists.
+In `src/pages/ProviderPortal.tsx`:
+- Also accept `skills.length > 0` as sufficient to consider onboarding complete (current behavior), BUT also set `onboarding_complete = true` in the DB when this condition is met. This self-heals the inconsistency.
 
 ## Files Changed
 
 | File | Change |
 |------|--------|
-| `src/pages/provider-portal/ProviderOnboardingWizard.tsx` | Add `ensureProviderRow` helper; update `persistStepToDB` to save step data incrementally; change `handleFinish` to use upsert; create `provider_details` early |
+| `src/pages/provider-portal/ProviderOnboardingWizard.tsx` | Add write verification in `handleFinish`; add error handling in `persistStepToDB`; show unmissable errors |
+| `src/pages/ProviderPortal.tsx` | Self-heal: if skills exist but `onboarding_complete` is false, update it to true |
 
 ## Technical Details
 
-### `persistStepToDB` updated logic
+### `handleFinish` -- verified write pattern
 
 ```typescript
-const persistStepToDB = useCallback(async (stepNum: number) => {
-  if (!user) return;
-  const stepName = STEP_NAME_MAP[stepNum] || 'auth';
+// After upsert
+const { data: verification } = await supabase
+  .from('providers')
+  .select('onboarding_complete')
+  .eq('user_id', user.id)
+  .single();
 
-  // Base update: always persist the step name
-  let providerUpdate: Record<string, any> = { onboarding_step: stepName };
-
-  // Attach step-specific data
-  if (stepNum === 4) {
-    // Leaving profile step
-    providerUpdate.display_name = profileData.displayName;
-    providerUpdate.avatar_url = profileData.avatarUrl;
-  }
-  if (stepNum === 5) {
-    // Leaving skills step
-    providerUpdate.skills = selectedSkills;
-  }
-  if (stepNum === 6) {
-    // Leaving zone step
-    providerUpdate.zone_served = workZone || `${workZoneRadius}km radius`;
-    providerUpdate.current_latitude = workZoneCoords?.lat || null;
-    providerUpdate.current_longitude = workZoneCoords?.lng || null;
-  }
-
-  await supabase
+if (!verification?.onboarding_complete) {
+  // Upsert didn't stick -- retry with direct update
+  console.error('[handleFinish] Upsert did not persist, retrying with update...');
+  const { error: retryError } = await supabase
     .from('providers')
-    .update(providerUpdate)
+    .update({ onboarding_complete: true, onboarding_step: 'completed', skills: selectedSkills, ... })
     .eq('user_id', user.id);
+  if (retryError) throw retryError;
 
-  // Also persist users table data after profile step
-  if (stepNum === 4) {
-    await supabase
-      .from('users')
-      .update({ full_name: profileData.displayName, phone: profileData.phone, bio: profileData.bio })
-      .eq('id', user.id);
+  // Verify again
+  const { data: secondCheck } = await supabase
+    .from('providers')
+    .select('onboarding_complete')
+    .eq('user_id', user.id)
+    .single();
+  if (!secondCheck?.onboarding_complete) {
+    throw new Error('Data verification failed after retry');
   }
-}, [user, profileData, selectedSkills, workZone, workZoneCoords, workZoneRadius]);
+}
 ```
 
-### `ensureProviderRow` called when user reaches step 3
+### `ProviderPortal` self-healing
 
-Inside the `checkOnboardingStatus` effect, after confirming the user is authenticated and moving to step 3, call `ensureProviderRow`. This guarantees the row exists before any `persistStepToDB` call.
+```typescript
+if (providerData?.skills?.length > 0 && !providerData.onboarding_complete) {
+  // Self-heal: mark onboarding as complete since data exists
+  await supabase
+    .from('providers')
+    .update({ onboarding_complete: true, onboarding_step: 'completed' })
+    .eq('user_id', user.id);
+}
+```
 
-### `handleFinish` uses upsert
+### Error display upgrade
 
-The final save changes from `.update()` to `.upsert({ ... }, { onConflict: 'user_id' })` as a safety net, ensuring the complete profile is written even if intermediate saves failed.
+Replace the toast-only error with a persistent error state that renders a retry UI on the completion step, making it impossible for the user to miss a save failure.
 
