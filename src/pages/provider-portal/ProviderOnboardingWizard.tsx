@@ -288,6 +288,10 @@ export default function ProviderOnboardingWizard() {
           console.log('[Onboarding] Resuming from step:', targetStep, '(db:', dbStep, ')');
           setCurrentStep(targetStep);
         }
+
+        // Ensure provider row exists now that user is authenticated
+        // This guarantees the row is there before any persistStepToDB call
+        await ensureProviderRow();
         
         const { data: userData } = await supabase
           .from('users')
@@ -632,16 +636,95 @@ export default function ProviderOnboardingWizard() {
     }
   };
 
-  // Persist current step to DB when advancing
+  // Ensure provider row + provider_details exist before any DB write
+  const ensureProviderRow = useCallback(async () => {
+    if (!user) return;
+    console.log('[Onboarding] Ensuring provider row exists for', user.id);
+    
+    const { data: upsertedProvider, error } = await supabase
+      .from('providers')
+      .upsert(
+        { user_id: user.id, display_name: user.user_metadata?.full_name || '' },
+        { onConflict: 'user_id' }
+      )
+      .select('id')
+      .single();
+
+    if (error) {
+      console.error('[Onboarding] Failed to ensure provider row:', error);
+      return;
+    }
+
+    // Also ensure provider_details exists
+    if (upsertedProvider) {
+      const { data: existingDetails } = await supabase
+        .from('provider_details')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (!existingDetails) {
+        const { error: detailsError } = await supabase
+          .from('provider_details')
+          .insert({
+            provider_id: upsertedProvider.id,
+            user_id: user.id,
+            verification_status: 'pending'
+          });
+        if (detailsError && detailsError.code !== '23505') {
+          console.error('[Onboarding] Failed to create provider_details:', detailsError);
+        } else {
+          console.log('[Onboarding] provider_details ensured');
+        }
+      }
+    }
+  }, [user]);
+
+  // Persist current step + step-specific data to DB when advancing
   const persistStepToDB = useCallback(async (stepNum: number) => {
     if (!user) return;
     const stepName = STEP_NAME_MAP[stepNum] || 'auth';
-    console.log('[Onboarding] Persisting step to DB:', stepName);
-    await supabase
+    console.log('[Onboarding] Persisting step to DB:', stepName, '(step', stepNum, ')');
+
+    // Base update: always persist the step name
+    const providerUpdate: Record<string, any> = { onboarding_step: stepName };
+
+    // Attach step-specific data based on the step we're LEAVING
+    // When stepNum=4, user just finished profile (step 3) and is moving to skills (step 4)
+    if (stepNum === 4) {
+      // Leaving profile step → save profile data
+      providerUpdate.display_name = profileData.displayName;
+      providerUpdate.avatar_url = profileData.avatarUrl;
+    }
+    if (stepNum === 5) {
+      // Leaving skills step → save skills
+      providerUpdate.skills = selectedSkills;
+    }
+    if (stepNum === 6) {
+      // Leaving zone step → save zone data
+      providerUpdate.zone_served = workZone || `${workZoneRadius}km radius`;
+      providerUpdate.current_latitude = workZoneCoords?.lat || null;
+      providerUpdate.current_longitude = workZoneCoords?.lng || null;
+    }
+
+    const { error: provError } = await supabase
       .from('providers')
-      .update({ onboarding_step: stepName })
+      .update(providerUpdate)
       .eq('user_id', user.id);
-  }, [user]);
+
+    if (provError) {
+      console.error('[Onboarding] Error persisting step data:', provError);
+    }
+
+    // Also persist users table data after profile step
+    if (stepNum === 4) {
+      const { error: userError } = await supabase
+        .from('users')
+        .update({ full_name: profileData.displayName, phone: profileData.phone, bio: profileData.bio })
+        .eq('id', user.id);
+      if (userError) console.error('[Onboarding] Error persisting user data:', userError);
+    }
+  }, [user, profileData, selectedSkills, workZone, workZoneCoords, workZoneRadius]);
 
   const goToNext = () => {
     if (currentStep < totalSteps) {
@@ -709,10 +792,15 @@ export default function ProviderOnboardingWizard() {
         }
       }
 
+      // Ensure provider row exists as safety net before final save
+      await ensureProviderRow();
+
       const { error: providerError } = await supabase
         .from('providers')
-        .update({
+        .upsert({
+          user_id: user.id,
           display_name: profileData.displayName,
+          avatar_url: profileData.avatarUrl || null,
           skills: selectedSkills,
           zone_served: workZone || `${workZoneRadius}km radius`,
           current_latitude: workZoneCoords?.lat || null,
@@ -720,11 +808,10 @@ export default function ProviderOnboardingWizard() {
           onboarding_complete: true,
           onboarding_step: 'completed',
           updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id);
+        }, { onConflict: 'user_id' });
 
       if (providerError) throw providerError;
-      console.log('[ProviderOnboarding] DB updated: onboarding_complete=true');
+      console.log('[ProviderOnboarding] DB upserted: onboarding_complete=true');
 
       const { error: userError } = await supabase
         .from('users')
@@ -736,32 +823,6 @@ export default function ProviderOnboardingWizard() {
         .eq('id', user.id);
 
       if (userError) throw userError;
-
-      // Ensure provider_details record is linked
-      const { data: existingDetails } = await supabase
-        .from('provider_details')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      
-      if (!existingDetails) {
-        const { data: providerRecord } = await supabase
-          .from('providers')
-          .select('id')
-          .eq('user_id', user.id)
-          .single();
-        
-        if (providerRecord) {
-          await supabase
-            .from('provider_details')
-            .insert({
-              provider_id: providerRecord.id,
-              user_id: user.id,
-              verification_status: 'pending'
-            });
-          console.log('[ProviderOnboarding] provider_details created');
-        }
-      }
 
       localStorage.setItem('selected_role', 'provider');
 
