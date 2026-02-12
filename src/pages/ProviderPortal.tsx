@@ -35,18 +35,27 @@ const ProviderPortalContent = () => {
       // Check if provider profile is complete
       const { data: providerData } = await supabase
         .from('providers')
-        .select('skills, zone_served, display_name')
+        .select('skills, zone_served, display_name, onboarding_complete')
         .eq('user_id', user.id)
         .maybeSingle();
 
-      const isComplete = providerData && 
+      const hasSkills = providerData && 
         providerData.skills && 
         providerData.skills.length > 0;
 
-      setOnboardingComplete(!!isComplete);
+      // Self-heal: if skills exist but onboarding_complete is false, fix the flag
+      if (hasSkills && !providerData.onboarding_complete) {
+        console.log('[ProviderPortal] Self-healing: skills exist but onboarding_complete=false, fixing...');
+        await supabase
+          .from('providers')
+          .update({ onboarding_complete: true, onboarding_step: 'completed' })
+          .eq('user_id', user.id);
+      }
+
+      setOnboardingComplete(!!hasSkills);
       
       // If profile incomplete, redirect to onboarding wizard
-      if (!isComplete) {
+      if (!hasSkills) {
         navigate(ROUTES.PROVIDER_ONBOARDING_WIZARD, { replace: true });
         return;
       }
