@@ -684,45 +684,54 @@ export default function ProviderOnboardingWizard() {
   const persistStepToDB = useCallback(async (stepNum: number) => {
     if (!user) return;
     const stepName = STEP_NAME_MAP[stepNum] || 'auth';
-    console.log('[Onboarding] Persisting step to DB:', stepName, '(step', stepNum, ')');
+    
+    try {
+      // Base update: always persist the step name
+      const providerUpdate: Record<string, any> = { onboarding_step: stepName };
 
-    // Base update: always persist the step name
-    const providerUpdate: Record<string, any> = { onboarding_step: stepName };
+      // Attach step-specific data based on the step we're LEAVING
+      if (stepNum === 4) {
+        providerUpdate.display_name = profileData.displayName;
+        providerUpdate.avatar_url = profileData.avatarUrl;
+      }
+      if (stepNum === 5) {
+        providerUpdate.skills = selectedSkills;
+      }
+      if (stepNum === 6) {
+        providerUpdate.zone_served = workZone || `${workZoneRadius}km radius`;
+        providerUpdate.current_latitude = workZoneCoords?.lat || null;
+        providerUpdate.current_longitude = workZoneCoords?.lng || null;
+      }
 
-    // Attach step-specific data based on the step we're LEAVING
-    // When stepNum=4, user just finished profile (step 3) and is moving to skills (step 4)
-    if (stepNum === 4) {
-      // Leaving profile step → save profile data
-      providerUpdate.display_name = profileData.displayName;
-      providerUpdate.avatar_url = profileData.avatarUrl;
-    }
-    if (stepNum === 5) {
-      // Leaving skills step → save skills
-      providerUpdate.skills = selectedSkills;
-    }
-    if (stepNum === 6) {
-      // Leaving zone step → save zone data
-      providerUpdate.zone_served = workZone || `${workZoneRadius}km radius`;
-      providerUpdate.current_latitude = workZoneCoords?.lat || null;
-      providerUpdate.current_longitude = workZoneCoords?.lng || null;
-    }
+      console.log('[Onboarding] persistStepToDB payload:', JSON.stringify(providerUpdate));
 
-    const { error: provError } = await supabase
-      .from('providers')
-      .update(providerUpdate)
-      .eq('user_id', user.id);
+      const { error: provError, count } = await supabase
+        .from('providers')
+        .update(providerUpdate)
+        .eq('user_id', user.id);
 
-    if (provError) {
-      console.error('[Onboarding] Error persisting step data:', provError);
-    }
+      if (provError) {
+        console.error('[Onboarding] Error persisting step data:', provError);
+        toast.warning('Advertencia: no se pudo guardar el progreso del paso', {
+          description: provError.message
+        });
+      } else {
+        console.log('[Onboarding] Step persisted OK:', stepName);
+      }
 
-    // Also persist users table data after profile step
-    if (stepNum === 4) {
-      const { error: userError } = await supabase
-        .from('users')
-        .update({ full_name: profileData.displayName, phone: profileData.phone, bio: profileData.bio })
-        .eq('id', user.id);
-      if (userError) console.error('[Onboarding] Error persisting user data:', userError);
+      // Also persist users table data after profile step
+      if (stepNum === 4) {
+        const { error: userError } = await supabase
+          .from('users')
+          .update({ full_name: profileData.displayName, phone: profileData.phone, bio: profileData.bio })
+          .eq('id', user.id);
+        if (userError) {
+          console.error('[Onboarding] Error persisting user data:', userError);
+        }
+      }
+    } catch (err: any) {
+      console.error('[Onboarding] persistStepToDB exception:', err);
+      toast.warning('Error guardando progreso', { description: err.message });
     }
   }, [user, profileData, selectedSkills, workZone, workZoneCoords, workZoneRadius]);
 
@@ -765,10 +774,14 @@ export default function ProviderOnboardingWizard() {
     setSelectedSkills(selectedSkills.filter(s => s !== skill));
   };
 
+  // Persistent error state for unmissable error display
+  const [finishError, setFinishError] = useState<string | null>(null);
+
   const handleFinish = async () => {
     if (!user) return;
 
     setSaving(true);
+    setFinishError(null);
     try {
       // 🔥 CRITICAL: Ensure provider role exists before anything else
       const { data: existingRoles } = await supabase
@@ -776,42 +789,93 @@ export default function ProviderOnboardingWizard() {
         .select('role')
         .eq('user_id', user.id);
       
-      const hasProviderRole = existingRoles?.some(r => r.role === 'provider');
+      const hasProviderRoleDB = existingRoles?.some(r => r.role === 'provider');
       
-      if (!hasProviderRole) {
-        console.log('[ProviderOnboarding] Creating missing provider role...');
+      if (!hasProviderRoleDB) {
+        console.log('[handleFinish] Creating missing provider role...');
         const { error: roleError } = await supabase
           .from('user_roles')
           .insert({ user_id: user.id, role: 'provider' });
         
-        if (roleError && roleError.code !== '23505') { // 23505 = duplicate key
-          console.error('[ProviderOnboarding] Error creating provider role:', roleError);
-          // Don't throw - continue with profile update, role might be created elsewhere
-        } else {
-          console.log('[ProviderOnboarding] Provider role created successfully');
+        if (roleError && roleError.code !== '23505') {
+          console.error('[handleFinish] Error creating provider role:', roleError);
         }
       }
 
       // Ensure provider row exists as safety net before final save
       await ensureProviderRow();
 
+      const upsertPayload = {
+        user_id: user.id,
+        display_name: profileData.displayName,
+        avatar_url: profileData.avatarUrl || null,
+        skills: selectedSkills,
+        zone_served: workZone || `${workZoneRadius}km radius`,
+        current_latitude: workZoneCoords?.lat || null,
+        current_longitude: workZoneCoords?.lng || null,
+        onboarding_complete: true,
+        onboarding_step: 'completed',
+        updated_at: new Date().toISOString()
+      };
+
+      console.log('[handleFinish] Upsert payload:', JSON.stringify(upsertPayload));
+
       const { error: providerError } = await supabase
         .from('providers')
-        .upsert({
-          user_id: user.id,
-          display_name: profileData.displayName,
-          avatar_url: profileData.avatarUrl || null,
-          skills: selectedSkills,
-          zone_served: workZone || `${workZoneRadius}km radius`,
-          current_latitude: workZoneCoords?.lat || null,
-          current_longitude: workZoneCoords?.lng || null,
-          onboarding_complete: true,
-          onboarding_step: 'completed',
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id' });
+        .upsert(upsertPayload, { onConflict: 'user_id' });
 
-      if (providerError) throw providerError;
-      console.log('[ProviderOnboarding] DB upserted: onboarding_complete=true');
+      if (providerError) {
+        console.error('[handleFinish] Upsert error:', providerError);
+        throw providerError;
+      }
+
+      // ✅ VERIFICATION: Read back to confirm write actually persisted
+      const { data: verification, error: verifyError } = await supabase
+        .from('providers')
+        .select('onboarding_complete, onboarding_step, skills')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      console.log('[handleFinish] Verification read:', verification, verifyError);
+
+      if (!verification?.onboarding_complete) {
+        // Upsert didn't persist — retry with direct update
+        console.error('[handleFinish] Upsert did NOT persist onboarding_complete. Retrying with .update()...');
+        const { error: retryError } = await supabase
+          .from('providers')
+          .update({
+            onboarding_complete: true,
+            onboarding_step: 'completed',
+            skills: selectedSkills,
+            display_name: profileData.displayName,
+            avatar_url: profileData.avatarUrl || null,
+            zone_served: workZone || `${workZoneRadius}km radius`,
+            current_latitude: workZoneCoords?.lat || null,
+            current_longitude: workZoneCoords?.lng || null,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', user.id);
+
+        if (retryError) {
+          console.error('[handleFinish] Retry update error:', retryError);
+          throw retryError;
+        }
+
+        // Second verification
+        const { data: secondCheck } = await supabase
+          .from('providers')
+          .select('onboarding_complete')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        console.log('[handleFinish] Second verification:', secondCheck);
+
+        if (!secondCheck?.onboarding_complete) {
+          throw new Error('La verificación de datos falló después de 2 intentos. onboarding_complete sigue en false.');
+        }
+      }
+
+      console.log('[handleFinish] ✅ Data verified in DB!');
 
       const { error: userError } = await supabase
         .from('users')
@@ -822,24 +886,24 @@ export default function ProviderOnboardingWizard() {
         })
         .eq('id', user.id);
 
-      if (userError) throw userError;
+      if (userError) {
+        console.warn('[handleFinish] users table update error (non-fatal):', userError);
+      }
 
       localStorage.setItem('selected_role', 'provider');
+      localStorage.removeItem('new_provider_signup');
+      clearFormData();
 
       toast.success('¡Perfil completado!', {
         description: 'Tu cuenta está lista para recibir trabajos'
       });
 
-      localStorage.removeItem('new_provider_signup');
-      clearFormData();
-
-      // Only redirect AFTER DB write succeeds
       navigate(ROUTES.PROVIDER_PORTAL, { replace: true });
     } catch (error: any) {
-      console.error('Error saving profile:', error);
-      toast.error('Error al guardar', {
-        description: 'No se pudo completar el perfil. Intenta de nuevo.'
-      });
+      console.error('[handleFinish] FATAL error saving profile:', error);
+      const errorMsg = error?.message || 'No se pudo completar el perfil. Intenta de nuevo.';
+      setFinishError(errorMsg);
+      toast.error('Error al guardar perfil', { description: errorMsg, duration: 10000 });
     } finally {
       setSaving(false);
     }
@@ -1624,37 +1688,61 @@ export default function ProviderOnboardingWizard() {
   function renderCompletionStep() {
     return (
       <div className="text-center space-y-6 py-8">
-        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 animate-bounce-subtle">
-          <CheckCircle2 className="w-10 h-10 text-green-600" />
-        </div>
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-          ¡Todo Listo!
-        </h1>
-        <p className="text-muted-foreground text-lg max-w-sm mx-auto">
-          Tu perfil está completo. Ya puedes comenzar a recibir trabajos.
-        </p>
-        
-        <div className="bg-muted/50 rounded-xl p-5 border max-w-sm mx-auto text-left">
-          <h3 className="font-semibold mb-3 text-sm">Resumen de tu perfil:</h3>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-green-600" />
-              Nombre: {profileData.displayName}
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-green-600" />
-              {selectedSkills.length} habilidades
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-green-600" />
-              Zona: {workZone}
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-green-600" />
-              Disponibilidad configurada
-            </li>
-          </ul>
-        </div>
+        {finishError ? (
+          <>
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-destructive/10">
+              <X className="w-10 h-10 text-destructive" />
+            </div>
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+              Error al guardar
+            </h1>
+            <p className="text-destructive text-sm max-w-sm mx-auto">
+              {finishError}
+            </p>
+            <Button
+              onClick={handleFinish}
+              disabled={saving}
+              className="mt-4"
+              size="lg"
+            >
+              {saving ? 'Guardando...' : 'Reintentar'}
+            </Button>
+          </>
+        ) : (
+          <>
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 animate-bounce-subtle">
+              <CheckCircle2 className="w-10 h-10 text-green-600" />
+            </div>
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+              ¡Todo Listo!
+            </h1>
+            <p className="text-muted-foreground text-lg max-w-sm mx-auto">
+              Tu perfil está completo. Ya puedes comenzar a recibir trabajos.
+            </p>
+            
+            <div className="bg-muted/50 rounded-xl p-5 border max-w-sm mx-auto text-left">
+              <h3 className="font-semibold mb-3 text-sm">Resumen de tu perfil:</h3>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-600" />
+                  Nombre: {profileData.displayName}
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-600" />
+                  {selectedSkills.length} habilidades
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-600" />
+                  Zona: {workZone}
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-600" />
+                  Disponibilidad configurada
+                </li>
+              </ul>
+            </div>
+          </>
+        )}
       </div>
     );
   }
