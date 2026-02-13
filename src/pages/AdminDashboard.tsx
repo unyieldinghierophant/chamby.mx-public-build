@@ -222,24 +222,37 @@ const AdminDashboard = () => {
     try {
       const notes = adminNotes[userId] || null;
 
-      // Update provider_details
-      const { error: detailsError } = await supabase
-        .from('provider_details')
-        .update({ 
-          verification_status: 'verified',
-          admin_notes: notes 
-        })
-        .eq('user_id', userId);
+      // Verify provider exists
+      const { data: providerData, error: providerCheckError } = await supabase
+        .from('providers')
+        .select('id, user_id')
+        .eq('user_id', userId)
+        .maybeSingle();
 
-      if (detailsError) throw detailsError;
+      if (providerCheckError) throw new Error(`No se pudo verificar el perfil del proveedor: ${providerCheckError.message}`);
+      if (!providerData) throw new Error('El perfil del proveedor no existe.');
+
+      // Upsert provider_details (creates if missing)
+      const { error: detailsError, count: detailsCount } = await supabase
+        .from('provider_details')
+        .upsert({
+          user_id: userId,
+          provider_id: providerData.id,
+          verification_status: 'verified',
+          admin_notes: notes,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+
+      if (detailsError) throw new Error(`No se pudo actualizar detalles: ${detailsError.message}`);
 
       // Update providers.verified
-      const { error: providerError } = await supabase
+      const { error: providerError, count: providerCount } = await supabase
         .from('providers')
-        .update({ verified: true })
+        .update({ verified: true, updated_at: new Date().toISOString() })
         .eq('user_id', userId);
 
-      if (providerError) throw providerError;
+      if (providerError) throw new Error(`No se pudo actualizar proveedor: ${providerError.message}`);
+      if (providerCount === 0) throw new Error('El proveedor no fue actualizado.');
 
       // Update all documents to verified
       const { error: docsError } = await supabase
@@ -247,17 +260,18 @@ const AdminDashboard = () => {
         .update({ verification_status: 'verified' })
         .eq('provider_id', userId);
 
-      if (docsError) throw docsError;
+      if (docsError) throw new Error(`No se pudo actualizar documentos: ${docsError.message}`);
 
       toast.success('Proveedor aprobado', {
-        description: 'El proveedor ha sido verificado exitosamente.'
+        description: 'El proveedor ha sido verificado exitosamente y puede aceptar trabajos.'
       });
 
       fetchPendingVerifications();
     } catch (error) {
-      console.error('Error approving provider:', error);
+      console.error('[Admin] Error approving provider:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Intenta de nuevo más tarde.';
       toast.error('Error al aprobar', {
-        description: 'No se pudo aprobar al proveedor.'
+        description: errorMessage
       });
     } finally {
       setProcessingVerification(null);
