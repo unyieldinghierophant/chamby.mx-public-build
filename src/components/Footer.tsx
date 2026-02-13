@@ -1,6 +1,7 @@
 import { Facebook, Instagram, Mail, Phone, MapPin } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
+import { startBooking } from "@/lib/booking";
 
 const Footer = () => {
   const { isAdmin } = useUserRole();
@@ -40,32 +41,32 @@ const Footer = () => {
             <h4 className="text-lg font-semibold mb-4">Servicios</h4>
             <ul className="space-y-2 text-muted-foreground">
               <li>
-                <button onClick={() => navigate('/book-job', { state: { category: 'Fontanería' }})} className="hover:text-primary transition-colors text-left">
+                <button onClick={() => startBooking(navigate, { serviceCategory: 'Fontanería', entrySource: 'footer' })} className="hover:text-primary transition-colors text-left">
                   Fontanería en Guadalajara
                 </button>
               </li>
               <li>
-                <button onClick={() => navigate('/book-job', { state: { category: 'Electricidad' }})} className="hover:text-primary transition-colors text-left">
+                <button onClick={() => startBooking(navigate, { serviceCategory: 'Electricidad', entrySource: 'footer' })} className="hover:text-primary transition-colors text-left">
                   Electricistas en Guadalajara
                 </button>
               </li>
               <li>
-                <button onClick={() => navigate('/book-job', { state: { category: 'Jardinería' }})} className="hover:text-primary transition-colors text-left">
+                <button onClick={() => startBooking(navigate, { serviceCategory: 'Jardinería', entrySource: 'footer' })} className="hover:text-primary transition-colors text-left">
                   Jardinería
                 </button>
               </li>
               <li>
-                <button onClick={() => navigate('/book-job', { state: { category: 'Limpieza' }})} className="hover:text-primary transition-colors text-left">
+                <button onClick={() => startBooking(navigate, { serviceCategory: 'Limpieza', entrySource: 'footer' })} className="hover:text-primary transition-colors text-left">
                   Limpieza a domicilio
                 </button>
               </li>
               <li>
-                <button onClick={() => navigate('/book-job', { state: { category: 'Auto y Lavado' }})} className="hover:text-primary transition-colors text-left">
+                <button onClick={() => startBooking(navigate, { serviceCategory: 'Auto y Lavado', entrySource: 'footer' })} className="hover:text-primary transition-colors text-left">
                   Lavado de auto a domicilio
                 </button>
               </li>
               <li>
-                <button onClick={() => navigate('/book-job', { state: { category: 'Handyman' }})} className="hover:text-primary transition-colors text-left">
+                <button onClick={() => startBooking(navigate, { serviceCategory: 'Handyman', entrySource: 'footer' })} className="hover:text-primary transition-colors text-left">
                   Handyman y manitas
                 </button>
               </li>

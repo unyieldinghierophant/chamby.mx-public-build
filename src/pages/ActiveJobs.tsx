@@ -13,6 +13,7 @@ import { ClientVisitConfirmation } from "@/components/ClientVisitConfirmation";
 import { getVisitFeeStatus, getInvoiceStatus } from "@/utils/jobPaymentStatus";
 import Header from "@/components/Header";
 import { toast } from "sonner";
+import { startBooking } from "@/lib/booking";
 
 interface ActiveJob {
   id: string;
@@ -182,7 +183,7 @@ const ActiveJobs = () => {
             <p className="text-muted-foreground mb-6">
               Solicita un servicio para ver tus trabajos activos aquí
             </p>
-            <Button onClick={() => navigate("/book-job")}>
+            <Button onClick={() => startBooking(navigate, { entrySource: 'active_jobs' })}>
               Solicitar servicio
             </Button>
           </div>

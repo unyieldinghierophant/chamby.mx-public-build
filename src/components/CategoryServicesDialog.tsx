@@ -2,6 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { startBooking } from '@/lib/booking';
 
 interface ServiceOption {
   name: string;
@@ -27,12 +28,10 @@ export const CategoryServicesDialog = ({
     // Clear any saved form data to start fresh
     localStorage.removeItem('job_booking_form');
     
-    navigate('/book-job', {
-      state: {
-        category,
-        service: service.name,
-        description: service.description
-      }
+    startBooking(navigate, {
+      intentText: service.name,
+      serviceCategory: category,
+      entrySource: 'category',
     });
     onOpenChange(false);
   };

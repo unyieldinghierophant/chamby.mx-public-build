@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import logo from "@/assets/chamby-logo-new-horizontal.png";
 import { ModernButton } from "@/components/ui/modern-button";
+import { startBooking } from "@/lib/booking";
 import { Menu, X } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AllCategoriesDialog } from "@/components/AllCategoriesDialog";
@@ -23,13 +24,7 @@ const Index = () => {
   const [categoriesDialogOpen, setCategoriesDialogOpen] = useState(false);
 
   const handlePostJobClick = () => {
-    navigate('/book-job', {
-      state: {
-        category: 'Handyman',
-        service: 'Reparaciones generales',
-        description: 'Servicio de reparaciones generales del hogar'
-      }
-    });
+    startBooking(navigate, { entrySource: 'hero_cta' });
   };
 
   const handleHowItWorksClick = () => {
