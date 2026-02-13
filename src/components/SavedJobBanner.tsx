@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { X, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { startBooking } from '@/lib/booking';
 
 export const SavedJobBanner = () => {
   const [hasSavedJob, setHasSavedJob] = useState(false);
@@ -33,7 +34,7 @@ export const SavedJobBanner = () => {
   }, []);
 
   const handleContinue = () => {
-    navigate('/book-job');
+    startBooking(navigate, { entrySource: 'saved_job_banner' });
   };
 
   const handleDismiss = () => {

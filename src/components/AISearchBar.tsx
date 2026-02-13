@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getSearchSuggestions } from "@/utils/searchSuggestions";
+import { startBooking } from "@/lib/booking";
 
 const TYPING_EXAMPLES = [
   "Lavar mi carro",
@@ -123,14 +124,10 @@ export const AISearchBar = ({ className }: { className?: string }) => {
         });
       }
 
-      navigate("/book-job", {
-        state: {
-          category: data.category,
-          service: data.service,
-          description: data.description,
-          confidence: data.confidence,
-          keywords: data.keywords_detected,
-        },
+      startBooking(navigate, {
+        intentText: data.description || data.service,
+        serviceCategory: data.category,
+        entrySource: 'ai_search',
       });
     } catch (error) {
       console.error("Error searching:", error);

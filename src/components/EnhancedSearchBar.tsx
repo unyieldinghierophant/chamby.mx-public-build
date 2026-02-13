@@ -3,6 +3,7 @@ import { Search, Clock } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
+import { startBooking } from '@/lib/booking';
 
 interface TaxonomySuggestion {
   serviceType: string;
@@ -204,19 +205,19 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
   const handleCategoryClick = (serviceType: string) => {
     setQuery(serviceType);
     setIsOpen(false);
-    navigate('/book-job');
+    startBooking(navigate, { serviceCategory: serviceType, entrySource: 'search_category' });
   };
 
   const handleSuggestionClick = (suggestion: TaxonomySuggestion) => {
     setQuery(suggestion.problem);
     setIsOpen(false);
-    navigate('/book-job');
+    startBooking(navigate, { intentText: suggestion.problem, serviceCategory: suggestion.serviceType, entrySource: 'search' });
   };
 
   const handleSearchSubmit = () => {
     if (query.trim()) {
       setIsOpen(false);
-      navigate('/book-job');
+      startBooking(navigate, { intentText: query.trim(), entrySource: 'search' });
       onSearch?.(query.trim());
     }
   };

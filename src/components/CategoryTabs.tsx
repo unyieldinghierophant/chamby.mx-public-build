@@ -4,6 +4,7 @@ import { categoryServicesMap } from '@/data/categoryServices';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { startBooking } from '@/lib/booking';
 import categoryHandyman from '@/assets/category-handyman.png';
 import categoryElectrician from '@/assets/category-electrician.png';
 import categoryPlumbing from '@/assets/category-plumbing.png';
@@ -107,14 +108,10 @@ export const CategoryTabs = () => {
     localStorage.removeItem('chamby_form_job-booking');
     sessionStorage.removeItem('chamby_form_job-booking');
     
-    // Navigate to booking with force-new flag to ensure fresh form
-    navigate(`/book-job?new=${Date.now()}`, {
-      state: {
-        category: currentCategory?.dataKey || 'General',
-        service: serviceName,
-        description: description,
-        forceNew: true // Flag to force fresh form
-      }
+    startBooking(navigate, {
+      intentText: serviceName,
+      serviceCategory: currentCategory?.dataKey || 'General',
+      entrySource: 'category',
     });
   };
 

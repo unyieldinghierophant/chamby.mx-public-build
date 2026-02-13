@@ -2,6 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useNavigate } from 'react-router-dom';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { categoryServicesMap } from '@/data/categoryServices';
+import { startBooking } from '@/lib/booking';
 
 interface AllCategoriesDialogProps {
   open: boolean;
@@ -12,12 +13,10 @@ export const AllCategoriesDialog = ({ open, onOpenChange }: AllCategoriesDialogP
   const navigate = useNavigate();
 
   const handleServiceClick = (category: string, serviceName: string, description: string) => {
-    navigate('/book-job', {
-      state: {
-        category,
-        service: serviceName,
-        description
-      }
+    startBooking(navigate, {
+      intentText: serviceName,
+      serviceCategory: category,
+      entrySource: 'category',
     });
     onOpenChange(false);
   };

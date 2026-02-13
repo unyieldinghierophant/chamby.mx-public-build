@@ -18,6 +18,7 @@ import {
   AccordionTrigger 
 } from "@/components/ui/accordion";
 import { ROUTES } from "@/constants/routes";
+import { startBooking } from "@/lib/booking";
 import { AISearchBar } from "@/components/AISearchBar";
 import logo from "@/assets/chamby-logo-new-horizontal.png";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -314,7 +315,7 @@ const UserLanding = () => {
               <p className="text-sm md:text-base text-muted-foreground">
                 No tienes actividad reciente todavía
               </p>
-              <Button onClick={() => navigate("/book-job")} className="mt-3 md:mt-4 bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant text-sm md:text-base">
+              <Button onClick={() => startBooking(navigate, { entrySource: 'recent_activity_cta' })} className="mt-3 md:mt-4 bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant text-sm md:text-base">
                 Buscar Servicios
               </Button>
             </CardContent>
