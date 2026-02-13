@@ -35,7 +35,9 @@ import { useNavigate } from "react-router-dom";
 import { ProviderDashboardSkeleton } from "@/components/skeletons";
 import { cn } from "@/lib/utils";
 import { useAvailableJobs } from "@/hooks/useAvailableJobs";
+import { useProviderEligibility } from "@/hooks/useProviderEligibility";
 import { AvailableJobsAlert } from "@/components/provider-portal/AvailableJobsAlert";
+import { EligibilityBlockModal } from "@/components/provider-portal/EligibilityBlockModal";
 
 import { useSidebar } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -57,6 +59,8 @@ const ProviderDashboardHome = () => {
   
   // Available jobs hook
   const { jobs: availableJobs, loading: availableJobsLoading, acceptJob, refetch } = useAvailableJobs();
+  const { eligible, missing, loading: eligibilityLoading } = useProviderEligibility();
+  const [showEligibilityModal, setShowEligibilityModal] = useState(false);
   
   // Active jobs hook
   const { jobs: activeJobs } = useActiveJobs();
@@ -205,6 +209,15 @@ const ProviderDashboardHome = () => {
     setTimeout(() => setIsRefreshing(false), 500);
   }, [refetch]);
 
+  // Eligibility-gated accept
+  const handleGatedAccept = useCallback(async (jobId: string) => {
+    if (!eligible) {
+      setShowEligibilityModal(true);
+      throw new Error('No elegible');
+    }
+    return acceptJob(jobId);
+  }, [eligible, acceptJob]);
+
   if (loading) {
     return <ProviderDashboardSkeleton />;
   }
@@ -319,7 +332,13 @@ const ProviderDashboardHome = () => {
       <div className="px-4 mt-4 flex justify-center">
         <motion.button
           whileTap={{ scale: 0.93 }}
-          onClick={() => setIsAvailable(!isAvailable)}
+          onClick={() => {
+            if (!eligible && !isAvailable) {
+              setShowEligibilityModal(true);
+              return;
+            }
+            setIsAvailable(!isAvailable);
+          }}
           className="relative flex items-center justify-center"
         >
           {/* Animated aura rings */}
@@ -492,7 +511,7 @@ const ProviderDashboardHome = () => {
                   <JobCardMobile
                     key={job.id}
                     job={job}
-                    onAccept={acceptJob}
+                    onAccept={handleGatedAccept}
                     onViewDetails={handleViewJobDetails}
                     index={index}
                     disabled={hasActiveJob}
@@ -555,8 +574,13 @@ const ProviderDashboardHome = () => {
         job={selectedJob}
         isOpen={showJobDetail}
         onClose={() => setShowJobDetail(false)}
-        onAccept={acceptJob}
+        onAccept={handleGatedAccept}
         hasActiveJob={hasActiveJob}
+      />
+      <EligibilityBlockModal
+        open={showEligibilityModal}
+        onClose={() => setShowEligibilityModal(false)}
+        missing={missing}
       />
     </div>
   );

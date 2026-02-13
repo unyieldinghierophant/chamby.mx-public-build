@@ -191,6 +191,32 @@ export const useAvailableJobs = (): UseAvailableJobsResult => {
         body: { jobId, providerId: user.id },
       }).catch(err => console.error('Email notification failed:', err));
 
+       // 🔍 DETERMINISTIC VERIFICATION: Re-fetch job and validate provider_id != client_id
+      const { data: verifiedJob } = await supabase
+        .from('jobs')
+        .select('id, client_id, provider_id')
+        .eq('id', jobId)
+        .single();
+
+      if (verifiedJob) {
+        console.log('[acceptJob] ✅ Post-accept verification:', {
+          jobId: verifiedJob.id,
+          clientId: verifiedJob.client_id,
+          providerId: verifiedJob.provider_id,
+          match: verifiedJob.provider_id === verifiedJob.client_id ? '🚨 CRITICAL MATCH' : '✅ OK'
+        });
+
+        if (verifiedJob.provider_id === verifiedJob.client_id) {
+          console.error('[acceptJob] 🚨 CRITICAL: provider_id === client_id after accept!', verifiedJob);
+          // Revert the assignment
+          await supabase
+            .from('jobs')
+            .update({ provider_id: null, status: 'searching' })
+            .eq('id', jobId);
+          throw new Error('Error de asignación detectado. El trabajo ha sido revertido. Contacta soporte.');
+        }
+      }
+
       // Refetch jobs after accepting
       await fetchJobs();
     } catch (err: any) {
