@@ -1,92 +1,103 @@
 
 
-# Fix: Provider Onboarding Data Not Persisting to Supabase
+# Fix: Provider Onboarding FK Violation on `providers_user_id_fkey`
 
-## Root Cause
+## Root Cause (Confirmed via DB Investigation)
 
-After thorough investigation, the DB shows partial data saved (skills, zone_served, avatar_url) but `onboarding_complete` remains `false` and `onboarding_step` remains `auth`. This means:
+The FK constraint on `providers.user_id` references **`public.users(id)`**, not `auth.users(id)`. The `handle_new_user` database trigger is supposed to create a `public.users` row whenever a new auth user signs up, but it is **silently failing for most users**.
 
-1. **`persistStepToDB` partially works** -- it saves step-specific data (skills, zone) but the `onboarding_step` field is not being reliably updated alongside it, OR a subsequent operation resets it.
-2. **`handleFinish` silently fails** -- the upsert that sets `onboarding_complete: true` either errors out or never executes. The error toast is easy to miss, so the user sees the completion screen (step 8) but the DB was never updated.
-3. **Redirect loop** -- When the user next visits, `ProviderPortal` or the wizard checks DB, finds `onboarding_complete: false`, and sends them back to step 3.
+**Evidence from the database:**
+- 10 auth users exist, but only **1** has a matching `public.users` row
+- 9 out of 10 users have `is_provider: true` in metadata but NO provider record
+- The trigger function `handle_new_user` exists and is attached, but its INSERT into `public.users` is failing without surfacing errors
 
-The core problem is that there is **no verification that writes actually succeeded** and **no unmissable error feedback**.
+When the onboarding wizard calls `ensureProviderRow()` or `handleFinish()`, the upsert to `providers` fails because `user_id` references a non-existent `public.users` row.
 
-## Solution (3 changes, 1 file)
+## Solution (2 changes)
 
-All changes are in `src/pages/provider-portal/ProviderOnboardingWizard.tsx`.
+### 1. Add `ensurePublicUserRow()` helper in the onboarding wizard
 
-### 1. Bulletproof `handleFinish` with write verification
+Before any write to `providers`, the wizard must guarantee a `public.users` row exists. This acts as a safety net for the broken trigger:
 
-- After the upsert, **SELECT the row back** to confirm `onboarding_complete = true` is actually in the DB.
-- If the read-back shows the flag is still `false`, fall back to a direct `.update()` call as a retry.
-- If that also fails, show a **full-screen error overlay** (not just a toast) so the user cannot miss it.
-- Only navigate to the portal after verified success.
+```typescript
+const ensurePublicUserRow = async () => {
+  if (!user) return;
+  const { error } = await supabase
+    .from('users')
+    .upsert({
+      id: user.id,
+      email: user.email,
+      full_name: user.user_metadata?.full_name || '',
+      phone: user.user_metadata?.phone || null,
+    }, { onConflict: 'id' });
+  if (error) {
+    console.error('[Onboarding] Failed to ensure public.users row:', error);
+    throw new Error('No se pudo preparar tu cuenta. Por favor intenta de nuevo.');
+  }
+};
+```
 
-### 2. Make `persistStepToDB` more robust
+Call this **before** `ensureProviderRow()` in:
+- The `checkOnboardingStatus` effect (when user reaches step 3)
+- The `handleFinish` function (before the final upsert)
 
-- Wrap in try/catch with error logging.
-- After the `.update()`, check the response for errors and show a warning toast if the step save fails (non-blocking, but visible).
-- Log the exact payload being sent for debugging.
+### 2. Add the same safety net in AuthCallback
 
-### 3. Fix `ProviderPortal` redirect as a safety net
+The `AuthCallback` page also writes to `providers` (line 98-107). Add the same `public.users` ensure logic there before the provider insert.
 
-In `src/pages/ProviderPortal.tsx`:
-- Also accept `skills.length > 0` as sufficient to consider onboarding complete (current behavior), BUT also set `onboarding_complete = true` in the DB when this condition is met. This self-heals the inconsistency.
+### 3. Fix existing orphaned auth users (one-time data repair)
+
+Run a one-time SQL to backfill `public.users` rows for all auth users missing them. This fixes the 9 broken accounts.
 
 ## Files Changed
 
 | File | Change |
 |------|--------|
-| `src/pages/provider-portal/ProviderOnboardingWizard.tsx` | Add write verification in `handleFinish`; add error handling in `persistStepToDB`; show unmissable errors |
-| `src/pages/ProviderPortal.tsx` | Self-heal: if skills exist but `onboarding_complete` is false, update it to true |
+| `src/pages/provider-portal/ProviderOnboardingWizard.tsx` | Add `ensurePublicUserRow()` helper; call it before `ensureProviderRow()` in both `checkOnboardingStatus` and `handleFinish` |
+| `src/pages/AuthCallback.tsx` | Add `public.users` upsert before provider record creation (line ~97) |
 
-## Technical Details
+## Database Migration
 
-### `handleFinish` -- verified write pattern
+Backfill missing `public.users` rows for existing auth users:
 
-```typescript
-// After upsert
-const { data: verification } = await supabase
-  .from('providers')
-  .select('onboarding_complete')
-  .eq('user_id', user.id)
-  .single();
-
-if (!verification?.onboarding_complete) {
-  // Upsert didn't stick -- retry with direct update
-  console.error('[handleFinish] Upsert did not persist, retrying with update...');
-  const { error: retryError } = await supabase
-    .from('providers')
-    .update({ onboarding_complete: true, onboarding_step: 'completed', skills: selectedSkills, ... })
-    .eq('user_id', user.id);
-  if (retryError) throw retryError;
-
-  // Verify again
-  const { data: secondCheck } = await supabase
-    .from('providers')
-    .select('onboarding_complete')
-    .eq('user_id', user.id)
-    .single();
-  if (!secondCheck?.onboarding_complete) {
-    throw new Error('Data verification failed after retry');
-  }
-}
+```sql
+INSERT INTO public.users (id, full_name, phone, email)
+SELECT 
+  au.id,
+  au.raw_user_meta_data->>'full_name',
+  au.raw_user_meta_data->>'phone',
+  au.email
+FROM auth.users au
+LEFT JOIN public.users u ON au.id = u.id
+WHERE u.id IS NULL
+ON CONFLICT (id) DO NOTHING;
 ```
 
-### `ProviderPortal` self-healing
+## Technical Flow After Fix
 
-```typescript
-if (providerData?.skills?.length > 0 && !providerData.onboarding_complete) {
-  // Self-heal: mark onboarding as complete since data exists
-  await supabase
-    .from('providers')
-    .update({ onboarding_complete: true, onboarding_step: 'completed' })
-    .eq('user_id', user.id);
-}
+```text
+User signs up (auth.users created)
+         |
+    handle_new_user trigger fires
+         |
+    [may silently fail]
+         |
+    User reaches onboarding step 3
+         |
+    ensurePublicUserRow() -- guarantees public.users row
+         |
+    ensureProviderRow() -- now FK is satisfied, providers upsert works
+         |
+    persistStepToDB() -- incremental saves work
+         |
+    handleFinish() -- final upsert with verification succeeds
+         |
+    Navigate to Provider Portal (no redirect loop)
 ```
 
-### Error display upgrade
+## Error Handling
 
-Replace the toast-only error with a persistent error state that renders a retry UI on the completion step, making it impossible for the user to miss a save failure.
+- If `ensurePublicUserRow()` fails: show a persistent error with "Reintentar" button and "Iniciar sesion de nuevo" link
+- If the user's auth session is invalid (no `user.id`): redirect to `/provider/login` with a message
+- All errors are logged with `[Onboarding]` prefix for diagnostics
 
