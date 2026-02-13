@@ -84,6 +84,22 @@ const AuthCallback = () => {
           if (loginContext === 'provider' && !roles.includes('provider')) {
             console.log('[AuthCallback] Auto-creating provider role for provider signup');
             
+            // Safety net: ensure public.users row exists (FK target for providers.user_id)
+            console.log('[AuthCallback] Ensuring public.users row exists...');
+            const { error: userRowError } = await supabase
+              .from('users')
+              .upsert({
+                id: user.id,
+                email: user.email,
+                full_name: user.user_metadata?.full_name || '',
+                phone: user.user_metadata?.phone || null,
+              }, { onConflict: 'id' });
+            if (userRowError) {
+              console.error('[AuthCallback] Failed to ensure public.users row:', userRowError);
+            } else {
+              console.log('[AuthCallback] public.users row ensured');
+            }
+            
             // Check if provider record exists
             const { data: existingProvider } = await supabase
               .from('providers')

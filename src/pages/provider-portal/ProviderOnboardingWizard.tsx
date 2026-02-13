@@ -289,8 +289,9 @@ export default function ProviderOnboardingWizard() {
           setCurrentStep(targetStep);
         }
 
+        // Ensure public.users row exists (FK safety net for broken trigger)
+        await ensurePublicUserRow();
         // Ensure provider row exists now that user is authenticated
-        // This guarantees the row is there before any persistStepToDB call
         await ensureProviderRow();
         
         const { data: userData } = await supabase
@@ -636,6 +637,25 @@ export default function ProviderOnboardingWizard() {
     }
   };
 
+  // Safety net: ensure public.users row exists (FK target for providers.user_id)
+  const ensurePublicUserRow = useCallback(async () => {
+    if (!user) return;
+    console.log('[Onboarding] Ensuring public.users row exists for', user.id);
+    const { error } = await supabase
+      .from('users')
+      .upsert({
+        id: user.id,
+        email: user.email,
+        full_name: user.user_metadata?.full_name || '',
+        phone: user.user_metadata?.phone || null,
+      }, { onConflict: 'id' });
+    if (error) {
+      console.error('[Onboarding] Failed to ensure public.users row:', error);
+      throw new Error('No se pudo preparar tu cuenta. Por favor intenta de nuevo.');
+    }
+    console.log('[Onboarding] public.users row ensured');
+  }, [user]);
+
   // Ensure provider row + provider_details exist before any DB write
   const ensureProviderRow = useCallback(async () => {
     if (!user) return;
@@ -802,6 +822,8 @@ export default function ProviderOnboardingWizard() {
         }
       }
 
+      // Ensure public.users row exists (FK safety net)
+      await ensurePublicUserRow();
       // Ensure provider row exists as safety net before final save
       await ensureProviderRow();
 
