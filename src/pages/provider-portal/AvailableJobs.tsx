@@ -5,10 +5,12 @@ import { useFilteredJobs, JobWithDistance } from "@/hooks/useFilteredJobs";
 import { useProviderLocation } from "@/hooks/useProviderLocation";
 import { useActiveJobs } from "@/hooks/useActiveJobs";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProviderEligibility } from "@/hooks/useProviderEligibility";
 import { JobCardMobile } from "@/components/provider-portal/JobCardMobile";
 import { JobFeedFilters, CategoryFilter, DateFilter } from "@/components/provider-portal/JobFeedFilters";
 import { JobFeedSkeleton } from "@/components/provider-portal/JobFeedSkeleton";
 import { JobDetailSheet } from "@/components/provider-portal/JobDetailSheet";
+import { EligibilityBlockModal } from "@/components/provider-portal/EligibilityBlockModal";
 import { Briefcase, RefreshCw, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -17,9 +19,11 @@ const AvailableJobs = () => {
   const { user } = useAuth();
   const { location: providerLocation, permissionDenied, requestLocation } = useProviderLocation();
   const { jobs, loading, refetch, acceptJob } = useAvailableJobs();
+  const { eligible, missing, loading: eligibilityLoading } = useProviderEligibility();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedJob, setSelectedJob] = useState<AvailableJob | null>(null);
   const [showJobDetail, setShowJobDetail] = useState(false);
+  const [showEligibilityModal, setShowEligibilityModal] = useState(false);
 
   // Filters
   const [category, setCategory] = useState<CategoryFilter>(null);
@@ -47,6 +51,15 @@ const AvailableJobs = () => {
   const handleViewJobDetails = (job: AvailableJob) => {
     setSelectedJob(job);
     setShowJobDetail(true);
+  };
+
+  // Eligibility-gated accept
+  const handleGatedAccept = async (jobId: string) => {
+    if (!eligible) {
+      setShowEligibilityModal(true);
+      throw new Error('No elegible');
+    }
+    return acceptJob(jobId);
   };
 
   return (
@@ -149,7 +162,7 @@ const AvailableJobs = () => {
               <JobCardMobile
                 key={job.id}
                 job={job}
-                onAccept={acceptJob}
+                onAccept={handleGatedAccept}
                 onViewDetails={handleViewJobDetails}
                 index={index}
                 disabled={hasActiveJob}
@@ -172,8 +185,13 @@ const AvailableJobs = () => {
         job={selectedJob}
         isOpen={showJobDetail}
         onClose={() => setShowJobDetail(false)}
-        onAccept={acceptJob}
+        onAccept={handleGatedAccept}
         hasActiveJob={hasActiveJob}
+      />
+      <EligibilityBlockModal
+        open={showEligibilityModal}
+        onClose={() => setShowEligibilityModal(false)}
+        missing={missing}
       />
     </div>
   );
