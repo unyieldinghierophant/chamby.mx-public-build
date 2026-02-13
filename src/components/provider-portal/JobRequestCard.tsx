@@ -32,9 +32,10 @@ export const JobRequestCard = ({ notification, onAccept, onReject }: JobRequestC
         description: "El cliente ha sido notificado"
       });
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Por favor intenta de nuevo";
       console.error("Error accepting job:", error);
-      toast.error("Error al aceptar el trabajo", {
-        description: "Por favor intenta de nuevo"
+      toast.error("No se pudo aceptar el trabajo", {
+        description: errorMessage
       });
     } finally {
       setLoading(false);

@@ -97,55 +97,67 @@ export const useAvailableJobs = (): UseAvailableJobsResult => {
   };
 
   const acceptJob = async (jobId: string) => {
-    if (!user) {
-      throw new Error('User not authenticated');
-    }
+     if (!user) {
+       throw new Error('User not authenticated');
+     }
 
-    // Check one-active-job rule
-    const { data: existingActive } = await supabase
-      .from('jobs')
-      .select('id')
-      .eq('provider_id', user.id)
-      .in('status', ['accepted', 'confirmed', 'en_route', 'on_site', 'quoted', 'in_progress'])
-      .limit(1);
+     try {
+       // DEFENSIVE: Verify provider profile exists (FK requirement)
+       const { data: providerExists } = await supabase
+         .from('providers')
+         .select('id')
+         .eq('user_id', user.id)
+         .maybeSingle();
 
-    if (existingActive && existingActive.length > 0) {
-      throw new Error('Ya tienes un trabajo activo. Complétalo o cancélalo primero.');
-    }
+       if (!providerExists) {
+         console.error('[acceptJob] Provider profile not found for user:', user.id);
+         throw new Error('Tu perfil de proveedor no está completamente configurado. Por favor completa tu onboarding.');
+       }
 
-    try {
-      // Verify job is paid and in searching state before accepting
-      const { data: jobToAccept } = await supabase
-        .from('jobs')
-        .select('visit_fee_paid, status, assignment_deadline')
-        .eq('id', jobId)
-        .single();
+       // Check one-active-job rule
+       const { data: existingActive } = await supabase
+         .from('jobs')
+         .select('id')
+         .eq('provider_id', user.id)
+         .in('status', ['accepted', 'confirmed', 'en_route', 'on_site', 'quoted', 'in_progress'])
+         .limit(1);
 
-      if (!jobToAccept?.visit_fee_paid) {
-        throw new Error('Este trabajo no tiene pago de visita confirmado.');
-      }
-      if (jobToAccept.status !== 'searching') {
-        throw new Error('Este trabajo ya no está disponible.');
-      }
-      // Check assignment window hasn't expired
-      if (jobToAccept.assignment_deadline && new Date(jobToAccept.assignment_deadline) < new Date()) {
-        throw new Error('La ventana de asignación ha expirado para este trabajo.');
-      }
+       if (existingActive && existingActive.length > 0) {
+         throw new Error('Ya tienes un trabajo activo. Complétalo o cancélalo primero.');
+       }
 
-      // Update job with provider_id and change status to accepted
-      const { error: updateError } = await supabase
-        .from('jobs')
-        .update({ 
-          provider_id: user.id,
-          status: 'accepted',
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', jobId)
-        .eq('visit_fee_paid', true)
-        .in('status', ['searching', 'active'])
-        .is('provider_id', null); // Only accept if not already taken
+       // Verify job is paid and in searching state before accepting
+       const { data: jobToAccept } = await supabase
+         .from('jobs')
+         .select('visit_fee_paid, status, assignment_deadline')
+         .eq('id', jobId)
+         .single();
 
-      if (updateError) throw updateError;
+       if (!jobToAccept?.visit_fee_paid) {
+         throw new Error('Este trabajo no tiene pago de visita confirmado.');
+       }
+       if (jobToAccept.status !== 'searching') {
+         throw new Error('Este trabajo ya no está disponible.');
+       }
+       // Check assignment window hasn't expired
+       if (jobToAccept.assignment_deadline && new Date(jobToAccept.assignment_deadline) < new Date()) {
+         throw new Error('La ventana de asignación ha expirado para este trabajo.');
+       }
+
+       // Update job with provider_id (from authenticated user) and change status to accepted
+       const { error: updateError } = await supabase
+         .from('jobs')
+         .update({ 
+           provider_id: user.id,
+           status: 'accepted',
+           updated_at: new Date().toISOString()
+         })
+         .eq('id', jobId)
+         .eq('visit_fee_paid', true)
+         .in('status', ['searching', 'active'])
+         .is('provider_id', null); // Only accept if not already taken
+
+       if (updateError) throw updateError;
 
       // Create system message for acceptance
       const { data: jobData } = await supabase

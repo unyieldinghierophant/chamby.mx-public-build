@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 import { 
   MapPin, 
   Calendar, 
@@ -50,7 +51,11 @@ export const JobDetailSheet = ({
       await onAccept(job.id);
       onClose();
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Error al aceptar el trabajo";
       console.error("Error accepting job:", error);
+      toast.error("No se pudo aceptar el trabajo", {
+        description: errorMessage,
+      });
     } finally {
       setIsAccepting(false);
     }
