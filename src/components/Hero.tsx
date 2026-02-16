@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { AISearchBar } from "@/components/AISearchBar";
 import { useAuth } from "@/contexts/AuthContext";
+import { LocationChip } from "@/components/LocationChip";
 import { CategoryTabs } from "@/components/CategoryTabs";
 import { SavedJobBanner } from "@/components/SavedJobBanner";
 import moneyBagIcon from "@/assets/money-bag-icon.png";
@@ -95,13 +96,16 @@ const Hero = () => {
                 </motion.h1>
               </motion.div>
               
-              {/* Search Bar Section with Animation */}
+              {/* Location Chip + Search Bar */}
               <motion.div 
-                className="max-w-sm sm:max-w-md md:max-w-xl lg:max-w-2xl mx-auto px-2 sm:px-4 mt-6 md:mt-8"
+                className="max-w-sm sm:max-w-md md:max-w-xl lg:max-w-2xl mx-auto px-2 sm:px-4 mt-6 md:mt-8 space-y-3"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.5 }}
               >
+                <div className="flex justify-center">
+                  <LocationChip variant="dark" />
+                </div>
                 <AISearchBar className="w-full" />
               </motion.div>
             </div>

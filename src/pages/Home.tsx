@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, Calendar, Clock, Heart, Shield, Star, Home as HomeIcon, Wrench, Droplets, Truck, SprayCan } from "lucide-react";
 import EnhancedSearchBar from "@/components/EnhancedSearchBar";
+import { LocationChip } from "@/components/LocationChip";
 import HowItWorks from "@/components/HowItWorks";
 import Trust from "@/components/Trust";
 import { HomePageSkeleton } from "@/components/skeletons";
@@ -156,9 +157,12 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Enhanced Search Bar */}
-            <div className="max-w-xl mx-auto">
-              <EnhancedSearchBar 
+            {/* Location Chip + Search Bar */}
+            <div className="max-w-xl mx-auto space-y-3">
+              <div className="flex justify-center">
+                <LocationChip variant="light" />
+              </div>
+              <EnhancedSearchBar
                 placeholder="¿Qué servicio necesitas hoy?" 
                 onSearch={handleSearch} 
                 size="lg" 
