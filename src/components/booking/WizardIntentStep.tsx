@@ -57,23 +57,13 @@ export const WizardIntentStep = ({
   return (
     <div className="max-w-2xl mx-auto">
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Step indicator — wizard style */}
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
-            1
-          </div>
-          <span className="text-sm font-medium text-muted-foreground">
-            Paso 1 · ¿Qué necesitas?
-          </span>
-        </div>
-
         {/* Heading */}
         <div className="space-y-2">
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+          <h1 className="text-2xl sm:text-3xl font-semibold text-foreground font-['Plus_Jakarta_Sans']">
             ¿Qué necesitas?
           </h1>
           <p className="text-muted-foreground text-base">
-            Describe con tus propias palabras o elige una sugerencia abajo.
+            Describe con tus propias palabras o elige una sugerencia.
           </p>
         </div>
 
