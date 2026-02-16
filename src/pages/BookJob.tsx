@@ -72,15 +72,15 @@ const BookJob = () => {
         ) : isHandyman ? (
           <HandymanBookingFlow intentText={confirmedIntent} />
         ) : isGardening ? (
-          <GardeningBookingFlow />
+          <GardeningBookingFlow intentText={confirmedIntent} />
         ) : isPlumbing ? (
-          <PlumbingBookingFlow />
+          <PlumbingBookingFlow intentText={confirmedIntent} />
         ) : isElectrical ? (
           <ElectricalBookingFlow intentText={confirmedIntent} />
         ) : isCleaning ? (
-          <CleaningBookingFlow />
+          <CleaningBookingFlow intentText={confirmedIntent} />
         ) : isAutoWash ? (
-          <AutoWashBookingFlow />
+          <AutoWashBookingFlow intentText={confirmedIntent} />
         ) : (
           <JobBookingForm
             initialService={confirmedIntent}

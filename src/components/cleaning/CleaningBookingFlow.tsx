@@ -56,7 +56,7 @@ interface CleaningFormData {
 
 const TOTAL_STEPS = 10;
 
-export const CleaningBookingFlow = () => {
+export const CleaningBookingFlow = ({ intentText = "" }: { intentText?: string }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -95,6 +95,21 @@ export const CleaningBookingFlow = () => {
     if (saved?.cleaningFormData) {
       setFormData(prev => ({ ...prev, ...saved.cleaningFormData, photos: [] }));
       setCurrentStep(saved.currentStep || 1);
+    } else if (intentText) {
+      const norm = intentText.toLowerCase();
+      let matched: CleaningFormData["cleaningType"] = null;
+      if (norm.includes("profunda") || norm.includes("detalle")) matched = "profunda";
+      else if (norm.includes("mudanza")) matched = "mudanza";
+      else if (norm.includes("obra") || norm.includes("construcción") || norm.includes("construccion")) matched = "post_obra";
+      else if (norm.includes("oficina") || norm.includes("local")) matched = "oficina";
+      else if (norm.includes("general") || norm.includes("casa") || norm.includes("hogar") || norm.includes("limpi")) matched = "general";
+      else matched = "otro";
+      setFormData(prev => ({
+        ...prev,
+        cleaningType: matched,
+        otherCleaningType: matched === "otro" ? intentText : prev.otherCleaningType,
+      }));
+      if (matched) setCurrentStep(2);
     }
     setIsLoading(false);
   }, []);

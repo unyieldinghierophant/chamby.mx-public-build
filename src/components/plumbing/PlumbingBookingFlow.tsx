@@ -56,7 +56,7 @@ interface PlumbingFormData {
 
 const TOTAL_STEPS = 10;
 
-export const PlumbingBookingFlow = () => {
+export const PlumbingBookingFlow = ({ intentText = "" }: { intentText?: string }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -90,12 +90,31 @@ export const PlumbingBookingFlow = () => {
   const [createdJobId, setCreatedJobId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load saved data
+  // Load saved data or auto-match intent
   useEffect(() => {
     const saved = loadFormData();
     if (saved?.plumbingFormData) {
       setFormData(prev => ({ ...prev, ...saved.plumbingFormData, photos: [] }));
       setCurrentStep(saved.currentStep || 1);
+    } else if (intentText) {
+      // Auto-match intent to a problem type
+      const norm = intentText.toLowerCase();
+      let matched: PlumbingFormData["problem"] = null;
+      if (norm.includes("fuga") || norm.includes("goteo")) matched = "fuga";
+      else if (norm.includes("tapada") || norm.includes("destapar") || norm.includes("drenaje") || norm.includes("coladera")) matched = "tapada";
+      else if (norm.includes("instala") || norm.includes("regadera") || norm.includes("boiler") || norm.includes("calentador")) matched = "instalacion";
+      else if (norm.includes("sanitario") || norm.includes("wc") || norm.includes("baño")) matched = "sanitario";
+      else if (norm.includes("presión") || norm.includes("presion")) matched = "presion";
+      else if (norm.includes("olor")) matched = "olor";
+      else if (norm.includes("emergencia") || norm.includes("urgente")) matched = "emergencia";
+      else matched = "otro";
+      setFormData(prev => ({
+        ...prev,
+        problem: matched,
+        otherProblem: matched === "otro" ? intentText : prev.otherProblem,
+        additionalNotes: intentText,
+      }));
+      if (matched) setCurrentStep(2);
     }
     setIsLoading(false);
   }, []);

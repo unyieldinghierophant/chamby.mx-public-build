@@ -51,7 +51,7 @@ interface AutoWashFormData {
 
 const TOTAL_STEPS = 9;
 
-export const AutoWashBookingFlow = () => {
+export const AutoWashBookingFlow = ({ intentText = "" }: { intentText?: string }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -88,6 +88,17 @@ export const AutoWashBookingFlow = () => {
     if (saved?.autoWashFormData) {
       setFormData(prev => ({ ...prev, ...saved.autoWashFormData, photos: [] }));
       setCurrentStep(saved.currentStep || 1);
+    } else if (intentText) {
+      const norm = intentText.toLowerCase();
+      let matched: AutoWashFormData["serviceType"] = null;
+      if (norm.includes("exterior") || norm.includes("lavar") || norm.includes("lavado")) matched = "exterior";
+      if (norm.includes("interior") || norm.includes("aspirado")) matched = "interior";
+      if (norm.includes("completo") || norm.includes("full")) matched = "completo";
+      if (norm.includes("detallado") || norm.includes("detail")) matched = "detallado";
+      if (norm.includes("encerado") || norm.includes("pulido")) matched = "encerado";
+      if (!matched) matched = "completo";
+      setFormData(prev => ({ ...prev, serviceType: matched }));
+      if (matched) setCurrentStep(2);
     }
     setIsLoading(false);
   }, []);

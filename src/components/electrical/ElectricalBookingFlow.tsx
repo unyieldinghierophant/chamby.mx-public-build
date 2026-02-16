@@ -129,13 +129,14 @@ export const ElectricalBookingFlow = ({ intentText = "" }: ElectricalBookingFlow
       setFormData(prev => ({ ...prev, ...saved.electricalFormData, photos: [] }));
       setCurrentStep(saved.currentStep || 1);
     } else if (intentText) {
-      // Auto-match search intent to a service pill
+      // Auto-match search intent to a service pill and skip to step 2
       const { service, additionalNotes } = matchIntentToService(intentText);
       setFormData(prev => ({
         ...prev,
         service,
         additionalNotes: additionalNotes || prev.additionalNotes,
       }));
+      if (service) setCurrentStep(2);
     }
     setIsLoading(false);
   }, []);
