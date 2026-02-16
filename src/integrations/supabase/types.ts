@@ -490,7 +490,11 @@ export type Database = {
           face_photo_url: string | null
           id: string
           id_document_url: string | null
+          ine_back_url: string | null
+          ine_front_url: string | null
           provider_id: string | null
+          selfie_url: string | null
+          selfie_with_id_url: string | null
           updated_at: string | null
           user_id: string
           verification_status: string | null
@@ -502,7 +506,11 @@ export type Database = {
           face_photo_url?: string | null
           id?: string
           id_document_url?: string | null
+          ine_back_url?: string | null
+          ine_front_url?: string | null
           provider_id?: string | null
+          selfie_url?: string | null
+          selfie_with_id_url?: string | null
           updated_at?: string | null
           user_id: string
           verification_status?: string | null
@@ -514,7 +522,11 @@ export type Database = {
           face_photo_url?: string | null
           id?: string
           id_document_url?: string | null
+          ine_back_url?: string | null
+          ine_front_url?: string | null
           provider_id?: string | null
+          selfie_url?: string | null
+          selfie_with_id_url?: string | null
           updated_at?: string | null
           user_id?: string
           verification_status?: string | null

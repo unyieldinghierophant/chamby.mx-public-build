@@ -95,12 +95,40 @@ export const DocumentUploadDialog = ({
 
       if (dbError) throw dbError;
 
-      // Update provider_details verification_status to pending if it was 'none'
-      await supabase
-        .from("provider_details")
-        .update({ verification_status: 'pending' })
-        .eq('user_id', user.id)
-        .eq('verification_status', 'none');
+      // Also persist doc URL to provider_details (single source of truth)
+      const docFieldMap: Record<string, string> = {
+        ine_front: 'ine_front_url',
+        ine_back: 'ine_back_url',
+        selfie: 'selfie_url',
+        selfie_with_id: 'selfie_with_id_url',
+      };
+      const detailsField = docFieldMap[docType];
+      if (detailsField) {
+        const updatePayload: Record<string, any> = {
+          [detailsField]: fileUrl,
+          updated_at: new Date().toISOString(),
+        };
+        const { data: currentDetails } = await supabase
+          .from('provider_details')
+          .select('verification_status')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (currentDetails?.verification_status === 'verified') {
+          updatePayload.verification_status = 'needs_review';
+        } else if (currentDetails?.verification_status === 'none') {
+          updatePayload.verification_status = 'pending';
+        }
+        await supabase
+          .from('provider_details')
+          .update(updatePayload)
+          .eq('user_id', user.id);
+      } else {
+        await supabase
+          .from("provider_details")
+          .update({ verification_status: 'pending' })
+          .eq('user_id', user.id)
+          .eq('verification_status', 'none');
+      }
 
       toast.success("Documento subido exitosamente");
       setFile(null);
