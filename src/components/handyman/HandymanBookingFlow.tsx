@@ -6,7 +6,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Upload, Check, Camera, ArrowLeft, Wrench, Hammer, Settings, RotateCcw, Ruler, MoveVertical, PackageOpen, HelpCircle, Building, Home, Loader2, MapPin, Navigation } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Upload, Check, Camera, ArrowLeft, Wrench, Hammer, Settings, RotateCcw, Ruler, MoveVertical, PackageOpen, HelpCircle, Building, Home, Loader2, MapPin, Navigation, CalendarIcon, Clock, Zap, Sun, Sunset, Moon } from "lucide-react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -24,6 +28,8 @@ type WorkType = "reparacion" | "instalacion" | "armado" | "ajuste";
 type JobSize = "small" | "medium" | "large";
 type MaterialsProvider = "client" | "provider" | "unsure";
 type ToolsAvailability = "yes" | "no" | "unsure";
+type ScheduleMode = "asap" | "today" | "date";
+type TimeWindow = "morning" | "midday" | "afternoon" | "night";
 type ImportantDetail = "perforate" | "measure" | "height" | "tight_space" | "move_furniture";
 type AccessType = "apartment" | "house" | "ground_floor" | "stairs" | "elevator" | "restricted_hours";
 
@@ -40,6 +46,9 @@ interface HandymanFormData {
   serviceLatitude: number | null;
   serviceLongitude: number | null;
   addressNotes: string;
+  scheduleMode: ScheduleMode | null;
+  scheduledDate: Date | null;
+  timeWindow: TimeWindow | null;
   jobSize: JobSize | null;
   materialsProvider: MaterialsProvider | null;
   toolsAvailable: ToolsAvailability | null;
@@ -71,7 +80,7 @@ const handymanSuggestions = [
   "Instalar repisas flotantes", "Reparar ventanas",
 ];
 
-const TOTAL_STEPS = 8;
+const TOTAL_STEPS = 9;
 
 // ---- Keyword → WorkType mapping ----
 const WORK_TYPE_KEYWORDS: Record<WorkType, string[]> = {
@@ -110,6 +119,9 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
     serviceLatitude: null,
     serviceLongitude: null,
     addressNotes: "",
+    scheduleMode: null,
+    scheduledDate: null,
+    timeWindow: null,
     jobSize: null,
     materialsProvider: null,
     toolsAvailable: null,
@@ -204,11 +216,16 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
       case 1: return formData.description.trim().length >= 15;
       case 2: return formData.workType !== null;
       case 3: return formData.serviceAddress.trim().length >= 5;
-      case 4: return formData.jobSize !== null;
-      case 5: return formData.materialsProvider !== null && formData.toolsAvailable !== null;
-      case 6: return true; // optional details
-      case 7: return true; // optional photos
-      case 8: return true; // optional access
+      case 4: {
+        if (!formData.scheduleMode) return false;
+        if (formData.scheduleMode === 'date' && !formData.scheduledDate) return false;
+        return true;
+      }
+      case 5: return formData.jobSize !== null;
+      case 6: return formData.materialsProvider !== null && formData.toolsAvailable !== null;
+      case 7: return true; // optional details
+      case 8: return true; // optional photos
+      case 9: return true; // optional access
       default: return false;
     }
   };
@@ -314,7 +331,23 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
       }
 
       const richDescription = parts.join('\n');
-      const scheduledDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+      // Compute scheduled_at from scheduling step
+      const timeWindowLabels: Record<TimeWindow, string> = {
+        morning: "Mañana (8–12)", midday: "Mediodía (12–15)", afternoon: "Tarde (15–19)", night: "Noche (19–21)"
+      };
+      let scheduledAt: string;
+      if (formData.scheduleMode === 'asap') {
+        scheduledAt = new Date().toISOString();
+      } else if (formData.scheduleMode === 'today') {
+        scheduledAt = new Date().toISOString();
+      } else if (formData.scheduledDate) {
+        scheduledAt = formData.scheduledDate.toISOString();
+      } else {
+        scheduledAt = new Date().toISOString();
+      }
+
+      const timePreference = formData.timeWindow ? timeWindowLabels[formData.timeWindow] : (formData.scheduleMode === 'asap' ? 'Lo antes posible' : '');
 
       const { data: newJob, error } = await supabase
         .from('jobs')
@@ -330,8 +363,8 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
           photos: formData.photos.filter(f => f.uploaded).map(f => f.url),
           rate: 1,
           status: 'active',
-          scheduled_at: scheduledDate.toISOString(),
-          time_preference: '',
+          scheduled_at: scheduledAt,
+          time_preference: timePreference,
           exact_time: '',
           budget: '',
           photo_count: formData.photos.filter(f => f.uploaded).length,
@@ -592,8 +625,124 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
           </div>
         )}
 
-        {/* ---- STEP 4: Job Size ---- */}
+        {/* ---- STEP 4: Scheduling ---- */}
         {currentStep === 4 && (
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-jakarta font-medium text-foreground">¿Cuándo lo necesitas?</h1>
+              <p className="text-muted-foreground mt-2">Elige la opción que mejor te funcione</p>
+            </div>
+
+            {/* Schedule mode radio cards */}
+            <div className="space-y-3">
+              {([
+                { value: "asap" as ScheduleMode, label: "Lo antes posible", sub: "Te asignamos al primer proveedor disponible", icon: Zap },
+                { value: "today" as ScheduleMode, label: "Hoy", sub: "Agendamos para hoy mismo", icon: Clock },
+                { value: "date" as ScheduleMode, label: "Elegir fecha", sub: "Selecciona un día específico", icon: CalendarIcon },
+              ]).map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => {
+                    update("scheduleMode", opt.value);
+                    if (opt.value === 'today') {
+                      update("scheduledDate", new Date());
+                    } else if (opt.value === 'asap') {
+                      update("scheduledDate", null);
+                    }
+                  }}
+                  className={cn(
+                    "w-full flex items-center gap-4 px-5 py-4 rounded-2xl border-2 transition-all active:scale-[0.98] text-left",
+                    formData.scheduleMode === opt.value
+                      ? "border-primary bg-primary/10 ring-2 ring-primary/20 shadow-md"
+                      : "border-border bg-card hover:border-primary/40"
+                  )}
+                >
+                  <div className={cn(
+                    "w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0",
+                    formData.scheduleMode === opt.value ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                  )}>
+                    <opt.icon className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className={cn("font-semibold block", formData.scheduleMode === opt.value ? "text-primary" : "text-foreground")}>{opt.label}</span>
+                    <span className="text-sm text-muted-foreground">{opt.sub}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Calendar for "Elegir fecha" */}
+            {formData.scheduleMode === 'date' && (
+              <div className="space-y-3">
+                <Label className="text-base font-medium text-foreground">Selecciona la fecha</Label>
+                <Popover defaultOpen>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className={cn(
+                        "w-full flex items-center gap-3 h-14 px-4 rounded-xl border-2 text-left font-medium transition-colors",
+                        formData.scheduledDate
+                          ? "border-primary bg-primary/5 text-foreground"
+                          : "border-border bg-card text-muted-foreground hover:border-primary/40"
+                      )}
+                    >
+                      <CalendarIcon className="w-5 h-5 text-primary" />
+                      {formData.scheduledDate
+                        ? format(formData.scheduledDate, "EEEE d 'de' MMMM", { locale: es })
+                        : "Toca para elegir fecha"}
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={formData.scheduledDate || undefined}
+                      onSelect={(date) => update("scheduledDate", date || null)}
+                      disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                      initialFocus
+                      locale={es}
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            )}
+
+            {/* Time window pills — shown for today or specific date */}
+            {(formData.scheduleMode === 'today' || formData.scheduleMode === 'date') && (
+              <div className="space-y-3">
+                <Label className="text-base font-medium text-foreground">Horario preferido</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  {([
+                    { value: "morning" as TimeWindow, label: "Mañana", sub: "8:00 – 12:00", icon: Sun },
+                    { value: "midday" as TimeWindow, label: "Mediodía", sub: "12:00 – 15:00", icon: Sun },
+                    { value: "afternoon" as TimeWindow, label: "Tarde", sub: "15:00 – 19:00", icon: Sunset },
+                    { value: "night" as TimeWindow, label: "Noche", sub: "19:00 – 21:00", icon: Moon },
+                  ]).map(tw => (
+                    <button
+                      key={tw.value}
+                      type="button"
+                      onClick={() => update("timeWindow", tw.value)}
+                      className={cn(
+                        "flex flex-col items-center gap-1 p-4 rounded-xl border-2 transition-all active:scale-95",
+                        formData.timeWindow === tw.value
+                          ? "border-primary bg-primary/10 text-primary ring-2 ring-primary/20"
+                          : "border-border bg-card text-foreground hover:border-primary/40"
+                      )}
+                    >
+                      <tw.icon className={cn("w-5 h-5", formData.timeWindow === tw.value ? "text-primary" : "text-muted-foreground")} />
+                      <span className="font-semibold text-sm">{tw.label}</span>
+                      <span className="text-xs text-muted-foreground">{tw.sub}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ---- STEP 5: Job Size ---- */}
+        {currentStep === 5 && (
           <div className="space-y-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-jakarta font-medium text-foreground">¿Qué tan grande es el trabajo?</h1>
@@ -624,8 +773,8 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
           </div>
         )}
 
-        {/* ---- STEP 5: Materials & Tools ---- */}
-        {currentStep === 5 && (
+        {/* ---- STEP 6: Materials & Tools ---- */}
+        {currentStep === 6 && (
           <div className="space-y-8">
             <div>
               <h1 className="text-3xl md:text-4xl font-jakarta font-medium text-foreground">Materiales y herramientas</h1>
@@ -656,8 +805,8 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
           </div>
         )}
 
-        {/* ---- STEP 6: Important Details ---- */}
-        {currentStep === 6 && (
+        {/* ---- STEP 7: Important Details ---- */}
+        {currentStep === 7 && (
           <div className="space-y-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-jakarta font-medium text-foreground">Detalles importantes</h1>
@@ -673,8 +822,8 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
           </div>
         )}
 
-        {/* ---- STEP 7: Photos ---- */}
-        {currentStep === 7 && (
+        {/* ---- STEP 8: Photos ---- */}
+        {currentStep === 8 && (
           <div className="space-y-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-jakarta font-medium text-foreground">Fotos</h1>
@@ -714,8 +863,8 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
           </div>
         )}
 
-        {/* ---- STEP 8: Access & Considerations ---- */}
-        {currentStep === 8 && (
+        {/* ---- STEP 9: Access & Considerations ---- */}
+        {currentStep === 9 && (
           <div className="space-y-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-jakarta font-medium text-foreground">Acceso y consideraciones</h1>
