@@ -213,7 +213,7 @@ const EsperandoProveedor = () => {
       "auto & lavado": "auto-lavado",
     };
     const flowCategory = categoryMap[cat] || cat;
-    navigate(`/book-job?category=${encodeURIComponent(flowCategory)}&edit_job=${job.id}`);
+    navigate(`/book-job?category=${encodeURIComponent(flowCategory)}&edit_job=${job.id}&intent=${encodeURIComponent(job.title || '')}&source=edit`);
   };
 
   /* ---------- derived data ---------- */
