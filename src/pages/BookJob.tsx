@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { JobBookingForm } from "@/components/JobBookingForm";
 import { HandymanBookingFlow } from "@/components/handyman/HandymanBookingFlow";
 import { GardeningBookingFlow } from "@/components/gardening/GardeningBookingFlow";
@@ -10,28 +9,17 @@ import { X } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import logo from "@/assets/chamby-logo-new-horizontal.png";
 import { ROUTES } from "@/constants/routes";
-import { BookingIntentStep } from "@/components/booking/BookingIntentStep";
 
 const BookJob = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // Read canonical payload from query params
+  // Read canonical payload from query params — go straight into the wizard
   const intentParam = searchParams.get("intent") || "";
   const categoryParam = searchParams.get("category") || "";
 
-  // Step 1 gate: user must confirm their intent text before proceeding
-  const [intentConfirmed, setIntentConfirmed] = useState(false);
-  const [confirmedIntent, setConfirmedIntent] = useState("");
-  const [confirmedCategory, setConfirmedCategory] = useState(categoryParam);
-
-  const handleIntentConfirm = (intentText: string) => {
-    setConfirmedIntent(intentText);
-    setIntentConfirmed(true);
-  };
-
   // Determine which specialized flow to render based on category
-  const category = confirmedCategory?.toLowerCase();
+  const category = categoryParam?.toLowerCase();
   const isHandyman = category === "handyman";
   const isGardening = category === "jardinería";
   const isPlumbing = category === "fontanería";
@@ -63,29 +51,22 @@ const BookJob = () => {
         </div>
       </header>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-background to-blue-50/30 dark:from-blue-950/20 dark:via-background dark:to-blue-950/10 pt-24 pb-12 px-4 md:px-8">
-        {!intentConfirmed ? (
-          <BookingIntentStep
-            initialIntent={intentParam}
-            initialCategory={confirmedCategory}
-            onConfirm={handleIntentConfirm}
-            onCategoryChange={setConfirmedCategory}
-          />
-        ) : isHandyman ? (
-          <HandymanBookingFlow intentText={confirmedIntent} />
+        {isHandyman ? (
+          <HandymanBookingFlow intentText={intentParam} />
         ) : isGardening ? (
           <GardeningBookingFlow />
         ) : isPlumbing ? (
           <PlumbingBookingFlow />
         ) : isElectrical ? (
-          <ElectricalBookingFlow intentText={confirmedIntent} />
+          <ElectricalBookingFlow intentText={intentParam} />
         ) : isCleaning ? (
           <CleaningBookingFlow />
         ) : isAutoWash ? (
           <AutoWashBookingFlow />
         ) : (
           <JobBookingForm
-            initialService={confirmedIntent}
-            initialDescription={confirmedIntent}
+            initialService={intentParam}
+            initialDescription={intentParam}
           />
         )}
       </div>

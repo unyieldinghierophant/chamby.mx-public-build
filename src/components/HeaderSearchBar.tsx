@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { startBooking } from '@/lib/booking';
 
 interface TaxonomySuggestion {
   serviceType: string;
@@ -199,22 +200,18 @@ export const HeaderSearchBar: React.FC = () => {
   const handleCategoryClick = (serviceType: string) => {
     setQuery(serviceType);
     setIsOpen(false);
-    navigate('/book-job');
+    startBooking(navigate, { intentText: serviceType, entrySource: 'header_search' });
   };
 
   const handleSuggestionClick = (suggestion: TaxonomySuggestion) => {
     setQuery(suggestion.problem);
     setIsOpen(false);
-    navigate('/book-job');
+    startBooking(navigate, { intentText: suggestion.problem, serviceCategory: suggestion.serviceType, entrySource: 'header_search' });
   };
 
   const handleSearchSubmit = () => {
-    if (query.trim()) {
-      setIsOpen(false);
-      navigate('/book-job');
-    } else {
-      navigate('/book-job');
-    }
+    setIsOpen(false);
+    startBooking(navigate, { intentText: query.trim(), entrySource: 'header_search' });
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
