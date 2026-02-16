@@ -30,7 +30,7 @@ const Hero = () => {
             initial={{ opacity: 0, y: 30, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="relative rounded-[1.5rem] md:rounded-[2.5rem] shadow-[0_20px_60px_-15px_hsl(210_60%_50%/0.5)] border border-primary-foreground/20 bg-[hsl(210_55%_55%)]"
+            className="relative rounded-[1.5rem] md:rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] border border-primary-foreground/20 bg-primary"
           >
             {/* Subtle grid pattern background */}
             <div className="absolute inset-0 overflow-hidden rounded-[1.5rem] md:rounded-[2.5rem]">
