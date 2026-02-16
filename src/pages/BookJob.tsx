@@ -67,6 +67,7 @@ const BookJob = () => {
             intentText={intentParam}
             category={categoryParam}
             onConfirm={handleIntentConfirm}
+            onBack={() => navigate(-1)}
           />
         ) : isHandyman ? (
           <HandymanBookingFlow intentText={confirmedIntent} />
