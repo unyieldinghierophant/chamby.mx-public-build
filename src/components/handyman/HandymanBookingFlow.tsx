@@ -142,12 +142,12 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
     setIsLoading(false);
   }, []);
 
-  // Pre-fill description from global intent — never auto-classify workType
+  // Pre-fill description from global intent as a helper prefix — never overwrite user edits
   useEffect(() => {
-    if (intentText && intentText.trim().length > 0) {
+    if (intentText && intentText.trim().length > 0 && !formData.description) {
       setFormData(prev => ({
         ...prev,
-        description: intentText,
+        description: `Necesito ayuda con: ${intentText}`,
       }));
     }
   }, [intentText]);
@@ -312,7 +312,7 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
         .insert({
           client_id: user.id,
           provider_id: null,
-          title: formData.description,
+          title: intentText || formData.description,
           description: richDescription,
           category: 'Handyman',
           service_type: formData.workType || 'general',
@@ -669,25 +669,29 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
         )}
       </div>
 
-      {/* Navigation */}
-      <div className="flex items-center justify-between mt-10 pt-6 border-t border-border">
-        {currentStep > 1 ? (
-          <Button variant="ghost" onClick={handleBack} className="h-12 px-6">
-            <ArrowLeft className="w-4 h-4 mr-2" /> Atrás
-          </Button>
-        ) : <div />}
-
-        <ModernButton
-          variant="primary"
+      {/* Navigation — unified full-width stacked buttons */}
+      <div className="mt-10 pt-6 border-t border-border space-y-3">
+        <button
+          type="button"
           onClick={handleNext}
           disabled={!canProceed()}
           className={cn(
-            "h-12 px-8 rounded-full",
-            currentStep === TOTAL_STEPS && "h-14 px-10 text-base"
+            "w-full h-14 rounded-xl bg-primary text-primary-foreground font-jakarta font-semibold text-base transition-all",
+            "hover:bg-primary/90 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
           )}
         >
-          {currentStep === TOTAL_STEPS ? "Ver resumen" : "Siguiente"}
-        </ModernButton>
+          {currentStep === TOTAL_STEPS ? "Ver resumen" : "Continuar"}
+        </button>
+
+        {currentStep > 1 && (
+          <button
+            type="button"
+            onClick={handleBack}
+            className="w-full text-center text-primary font-jakarta font-medium text-sm py-2 hover:underline"
+          >
+            Volver
+          </button>
+        )}
       </div>
 
       {/* Mobile Step Indicator dots */}
