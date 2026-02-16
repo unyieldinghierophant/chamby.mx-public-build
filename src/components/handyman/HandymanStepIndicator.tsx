@@ -4,6 +4,7 @@ import { Check } from "lucide-react";
 const stepLabels = [
   "Descripción",
   "Tipo",
+  "Ubicación",
   "Tamaño",
   "Materiales",
   "Detalles",
