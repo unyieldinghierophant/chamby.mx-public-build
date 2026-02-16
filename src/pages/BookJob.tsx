@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { JobBookingForm } from "@/components/JobBookingForm";
 import { HandymanBookingFlow } from "@/components/handyman/HandymanBookingFlow";
 import { GardeningBookingFlow } from "@/components/gardening/GardeningBookingFlow";
@@ -9,14 +10,24 @@ import { X } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import logo from "@/assets/chamby-logo-new-horizontal.png";
 import { ROUTES } from "@/constants/routes";
+import { WizardIntentStep } from "@/components/booking/WizardIntentStep";
 
 const BookJob = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // Read canonical payload from query params — go straight into the wizard
+  // Read canonical payload from query params
   const intentParam = searchParams.get("intent") || "";
   const categoryParam = searchParams.get("category") || "";
+
+  // Step 1 gate: WizardIntentStep — user confirms/edits intent before entering wizard
+  const [intentConfirmed, setIntentConfirmed] = useState(false);
+  const [confirmedIntent, setConfirmedIntent] = useState("");
+
+  const handleIntentConfirm = (text: string) => {
+    setConfirmedIntent(text);
+    setIntentConfirmed(true);
+  };
 
   // Determine which specialized flow to render based on category
   const category = categoryParam?.toLowerCase();
@@ -51,22 +62,28 @@ const BookJob = () => {
         </div>
       </header>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-background to-blue-50/30 dark:from-blue-950/20 dark:via-background dark:to-blue-950/10 pt-24 pb-12 px-4 md:px-8">
-        {isHandyman ? (
-          <HandymanBookingFlow intentText={intentParam} />
+        {!intentConfirmed ? (
+          <WizardIntentStep
+            intentText={intentParam}
+            category={categoryParam}
+            onConfirm={handleIntentConfirm}
+          />
+        ) : isHandyman ? (
+          <HandymanBookingFlow intentText={confirmedIntent} />
         ) : isGardening ? (
           <GardeningBookingFlow />
         ) : isPlumbing ? (
           <PlumbingBookingFlow />
         ) : isElectrical ? (
-          <ElectricalBookingFlow intentText={intentParam} />
+          <ElectricalBookingFlow intentText={confirmedIntent} />
         ) : isCleaning ? (
           <CleaningBookingFlow />
         ) : isAutoWash ? (
           <AutoWashBookingFlow />
         ) : (
           <JobBookingForm
-            initialService={intentParam}
-            initialDescription={intentParam}
+            initialService={confirmedIntent}
+            initialDescription={confirmedIntent}
           />
         )}
       </div>
