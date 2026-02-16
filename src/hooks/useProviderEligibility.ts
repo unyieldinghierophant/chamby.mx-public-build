@@ -43,7 +43,6 @@ export const useProviderEligibility = (): EligibilityResult => {
 
     try {
       setLoading(true);
-      const gaps: string[] = [];
 
       // 1. Check provider row
       const { data: provider } = await supabase
@@ -59,28 +58,35 @@ export const useProviderEligibility = (): EligibilityResult => {
         return;
       }
 
-      // 2. Onboarding complete
-      if (!provider.onboarding_complete) {
-        gaps.push('Onboarding incompleto');
-      }
-
-      // 3. Admin verified (providers.verified)
-      if (!provider.verified) {
-        gaps.push('Verificación de administrador pendiente');
-      }
-
-      // 4. provider_details.verification_status
+      // 2. Check provider_details verification_status
       const { data: details } = await supabase
         .from('provider_details')
         .select('verification_status')
         .eq('user_id', user.id)
         .maybeSingle();
 
-      if (!details || details.verification_status !== 'verified') {
-        gaps.push('Estado de verificación: ' + (details?.verification_status || 'sin iniciar'));
+      const isAdminVerified = !!provider.verified;
+      const isDetailsVerified = details?.verification_status === 'verified';
+
+      // 3. If EITHER verified flag is true → eligible, skip all other checks
+      if (isAdminVerified || isDetailsVerified) {
+        console.log('[Eligibility] Provider is verified — eligible');
+        setEligible(true);
+        setMissing([]);
+        setLoading(false);
+        return;
       }
 
-      // 5. Required documents
+      // 4. Not yet verified — build gaps list for pre-verification providers
+      const gaps: string[] = [];
+
+      if (!provider.onboarding_complete) {
+        gaps.push('Onboarding incompleto');
+      }
+
+      gaps.push('Verificación de administrador pendiente');
+
+      // Document checks only apply pre-verification
       const { data: docs } = await supabase
         .from('documents')
         .select('doc_type')
@@ -93,7 +99,6 @@ export const useProviderEligibility = (): EligibilityResult => {
         gaps.push(`Documentos faltantes: ${missingDocs.join(', ')}`);
       }
 
-      // 6. Required fields
       if (!provider.skills || provider.skills.length === 0) {
         gaps.push('Habilidades no configuradas');
       }
