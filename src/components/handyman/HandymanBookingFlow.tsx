@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Upload, Check, Camera, ArrowLeft, Wrench, Hammer, Settings, RotateCcw, Ruler, MoveVertical, PackageOpen, HelpCircle, Building, Home, Loader2 } from "lucide-react";
+import { Upload, Check, Camera, ArrowLeft, Wrench, Hammer, Settings, RotateCcw, Ruler, MoveVertical, PackageOpen, HelpCircle, Building, Home, Loader2, MapPin, Navigation } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -36,6 +36,10 @@ interface UploadedFile {
 interface HandymanFormData {
   description: string;
   workType: WorkType | null;
+  serviceAddress: string;
+  serviceLatitude: number | null;
+  serviceLongitude: number | null;
+  addressNotes: string;
   jobSize: JobSize | null;
   materialsProvider: MaterialsProvider | null;
   toolsAvailable: ToolsAvailability | null;
@@ -67,7 +71,7 @@ const handymanSuggestions = [
   "Instalar repisas flotantes", "Reparar ventanas",
 ];
 
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 8;
 
 // ---- Keyword → WorkType mapping ----
 const WORK_TYPE_KEYWORDS: Record<WorkType, string[]> = {
@@ -102,6 +106,10 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
   const [formData, setFormData] = useState<HandymanFormData>({
     description: "",
     workType: null,
+    serviceAddress: "",
+    serviceLatitude: null,
+    serviceLongitude: null,
+    addressNotes: "",
     jobSize: null,
     materialsProvider: null,
     toolsAvailable: null,
@@ -195,11 +203,12 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
     switch (currentStep) {
       case 1: return formData.description.trim().length >= 15;
       case 2: return formData.workType !== null;
-      case 3: return formData.jobSize !== null;
-      case 4: return formData.materialsProvider !== null && formData.toolsAvailable !== null;
-      case 5: return true; // optional
-      case 6: return true; // optional photos
-      case 7: return true; // optional access
+      case 3: return formData.serviceAddress.trim().length >= 5;
+      case 4: return formData.jobSize !== null;
+      case 5: return formData.materialsProvider !== null && formData.toolsAvailable !== null;
+      case 6: return true; // optional details
+      case 7: return true; // optional photos
+      case 8: return true; // optional access
       default: return false;
     }
   };
@@ -317,7 +326,7 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
           category: 'Handyman',
           service_type: formData.workType || 'general',
           problem: richDescription,
-          location: '',
+          location: formData.serviceAddress || '',
           photos: formData.photos.filter(f => f.uploaded).map(f => f.url),
           rate: 1,
           status: 'active',
@@ -516,8 +525,75 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
           </div>
         )}
 
-        {/* ---- STEP 3: Job Size ---- */}
+        {/* ---- STEP 3: Ubicación ---- */}
         {currentStep === 3 && (
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-jakarta font-medium text-foreground">Ubicación del servicio</h1>
+              <p className="text-muted-foreground mt-2">¿Dónde necesitas que vaya el proveedor?</p>
+            </div>
+
+            <div className="space-y-4">
+              <button
+                type="button"
+                onClick={() => {
+                  if (!navigator.geolocation) return;
+                  navigator.geolocation.getCurrentPosition(
+                    async (pos) => {
+                      const lat = pos.coords.latitude;
+                      const lng = pos.coords.longitude;
+                      setFormData(prev => ({ ...prev, serviceLatitude: lat, serviceLongitude: lng }));
+                      try {
+                        const res = await fetch(
+                          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18`,
+                          { headers: { 'User-Agent': 'Chamby.mx/1.0' }, signal: AbortSignal.timeout(5000) }
+                        );
+                        const data = await res.json();
+                        if (data.display_name) {
+                          setFormData(prev => ({ ...prev, serviceAddress: data.display_name }));
+                        }
+                      } catch { /* keep coords only */ }
+                    },
+                    () => { toast({ title: "No se pudo obtener ubicación", variant: "destructive" }); },
+                    { enableHighAccuracy: true, timeout: 10000 }
+                  );
+                }}
+                className="w-full flex items-center justify-center gap-2 h-12 rounded-xl border-2 border-primary/30 bg-primary/5 text-primary font-medium hover:bg-primary/10 transition-colors"
+              >
+                <Navigation className="w-4 h-4" />
+                Usar mi ubicación actual
+              </button>
+
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  value={formData.serviceAddress}
+                  onChange={(e) => update("serviceAddress", e.target.value)}
+                  placeholder="Escribe la dirección completa"
+                  className="h-14 text-base pl-10"
+                  maxLength={300}
+                />
+              </div>
+              <p className={cn("text-xs", formData.serviceAddress.length < 5 ? "text-muted-foreground" : "text-primary")}>
+                Mínimo 5 caracteres
+              </p>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-foreground">Notas de acceso (opcional)</Label>
+                <Input
+                  value={formData.addressNotes}
+                  onChange={(e) => update("addressNotes", e.target.value)}
+                  placeholder="Ej: Puerta azul, timbre 3, dejar en portería…"
+                  className="h-12"
+                  maxLength={200}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ---- STEP 4: Job Size ---- */}
+        {currentStep === 4 && (
           <div className="space-y-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-jakarta font-medium text-foreground">¿Qué tan grande es el trabajo?</h1>
@@ -548,8 +624,8 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
           </div>
         )}
 
-        {/* ---- STEP 4: Materials & Tools ---- */}
-        {currentStep === 4 && (
+        {/* ---- STEP 5: Materials & Tools ---- */}
+        {currentStep === 5 && (
           <div className="space-y-8">
             <div>
               <h1 className="text-3xl md:text-4xl font-jakarta font-medium text-foreground">Materiales y herramientas</h1>
@@ -580,8 +656,8 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
           </div>
         )}
 
-        {/* ---- STEP 5: Important Details ---- */}
-        {currentStep === 5 && (
+        {/* ---- STEP 6: Important Details ---- */}
+        {currentStep === 6 && (
           <div className="space-y-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-jakarta font-medium text-foreground">Detalles importantes</h1>
@@ -597,8 +673,8 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
           </div>
         )}
 
-        {/* ---- STEP 6: Photos ---- */}
-        {currentStep === 6 && (
+        {/* ---- STEP 7: Photos ---- */}
+        {currentStep === 7 && (
           <div className="space-y-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-jakarta font-medium text-foreground">Fotos</h1>
@@ -638,8 +714,8 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
           </div>
         )}
 
-        {/* ---- STEP 7: Access & Considerations ---- */}
-        {currentStep === 7 && (
+        {/* ---- STEP 8: Access & Considerations ---- */}
+        {currentStep === 8 && (
           <div className="space-y-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-jakarta font-medium text-foreground">Acceso y consideraciones</h1>
