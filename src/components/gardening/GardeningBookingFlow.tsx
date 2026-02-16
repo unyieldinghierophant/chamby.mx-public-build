@@ -52,7 +52,7 @@ interface GardeningFormData {
 
 const TOTAL_STEPS = 9;
 
-export const GardeningBookingFlow = () => {
+export const GardeningBookingFlow = ({ intentText = "" }: { intentText?: string }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -84,12 +84,29 @@ export const GardeningBookingFlow = () => {
   const [createdJobId, setCreatedJobId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load saved data
+  // Load saved data or auto-match intent
   useEffect(() => {
     const saved = loadFormData();
     if (saved?.gardeningFormData) {
       setFormData(prev => ({ ...prev, ...saved.gardeningFormData, photos: [] }));
       setCurrentStep(saved.currentStep || 1);
+    } else if (intentText) {
+      // Auto-match intent to gardening services
+      const norm = intentText.toLowerCase();
+      const matched: GardeningService[] = [];
+      if (norm.includes("pasto") || norm.includes("césped") || norm.includes("cesped") || norm.includes("cortar")) matched.push("corte_pasto");
+      if (norm.includes("poda") || norm.includes("arbusto")) matched.push("poda_plantas");
+      if (norm.includes("árbol") || norm.includes("arbol")) matched.push("poda_arboles");
+      if (norm.includes("limpi") || norm.includes("maleza") || norm.includes("desmaleza")) matched.push("limpieza");
+      if (norm.includes("diseño") || norm.includes("diseno")) matched.push("diseno");
+      if (matched.length === 0) { matched.push("otro"); }
+      setFormData(prev => ({
+        ...prev,
+        services: matched,
+        otherService: matched.includes("otro") ? intentText : prev.otherService,
+        additionalNotes: intentText,
+      }));
+      if (matched.length > 0) setCurrentStep(2);
     }
     setIsLoading(false);
   }, []);

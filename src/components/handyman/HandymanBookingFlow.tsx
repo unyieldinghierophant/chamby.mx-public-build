@@ -142,7 +142,7 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
     setIsLoading(false);
   }, []);
 
-  // Pre-fill from search intent
+  // Pre-fill from search intent and skip step 1
   useEffect(() => {
     if (intentText && intentText.trim().length > 0 && !formData.description) {
       const detectedType = detectWorkType(intentText);
@@ -151,6 +151,7 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
         description: prev.description || intentText,
         workType: prev.workType || detectedType,
       }));
+      if (detectedType) setCurrentStep(2);
     }
   }, [intentText]);
 
