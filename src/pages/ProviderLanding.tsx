@@ -297,7 +297,7 @@ const ProviderLanding = () => {
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="font-dillan text-3xl sm:text-4xl text-foreground mb-4">
+            <h2 className="font-jakarta font-semibold text-3xl sm:text-4xl text-foreground mb-4">
               ¿POR QUÉ ELEGIR CHAMBY?
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -328,7 +328,7 @@ const ProviderLanding = () => {
       <section className="py-20 bg-accent/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="font-dillan text-3xl sm:text-4xl text-foreground mb-4">
+            <h2 className="font-jakarta font-semibold text-3xl sm:text-4xl text-foreground mb-4">
               CÓMO FUNCIONA
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -364,7 +364,7 @@ const ProviderLanding = () => {
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="font-dillan text-3xl sm:text-4xl text-foreground mb-4">
+            <h2 className="font-jakarta font-semibold text-3xl sm:text-4xl text-foreground mb-4">
               LO QUE DICEN NUESTROS PROFESIONALES
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -427,7 +427,7 @@ const ProviderLanding = () => {
       <section className="py-20 bg-accent/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="font-dillan text-3xl sm:text-4xl text-foreground mb-4">
+            <h2 className="font-jakarta font-semibold text-3xl sm:text-4xl text-foreground mb-4">
               PREGUNTAS FRECUENTES
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -461,7 +461,7 @@ const ProviderLanding = () => {
       <section className="py-20 bg-primary">
         <div className="container mx-auto px-4 text-center">
           <div className="max-w-3xl mx-auto space-y-6">
-            <h2 className="font-dillan text-3xl sm:text-4xl text-white mb-4">
+            <h2 className="font-jakarta font-semibold text-3xl sm:text-4xl text-white mb-4">
               ¿LISTO PARA EMPEZAR?
             </h2>
             <p className="text-lg text-white/80 leading-relaxed">
