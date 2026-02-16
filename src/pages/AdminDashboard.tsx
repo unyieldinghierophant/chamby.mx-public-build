@@ -232,8 +232,32 @@ const AdminDashboard = () => {
       if (providerCheckError) throw new Error(`No se pudo verificar el perfil del proveedor: ${providerCheckError.message}`);
       if (!providerData) throw new Error('El perfil del proveedor no existe.');
 
+      // Check required documents exist in provider_details before approving
+      const { data: detailsData } = await supabase
+        .from('provider_details')
+        .select('ine_front_url, ine_back_url, selfie_url, selfie_with_id_url')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      const docLabels: Record<string, string> = {
+        ine_front_url: 'INE frente',
+        ine_back_url: 'INE reverso',
+        selfie_url: 'Selfie',
+        selfie_with_id_url: 'Selfie con INE',
+      };
+      const missingDocs: string[] = [];
+      const detailsAny = detailsData as any;
+      for (const [field, label] of Object.entries(docLabels)) {
+        if (!detailsAny?.[field] || (typeof detailsAny[field] === 'string' && detailsAny[field].trim() === '')) {
+          missingDocs.push(label);
+        }
+      }
+      if (missingDocs.length > 0) {
+        throw new Error(`No se puede aprobar. Faltan documentos: ${missingDocs.join(', ')}`);
+      }
+
       // Upsert provider_details (creates if missing)
-      const { error: detailsError, count: detailsCount } = await supabase
+      const { error: detailsError } = await supabase
         .from('provider_details')
         .upsert({
           user_id: userId,

@@ -9,23 +9,24 @@ export interface EligibilityResult {
   refetch: () => Promise<void>;
 }
 
-interface ProviderRow {
-  onboarding_complete: boolean;
-  verified: boolean | null;
-  skills: string[] | null;
-  zone_served: string | null;
-  display_name: string | null;
-}
+const DOC_LABELS: Record<string, string> = {
+  ine_front_url: 'INE frente',
+  ine_back_url: 'INE reverso',
+  selfie_url: 'Selfie',
+  selfie_with_id_url: 'Selfie con INE',
+};
+
+const REQUIRED_DOC_FIELDS = ['ine_front_url', 'ine_back_url', 'selfie_url', 'selfie_with_id_url'] as const;
 
 /**
  * Centralized provider eligibility check.
- * A provider is eligible to accept jobs ONLY if ALL conditions are true:
- * 1. providers row exists with user_id == auth.user.id
+ * A provider is eligible ONLY if ALL conditions are true:
+ * 1. providers row exists
  * 2. providers.onboarding_complete == true
- * 3. providers.verified == true
- * 4. provider_details.verification_status == 'verified'
- * 5. Required documents present: ine_front, ine_back, selfie, selfie_with_id
- * 6. Required fields non-null: skills (length > 0), zone_served, display_name
+ * 3. All 4 required doc URL fields in provider_details are non-null/non-empty
+ * 4. Required fields: skills (length > 0), zone_served, display_name
+ *
+ * NOTE: providers.verified does NOT bypass document checks.
  */
 export const useProviderEligibility = (): EligibilityResult => {
   const { user } = useAuth();
@@ -58,47 +59,34 @@ export const useProviderEligibility = (): EligibilityResult => {
         return;
       }
 
-      // 2. Check provider_details verification_status
+      // 2. Check provider_details for doc URLs
       const { data: details } = await supabase
         .from('provider_details')
-        .select('verification_status')
+        .select('verification_status, ine_front_url, ine_back_url, selfie_url, selfie_with_id_url')
         .eq('user_id', user.id)
         .maybeSingle();
 
-      const isAdminVerified = !!provider.verified;
-      const isDetailsVerified = details?.verification_status === 'verified';
-
-      // 3. If EITHER verified flag is true → eligible, skip all other checks
-      if (isAdminVerified || isDetailsVerified) {
-        console.log('[Eligibility] Provider is verified — eligible');
-        setEligible(true);
-        setMissing([]);
-        setLoading(false);
-        return;
-      }
-
-      // 4. Not yet verified — build gaps list for pre-verification providers
+      // Build gaps list
       const gaps: string[] = [];
 
       if (!provider.onboarding_complete) {
         gaps.push('Onboarding incompleto');
       }
 
-      gaps.push('Verificación de administrador pendiente');
-
-      // Document checks only apply pre-verification
-      const { data: docs } = await supabase
-        .from('documents')
-        .select('doc_type')
-        .eq('provider_id', user.id);
-
-      const docTypes = new Set(docs?.map(d => d.doc_type) || []);
-      const requiredDocs = ['ine_front', 'ine_back', 'selfie', 'selfie_with_id'];
-      const missingDocs = requiredDocs.filter(d => !docTypes.has(d));
-      if (missingDocs.length > 0) {
-        gaps.push(`Documentos faltantes: ${missingDocs.join(', ')}`);
+      // Check all 4 required document URLs
+      if (details) {
+        const detailsAny = details as any;
+        for (const field of REQUIRED_DOC_FIELDS) {
+          const val = detailsAny[field];
+          if (!val || (typeof val === 'string' && val.trim() === '')) {
+            gaps.push(`Documento faltante: ${DOC_LABELS[field]}`);
+          }
+        }
+      } else {
+        gaps.push('Documentos faltantes: INE frente, INE reverso, Selfie, Selfie con INE');
       }
 
+      // Check required profile fields
       if (!provider.skills || provider.skills.length === 0) {
         gaps.push('Habilidades no configuradas');
       }
@@ -107,6 +95,11 @@ export const useProviderEligibility = (): EligibilityResult => {
       }
       if (!provider.display_name) {
         gaps.push('Nombre no configurado');
+      }
+
+      // Verification by admin is informational but does NOT override doc requirements
+      if (!provider.verified && details?.verification_status !== 'verified') {
+        gaps.push('Verificación de administrador pendiente');
       }
 
       setMissing(gaps);

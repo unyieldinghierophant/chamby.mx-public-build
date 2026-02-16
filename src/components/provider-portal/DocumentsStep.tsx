@@ -83,14 +83,41 @@ export const DocumentsStep = ({ onComplete, isOptional = true }: DocumentsStepPr
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      // Read from provider_details doc URL fields (single source of truth)
+      const { data: details, error: detailsError } = await supabase
+        .from('provider_details')
+        .select('ine_front_url, ine_back_url, selfie_url, selfie_with_id_url')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      const docTypes = new Set<string>();
+
+      if (!detailsError && details) {
+        const detailsAny = details as any;
+        const fieldMap: Record<string, string> = {
+          ine_front_url: 'ine_front',
+          ine_back_url: 'ine_back',
+          selfie_url: 'selfie',
+          selfie_with_id_url: 'selfie_with_id',
+        };
+        for (const [field, docType] of Object.entries(fieldMap)) {
+          if (detailsAny[field] && typeof detailsAny[field] === 'string' && detailsAny[field].trim() !== '') {
+            docTypes.add(docType);
+          }
+        }
+      }
+
+      // Also check documents table for proof_of_address (not in provider_details)
+      const { data: docsData } = await supabase
         .from('documents')
         .select('doc_type')
-        .eq('provider_id', user.id);
+        .eq('provider_id', user.id)
+        .eq('doc_type', 'proof_of_address');
 
-      if (error) throw error;
+      if (docsData) {
+        docsData.forEach(d => { if (d.doc_type) docTypes.add(d.doc_type); });
+      }
 
-      const docTypes = new Set(data?.map(d => d.doc_type) || []);
       setUploadedDocs(docTypes);
     } catch (error) {
       console.error('Error fetching documents:', error);
