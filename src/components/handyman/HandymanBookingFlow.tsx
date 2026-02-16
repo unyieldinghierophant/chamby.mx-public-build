@@ -22,6 +22,7 @@ import { JobSuccessScreen } from "@/components/JobSuccessScreen";
 import { VisitFeeAuthorizationSection } from "@/components/payments/VisitFeeAuthorizationSection";
 import { HandymanSummary } from "./HandymanSummary";
 import { HandymanStepIndicator } from "./HandymanStepIndicator";
+import { useGlobalLocation } from "@/hooks/useGlobalLocation";
 
 // ---- Types ----
 type WorkType = "reparacion" | "instalacion" | "armado" | "ajuste";
@@ -110,6 +111,7 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
   const navigate = useNavigate();
   const { toast } = useToast();
   const { saveFormData, loadFormData, clearFormData } = useFormPersistence('handyman-booking');
+  const { location: globalLocation } = useGlobalLocation();
 
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<HandymanFormData>({
@@ -171,6 +173,18 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
       }));
     }
   }, [intentText]);
+
+  // Pre-fill location from global location chip — never overwrite user edits
+  useEffect(() => {
+    if (globalLocation && !formData.serviceAddress) {
+      setFormData(prev => ({
+        ...prev,
+        serviceAddress: globalLocation.address,
+        serviceLatitude: globalLocation.latitude,
+        serviceLongitude: globalLocation.longitude,
+      }));
+    }
+  }, [globalLocation]);
 
   // Auto-save
   useEffect(() => {

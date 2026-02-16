@@ -20,6 +20,7 @@ import {
 import { ROUTES } from "@/constants/routes";
 import { startBooking } from "@/lib/booking";
 import { AISearchBar } from "@/components/AISearchBar";
+import { LocationChip } from "@/components/LocationChip";
 import logo from "@/assets/chamby-logo-new-horizontal.png";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -273,8 +274,11 @@ const UserLanding = () => {
             <p className="text-lg md:text-xl text-white/90 leading-relaxed max-w-2xl mx-auto drop-shadow-md">
               Conectamos contigo a los mejores profesionales verificados
             </p>
-            {/* Interactive Search Bar with Rotating Gradient */}
-            <div className="w-full max-w-xl mx-auto px-4 relative z-20">
+            {/* Location Chip + Search Bar */}
+            <div className="w-full max-w-xl mx-auto px-4 relative z-20 space-y-3">
+              <div className="flex justify-center">
+                <LocationChip variant="dark" />
+              </div>
               <AISearchBar className="w-full" />
             </div>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 text-sm text-white/90">
