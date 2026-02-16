@@ -40,7 +40,7 @@ import { useState, useCallback } from "react";
 import logo from "@/assets/chamby-logo-new-horizontal.png";
 import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
-import InteractiveHeroBackground from "@/components/provider-portal/InteractiveHeroBackground";
+import providerHeroBg from "@/assets/provider-hero-bg.mov";
 import { useScrollParallax } from "@/hooks/useScrollParallax";
 
 const ProviderLanding = () => {
@@ -228,24 +228,22 @@ const ProviderLanding = () => {
       
       {/* Hero Section with Interactive Background */}
       <section className="relative min-h-[70vh] md:min-h-[80vh] lg:min-h-[90vh] flex items-center justify-center pt-24 pb-12 overflow-hidden">
-        {/* Interactive animated background with parallax */}
-        <InteractiveHeroBackground 
-          onJobCardVisible={handleJobCardVisible}
-          scrollY={scrollY}
-          parallaxOffset={parallaxOffset}
-          dotOpacity={dotOpacity}
-          cardOpacity={cardOpacity}
-          mapOpacity={mapOpacity}
-        />
-        
-        {/* Hero content with fade effect on scroll */}
-        <div 
-          className="absolute inset-0 pointer-events-none"
-          style={{ 
-            opacity: heroOpacity,
-            transition: 'opacity 0.1s ease-out'
-          }}
-        />
+        {/* Video background */}
+        <div className="absolute inset-0 z-0">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+          >
+            <source src={providerHeroBg} type="video/mp4" />
+          </video>
+          {/* Green tinted overlay */}
+          <div className="absolute inset-0 bg-[hsl(145_40%_20%/0.55)]" />
+          {/* Dark gradient for text legibility */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40" />
+        </div>
         
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-5xl mx-auto text-center space-y-8">
