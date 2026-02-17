@@ -92,3 +92,6 @@ verify_jwt = false
 
 [functions.send-signup-confirmation]
 verify_jwt = false
+
+[functions.admin-verify-provider]
+verify_jwt = false

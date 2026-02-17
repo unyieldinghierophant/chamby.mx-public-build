@@ -222,69 +222,12 @@ const AdminDashboard = () => {
     try {
       const notes = adminNotes[userId] || null;
 
-      // Verify provider exists
-      const { data: providerData, error: providerCheckError } = await supabase
-        .from('providers')
-        .select('id, user_id')
-        .eq('user_id', userId)
-        .maybeSingle();
+      const { data, error } = await supabase.functions.invoke('admin-verify-provider', {
+        body: { action: 'approve', provider_user_id: userId, admin_notes: notes }
+      });
 
-      if (providerCheckError) throw new Error(`No se pudo verificar el perfil del proveedor: ${providerCheckError.message}`);
-      if (!providerData) throw new Error('El perfil del proveedor no existe.');
-
-      // Check required documents exist in provider_details before approving
-      const { data: detailsData } = await supabase
-        .from('provider_details')
-        .select('ine_front_url, ine_back_url, selfie_url, selfie_with_id_url')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      const docLabels: Record<string, string> = {
-        ine_front_url: 'INE frente',
-        ine_back_url: 'INE reverso',
-        selfie_url: 'Selfie',
-        selfie_with_id_url: 'Selfie con INE',
-      };
-      const missingDocs: string[] = [];
-      const detailsAny = detailsData as any;
-      for (const [field, label] of Object.entries(docLabels)) {
-        if (!detailsAny?.[field] || (typeof detailsAny[field] === 'string' && detailsAny[field].trim() === '')) {
-          missingDocs.push(label);
-        }
-      }
-      if (missingDocs.length > 0) {
-        throw new Error(`No se puede aprobar. Faltan documentos: ${missingDocs.join(', ')}`);
-      }
-
-      // Upsert provider_details (creates if missing)
-      const { error: detailsError } = await supabase
-        .from('provider_details')
-        .upsert({
-          user_id: userId,
-          provider_id: providerData.id,
-          verification_status: 'verified',
-          admin_notes: notes,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id' });
-
-      if (detailsError) throw new Error(`No se pudo actualizar detalles: ${detailsError.message}`);
-
-      // Update providers.verified
-      const { error: providerError, count: providerCount } = await supabase
-        .from('providers')
-        .update({ verified: true, updated_at: new Date().toISOString() })
-        .eq('user_id', userId);
-
-      if (providerError) throw new Error(`No se pudo actualizar proveedor: ${providerError.message}`);
-      if (providerCount === 0) throw new Error('El proveedor no fue actualizado.');
-
-      // Update all documents to verified
-      const { error: docsError } = await supabase
-        .from('documents')
-        .update({ verification_status: 'verified' })
-        .eq('provider_id', userId);
-
-      if (docsError) throw new Error(`No se pudo actualizar documentos: ${docsError.message}`);
+      if (error) throw new Error(error.message || 'Error al aprobar');
+      if (data?.error) throw new Error(data.error);
 
       toast.success('Proveedor aprobado', {
         description: 'El proveedor ha sido verificado exitosamente y puede aceptar trabajos.'
@@ -313,35 +256,12 @@ const AdminDashboard = () => {
 
     setProcessingVerification(userId);
     try {
-      // Update provider_details
-      const { error: detailsError } = await supabase
-        .from('provider_details')
-        .update({ 
-          verification_status: 'rejected',
-          admin_notes: notes 
-        })
-        .eq('user_id', userId);
+      const { data, error } = await supabase.functions.invoke('admin-verify-provider', {
+        body: { action: 'reject', provider_user_id: userId, admin_notes: notes }
+      });
 
-      if (detailsError) throw detailsError;
-
-      // Update providers.verified to false
-      const { error: providerError } = await supabase
-        .from('providers')
-        .update({ verified: false })
-        .eq('user_id', userId);
-
-      if (providerError) throw providerError;
-
-      // Update all documents to rejected
-      const { error: docsError } = await supabase
-        .from('documents')
-        .update({ 
-          verification_status: 'rejected',
-          rejection_reason: notes
-        })
-        .eq('provider_id', userId);
-
-      if (docsError) throw docsError;
+      if (error) throw new Error(error.message || 'Error al rechazar');
+      if (data?.error) throw new Error(data.error);
 
       toast.success('Proveedor rechazado', {
         description: 'Se ha notificado al proveedor sobre el rechazo.'
