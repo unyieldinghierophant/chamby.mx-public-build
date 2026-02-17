@@ -356,8 +356,10 @@ const JobTimelinePage = () => {
 
   if (!job) {
     return (
-      <div className="p-6 text-center">
-        <p className="text-muted-foreground">Trabajo no encontrado</p>
+      <div className="p-6 text-center space-y-3">
+        <AlertTriangle className="w-8 h-8 text-destructive mx-auto" />
+        <p className="text-foreground font-medium">Trabajo no encontrado</p>
+        <p className="text-xs text-muted-foreground font-mono">ID: {jobId}</p>
         <Button variant="outline" className="mt-4" onClick={() => navigate('/provider-portal/jobs')}>
           Volver a trabajos
         </Button>
@@ -531,42 +533,61 @@ const JobTimelinePage = () => {
           )}
 
           {/* Map Card */}
-          {job.location && (
-            <Card className="border-border/50 overflow-hidden">
-              <CardContent className="p-0">
-                <div className="p-3 border-b border-border/30">
-                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                    <MapPin className="w-4 h-4" />
-                    Ubicación del trabajo
-                  </h3>
+          {/* Map Card */}
+          <Card className="border-border/50 overflow-hidden">
+            <CardContent className="p-0">
+              <div className="p-3 border-b border-border/30">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <MapPin className="w-4 h-4" />
+                  Ubicación del trabajo
+                </h3>
+              </div>
+              {job.location ? (
+                <>
+                  <div className="w-full h-[250px]">
+                    <iframe
+                      title="Job location map"
+                      width="100%"
+                      height="100%"
+                      style={{ border: 0 }}
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                      src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyDZF5nFnQPtaOpuqC9fHfEb1HbMrCrYMGo&q=${encodeURIComponent(job.location)}`}
+                    />
+                  </div>
+                  <div className="p-3 border-t border-border/30 grid grid-cols-2 gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => {
+                        window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(job.location!)}`, '_blank');
+                      }}
+                    >
+                      <Navigation className="w-3.5 h-3.5" />
+                      Iniciar ruta
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => {
+                        window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(job.location!)}`, '_blank');
+                      }}
+                    >
+                      <MapPin className="w-3.5 h-3.5" />
+                      Abrir en Maps
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <div className="p-6 text-center">
+                  <MapPin className="w-6 h-6 text-muted-foreground/40 mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">Ubicación no disponible</p>
                 </div>
-                <div className="w-full h-[250px]">
-                  <iframe
-                    title="Job location map"
-                    width="100%"
-                    height="100%"
-                    style={{ border: 0 }}
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyDZF5nFnQPtaOpuqC9fHfEb1HbMrCrYMGo&q=${encodeURIComponent(job.location)}`}
-                  />
-                </div>
-                <div className="p-3 border-t border-border/30">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full gap-2"
-                    onClick={() => {
-                      window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(job.location!)}`, '_blank');
-                    }}
-                  >
-                    <Navigation className="w-3.5 h-3.5" />
-                    Abrir en Google Maps
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+              )}
+            </CardContent>
+          </Card>
 
           {/* Timeline Steps */}
           <div className="relative pl-6">
