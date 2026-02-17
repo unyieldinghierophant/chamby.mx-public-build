@@ -2,7 +2,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Calendar, Clock, DollarSign, User, Phone, MessageSquare, CheckCircle, Navigation, Loader2, HourglassIcon, ChevronRight } from "lucide-react";
+import { MapPin, Calendar, Clock, User, Phone, MessageSquare, CheckCircle, Navigation, Loader2, HourglassIcon, ChevronRight } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { useNavigate } from "react-router-dom";
 import { PaymentStatusBadge } from "@/components/PaymentStatusBadge";
@@ -199,10 +199,25 @@ export const JobCardActive = ({ job, onComplete }: JobCardActiveProps) => {
           </p>
         )}
 
-        {/* Price */}
-        <div className="flex items-center gap-2 text-lg font-semibold text-primary mt-4">
-          <DollarSign className="w-5 h-5" />
-          <span>${(job.total_amount || 0).toFixed(2)} MXN</span>
+        {/* Payment Breakdown */}
+        <div className="mt-4 space-y-1">
+          {(() => {
+            const visitFee = job.visit_fee_amount || 350;
+            const chambyFee = job.amount_booking_fee || Math.round(visitFee * 0.2857);
+            const providerPayout = visitFee - chambyFee;
+            return (
+              <>
+                <div className="flex justify-between text-sm text-muted-foreground">
+                  <span>Cobro al cliente</span>
+                  <span>${visitFee} MXN</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="font-semibold text-primary">Tu pago</span>
+                  <span className="font-bold text-primary">${providerPayout} MXN</span>
+                </div>
+              </>
+            );
+          })()}
         </div>
       </CardContent>
 
