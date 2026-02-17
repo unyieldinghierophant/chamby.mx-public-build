@@ -58,8 +58,13 @@ interface JobDetail {
   provider_id: string | null;
   created_at: string;
   visit_fee_amount: number | null;
+  visit_fee_paid: boolean | null;
   provider_confirmed_visit: boolean | null;
   client_confirmed_visit: boolean | null;
+  photos: string[] | null;
+  problem: string | null;
+  service_type: string | null;
+  amount_booking_fee: number | null;
 }
 
 interface ChatMessage {
@@ -419,6 +424,14 @@ const JobTimelinePage = () => {
           {/* Job Info Card */}
           <Card className="border-border/50">
             <CardContent className="p-4 space-y-3">
+              {/* Job ID */}
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span className="font-mono bg-muted px-1.5 py-0.5 rounded">ID: {job.id.slice(0, 8)}</span>
+                <span>•</span>
+                <span>{job.category}</span>
+                {job.service_type && <><span>•</span><span>{job.service_type}</span></>}
+              </div>
+
               {client && (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -444,20 +457,116 @@ const JobTimelinePage = () => {
                 </div>
               )}
               {job.location && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <MapPin className="w-4 h-4" />
-                  <span className="truncate">{job.location}</span>
+                <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                  <MapPin className="w-4 h-4 mt-0.5 shrink-0" />
+                  <span>{job.location}</span>
                 </div>
               )}
-              <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-                <DollarSign className="w-4 h-4" />
-                <span>${(job.total_amount || job.rate || 0).toFixed(2)} MXN</span>
-              </div>
               {job.description && (
                 <p className="text-xs text-muted-foreground">{job.description}</p>
               )}
+              {job.problem && (
+                <div className="text-xs text-muted-foreground">
+                  <span className="font-medium">Problema:</span> {job.problem}
+                </div>
+              )}
             </CardContent>
           </Card>
+
+          {/* Payment Breakdown Card */}
+          <Card className="border-border/50">
+            <CardContent className="p-4 space-y-2">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <DollarSign className="w-4 h-4" />
+                Desglose de pago
+              </h3>
+              {(() => {
+                const visitFee = job.visit_fee_amount || 350;
+                const chambyFee = job.amount_booking_fee || Math.round(visitFee * 0.2857); // ~100 of 350
+                const providerPayout = visitFee - chambyFee;
+                return (
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Total cobrado al cliente</span>
+                      <span className="font-medium">${visitFee.toFixed(0)} MXN</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Comisión Chamby</span>
+                      <span className="text-destructive">-${chambyFee.toFixed(0)} MXN</span>
+                    </div>
+                    <div className="border-t border-border/50 pt-1.5 flex justify-between text-sm">
+                      <span className="font-semibold text-foreground">Pago al proveedor</span>
+                      <span className="font-bold text-primary">${providerPayout.toFixed(0)} MXN</span>
+                    </div>
+                    {job.visit_fee_paid && (
+                      <Badge variant="outline" className="bg-green-500/10 text-green-700 border-green-500/20 text-xs mt-1">
+                        Pago confirmado
+                      </Badge>
+                    )}
+                  </div>
+                );
+              })()}
+            </CardContent>
+          </Card>
+
+          {/* Job Photos */}
+          {job.photos && job.photos.length > 0 && (
+            <Card className="border-border/50">
+              <CardContent className="p-4 space-y-2">
+                <h3 className="text-sm font-semibold text-foreground">Fotos del trabajo</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {job.photos.map((photoUrl, i) => (
+                    <a key={i} href={photoUrl} target="_blank" rel="noopener noreferrer" className="block">
+                      <img
+                        src={photoUrl}
+                        alt={`Foto ${i + 1}`}
+                        className="rounded-lg w-full h-32 object-cover border border-border/30"
+                        loading="lazy"
+                      />
+                    </a>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Map Card */}
+          {job.location && (
+            <Card className="border-border/50 overflow-hidden">
+              <CardContent className="p-0">
+                <div className="p-3 border-b border-border/30">
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    Ubicación del trabajo
+                  </h3>
+                </div>
+                <div className="w-full h-[250px]">
+                  <iframe
+                    title="Job location map"
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyDZF5nFnQPtaOpuqC9fHfEb1HbMrCrYMGo&q=${encodeURIComponent(job.location)}`}
+                  />
+                </div>
+                <div className="p-3 border-t border-border/30">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full gap-2"
+                    onClick={() => {
+                      window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(job.location!)}`, '_blank');
+                    }}
+                  >
+                    <Navigation className="w-3.5 h-3.5" />
+                    Abrir en Google Maps
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Timeline Steps */}
           <div className="relative pl-6">

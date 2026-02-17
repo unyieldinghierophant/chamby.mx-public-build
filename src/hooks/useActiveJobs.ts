@@ -18,6 +18,8 @@ export interface ActiveJob {
   // Payment status fields
   stripe_visit_payment_intent_id: string | null;
   visit_fee_paid: boolean | null;
+  visit_fee_amount: number | null;
+  amount_booking_fee: number | null;
   client?: {
     full_name: string | null;
     phone: string | null;
