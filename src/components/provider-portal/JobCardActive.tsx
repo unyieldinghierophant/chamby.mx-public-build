@@ -11,7 +11,9 @@ import { format, formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { ActiveJob } from "@/hooks/useActiveJobs";
 import { toast } from "sonner";
-import { useCompleteFirstVisit } from "@/hooks/useCompleteFirstVisit";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useState } from "react";
 
 interface JobCardActiveProps {
   job: ActiveJob & {
@@ -25,21 +27,37 @@ interface JobCardActiveProps {
 
 export const JobCardActive = ({ job, onComplete }: JobCardActiveProps) => {
   const navigate = useNavigate();
-  const { providerConfirmVisit, loading } = useCompleteFirstVisit();
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
 
   const handleConfirmVisit = async () => {
-    const result = await providerConfirmVisit(job.id);
-    if (result.success) {
-      toast.success('¡Visita confirmada!', {
-        description: 'El cliente tiene 48 horas para confirmar. Una vez que confirme, recibirás el pago.'
-      });
-      // Trigger a refresh
-      await onComplete(job.id);
-    } else {
+    setLoading(true);
+    console.log('[JobCardActive] Confirming visit for job:', job.id, 'current status:', job.status);
+    
+    const { error: updateError } = await supabase
+      .from('jobs')
+      .update({ 
+        provider_confirmed_visit: true,
+        status: 'completed',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', job.id)
+      .eq('provider_id', user?.id);
+
+    console.log('[JobCardActive] Update result - error:', updateError);
+    setLoading(false);
+
+    if (updateError) {
       toast.error('Error al confirmar la visita', {
-        description: result.message
+        description: updateError.message
       });
+      return;
     }
+
+    toast.success('¡Trabajo completado!', {
+      description: 'El trabajo ha sido marcado como completado.'
+    });
+    await onComplete(job.id);
   };
 
   const handleStartRoute = () => {
