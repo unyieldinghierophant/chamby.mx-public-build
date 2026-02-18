@@ -9,24 +9,27 @@ export interface EligibilityResult {
   refetch: () => Promise<void>;
 }
 
-const DOC_LABELS: Record<string, string> = {
-  ine_front_url: 'INE frente',
-  ine_back_url: 'INE reverso',
-  selfie_url: 'Selfie',
-  selfie_with_id_url: 'Selfie con INE',
-};
-
-const REQUIRED_DOC_FIELDS = ['ine_front_url', 'ine_back_url', 'selfie_url', 'selfie_with_id_url'] as const;
+/**
+ * Canonical document requirements — must match the verification page exactly.
+ * Each entry maps a canonical key to:
+ *   - label: display string shown in the eligibility modal
+ *   - docTypes: accepted doc_type values in the `documents` table
+ */
+const CANONICAL_DOCS = [
+  { key: 'foto_rostro', label: 'Foto del rostro', docTypes: ['face_photo'] },
+  { key: 'ine_id', label: 'INE/ID', docTypes: ['id_card', 'id_front'] },
+  { key: 'carta_antecedentes', label: 'Carta de antecedentes no penales', docTypes: ['criminal_record'] },
+] as const;
 
 /**
  * Centralized provider eligibility check.
  * A provider is eligible ONLY if ALL conditions are true:
  * 1. providers row exists
  * 2. providers.onboarding_complete == true
- * 3. All 4 required doc URL fields in provider_details are non-null/non-empty
+ * 3. All 3 canonical documents exist in the `documents` table
+ *    — OR admin has set provider_details.verification_status = 'verified'
  * 4. Required fields: skills (length > 0), zone_served, display_name
- *
- * NOTE: providers.verified does NOT bypass document checks.
+ * 5. Admin verification (provider_details.verification_status === 'verified')
  */
 export const useProviderEligibility = (): EligibilityResult => {
   const { user } = useAuth();
@@ -59,12 +62,22 @@ export const useProviderEligibility = (): EligibilityResult => {
         return;
       }
 
-      // 2. Check provider_details for doc URLs
+      // 2. Check provider_details for admin verification status
       const { data: details } = await supabase
         .from('provider_details')
-        .select('verification_status, ine_front_url, ine_back_url, selfie_url, selfie_with_id_url')
+        .select('verification_status')
         .eq('user_id', user.id)
         .maybeSingle();
+
+      const adminVerified = provider.verified === true || details?.verification_status === 'verified';
+
+      // 3. Check documents table for canonical docs
+      const { data: docs } = await supabase
+        .from('documents')
+        .select('doc_type')
+        .eq('provider_id', user.id);
+
+      const uploadedDocTypes = new Set((docs || []).map(d => d.doc_type));
 
       // Build gaps list
       const gaps: string[] = [];
@@ -73,17 +86,14 @@ export const useProviderEligibility = (): EligibilityResult => {
         gaps.push('Onboarding incompleto');
       }
 
-      // Check all 4 required document URLs
-      if (details) {
-        const detailsAny = details as any;
-        for (const field of REQUIRED_DOC_FIELDS) {
-          const val = detailsAny[field];
-          if (!val || (typeof val === 'string' && val.trim() === '')) {
-            gaps.push(`Documento faltante: ${DOC_LABELS[field]}`);
+      // Check canonical documents (skip if admin already verified)
+      if (!adminVerified) {
+        for (const canonical of CANONICAL_DOCS) {
+          const hasSome = canonical.docTypes.some(dt => uploadedDocTypes.has(dt));
+          if (!hasSome) {
+            gaps.push(`Documento faltante: ${canonical.label}`);
           }
         }
-      } else {
-        gaps.push('Documentos faltantes: INE frente, INE reverso, Selfie, Selfie con INE');
       }
 
       // Check required profile fields
@@ -97,8 +107,8 @@ export const useProviderEligibility = (): EligibilityResult => {
         gaps.push('Nombre no configurado');
       }
 
-      // Verification by admin is informational but does NOT override doc requirements
-      if (!provider.verified && details?.verification_status !== 'verified') {
+      // Admin verification gate
+      if (!adminVerified) {
         gaps.push('Verificación de administrador pendiente');
       }
 
