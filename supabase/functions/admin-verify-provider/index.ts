@@ -75,24 +75,26 @@ Deno.serve(async (req) => {
         )
       }
 
-      // Check required documents
-      const { data: details } = await supabaseAdmin
-        .from('provider_details')
-        .select('ine_front_url, ine_back_url, selfie_url, selfie_with_id_url')
-        .eq('user_id', provider_user_id)
-        .maybeSingle()
+      // Check canonical documents from the documents table
+      // Must match ProviderVerification page requirements exactly
+      const CANONICAL_DOCS = [
+        { key: 'foto_rostro', label: 'Foto del rostro', docTypes: ['face_photo'] },
+        { key: 'ine_id', label: 'INE/ID', docTypes: ['id_card', 'id_front'] },
+        { key: 'carta_antecedentes', label: 'Carta de antecedentes no penales', docTypes: ['criminal_record'] },
+      ]
 
-      const docLabels: Record<string, string> = {
-        ine_front_url: 'INE frente',
-        ine_back_url: 'INE reverso',
-        selfie_url: 'Selfie',
-        selfie_with_id_url: 'Selfie con INE',
-      }
+      const { data: docs } = await supabaseAdmin
+        .from('documents')
+        .select('doc_type')
+        .eq('provider_id', provider_user_id)
+
+      const uploadedDocTypes = new Set((docs || []).map((d: any) => d.doc_type))
+
       const missingDocs: string[] = []
-      for (const [field, label] of Object.entries(docLabels)) {
-        const val = (details as any)?.[field]
-        if (!val || (typeof val === 'string' && val.trim() === '')) {
-          missingDocs.push(label)
+      for (const canonical of CANONICAL_DOCS) {
+        const hasSome = canonical.docTypes.some(dt => uploadedDocTypes.has(dt))
+        if (!hasSome) {
+          missingDocs.push(canonical.label)
         }
       }
       if (missingDocs.length > 0) {
