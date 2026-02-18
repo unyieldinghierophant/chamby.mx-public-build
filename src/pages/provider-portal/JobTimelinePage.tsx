@@ -115,6 +115,8 @@ const JobTimelinePage = () => {
   const [activeTab, setActiveTab] = useState<'timeline' | 'chat'>('timeline');
   const [showCancelSummary, setShowCancelSummary] = useState(false);
   const [ratingDismissed, setRatingDismissed] = useState(false);
+  const [chatDebug, setChatDebug] = useState<{ selectError: string | null; insertError: string | null; realtimeStatus: string }>({ selectError: null, insertError: null, realtimeStatus: 'connecting' });
+  const [showDebug, setShowDebug] = useState(false);
 
   // Fetch job + client + messages
   const fetchAll = async () => {
@@ -161,12 +163,18 @@ const JobTimelinePage = () => {
     }
 
     // Fetch messages
-    const { data: msgs } = await supabase
+    const { data: msgs, error: msgsError } = await supabase
       .from('messages')
       .select('id, message_text, sender_id, receiver_id, is_system_message, system_event_type, created_at')
       .eq('job_id', jobId)
       .order('created_at', { ascending: true });
 
+    if (msgsError) {
+      console.error('[Chat] SELECT error:', msgsError);
+      setChatDebug(prev => ({ ...prev, selectError: msgsError.message }));
+    } else {
+      setChatDebug(prev => ({ ...prev, selectError: null }));
+    }
     setMessages((msgs || []) as ChatMessage[]);
 
     // Mark unread messages as read
@@ -209,7 +217,10 @@ const JobTimelinePage = () => {
           supabase.from('messages').update({ read: true }).eq('id', newMsg.id);
         }
       })
-      .subscribe();
+      .subscribe((status) => {
+        console.log('[Chat] Realtime status:', status);
+        setChatDebug(prev => ({ ...prev, realtimeStatus: status }));
+      });
 
     // Also listen for job status changes
     const jobChannel = supabase
@@ -347,14 +358,24 @@ const JobTimelinePage = () => {
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !job || !user) return;
     setSending(true);
-    await supabase.from('messages').insert({
+    const payload = {
       job_id: job.id,
       sender_id: user.id,
       receiver_id: job.client_id,
       message_text: newMessage.trim(),
       is_system_message: false,
       read: false,
-    });
+    };
+    console.log('[Chat] Sending message:', { jobId: job.id, senderId: user.id, receiverId: job.client_id });
+    const { error: insertError } = await supabase.from('messages').insert(payload);
+    if (insertError) {
+      console.error('[Chat] INSERT error:', insertError);
+      setChatDebug(prev => ({ ...prev, insertError: insertError.message }));
+      toast.error('Error al enviar mensaje', { description: insertError.message });
+      setSending(false);
+      return;
+    }
+    setChatDebug(prev => ({ ...prev, insertError: null }));
     setNewMessage("");
     setSending(false);
   };
@@ -812,6 +833,26 @@ const JobTimelinePage = () => {
       ) : (
         /* Chat Tab */
         <div className="flex flex-col" style={{ height: 'calc(100vh - 10rem)' }}>
+          {/* Debug Panel */}
+          <div className="px-4 pt-2">
+            <button
+              onClick={() => setShowDebug(d => !d)}
+              className="text-[10px] text-muted-foreground/60 hover:text-muted-foreground font-mono"
+            >
+              {showDebug ? '▼' : '▶'} Debug
+            </button>
+            {showDebug && (
+              <div className="mt-1 p-2 bg-muted/50 rounded border border-border/30 text-[10px] font-mono space-y-0.5">
+                <p>jobId: {jobId}</p>
+                <p>userId: {user?.id}</p>
+                <p>receiverId: {job?.client_id || 'N/A'}</p>
+                <p>msgs loaded: {messages.length}</p>
+                <p>realtime: {chatDebug.realtimeStatus}</p>
+                {chatDebug.selectError && <p className="text-destructive">SELECT err: {chatDebug.selectError}</p>}
+                {chatDebug.insertError && <p className="text-destructive">INSERT err: {chatDebug.insertError}</p>}
+              </div>
+            )}
+          </div>
           <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2.5">
             {messages.length === 0 ? (
               <div className="text-center py-12">
