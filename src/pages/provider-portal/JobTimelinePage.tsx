@@ -573,8 +573,7 @@ const JobTimelinePage = () => {
             </Card>
           )}
 
-          {/* Map Card */}
-          {/* Map Card */}
+          {/* Map Card — safe fallback, no JS embed */}
           <Card className="border-border/50 overflow-hidden">
             <CardContent className="p-0">
               <div className="p-3 border-b border-border/30">
@@ -585,16 +584,8 @@ const JobTimelinePage = () => {
               </div>
               {job.location ? (
                 <>
-                  <div className="w-full h-[250px]">
-                    <iframe
-                      title="Job location map"
-                      width="100%"
-                      height="100%"
-                      style={{ border: 0 }}
-                      loading="lazy"
-                      referrerPolicy="no-referrer-when-downgrade"
-                      src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyDZF5nFnQPtaOpuqC9fHfEb1HbMrCrYMGo&q=${encodeURIComponent(job.location)}`}
-                    />
+                  <div className="p-4 space-y-2">
+                    <p className="text-sm text-foreground">{job.location}</p>
                   </div>
                   <div className="p-3 border-t border-border/30 grid grid-cols-2 gap-2">
                     <Button
