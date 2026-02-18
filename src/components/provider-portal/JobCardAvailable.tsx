@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { AvailableJob } from "@/hooks/useAvailableJobs";
 import { toast } from "sonner";
+import { toFixedSafe } from "@/utils/formatSafe";
 
 interface JobCardAvailableProps {
   job: AvailableJob;
@@ -111,7 +112,7 @@ export const JobCardAvailable = ({ job, onAccept }: JobCardAvailableProps) => {
         {/* Price */}
         <div className="flex items-center gap-2 text-lg font-semibold text-primary mt-4">
           <DollarSign className="w-5 h-5" />
-          <span>${job.rate.toFixed(2)} MXN</span>
+          <span>${toFixedSafe(job.rate, 2)} MXN</span>
         </div>
 
         {/* Payment status */}
