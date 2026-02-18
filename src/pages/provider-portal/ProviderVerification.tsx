@@ -28,7 +28,8 @@ const ProviderVerification = () => {
     admin_notes: string | null;
   }>({ status: 'pending', admin_notes: null });
 
-  const isVerified = providerProfile?.verification_status === "verified";
+  // Single source of truth: provider_details.verification_status (set by admin)
+  const isVerified = verificationDetails.status === 'verified';
 
   useEffect(() => {
     if (user) {
