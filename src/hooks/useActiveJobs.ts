@@ -77,8 +77,11 @@ export const useActiveJobs = (): UseActiveJobsResult => {
             ? invoices[0] 
             : null;
 
+          // Destructure to remove the raw `invoices` join array so it
+          // never leaks into React children (prevents error #310).
+          const { invoices: _rawInvoices, ...jobWithoutJoin } = job as any;
           return {
-            ...job,
+            ...jobWithoutJoin,
             client: clientData || { full_name: 'Cliente', phone: '' },
             invoice
           };

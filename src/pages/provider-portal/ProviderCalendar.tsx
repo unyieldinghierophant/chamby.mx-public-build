@@ -472,7 +472,7 @@ const ProviderCalendar = () => {
                           
                           <div className="pt-2 border-t flex items-center justify-between">
                             <span className="font-semibold text-sm">
-                              ${job.total_amount.toLocaleString("es-MX")}
+                              ${(job.total_amount ?? 0).toLocaleString("es-MX")}
                             </span>
                             <Button variant="outline" size="sm">
                               Ver detalles
