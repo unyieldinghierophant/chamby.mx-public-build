@@ -100,7 +100,7 @@ const Header = ({
               <img 
                 src={chambyLogo} 
                 alt="Chamby.mx" 
-                className="h-48 md:h-56 w-auto -my-16 md:-my-20 brightness-0"
+                className="h-48 md:h-56 w-auto -my-16 md:-my-20"
               />
             </button>
           </div>
