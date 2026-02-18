@@ -269,7 +269,7 @@ const ProviderDashboardHome = () => {
               {stats.rating > 0 && (
                 <span className="flex items-center gap-1 text-[11px] text-muted-foreground mt-0.5">
                   <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                  <span className="font-medium text-foreground/70">{(stats.rating ?? 0).toFixed(1)}</span>
+                  <span className="font-medium text-foreground/70">{Number(stats.rating ?? 0).toFixed(1)}</span>
                 </span>
               )}
             </div>

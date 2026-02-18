@@ -130,7 +130,7 @@ const ProviderAccount = () => {
               <div className="flex items-center gap-1 mt-0.5">
                 <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                 <span className="text-sm font-medium">
-                  {(providerProfile.rating ?? 0).toFixed(1)}
+                  {Number(providerProfile.rating ?? 0).toFixed(1)}
                 </span>
                 <span className="text-xs text-muted-foreground">
                   ({providerProfile.total_reviews || 0} reseñas)
