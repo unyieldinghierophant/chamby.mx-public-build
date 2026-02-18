@@ -2,7 +2,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Calendar, Clock, User, Phone, MessageSquare, CheckCircle, Navigation, Loader2, HourglassIcon, ChevronRight } from "lucide-react";
+import { MapPin, Calendar, Clock, User, MessageSquare, CheckCircle, Navigation, Loader2, HourglassIcon, ChevronRight } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { useNavigate } from "react-router-dom";
 import { PaymentStatusBadge } from "@/components/PaymentStatusBadge";
@@ -77,13 +77,6 @@ export const JobCardActive = ({ job, onComplete }: JobCardActiveProps) => {
     }
   };
 
-  const handleCallCustomer = () => {
-    if (job.client?.phone) {
-      window.location.href = `tel:${job.client.phone}`;
-    } else {
-      toast.error('No hay número de teléfono disponible');
-    }
-  };
 
   const scheduledDate = job.scheduled_at ? new Date(job.scheduled_at) : new Date();
   const visitFeeStatus = getVisitFeeStatus(job);
@@ -185,17 +178,6 @@ export const JobCardActive = ({ job, onComplete }: JobCardActiveProps) => {
                 {job.client.full_name || 'Cliente'}
               </span>
             </div>
-            {job.client.phone && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleCallCustomer}
-                className="gap-2"
-              >
-                <Phone className="w-4 h-4" />
-                Llamar
-              </Button>
-            )}
           </div>
         )}
 

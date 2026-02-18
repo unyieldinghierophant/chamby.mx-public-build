@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calendar, XCircle, Plus, Phone, MessageCircle, MapPin, Clock } from "lucide-react";
+import { ArrowLeft, Calendar, XCircle, Plus, MessageCircle, MapPin, Clock } from "lucide-react";
 import { JobTrackingMap } from "@/components/JobTrackingMap";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -345,19 +345,13 @@ const ActiveJobs = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button
-                        className="flex-1"
-                        onClick={() => window.open(`tel:${selectedJob.provider?.phone}`)}
-                      >
-                        <Phone className="mr-2 h-4 w-4" />
-                        Llamar
-                      </Button>
-                      <Button variant="outline" className="flex-1">
-                        <MessageCircle className="mr-2 h-4 w-4" />
-                        Mensaje
-                      </Button>
-                    </div>
+                    <Button
+                      className="w-full"
+                      onClick={() => navigate(`/messages`)}
+                    >
+                      <MessageCircle className="mr-2 h-4 w-4" />
+                      Mensaje
+                    </Button>
                   </CardContent>
                 </Card>
               )}
@@ -391,7 +385,7 @@ const ActiveJobs = () => {
                     </div>
                     <div className="pt-3 border-t">
                       <p className="text-lg font-semibold">
-                        Total: ${selectedJob.rate.toFixed(2)} MXN
+                        Cobro: ${(selectedJob as any).visit_fee_amount ? `${(selectedJob as any).visit_fee_amount}` : '—'} MXN
                       </p>
                     </div>
                   </div>

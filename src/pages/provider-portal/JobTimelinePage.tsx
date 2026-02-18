@@ -34,7 +34,7 @@ import {
   Clock,
   DollarSign,
   User,
-  Phone,
+  
   MessageSquare,
   AlertTriangle,
   Star,
@@ -481,16 +481,6 @@ const JobTimelinePage = () => {
                     <User className="w-4 h-4 text-muted-foreground" />
                     <span className="text-sm">{client.full_name || 'Cliente'}</span>
                   </div>
-                  {client.phone && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 gap-1 text-xs"
-                      onClick={() => window.location.href = `tel:${client.phone}`}
-                    >
-                      <Phone className="w-3 h-3" /> Llamar
-                    </Button>
-                  )}
                 </div>
               )}
               {job.scheduled_at && (
