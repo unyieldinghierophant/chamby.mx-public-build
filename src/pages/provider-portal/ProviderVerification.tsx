@@ -187,8 +187,8 @@ const ProviderVerification = () => {
         </Card>
       )}
 
-      {/* Documents Status */}
-      {documents.length > 0 && (
+      {/* Documents Status — only show when NOT verified */}
+      {!isVerified && documents.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -216,6 +216,16 @@ const ProviderVerification = () => {
                 </div>
               ))}
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Compact approved line when verified */}
+      {isVerified && (
+        <Card>
+          <CardContent className="py-4 flex items-center gap-2 text-green-700 dark:text-green-400">
+            <CheckCircle className="h-5 w-5" />
+            <span className="text-sm font-medium">Todos los documentos aprobados</span>
           </CardContent>
         </Card>
       )}
