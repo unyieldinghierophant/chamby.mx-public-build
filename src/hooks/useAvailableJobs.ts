@@ -145,7 +145,7 @@ export const useAvailableJobs = (): UseAvailableJobsResult => {
        }
 
        // Update job with provider_id (from authenticated user) and change status to accepted
-       const { error: updateError } = await supabase
+       const { data: updateResult, error: updateError } = await supabase
          .from('jobs')
          .update({ 
            provider_id: user.id,
@@ -155,9 +155,15 @@ export const useAvailableJobs = (): UseAvailableJobsResult => {
          .eq('id', jobId)
          .eq('visit_fee_paid', true)
          .in('status', ['searching', 'active'])
-         .is('provider_id', null); // Only accept if not already taken
+         .is('provider_id', null) // Only accept if not already taken
+         .select('id');
 
        if (updateError) throw updateError;
+
+       // CRITICAL: Check if update affected any rows (0 = already taken by another provider)
+       if (!updateResult || updateResult.length === 0) {
+         throw new Error('Este trabajo ya fue tomado por otro proveedor.');
+       }
 
       // Create system message for acceptance
       const { data: jobData } = await supabase

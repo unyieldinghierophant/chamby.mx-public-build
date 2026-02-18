@@ -251,24 +251,44 @@ const JobTimelinePage = () => {
     // Double confirmation for completion: provider marks as "terminado"
     if (nextStatus === 'completed') {
       setTransitioning(true);
-      // Set provider_confirmed_visit
-      await supabase
+      // Set provider_confirmed_visit AND status to completed
+      const { data: updateResult, error: updateError } = await supabase
         .from('jobs')
-        .update({ provider_confirmed_visit: true, updated_at: new Date().toISOString() })
-        .eq('id', job.id);
+        .update({ 
+          provider_confirmed_visit: true, 
+          status: 'completed',
+          updated_at: new Date().toISOString() 
+        })
+        .eq('id', job.id)
+        .eq('provider_id', user.id)
+        .select('id, status');
+
+      console.log('[JobTimelinePage] Completion update:', { updateResult, updateError });
+
+      if (updateError) {
+        toast.error('Error al completar', { description: updateError.message });
+        setTransitioning(false);
+        return;
+      }
+
+      if (!updateResult || updateResult.length === 0) {
+        toast.error('No se pudo completar el trabajo', { description: 'Verifica que el trabajo esté asignado a ti.' });
+        setTransitioning(false);
+        return;
+      }
 
       // Send system message
       await supabase.from('messages').insert({
         job_id: job.id,
         sender_id: user.id,
         receiver_id: job.client_id,
-        message_text: '🛠️ El proveedor marcó el trabajo como terminado. Esperando confirmación del cliente.',
+        message_text: '🎉 El trabajo fue completado correctamente',
         is_system_message: true,
-        system_event_type: 'provider_completed',
+        system_event_type: 'completed',
         read: false,
       });
 
-      toast.success('Marcado como terminado. El cliente debe confirmar.');
+      toast.success('¡Trabajo completado!');
       setTransitioning(false);
       await fetchAll();
       return;
