@@ -1,6 +1,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, RefreshCw, ArrowLeft } from "lucide-react";
+import { AlertTriangle, RefreshCw, Home, Briefcase } from "lucide-react";
 
 interface Props {
   children: React.ReactNode;
@@ -22,7 +22,8 @@ export class ProviderErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
-    console.error("[ProviderErrorBoundary] Caught error:", error, info.componentStack);
+    console.error("[ProviderErrorBoundary] Caught error:", error);
+    console.error("[ProviderErrorBoundary] Component stack:", info.componentStack);
   }
 
   render() {
@@ -32,26 +33,41 @@ export class ProviderErrorBoundary extends React.Component<Props, State> {
           <AlertTriangle className="w-10 h-10 text-destructive" />
           <h2 className="text-lg font-semibold text-foreground">Algo salió mal</h2>
           <p className="text-sm text-muted-foreground max-w-md">
-            Ocurrió un error inesperado. Intenta recargar la página.
+            Ocurrió un error inesperado. Puedes volver a la actividad o recargar la página.
           </p>
           <p className="text-xs text-muted-foreground font-mono bg-muted p-2 rounded max-w-md break-all">
             {this.state.error?.message || "Error desconocido"}
           </p>
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
             <Button
-              variant="outline"
-              onClick={() => window.history.back()}
-              className="gap-2"
+              className="w-full gap-2"
+              onClick={() => {
+                this.setState({ hasError: false, error: null });
+                // Use window.location for guaranteed navigation even if router is broken
+                window.location.href = "/provider-portal";
+              }}
             >
-              <ArrowLeft className="w-4 h-4" />
-              Volver
+              <Briefcase className="w-4 h-4" />
+              Ir a Actividad
             </Button>
             <Button
+              variant="outline"
+              className="w-full gap-2"
+              onClick={() => {
+                this.setState({ hasError: false, error: null });
+                window.location.href = "/";
+              }}
+            >
+              <Home className="w-4 h-4" />
+              Ir a Inicio
+            </Button>
+            <Button
+              variant="ghost"
+              className="w-full gap-2"
               onClick={() => {
                 this.setState({ hasError: false, error: null });
                 window.location.reload();
               }}
-              className="gap-2"
             >
               <RefreshCw className="w-4 h-4" />
               Recargar
