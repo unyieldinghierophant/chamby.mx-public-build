@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { toFixedSafe } from "@/utils/formatSafe";
 
 interface FutureJob {
   id: string;
@@ -210,7 +211,7 @@ const ProviderJobs = () => {
                         )}
                       </div>
                       <p className="text-lg font-semibold text-primary">
-                        ${job.total_amount.toFixed(2)}
+                        ${toFixedSafe(job.total_amount, 2)}
                       </p>
                     </div>
                   </CardContent>
@@ -254,7 +255,7 @@ const ProviderJobs = () => {
                         </p>
                       </div>
                       <p className="text-lg font-semibold text-primary">
-                        ${job.total_amount.toFixed(2)}
+                        ${toFixedSafe(job.total_amount, 2)}
                       </p>
                     </div>
                   </CardContent>

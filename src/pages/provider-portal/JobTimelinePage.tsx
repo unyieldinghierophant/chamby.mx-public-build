@@ -521,15 +521,15 @@ const JobTimelinePage = () => {
                   <div className="space-y-1.5">
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Total cobrado al cliente</span>
-                      <span className="font-medium">${visitFee.toFixed(0)} MXN</span>
+                      <span className="font-medium">${(visitFee ?? 0).toFixed(0)} MXN</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Comisión Chamby</span>
-                      <span className="text-destructive">-${chambyFee.toFixed(0)} MXN</span>
+                      <span className="text-destructive">-${(chambyFee ?? 0).toFixed(0)} MXN</span>
                     </div>
                     <div className="border-t border-border/50 pt-1.5 flex justify-between text-sm">
                       <span className="font-semibold text-foreground">Pago al proveedor</span>
-                      <span className="font-bold text-primary">${providerPayout.toFixed(0)} MXN</span>
+                      <span className="font-bold text-primary">${(providerPayout ?? 0).toFixed(0)} MXN</span>
                     </div>
                     {job.visit_fee_paid && (
                       <Badge variant="outline" className="bg-green-500/10 text-green-700 border-green-500/20 text-xs mt-1">

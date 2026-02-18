@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { toFixedSafe } from "@/utils/formatSafe";
 
 // Invoice status labels
 export const INVOICE_STATUS_LABELS: Record<string, string> = {
@@ -200,7 +201,7 @@ export const InvoiceCard = ({
         job_id: jobId,
         sender_id: user.id,
         receiver_id: clientId,
-        message_text: `🧾 El proveedor envió una factura por $${totalCustomer.toFixed(2)} MXN para aprobación`,
+        message_text: `🧾 El proveedor envió una factura por $${toFixedSafe(totalCustomer, 2, '0.00')} MXN para aprobación`,
         is_system_message: true,
         system_event_type: "invoice_sent",
         read: false,
@@ -364,15 +365,15 @@ export const InvoiceCard = ({
           <div className="bg-muted/50 rounded-lg p-3 space-y-1.5 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Subtotal</span>
-              <span>${subtotal.toFixed(2)}</span>
+              <span>${toFixedSafe(subtotal, 2, '0.00')}</span>
             </div>
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>Cargo por servicio (10%)</span>
-              <span>+${customerFee.toFixed(2)}</span>
+              <span>+${toFixedSafe(customerFee, 2, '0.00')}</span>
             </div>
             <div className="flex justify-between font-semibold border-t border-border/50 pt-1.5">
               <span>Total cliente</span>
-              <span className="text-primary">${totalCustomer.toFixed(2)} MXN</span>
+              <span className="text-primary">${toFixedSafe(totalCustomer, 2, '0.00')} MXN</span>
             </div>
           </div>
 
@@ -428,7 +429,7 @@ export const InvoiceCard = ({
             <div className="flex items-center gap-2">
               <DollarSign className="w-5 h-5 text-primary" />
               <span className="text-lg font-bold text-primary">
-                ${invoice.total_customer_amount.toFixed(2)} MXN
+                ${toFixedSafe(invoice.total_customer_amount, 2)} MXN
               </span>
             </div>
             <CollapsibleTrigger asChild>
@@ -446,7 +447,7 @@ export const InvoiceCard = ({
           {/* Collapsible details */}
           <CollapsibleContent>
             <div className="space-y-2 text-sm">
-              {invoice.items.map((item) => (
+              {(invoice.items ?? []).map((item) => (
                 <div key={item.id} className="flex justify-between">
                   <span className="text-muted-foreground">
                     {item.description}{" "}
@@ -454,7 +455,7 @@ export const InvoiceCard = ({
                       <span className="text-xs">×{item.quantity}</span>
                     )}
                   </span>
-                  <span>${item.total.toFixed(2)}</span>
+                  <span>${toFixedSafe(item.total, 2)}</span>
                 </div>
               ))}
               <div className="border-t border-border/50 pt-2">
@@ -462,19 +463,21 @@ export const InvoiceCard = ({
                   <span>Subtotal</span>
                   <span>
                     $
-                    {invoice.items
-                      .reduce((s, i) => s + i.total, 0)
-                      .toFixed(2)}
+                    {toFixedSafe(
+                      (invoice.items ?? []).reduce((s, i) => s + (i.total ?? 0), 0),
+                      2
+                    )}
                   </span>
                 </div>
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span>Cargo servicio</span>
                   <span>
                     +$
-                    {(
-                      invoice.total_customer_amount -
-                      invoice.items.reduce((s, i) => s + i.total, 0)
-                    ).toFixed(2)}
+                    {toFixedSafe(
+                      (invoice.total_customer_amount ?? 0) -
+                      (invoice.items ?? []).reduce((s, i) => s + (i.total ?? 0), 0),
+                      2
+                    )}
                   </span>
                 </div>
               </div>
@@ -520,7 +523,7 @@ export const InvoiceCard = ({
               onClick={() => {
                 // Populate form with existing data
                 setLineItems(
-                  invoice.items.map((item) => ({
+                  (invoice.items ?? []).map((item) => ({
                     id: item.id,
                     description: item.description,
                     amount: item.unit_price,
