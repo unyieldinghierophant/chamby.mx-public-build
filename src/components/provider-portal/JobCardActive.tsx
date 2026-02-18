@@ -34,7 +34,7 @@ export const JobCardActive = ({ job, onComplete }: JobCardActiveProps) => {
     setLoading(true);
     console.log('[JobCardActive] Confirming visit for job:', job.id, 'current status:', job.status);
     
-    const { error: updateError } = await supabase
+    const { data: updateResult, error: updateError } = await supabase
       .from('jobs')
       .update({ 
         provider_confirmed_visit: true,
@@ -42,14 +42,22 @@ export const JobCardActive = ({ job, onComplete }: JobCardActiveProps) => {
         updated_at: new Date().toISOString()
       })
       .eq('id', job.id)
-      .eq('provider_id', user?.id);
+      .eq('provider_id', user?.id)
+      .select('id, status');
 
-    console.log('[JobCardActive] Update result - error:', updateError);
+    console.log('[JobCardActive] Update result:', { updateResult, updateError });
     setLoading(false);
 
     if (updateError) {
       toast.error('Error al confirmar la visita', {
         description: updateError.message
+      });
+      return;
+    }
+
+    if (!updateResult || updateResult.length === 0) {
+      toast.error('No se pudo actualizar el trabajo', {
+        description: 'Verifica que el trabajo esté asignado a ti.'
       });
       return;
     }

@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { ROUTES } from "@/constants/routes";
 import { supabase } from "@/integrations/supabase/client";
+import { ProviderErrorBoundary } from "@/components/provider-portal/ProviderErrorBoundary";
 
 
 const ProviderPortalContent = () => {
@@ -98,7 +99,9 @@ const ProviderPortalContent = () => {
         
         {/* Main Content - No extra top padding on mobile since floating header removed */}
         <main className="flex-1 overflow-y-auto overflow-x-hidden pt-0 pb-20 md:pb-0 w-full max-w-full">
-          <Outlet />
+          <ProviderErrorBoundary>
+            <Outlet />
+          </ProviderErrorBoundary>
         </main>
         
         {/* Mobile Bottom Navigation */}

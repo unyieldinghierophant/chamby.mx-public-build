@@ -42,17 +42,17 @@ const ProviderVerification = () => {
   const fetchData = async () => {
     if (!user) return;
     try {
-      const [userRes, providerRes, detailsRes] = await Promise.all([
+      const [userRes, detailsRes] = await Promise.all([
         supabase.from('users').select('full_name, phone, created_at').eq('id', user.id).maybeSingle(),
-        supabase.from('providers').select('verified').eq('user_id', user.id).maybeSingle(),
         supabase.from('provider_details')
           .select('verification_status, ine_front_url, ine_back_url, selfie_url, selfie_with_id_url')
           .eq('user_id', user.id)
           .maybeSingle(),
       ]);
       setProfile(userRes.data);
-      setVerified(!!providerRes.data?.verified);
       setDetails(detailsRes.data as ProviderDetailsDoc | null);
+      // Single source of truth: provider_details.verification_status
+      setVerified(detailsRes.data?.verification_status === 'verified');
     } catch (error) {
       console.error('Error fetching verification data:', error);
     } finally {
