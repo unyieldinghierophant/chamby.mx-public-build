@@ -10,7 +10,6 @@ import {
   MessageSquare, 
   Send, 
   ArrowLeft, 
-  Phone,
   User,
   Search
 } from 'lucide-react';
@@ -151,10 +150,6 @@ const Messages = () => {
                           </p>
                         </div>
                       </div>
-                      <Button variant="outline" size="sm">
-                        <Phone className="w-4 h-4 mr-2" />
-                        Llamar
-                      </Button>
                     </div>
                   </CardHeader>
                   

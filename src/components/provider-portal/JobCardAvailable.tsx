@@ -104,7 +104,7 @@ export const JobCardAvailable = ({ job, onAccept }: JobCardAvailableProps) => {
         {job.clients && (
           <div className="text-sm text-muted-foreground">
             <p>Cliente: {job.clients.email}</p>
-            {job.clients.phone && <p>Tel: {job.clients.phone}</p>}
+            
           </div>
         )}
 
