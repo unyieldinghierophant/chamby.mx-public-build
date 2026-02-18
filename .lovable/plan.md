@@ -1,103 +1,39 @@
 
 
-# Fix: Provider Onboarding FK Violation on `providers_user_id_fkey`
+## Fix Provider Portal Runtime Crashes
 
-## Root Cause (Confirmed via DB Investigation)
+### Problem
+Two runtime errors crash the provider portal:
+1. **"Cannot read properties of null (reading 'toFixed')"** -- triggered when `total_amount`, `rate`, `rating`, or invoice fields are null/undefined.
+2. **Minified React error #310** -- caused by rendering components with null data before guards catch it.
 
-The FK constraint on `providers.user_id` references **`public.users(id)`**, not `auth.users(id)`. The `handle_new_user` database trigger is supposed to create a `public.users` row whenever a new auth user signs up, but it is **silently failing for most users**.
+### Solution
 
-**Evidence from the database:**
-- 10 auth users exist, but only **1** has a matching `public.users` row
-- 9 out of 10 users have `is_provider: true` in metadata but NO provider record
-- The trigger function `handle_new_user` exists and is attached, but its INSERT into `public.users` is failing without surfacing errors
+#### 1. Create shared helper `toFixedSafe`
+- **New file**: `src/utils/formatSafe.ts`
+- Export `toFixedSafe(value: number | null | undefined, digits: number, fallback = '—'): string`
+- Returns `fallback` if value is null/undefined/NaN, otherwise `value.toFixed(digits)`
 
-When the onboarding wizard calls `ensureProviderRow()` or `handleFinish()`, the upsert to `providers` fails because `user_id` references a non-existent `public.users` row.
+#### 2. Replace unsafe `.toFixed()` calls in provider-portal scope
 
-## Solution (2 changes)
+| File | Line(s) | Unsafe call | Fix |
+|------|---------|-------------|-----|
+| `src/pages/provider-portal/ProviderJobs.tsx` | 213, 257 | `job.total_amount.toFixed(2)` | `toFixedSafe(job.total_amount, 2)` |
+| `src/components/provider-portal/JobCardAvailable.tsx` | 114 | `job.rate.toFixed(2)` | `toFixedSafe(job.rate, 2)` |
+| `src/pages/provider-portal/ProviderAccount.tsx` | 133 | `providerProfile.rating.toFixed(1)` | `toFixedSafe(providerProfile.rating, 1)` |
+| `src/pages/provider-portal/ProviderDashboardHome.tsx` | 272 | `stats.rating.toFixed(1)` | `toFixedSafe(stats.rating, 1)` (already safe but consistent) |
+| `src/pages/provider-portal/JobTimelinePage.tsx` | 524, 528, 532 | `visitFee.toFixed(0)` etc. | `toFixedSafe(visitFee, 0)` etc. (already has `|| 350` fallback but add safety) |
+| `src/components/provider-portal/InvoiceCard.tsx` | 203, 367, 371, 375, 431, 457, 467, 477 | Various `.toFixed(2)` on invoice amounts | `toFixedSafe(...)` for `invoice.total_customer_amount`, `item.total`, and computed expressions |
+| `src/components/provider-portal/JobCardMobile.tsx` | 41 | `km.toFixed(1)` | Already guarded by null check above -- safe, but wrap for consistency |
 
-### 1. Add `ensurePublicUserRow()` helper in the onboarding wizard
+#### 3. Guard `.map()` sources against null
+- In `ProviderJobs.tsx`: ensure `availableJobs`, `activeJobs`, `futureJobs`, `historicalJobs` default to `[]` before `.map()`
+- In `InvoiceCard.tsx`: guard `invoice.items` with `(invoice.items ?? [])` before `.map()` and `.reduce()`
 
-Before any write to `providers`, the wizard must guarantee a `public.users` row exists. This acts as a safety net for the broken trigger:
+#### 4. Early returns in JobTimelinePage for loading/null job
+- Already has early returns at lines 390-409 (loading spinner + null job guard) -- these are correct and in place. No change needed here.
 
-```typescript
-const ensurePublicUserRow = async () => {
-  if (!user) return;
-  const { error } = await supabase
-    .from('users')
-    .upsert({
-      id: user.id,
-      email: user.email,
-      full_name: user.user_metadata?.full_name || '',
-      phone: user.user_metadata?.phone || null,
-    }, { onConflict: 'id' });
-  if (error) {
-    console.error('[Onboarding] Failed to ensure public.users row:', error);
-    throw new Error('No se pudo preparar tu cuenta. Por favor intenta de nuevo.');
-  }
-};
-```
-
-Call this **before** `ensureProviderRow()` in:
-- The `checkOnboardingStatus` effect (when user reaches step 3)
-- The `handleFinish` function (before the final upsert)
-
-### 2. Add the same safety net in AuthCallback
-
-The `AuthCallback` page also writes to `providers` (line 98-107). Add the same `public.users` ensure logic there before the provider insert.
-
-### 3. Fix existing orphaned auth users (one-time data repair)
-
-Run a one-time SQL to backfill `public.users` rows for all auth users missing them. This fixes the 9 broken accounts.
-
-## Files Changed
-
-| File | Change |
-|------|--------|
-| `src/pages/provider-portal/ProviderOnboardingWizard.tsx` | Add `ensurePublicUserRow()` helper; call it before `ensureProviderRow()` in both `checkOnboardingStatus` and `handleFinish` |
-| `src/pages/AuthCallback.tsx` | Add `public.users` upsert before provider record creation (line ~97) |
-
-## Database Migration
-
-Backfill missing `public.users` rows for existing auth users:
-
-```sql
-INSERT INTO public.users (id, full_name, phone, email)
-SELECT 
-  au.id,
-  au.raw_user_meta_data->>'full_name',
-  au.raw_user_meta_data->>'phone',
-  au.email
-FROM auth.users au
-LEFT JOIN public.users u ON au.id = u.id
-WHERE u.id IS NULL
-ON CONFLICT (id) DO NOTHING;
-```
-
-## Technical Flow After Fix
-
-```text
-User signs up (auth.users created)
-         |
-    handle_new_user trigger fires
-         |
-    [may silently fail]
-         |
-    User reaches onboarding step 3
-         |
-    ensurePublicUserRow() -- guarantees public.users row
-         |
-    ensureProviderRow() -- now FK is satisfied, providers upsert works
-         |
-    persistStepToDB() -- incremental saves work
-         |
-    handleFinish() -- final upsert with verification succeeds
-         |
-    Navigate to Provider Portal (no redirect loop)
-```
-
-## Error Handling
-
-- If `ensurePublicUserRow()` fails: show a persistent error with "Reintentar" button and "Iniciar sesion de nuevo" link
-- If the user's auth session is invalid (no `user.id`): redirect to `/provider/login` with a message
-- All errors are logged with `[Onboarding]` prefix for diagnostics
+### Files changed
+- **New**: `src/utils/formatSafe.ts`
+- **Edited**: `src/pages/provider-portal/ProviderJobs.tsx`, `src/components/provider-portal/JobCardAvailable.tsx`, `src/pages/provider-portal/ProviderAccount.tsx`, `src/pages/provider-portal/ProviderDashboardHome.tsx`, `src/pages/provider-portal/JobTimelinePage.tsx`, `src/components/provider-portal/InvoiceCard.tsx`, `src/components/provider-portal/JobCardMobile.tsx`
 
