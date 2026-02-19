@@ -1,39 +1,37 @@
 
+## Fix: React Error #310 in Provider Portal Job Navigation
 
-## Fix Provider Portal Runtime Crashes
+### Root Cause
 
-### Problem
-Two runtime errors crash the provider portal:
-1. **"Cannot read properties of null (reading 'toFixed')"** -- triggered when `total_amount`, `rate`, `rating`, or invoice fields are null/undefined.
-2. **Minified React error #310** -- caused by rendering components with null data before guards catch it.
+**`useJobRating` hook is called AFTER early returns in `JobTimelinePage.tsx` (line 418), violating React's Rules of Hooks.**
 
-### Solution
+React requires all hooks to be called unconditionally, in the same order, on every render. Currently:
 
-#### 1. Create shared helper `toFixedSafe`
-- **New file**: `src/utils/formatSafe.ts`
-- Export `toFixedSafe(value: number | null | undefined, digits: number, fallback = '—'): string`
-- Returns `fallback` if value is null/undefined/NaN, otherwise `value.toFixed(digits)`
+1. First render: `loading = true` -> component returns early at line 390 -> `useJobRating` is **never called**
+2. Second render: `loading = false`, `job` exists -> component reaches line 418 -> `useJobRating` **IS called**
 
-#### 2. Replace unsafe `.toFixed()` calls in provider-portal scope
+This causes React's internal hook state to become corrupted, producing the "Objects are not valid as a React child" (error #310) crash caught by the `ProviderErrorBoundary`.
 
-| File | Line(s) | Unsafe call | Fix |
-|------|---------|-------------|-----|
-| `src/pages/provider-portal/ProviderJobs.tsx` | 213, 257 | `job.total_amount.toFixed(2)` | `toFixedSafe(job.total_amount, 2)` |
-| `src/components/provider-portal/JobCardAvailable.tsx` | 114 | `job.rate.toFixed(2)` | `toFixedSafe(job.rate, 2)` |
-| `src/pages/provider-portal/ProviderAccount.tsx` | 133 | `providerProfile.rating.toFixed(1)` | `toFixedSafe(providerProfile.rating, 1)` |
-| `src/pages/provider-portal/ProviderDashboardHome.tsx` | 272 | `stats.rating.toFixed(1)` | `toFixedSafe(stats.rating, 1)` (already safe but consistent) |
-| `src/pages/provider-portal/JobTimelinePage.tsx` | 524, 528, 532 | `visitFee.toFixed(0)` etc. | `toFixedSafe(visitFee, 0)` etc. (already has `|| 350` fallback but add safety) |
-| `src/components/provider-portal/InvoiceCard.tsx` | 203, 367, 371, 375, 431, 457, 467, 477 | Various `.toFixed(2)` on invoice amounts | `toFixedSafe(...)` for `invoice.total_customer_amount`, `item.total`, and computed expressions |
-| `src/components/provider-portal/JobCardMobile.tsx` | 41 | `km.toFixed(1)` | Already guarded by null check above -- safe, but wrap for consistency |
+### Fix
 
-#### 3. Guard `.map()` sources against null
-- In `ProviderJobs.tsx`: ensure `availableJobs`, `activeJobs`, `futureJobs`, `historicalJobs` default to `[]` before `.map()`
-- In `InvoiceCard.tsx`: guard `invoice.items` with `(invoice.items ?? [])` before `.map()` and `.reduce()`
+Move `useJobRating` to the top of the component alongside all other hooks, BEFORE any early returns. Pass `job?.status` instead of `job.status` since `job` may be null at that point. The hook already handles undefined inputs gracefully (`if (!jobId || !user)` guard inside).
 
-#### 4. Early returns in JobTimelinePage for loading/null job
-- Already has early returns at lines 390-409 (loading spinner + null job guard) -- these are correct and in place. No change needed here.
+### Changes
 
-### Files changed
-- **New**: `src/utils/formatSafe.ts`
-- **Edited**: `src/pages/provider-portal/ProviderJobs.tsx`, `src/components/provider-portal/JobCardAvailable.tsx`, `src/pages/provider-portal/ProviderAccount.tsx`, `src/pages/provider-portal/ProviderDashboardHome.tsx`, `src/pages/provider-portal/JobTimelinePage.tsx`, `src/components/provider-portal/InvoiceCard.tsx`, `src/components/provider-portal/JobCardMobile.tsx`
+**File: `src/pages/provider-portal/JobTimelinePage.tsx`**
 
+1. Move line 418 (`const { canRate, hasRated, myReview, refetch: refetchRating } = useJobRating(...)`) to right after line 117 (after the last `useState` call), changing `job.status` to `job?.status`.
+
+2. Remove the comment "Rating hook - only active for completed jobs" from line 417 and the hook call from line 418.
+
+That is the only change needed. The hook already short-circuits when `jobId` is undefined or the user isn't loaded, so it's safe to call unconditionally.
+
+### Technical Details
+
+- The `useJobRating` hook (in `src/hooks/useJobRating.ts`) accepts `jobId: string | undefined` and `jobStatus: string | undefined`. When either is missing, it sets `loading: false` and returns defaults (`canRate: false, hasRated: false, myReview: null`). So calling it before the job loads is safe and has no side effects.
+- No other hooks in `JobTimelinePage` violate the rules -- all `useState`, `useEffect`, `useRef`, and `useJobStatusTransition` calls are before the early returns.
+- No other files need changes for this fix.
+
+### Verification
+
+After the fix, clicking on an active job from either the dashboard ("trabajo activo" card) or the jobs list ("Ver seguimiento" button) will load the `JobTimelinePage` without crashing. The error boundary ("Algo salio mal") will no longer appear.
