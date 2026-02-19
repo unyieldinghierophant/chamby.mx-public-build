@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import Header from '@/components/Header';
+import { GenericPageSkeleton } from '@/components/skeletons';
 
 interface Job {
   id: string;
@@ -131,11 +132,7 @@ const BookingForm = () => {
     : fallbackTimeSlots;
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <GenericPageSkeleton />;
   }
 
   if (!job) {

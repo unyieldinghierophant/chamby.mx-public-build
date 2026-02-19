@@ -14,6 +14,7 @@ import { InvoiceCard } from "@/components/provider-portal/InvoiceCard";
 import { CancellationSummary } from "@/components/provider-portal/CancellationSummary";
 import { RatingDialog } from "@/components/provider-portal/RatingDialog";
 import { useJobRating } from "@/hooks/useJobRating";
+import { JobTimelineSkeleton } from "@/components/skeletons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -392,11 +393,7 @@ const JobTimelinePage = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-[60vh]">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <JobTimelineSkeleton />;
   }
 
   if (!job) {

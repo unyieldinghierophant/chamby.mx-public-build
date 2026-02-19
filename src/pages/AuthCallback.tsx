@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2 } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
+import { FullPageSkeleton } from "@/components/skeletons";
 
 const AuthCallback = () => {
   const navigate = useNavigate();
@@ -325,16 +326,7 @@ const AuthCallback = () => {
 
   // Show loading while determining where to redirect
   if (authLoading || (hasOAuthParams && !user && retryCount < 6) || (user && !rolesChecked)) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">
-            {hasOAuthParams && !user ? 'Completando autenticación...' : 'Verificando...'}
-          </p>
-        </div>
-      </div>
-    );
+    return <FullPageSkeleton />;
   }
 
   // Show email confirmation success screen

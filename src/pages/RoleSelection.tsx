@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Users, Briefcase } from 'lucide-react';
 import chambyLogo from '@/assets/chamby-logo-new.png';
+import { FullPageSkeleton } from '@/components/skeletons';
 
 const RoleSelection = () => {
   const { user } = useAuth();
@@ -67,11 +68,7 @@ const RoleSelection = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
-      </div>
-    );
+    return <FullPageSkeleton />;
   }
 
   return (

@@ -26,6 +26,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CategoryTabs } from "@/components/CategoryTabs";
 import { SearchingJobBanner } from "@/components/SearchingJobBanner";
+import { FullPageSkeleton } from "@/components/skeletons";
 const faqs = [
   {
     question: "¿Cómo funciona Chamby?",
@@ -94,12 +95,7 @@ const UserLanding = () => {
     }
   }, [role, roleLoading, navigate]);
   if (authLoading || roleLoading) {
-    return <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Cargando...</p>
-        </div>
-      </div>;
+    return <FullPageSkeleton />;
   }
   if (!user) {
     return null;

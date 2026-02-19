@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { format, startOfMonth, endOfMonth, isSameDay } from "date-fns";
 import { es } from "date-fns/locale";
 import { Clock, MapPin, User, Filter, ChevronLeft, ChevronRight } from "lucide-react";
+import { GenericPageSkeleton } from "@/components/skeletons";
 
 interface Job {
   id: string;
@@ -241,11 +242,7 @@ const ProviderCalendar = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
-      </div>
-    );
+    return <GenericPageSkeleton />;
   }
 
   return (

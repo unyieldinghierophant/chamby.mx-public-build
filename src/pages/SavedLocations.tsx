@@ -13,6 +13,7 @@ import Header from "@/components/Header";
 import { MapPin, ArrowLeft, Trash2, Plus, Edit2, Star } from "lucide-react";
 import { Link, Navigate } from "react-router-dom";
 import { toast } from 'sonner';
+import { GenericPageSkeleton } from '@/components/skeletons';
 
 const SavedLocations = () => {
   const { user } = useAuth();
@@ -32,11 +33,7 @@ const SavedLocations = () => {
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <GenericPageSkeleton />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

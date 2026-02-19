@@ -12,6 +12,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { CalendarIcon, Check, X, Calendar as CalendarIconLucide, MapPin, DollarSign, User, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { GenericPageSkeleton } from '@/components/skeletons';
 
 const RescheduleRequest = () => {
   const { id } = useParams<{ id: string }>();
@@ -20,11 +21,7 @@ const RescheduleRequest = () => {
   const [suggestedDate, setSuggestedDate] = useState<Date>();
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
-      </div>
-    );
+    return <GenericPageSkeleton />;
   }
 
   if (!reschedule) {

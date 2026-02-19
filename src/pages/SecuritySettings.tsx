@@ -14,6 +14,7 @@ import { useSecurityMonitoring } from "@/hooks/useSecurityMonitoring";
 import SecurityAlert from "@/components/SecurityAlert";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const SecuritySettings = () => {
   const { user } = useAuth();
@@ -232,9 +233,16 @@ const SecuritySettings = () => {
               </CardHeader>
               <CardContent>
                 {activityLoading && (
-                  <div className="text-center py-4">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
-                    <p className="mt-2 text-sm text-muted-foreground">Cargando actividad...</p>
+                  <div className="space-y-3 py-2">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <div key={i} className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Skeleton className="h-5 w-16 rounded" />
+                          <Skeleton className="h-4 w-20" />
+                        </div>
+                        <Skeleton className="h-3 w-28" />
+                      </div>
+                    ))}
                   </div>
                 )}
 

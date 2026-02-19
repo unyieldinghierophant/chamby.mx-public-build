@@ -16,6 +16,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
+import { GenericPageSkeleton } from "@/components/skeletons";
 
 const ASSIGNMENT_WINDOW_HOURS = 4;
 
@@ -223,14 +224,7 @@ const EsperandoProveedor = () => {
 
   /* ---------- loading ---------- */
   if (verifying) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Verificando pago...</p>
-        </div>
-      </div>
-    );
+    return <GenericPageSkeleton />;
   }
 
   /* ---------- render ---------- */
