@@ -1,37 +1,89 @@
 
-## Fix: React Error #310 in Provider Portal Job Navigation
 
-### Root Cause
+## Replace All Spinner Loading States with Skeleton Screens
 
-**`useJobRating` hook is called AFTER early returns in `JobTimelinePage.tsx` (line 418), violating React's Rules of Hooks.**
+### What changes
+Every loading screen in the app currently shows a spinning circle, which feels slow and bare. This plan replaces all of them with skeleton loading screens that mirror the shape of the actual content (cards, text, buttons, images) so the page feels instant and polished.
 
-React requires all hooks to be called unconditionally, in the same order, on every render. Currently:
+### Approach
 
-1. First render: `loading = true` -> component returns early at line 390 -> `useJobRating` is **never called**
-2. Second render: `loading = false`, `job` exists -> component reaches line 418 -> `useJobRating` **IS called**
+**1. Upgrade `FullPageSkeleton` (used as the global fallback)**
 
-This causes React's internal hook state to become corrupted, producing the "Objects are not valid as a React child" (error #310) crash caught by the `ProviderErrorBoundary`.
+Replace the current spinner-based `FullPageSkeleton` in `src/components/skeletons/index.tsx` with a proper skeleton that shows a header bar, hero area, and content blocks -- matching the general app layout.
 
-### Fix
+**2. Create new context-specific skeletons**
 
-Move `useJobRating` to the top of the component alongside all other hooks, BEFORE any early returns. Pass `job?.status` instead of `job.status` since `job` may be null at that point. The hook already handles undefined inputs gracefully (`if (!jobId || !user)` guard inside).
+Add these new skeletons to `src/components/skeletons/index.tsx`:
 
-### Changes
+- `ProviderPortalSkeleton` -- sidebar placeholder + top bar + content area (used in `ProviderPortal.tsx`)
+- `ProviderJobsSkeleton` -- tabs + job card placeholders (used in `ProviderJobs.tsx`)  
+- `JobTimelineSkeleton` -- timeline header + status steps + details cards (used in `JobTimelinePage.tsx`)
+- `GenericPageSkeleton` -- header + centered content cards (used in profile, settings, and other simple pages)
 
-**File: `src/pages/provider-portal/JobTimelinePage.tsx`**
+**3. Replace spinners in all 27 files**
 
-1. Move line 418 (`const { canRate, hasRated, myReview, refetch: refetchRating } = useJobRating(...)`) to right after line 117 (after the last `useState` call), changing `job.status` to `job?.status`.
+Each file's loading spinner gets replaced with the appropriate skeleton:
 
-2. Remove the comment "Rating hook - only active for completed jobs" from line 417 and the hook call from line 418.
+| Skeleton | Files using it |
+|----------|---------------|
+| `FullPageSkeleton` | `Index.tsx`, `RoleSelection.tsx`, `AuthCallback.tsx`, `ResetPassword.tsx` |
+| `ProviderPortalSkeleton` | `ProviderPortal.tsx` |
+| `ProviderDashboardSkeleton` | `ProviderDashboardHome.tsx` (already done) |
+| `ProviderJobsSkeleton` | `ProviderJobs.tsx` loading states |
+| `JobTimelineSkeleton` | `JobTimelinePage.tsx` |
+| `GenericPageSkeleton` | `ProtectedRoute.tsx`, `ProviderProfile.tsx`, `ProfileSettings.tsx`, `UserProfile.tsx`, `SavedLocations.tsx`, `BookingForm.tsx`, `ProviderVerification.tsx`, `ProviderNotifications.tsx`, `ProviderCalendar.tsx`, `RescheduleRequest.tsx`, `UserLanding.tsx`, `EsperandoProveedor.tsx`, `SecuritySettings.tsx` |
+| `HomePageSkeleton` | `Home.tsx` (already done) |
+| Inline skeleton blocks | `VerificationOverlay.tsx`, `SecuritySettings.tsx` (activity section), admin pages |
 
-That is the only change needed. The hook already short-circuits when `jobId` is undefined or the user isn't loaded, so it's safe to call unconditionally.
+**4. No rendering until data is ready**
 
-### Technical Details
+The existing pattern is correct: each page returns the skeleton while `loading === true` and only renders real content after all data (icons, text, colors) is available. This plan preserves that pattern -- we are only changing WHAT is shown during loading, not WHEN.
 
-- The `useJobRating` hook (in `src/hooks/useJobRating.ts`) accepts `jobId: string | undefined` and `jobStatus: string | undefined`. When either is missing, it sets `loading: false` and returns defaults (`canRate: false, hasRated: false, myReview: null`). So calling it before the job loads is safe and has no side effects.
-- No other hooks in `JobTimelinePage` violate the rules -- all `useState`, `useEffect`, `useRef`, and `useJobStatusTransition` calls are before the early returns.
-- No other files need changes for this fix.
+### Technical details
 
-### Verification
+**New skeletons added to `src/components/skeletons/index.tsx`:**
 
-After the fix, clicking on an active job from either the dashboard ("trabajo activo" card) or the jobs list ("Ver seguimiento" button) will load the `JobTimelinePage` without crashing. The error boundary ("Algo salio mal") will no longer appear.
+```text
+ProviderPortalSkeleton
++------------------------------------------+
+| [==] Header Bar         [avatar] [menu]  |
++------+-----------------------------------+
+|      |  [====] Page title                |
+| Side |  [===========] Subtitle           |
+| bar  |                                   |
+|      |  +--------+  +--------+           |
+|      |  | Card 1 |  | Card 2 |           |
+|      |  +--------+  +--------+           |
+|      |                                   |
+|      |  +----------------------------+   |
+|      |  |  Job card skeleton         |   |
+|      |  +----------------------------+   |
++------+-----------------------------------+
+```
+
+```text
+GenericPageSkeleton
++------------------------------------------+
+| [==] Header Bar              [back btn]  |
++------------------------------------------+
+|                                          |
+|   [avatar circle]                        |
+|   [====] Name                            |
+|   [========] Description                 |
+|                                          |
+|   +----------------------------------+   |
+|   | Setting row skeleton             |   |
+|   +----------------------------------+   |
+|   | Setting row skeleton             |   |
+|   +----------------------------------+   |
++------------------------------------------+
+```
+
+**Files modified (summary):**
+
+- `src/components/skeletons/index.tsx` -- add 4 new skeleton components, redesign `FullPageSkeleton`
+- ~20 page/component files -- swap spinner div for skeleton component import + usage
+- `src/components/ProtectedRoute.tsx` -- swap spinner for `GenericPageSkeleton`
+- `src/pages/ProviderPortal.tsx` -- swap spinner for `ProviderPortalSkeleton`
+
+All skeleton components use the existing `Skeleton` primitive from `src/components/ui/skeleton.tsx` with the existing `animate-pulse` animation and `bg-muted` color, so they match the design system automatically.
