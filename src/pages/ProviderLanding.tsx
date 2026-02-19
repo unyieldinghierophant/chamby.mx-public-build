@@ -293,6 +293,31 @@ const ProviderLanding = () => {
         </div>
       </section>
 
+      {/* Client CTA Section */}
+      <section className="py-12 bg-background">
+        <div className="container mx-auto px-4">
+          <div 
+            onClick={() => navigate('/')}
+            className="group relative max-w-2xl mx-auto w-full rounded-2xl border-2 border-foreground/80 bg-gradient-to-br from-background via-muted/30 to-background p-5 md:p-6 shadow-md hover:shadow-xl active:scale-[0.98] transition-all duration-200 flex items-center gap-4 cursor-pointer"
+          >
+            <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <Home className="w-7 h-7 text-primary" />
+            </div>
+            <div className="flex-1 text-left min-w-0">
+              <h3 className="text-lg md:text-xl font-bold text-foreground leading-tight">
+                ¿Quieres contratar un servicio?
+              </h3>
+              <p className="text-xs md:text-sm text-muted-foreground mt-0.5">
+                Encuentra profesionales verificados cerca de ti
+              </p>
+            </div>
+            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-foreground flex items-center justify-center group-hover:bg-primary transition-colors">
+              <ArrowRight className="w-5 h-5 text-background" />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Value Proposition Grid */}
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
@@ -454,31 +479,6 @@ const ProviderLanding = () => {
               </AccordionItem>
             ))}
           </Accordion>
-        </div>
-      </section>
-
-      {/* Client CTA Section */}
-      <section className="py-12 bg-background border-t border-border">
-        <div className="container mx-auto px-4">
-          <div 
-            onClick={() => navigate('/')}
-            className="group relative max-w-2xl mx-auto w-full rounded-2xl border-2 border-foreground/80 bg-gradient-to-br from-background via-muted/30 to-background p-5 md:p-6 shadow-md hover:shadow-xl active:scale-[0.98] transition-all duration-200 flex items-center gap-4 cursor-pointer"
-          >
-            <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <Home className="w-7 h-7 text-primary" />
-            </div>
-            <div className="flex-1 text-left min-w-0">
-              <h3 className="text-lg md:text-xl font-bold text-foreground leading-tight">
-                ¿Quieres contratar un servicio?
-              </h3>
-              <p className="text-xs md:text-sm text-muted-foreground mt-0.5">
-                Encuentra profesionales verificados cerca de ti
-              </p>
-            </div>
-            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-foreground flex items-center justify-center group-hover:bg-primary transition-colors">
-              <ArrowRight className="w-5 h-5 text-background" />
-            </div>
-          </div>
         </div>
       </section>
 
