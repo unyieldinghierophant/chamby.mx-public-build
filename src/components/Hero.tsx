@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { AISearchBar } from "@/components/AISearchBar";
 import { useAuth } from "@/contexts/AuthContext";
+import { ArrowRight } from "lucide-react";
 import { LocationChip } from "@/components/LocationChip";
 import { CategoryTabs } from "@/components/CategoryTabs";
 import { SavedJobBanner } from "@/components/SavedJobBanner";
@@ -119,13 +120,20 @@ const Hero = () => {
             transition={{ delay: 0.6, duration: 0.4 }}
           >
             <Link to="/provider-landing">
-              <ModernButton 
-                variant="outline" 
-                className="w-full bg-primary/5 text-primary border-primary/25 hover:bg-primary/10 hover:border-primary/40 flex items-center justify-center gap-2 transition-all duration-300 text-base md:text-lg font-semibold"
-              >
-                <img src={moneyBagIcon} alt="Money bag" className="w-20 h-20" loading="eager" />
-                Gana dinero como Chambynauta
-              </ModernButton>
+              <div className="group relative w-full rounded-2xl border-2 border-foreground/80 bg-gradient-to-br from-background via-muted/30 to-background p-4 md:p-5 shadow-md hover:shadow-xl active:scale-[0.98] transition-all duration-200 flex items-center gap-4 cursor-pointer">
+                <img src={moneyBagIcon} alt="Money bag" className="w-16 h-16 md:w-20 md:h-20 flex-shrink-0" loading="eager" />
+                <div className="flex-1 text-left min-w-0">
+                  <h3 className="text-lg md:text-xl font-bold text-foreground leading-tight">
+                    Gana dinero como Chambynauta
+                  </h3>
+                  <p className="text-xs md:text-sm text-muted-foreground mt-0.5">
+                    Regístrate gratis y empieza a recibir trabajos hoy
+                  </p>
+                </div>
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-foreground flex items-center justify-center group-hover:bg-primary transition-colors">
+                  <ArrowRight className="w-5 h-5 text-background" />
+                </div>
+              </div>
             </Link>
           </motion.div>
 
