@@ -120,8 +120,13 @@ const Hero = () => {
             transition={{ delay: 0.6, duration: 0.4 }}
           >
             <Link to="/provider-landing">
-              <div className="group relative w-full rounded-2xl p-[2.5px] shadow-md hover:shadow-xl active:scale-[0.98] transition-all duration-200 cursor-pointer" style={{ background: 'linear-gradient(135deg, hsl(43 96% 56%), hsl(48 96% 53%), hsl(38 92% 50%))' }}>
-                <div className="w-full rounded-[calc(1rem-2px)] bg-gradient-to-br from-background via-muted/30 to-background p-4 md:p-5 flex items-center gap-4">
+              <div className="group relative w-full rounded-2xl p-[2.5px] shadow-md hover:shadow-xl active:scale-[0.98] transition-all duration-200 cursor-pointer overflow-hidden">
+                {/* Rotating golden gradient border */}
+                <div 
+                  className="absolute inset-[-50%] animate-[spin_5s_linear_infinite]"
+                  style={{ background: 'conic-gradient(from 0deg, hsl(43 96% 56%), hsl(48 96% 53%), hsl(38 92% 50%), hsl(43 80% 45%), hsl(48 96% 53%), hsl(43 96% 56%))' }}
+                />
+                <div className="relative w-full rounded-[calc(1rem-2px)] bg-card p-4 md:p-5 flex items-center gap-4">
                   <div className="flex-1 text-left min-w-0">
                     <h3 className="text-lg md:text-xl font-bold text-foreground leading-tight">
                       Gana dinero como Chambynauta
