@@ -121,7 +121,7 @@ const Hero = () => {
           >
             <Link to="/provider-landing">
               <div className="group relative w-full rounded-2xl border-2 border-foreground/80 bg-gradient-to-br from-background via-muted/30 to-background p-4 md:p-5 shadow-md hover:shadow-xl active:scale-[0.98] transition-all duration-200 flex items-center gap-4 cursor-pointer">
-                <img src={moneyBagIcon} alt="Money bag" className="w-16 h-16 md:w-20 md:h-20 flex-shrink-0" loading="eager" />
+                <img src={moneyBagIcon} alt="Money bag" className="w-[115px] h-[115px] md:w-36 md:h-36 flex-shrink-0" loading="eager" />
                 <div className="flex-1 text-left min-w-0">
                   <h3 className="text-lg md:text-xl font-bold text-foreground leading-tight">
                     Gana dinero como Chambynauta
