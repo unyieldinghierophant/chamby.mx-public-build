@@ -102,10 +102,6 @@ const UserLanding = () => {
     return null;
   }
   return <div className="min-h-screen bg-gradient-subtle">
-      {/* Active Job Banner - above everything */}
-      <div className="fixed top-0 left-0 right-0 z-[60]">
-        <ClientActiveJobBanner />
-      </div>
       {/* Simple Header matching home page */}
       <header className="fixed top-0 left-0 right-0 bg-background border-b border-border z-50">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-0 flex items-center justify-between">
@@ -238,9 +234,14 @@ const UserLanding = () => {
           </div>
         </div>
       </header>
+
+      {/* Active Job Banner - in flow, below header */}
+      <div className="pt-16 px-4">
+        <ClientActiveJobBanner />
+      </div>
       
       {/* Hero Section with Interactive Background - matching Provider Landing */}
-      <section className="relative min-h-[70vh] md:min-h-[80vh] lg:min-h-[90vh] flex items-center justify-center pt-24 pb-12 overflow-hidden">
+      <section className="relative min-h-[70vh] md:min-h-[80vh] lg:min-h-[90vh] flex items-center justify-center pt-8 pb-12 overflow-hidden">
         {/* Interactive animated background with parallax */}
         <InteractiveHeroBackground 
           onJobCardVisible={handleJobCardVisible}
