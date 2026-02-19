@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useInvoice } from "@/hooks/useInvoice";
 import { PayInvoiceButton } from "@/components/PayInvoiceButton";
+import { CreditLineItem } from "@/components/payments/CreditLineItem";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -302,6 +303,7 @@ const InvoicePayPage = () => {
                   <span className="font-medium">{formatCurrency(invoice.chamby_commission_amount)}</span>
                 </div>
                 <Separator className="my-2" />
+                <CreditLineItem totalAmount={invoice.total_customer_amount} />
                 <div className="flex justify-between items-center">
                   <span className="font-semibold text-foreground text-sm sm:text-base">Total a pagar</span>
                   <span className="text-lg sm:text-xl font-bold text-primary">
