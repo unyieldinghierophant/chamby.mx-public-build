@@ -14,6 +14,7 @@ import { LocationChip } from "@/components/LocationChip";
 import HowItWorks from "@/components/HowItWorks";
 import Trust from "@/components/Trust";
 import { HomePageSkeleton } from "@/components/skeletons";
+import { ClientActiveJobBanner } from "@/components/ClientActiveJobBanner";
 
 export default function Home() {
   const { user, loading: authLoading } = useAuth();
@@ -94,6 +95,10 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Active Job Banner - above everything */}
+      <div className="fixed top-0 left-0 right-0 z-[60]">
+        <ClientActiveJobBanner />
+      </div>
       <Header />
       
       {/* Hero Section with Personalized Greeting */}
