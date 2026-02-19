@@ -1,6 +1,6 @@
 import { ModernButton } from "@/components/ui/modern-button";
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { AISearchBar } from "@/components/AISearchBar";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,10 +15,15 @@ import heroBgVideo from "@/assets/hero-bg-video.mp4";
 const preloadMoneyBag = new window.Image();
 preloadMoneyBag.src = moneyBagIcon;
 
-const Hero = () => {
+const Hero = ({ onMediaReady }: { onMediaReady?: () => void }) => {
   const [location, setLocation] = useState("");
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  // Signal that hero content is ready (no heavy media to wait for)
+  useEffect(() => {
+    onMediaReady?.();
+  }, [onMediaReady]);
 
   return (
     <section className="relative min-h-screen bg-background flex items-start justify-center pt-4 md:pt-6 overflow-hidden">

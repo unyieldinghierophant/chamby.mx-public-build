@@ -14,6 +14,8 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AllCategoriesDialog } from "@/components/AllCategoriesDialog";
 import { ReviewsCarousel } from "@/components/ReviewsCarousel";
 import { FullPageSkeleton } from "@/components/skeletons";
+import { LandingPageSkeleton } from "@/components/LandingPageSkeleton";
+import { useLandingSkeleton } from "@/hooks/useLandingSkeleton";
 const Index = () => {
   const {
     user,
@@ -22,6 +24,7 @@ const Index = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [categoriesDialogOpen, setCategoriesDialogOpen] = useState(false);
+  const { isSkeletonVisible, onHeroMediaReady } = useLandingSkeleton();
 
   const handlePostJobClick = () => {
     startBooking(navigate, { entrySource: 'hero_cta' });
@@ -44,7 +47,13 @@ const Index = () => {
 
   // Not logged in - show landing page
   if (!user) {
-    return <div className="min-h-screen bg-background mobile-pb-nav">
+    return <div className="min-h-screen bg-background mobile-pb-nav relative">
+      {/* Skeleton overlay to hide asset pop-in */}
+      {isSkeletonVisible && (
+        <div className="fixed inset-0 z-[9999]">
+          <LandingPageSkeleton />
+        </div>
+      )}
       <AllCategoriesDialog 
         open={categoriesDialogOpen} 
         onOpenChange={setCategoriesDialogOpen} 
@@ -145,7 +154,7 @@ const Index = () => {
         </header>
         <main className="pt-16">
           <div className="animate-fade-in">
-            <Hero />
+            <Hero onMediaReady={onHeroMediaReady} />
           </div>
           <div className="animate-blur-fade" style={{
           animationDelay: "0.3s"

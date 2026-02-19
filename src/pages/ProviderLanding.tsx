@@ -42,6 +42,8 @@ import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import providerHeroBg from "@/assets/provider-hero-bg.mov";
 import { useScrollParallax } from "@/hooks/useScrollParallax";
+import { useLandingSkeleton } from "@/hooks/useLandingSkeleton";
+import { ProviderLandingSkeleton } from "@/components/ProviderLandingSkeleton";
 
 const ProviderLanding = () => {
   const navigate = useNavigate();
@@ -51,6 +53,7 @@ const ProviderLanding = () => {
   const { profile } = useProfile();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [ctaPulse, setCtaPulse] = useState(false);
+  const { isSkeletonVisible, onHeroMediaReady } = useLandingSkeleton();
   
   // Parallax scroll effect
   const { scrollY, parallaxOffset, dotOpacity, cardOpacity, mapOpacity, heroOpacity } = useScrollParallax(500);
@@ -157,7 +160,13 @@ const ProviderLanding = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
+    <div className="min-h-screen bg-gradient-subtle relative">
+      {/* Skeleton overlay to hide asset pop-in */}
+      {isSkeletonVisible && (
+        <div className="fixed inset-0 z-[9999]">
+          <ProviderLandingSkeleton />
+        </div>
+      )}
       {/* Simple Header matching user landing page */}
       <header className="fixed top-0 left-0 right-0 bg-background border-b border-border z-50">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-0 flex items-center justify-between">
@@ -235,6 +244,7 @@ const ProviderLanding = () => {
             loop
             muted
             playsInline
+            onCanPlay={onHeroMediaReady}
             className="absolute inset-0 w-full h-full object-cover"
           >
             <source src={providerHeroBg} type="video/mp4" />
