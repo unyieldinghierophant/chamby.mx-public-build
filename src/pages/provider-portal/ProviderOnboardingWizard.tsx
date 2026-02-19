@@ -24,18 +24,6 @@ import {
   Eye,
   EyeOff,
   LogIn,
-  Zap,
-  Droplets,
-  Hammer,
-  Paintbrush,
-  Leaf,
-  Sparkle,
-  Settings,
-  Home,
-  Wrench as WrenchIcon,
-  Square,
-  Scissors,
-  GlassWater,
   FileCheck
 } from 'lucide-react';
 import chambyLogo from '@/assets/chamby-logo-new.png';
@@ -81,21 +69,7 @@ const loginSchema = z.object({
   password: z.string().min(1, 'La contraseña es requerida')
 });
 
-// Skills with icons and colors for visual grid
-const SKILL_OPTIONS = [
-  { name: 'Plomería', icon: Droplets, bgColor: 'bg-blue-100', iconColor: 'text-blue-600' },
-  { name: 'Electricidad', icon: Zap, bgColor: 'bg-yellow-100', iconColor: 'text-yellow-600' },
-  { name: 'Carpintería', icon: Hammer, bgColor: 'bg-amber-100', iconColor: 'text-amber-700' },
-  { name: 'Pintura', icon: Paintbrush, bgColor: 'bg-pink-100', iconColor: 'text-pink-600' },
-  { name: 'Jardinería', icon: Leaf, bgColor: 'bg-green-100', iconColor: 'text-green-600' },
-  { name: 'Limpieza', icon: Sparkle, bgColor: 'bg-purple-100', iconColor: 'text-purple-600' },
-  { name: 'Reparaciones', icon: Settings, bgColor: 'bg-gray-100', iconColor: 'text-gray-600' },
-  { name: 'Instalaciones', icon: Home, bgColor: 'bg-indigo-100', iconColor: 'text-indigo-600' },
-  { name: 'Mantenimiento', icon: WrenchIcon, bgColor: 'bg-orange-100', iconColor: 'text-orange-600' },
-  { name: 'Albañilería', icon: Square, bgColor: 'bg-stone-200', iconColor: 'text-stone-700' },
-  { name: 'Herrería', icon: Scissors, bgColor: 'bg-slate-200', iconColor: 'text-slate-700' },
-  { name: 'Vidriería', icon: GlassWater, bgColor: 'bg-cyan-100', iconColor: 'text-cyan-600' },
-];
+import { CURATED_SKILL_CATEGORIES, ALL_CURATED_SKILLS, MAX_SKILLS, MIN_SKILLS } from '@/data/curatedSkills';
 
 // Step labels for progress track (mobile-optimized)
 const PROGRESS_STEPS = [
@@ -776,11 +750,11 @@ export default function ProviderOnboardingWizard() {
   };
 
   const toggleSkill = (skill: string) => {
-    setSelectedSkills(prev => 
-      prev.includes(skill) 
-        ? prev.filter(s => s !== skill)
-        : [...prev, skill]
-    );
+    setSelectedSkills(prev => {
+      if (prev.includes(skill)) return prev.filter(s => s !== skill);
+      if (prev.length >= MAX_SKILLS) return prev;
+      return [...prev, skill];
+    });
   };
 
   const addCustomSkill = () => {
@@ -950,7 +924,7 @@ export default function ProviderOnboardingWizard() {
       case 3:
         return (profileData.avatarUrl || '').length > 0 && (profileData.bio || '').trim().length > 0;
       case 4:
-        return selectedSkills.length > 0;
+        return selectedSkills.length >= MIN_SKILLS && selectedSkills.length <= MAX_SKILLS;
       case 5:
         // Allow advancing if we have valid coordinates (zone name is optional - geocoding may fail)
         return workZoneCoords !== null && (workZoneCoords.lat !== 0 || workZoneCoords.lng !== 0);
@@ -1529,102 +1503,107 @@ export default function ProviderOnboardingWizard() {
   }
 
   function renderSkillsStep() {
+    const searchQuery = customSkill.toLowerCase().trim();
+    const filteredCategories = searchQuery
+      ? CURATED_SKILL_CATEGORIES.map(cat => ({
+          ...cat,
+          skills: cat.skills.filter(s => s.toLowerCase().includes(searchQuery)),
+        })).filter(cat => cat.skills.length > 0)
+      : CURATED_SKILL_CATEGORIES;
+
     return (
-      <div className="space-y-6">
-        <div className="mb-6">
+      <div className="space-y-5">
+        <div className="mb-4">
           <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
             ¿Qué servicios ofreces?
           </h2>
           <p className="text-muted-foreground">
-            Selecciona al menos 1 habilidad
+            Elige tus habilidades (1–{MAX_SKILLS})
           </p>
         </div>
 
-        {/* Visual Skill Grid - 2 columns, larger cards */}
-        <div className="grid grid-cols-2 gap-3">
-          {SKILL_OPTIONS.map((skill) => {
-            const Icon = skill.icon;
-            const isSelected = selectedSkills.includes(skill.name);
-            
-            return (
-              <button
-                key={skill.name}
-                onClick={() => toggleSkill(skill.name)}
-                className={cn(
-                  "flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left",
-                  isSelected
-                    ? "border-primary bg-primary/5 shadow-md"
-                    : "border-muted hover:border-primary/50"
-                )}
-              >
-                <div className={cn(
-                  "w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0",
-                  skill.bgColor
-                )}>
-                  <Icon className={cn("w-5 h-5", skill.iconColor)} />
-                </div>
-                <span className="text-xs font-medium leading-tight flex-1">
-                  {skill.name}
-                </span>
-                {isSelected && (
-                  <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
-                )}
-              </button>
-            );
-          })}
+        {/* Search */}
+        <Input
+          placeholder="Buscar habilidad…"
+          value={customSkill}
+          onChange={(e) => setCustomSkill(e.target.value)}
+          className="h-12 text-base border-2 rounded-xl"
+        />
+
+        {/* Counter */}
+        <p className={cn(
+          "text-sm font-medium text-center",
+          selectedSkills.length === 0 ? "text-destructive/70"
+            : selectedSkills.length >= MAX_SKILLS ? "text-amber-600"
+            : "text-muted-foreground"
+        )}>
+          {selectedSkills.length}/{MAX_SKILLS} seleccionadas
+        </p>
+
+        {/* Categorized chips */}
+        <div className="space-y-5">
+          {filteredCategories.map((cat) => (
+            <div key={cat.name}>
+              <h3 className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">
+                {cat.name}
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {cat.skills.map((skill) => {
+                  const isSelected = selectedSkills.includes(skill);
+                  const isDisabled = !isSelected && selectedSkills.length >= MAX_SKILLS;
+                  return (
+                    <button
+                      key={skill}
+                      type="button"
+                      disabled={isDisabled}
+                      onClick={() => toggleSkill(skill)}
+                      className={cn(
+                        "px-3 py-2 rounded-full text-sm font-medium border transition-all",
+                        isSelected
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : isDisabled
+                            ? "bg-muted text-muted-foreground/50 border-muted cursor-not-allowed"
+                            : "bg-background text-foreground border-border hover:border-primary/50"
+                      )}
+                    >
+                      {isSelected && <CheckCircle2 className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />}
+                      {skill}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+          {filteredCategories.length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              No se encontraron habilidades con "{customSkill}"
+            </p>
+          )}
         </div>
 
-        {/* Custom Skill Input */}
-        <div className="pt-4 border-t">
-          <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2 block">
-            AGREGAR OTRA HABILIDAD
-          </Label>
-          <div className="flex gap-2">
-            <Input
-              placeholder="Ej: Aire acondicionado"
-              value={customSkill}
-              onChange={(e) => setCustomSkill(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && addCustomSkill()}
-              className="h-12 text-base border-2 rounded-xl flex-1"
-            />
-            <Button 
-              onClick={addCustomSkill}
-              disabled={!customSkill.trim()}
-              className="h-12 px-4 rounded-xl"
-            >
-              <Plus className="w-5 h-5" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Selected custom skills */}
-        {selectedSkills.filter(s => !SKILL_OPTIONS.find(opt => opt.name === s)).length > 0 && (
-          <div className="flex flex-wrap gap-2 pt-2">
-            {selectedSkills
-              .filter(s => !SKILL_OPTIONS.find(opt => opt.name === s))
-              .map((skill) => (
-                <span
-                  key={skill}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium"
-                >
-                  {skill}
-                  <button onClick={() => removeSkill(skill)} className="hover:text-destructive">
-                    <X className="w-4 h-4" />
-                  </button>
-                </span>
-              ))}
+        {/* Show selected non-curated skills from DB (legacy) */}
+        {selectedSkills.filter(s => !ALL_CURATED_SKILLS.includes(s)).length > 0 && (
+          <div className="pt-4 border-t">
+            <h3 className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">
+              Otras seleccionadas
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {selectedSkills
+                .filter(s => !ALL_CURATED_SKILLS.includes(s))
+                .map((skill) => (
+                  <span
+                    key={skill}
+                    className="inline-flex items-center gap-1 px-3 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium"
+                  >
+                    {skill}
+                    <button type="button" onClick={() => removeSkill(skill)} className="hover:text-destructive">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </span>
+                ))}
+            </div>
           </div>
         )}
-
-        <p className={cn(
-          "text-sm text-center font-medium",
-          selectedSkills.length === 0 ? "text-destructive/70" : "text-muted-foreground"
-        )}>
-          {selectedSkills.length === 0 
-            ? 'Selecciona al menos 1 habilidad para continuar'
-            : `${selectedSkills.length} habilidad${selectedSkills.length !== 1 ? 'es' : ''} seleccionada${selectedSkills.length !== 1 ? 's' : ''}`
-          }
-        </p>
       </div>
     );
   }
