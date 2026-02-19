@@ -44,6 +44,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { DISPLAY } from "@/utils/visitPricing";
 
 interface JobDetail {
   id: string;
@@ -507,37 +508,44 @@ const JobTimelinePage = () => {
 
           {/* Payment Breakdown Card */}
           <Card className="border-border/50">
-            <CardContent className="p-4 space-y-2">
-              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                <DollarSign className="w-4 h-4" />
-                Desglose de pago
-              </h3>
-              {(() => {
-                const visitFee = job.visit_fee_amount || 350;
-                const chambyFee = job.amount_booking_fee || Math.round(visitFee * 0.2857); // ~100 of 350
-                const providerPayout = visitFee - chambyFee;
-                return (
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Total cobrado al cliente</span>
-                      <span className="font-medium">${String(visitFee ?? 0)} MXN</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Comisión Chamby</span>
-                      <span className="text-destructive">-${String(chambyFee ?? 0)} MXN</span>
-                    </div>
-                    <div className="border-t border-border/50 pt-1.5 flex justify-between text-sm">
-                      <span className="font-semibold text-foreground">Pago al proveedor</span>
-                      <span className="font-bold text-primary">${String(providerPayout ?? 0)} MXN</span>
-                    </div>
-                    {job.visit_fee_paid && (
-                      <Badge variant="outline" className="bg-green-500/10 text-green-700 border-green-500/20 text-xs mt-1">
-                        Pago confirmado
-                      </Badge>
-                    )}
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-primary" />
+                <span className="text-base font-bold text-foreground">
+                  Tu ganancia garantizada: {DISPLAY.providerPayout}
+                </span>
+              </div>
+
+              {job.visit_fee_paid && (
+                <Badge variant="outline" className="bg-green-500/10 text-green-700 border-green-500/20 text-xs">
+                  Pago confirmado
+                </Badge>
+              )}
+
+              {/* Desglose */}
+              <details className="group">
+                <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
+                  Ver desglose ▸
+                </summary>
+                <div className="mt-2 space-y-1.5 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Total cobrado al cliente</span>
+                    <span className="font-medium">{DISPLAY.customerTotal}</span>
                   </div>
-                );
-              })()}
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Comisión Chamby</span>
+                    <span className="text-destructive">-{DISPLAY.chambyFee}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">IVA (16%)</span>
+                    <span className="text-destructive">-{DISPLAY.iva}</span>
+                  </div>
+                  <div className="border-t border-border/50 pt-1.5 flex justify-between">
+                    <span className="font-semibold text-foreground">Tu ganancia neta</span>
+                    <span className="font-bold text-primary">{DISPLAY.providerPayout}</span>
+                  </div>
+                </div>
+              </details>
             </CardContent>
           </Card>
 

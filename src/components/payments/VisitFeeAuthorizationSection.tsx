@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, ShieldCheck, CreditCard, CheckCircle, AlertCircle, RefreshCw, Lock } from "lucide-react";
 import { useVisitAuthorization } from "@/hooks/useVisitAuthorization";
+import { DISPLAY } from "@/utils/visitPricing";
 import { supabase } from "@/integrations/supabase/client";
 
 import { stripePromise } from "@/lib/stripe";
@@ -141,7 +142,7 @@ const VisitFeeForm = ({
             Pago de visita preautorizado correctamente
           </h3>
           <p className="text-xs sm:text-sm text-muted-foreground px-2">
-            $350 MXN han sido preautorizados en tu tarjeta. No se ha realizado ningún cargo todavía.
+            {DISPLAY.customerTotal} han sido preautorizados en tu tarjeta. No se ha realizado ningún cargo todavía.
           </p>
         </div>
         <Badge variant="outline" className="bg-success/10 text-success border-success/20 text-xs sm:text-sm">
@@ -200,7 +201,7 @@ const VisitFeeForm = ({
         ) : (
           <>
             <Lock className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-            <span>Autorizar $350 MXN</span>
+            <span>Autorizar {DISPLAY.customerTotal}</span>
           </>
         )}
       </ModernButton>
@@ -315,8 +316,13 @@ export const VisitFeeAuthorizationSection = ({
             <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-primary mt-0.5 flex-shrink-0" />
             <div className="space-y-1.5">
               <p className="text-xs sm:text-sm font-medium text-foreground">
-                Pago por visita y gestión de asignación — $350 MXN
+                Pago por visita y gestión de asignación — {DISPLAY.customerTotal}
               </p>
+              <div className="text-xs text-muted-foreground space-y-0.5 mt-1">
+                <div className="flex justify-between"><span>Visita</span><span>{DISPLAY.baseFee}</span></div>
+                <div className="flex justify-between"><span>IVA (16%)</span><span>{DISPLAY.iva}</span></div>
+                <div className="flex justify-between font-medium text-foreground"><span>Total</span><span>{DISPLAY.customerTotal}</span></div>
+              </div>
               <p className="text-xs text-muted-foreground">
                 Buscaremos un profesional verificado para tu servicio en un máximo de 4 horas. 
                 Si no se asigna proveedor, puedes reagendar o solicitar reembolso completo.

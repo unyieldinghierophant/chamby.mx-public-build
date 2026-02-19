@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { PaymentStatusBadge } from "@/components/PaymentStatusBadge";
 import { ClientVisitConfirmation } from "@/components/ClientVisitConfirmation";
 import { getVisitFeeStatus, getInvoiceStatus } from "@/utils/jobPaymentStatus";
+import { DISPLAY } from "@/utils/visitPricing";
 import Header from "@/components/Header";
 import { toast } from "sonner";
 import { startBooking } from "@/lib/booking";
@@ -368,10 +369,20 @@ const ActiveJobs = () => {
                       <p className="text-sm font-medium mb-1">Descripción</p>
                       <p className="text-sm text-muted-foreground">{selectedJob.description}</p>
                     </div>
-                    <div className="pt-3 border-t">
-                      <p className="text-lg font-semibold">
-                        Cobro: ${(selectedJob as any).visit_fee_amount ? `${(selectedJob as any).visit_fee_amount}` : '—'} MXN
-                      </p>
+                    <div className="pt-3 border-t space-y-1">
+                      <p className="text-sm font-medium text-muted-foreground">Desglose de visita</p>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Visita</span>
+                        <span>{DISPLAY.baseFee}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">IVA (16%)</span>
+                        <span>{DISPLAY.iva}</span>
+                      </div>
+                      <div className="flex justify-between text-sm font-semibold border-t pt-1">
+                        <span>Total</span>
+                        <span>{DISPLAY.customerTotal}</span>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
