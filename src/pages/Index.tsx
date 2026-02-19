@@ -16,6 +16,7 @@ import { ReviewsCarousel } from "@/components/ReviewsCarousel";
 import { FullPageSkeleton } from "@/components/skeletons";
 import { LandingPageSkeleton } from "@/components/LandingPageSkeleton";
 import { useLandingSkeleton } from "@/hooks/useLandingSkeleton";
+import { WelcomeCreditModal } from "@/components/WelcomeCreditModal";
 const Index = () => {
   const {
     user,
@@ -176,6 +177,7 @@ const Index = () => {
         <div className="desktop-only">
           <MobileBottomNav />
         </div>
+        <WelcomeCreditModal />
       </div>;
   }
 

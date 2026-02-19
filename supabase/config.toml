@@ -95,3 +95,6 @@ verify_jwt = false
 
 [functions.admin-verify-provider]
 verify_jwt = false
+
+[functions.claim-welcome-credit]
+verify_jwt = false

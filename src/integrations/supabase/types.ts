@@ -779,6 +779,50 @@ export type Database = {
         }
         Relationships: []
       }
+      user_credits: {
+        Row: {
+          amount: number
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          phone: string | null
+          reason: string
+          redeemed_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          phone?: string | null
+          reason?: string
+          redeemed_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          phone?: string | null
+          reason?: string
+          redeemed_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_credits_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string | null
