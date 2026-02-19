@@ -38,6 +38,7 @@ import { useAvailableJobs } from "@/hooks/useAvailableJobs";
 import { useProviderEligibility } from "@/hooks/useProviderEligibility";
 import { AvailableJobsAlert } from "@/components/provider-portal/AvailableJobsAlert";
 import { EligibilityBlockModal } from "@/components/provider-portal/EligibilityBlockModal";
+import { UnverifiedJobsPlaceholder } from "@/components/provider-portal/UnverifiedJobsPlaceholder";
 
 import { useSidebar } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -484,7 +485,9 @@ const ProviderDashboardHome = () => {
               )}
             </AnimatePresence>
 
-            {availableJobsLoading ? (
+            {verificationDetails.status !== 'verified' ? (
+              <UnverifiedJobsPlaceholder />
+            ) : availableJobsLoading ? (
               <JobFeedSkeleton count={2} />
             ) : filteredJobs.length === 0 ? (
               <motion.div
