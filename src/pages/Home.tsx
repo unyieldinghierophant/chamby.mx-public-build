@@ -95,11 +95,11 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Active Job Banner - above everything */}
-      <div className="fixed top-0 left-0 right-0 z-[60]">
+      <Header />
+      {/* Active Job Banner - in flow, below header */}
+      <div className="mt-2 px-4">
         <ClientActiveJobBanner />
       </div>
-      <Header />
       
       {/* Hero Section with Personalized Greeting */}
       <section className="relative min-h-screen bg-background flex items-center justify-center pt-20 overflow-hidden">

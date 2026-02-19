@@ -75,12 +75,12 @@ export const ClientActiveJobBanner = () => {
   return (
     <button
       onClick={() => navigate(`/active-jobs`)}
-      className="w-full bg-foreground text-background px-4 py-3 flex items-center gap-3 cursor-pointer hover:bg-foreground/90 transition-colors"
+      className="w-full bg-foreground text-background px-4 py-3 flex items-center gap-3 cursor-pointer hover:bg-foreground/90 transition-colors rounded-xl shadow-md"
     >
       {/* Pulsing dot */}
-      <span className="relative flex-shrink-0 w-3 h-3">
+      <span className="relative flex-shrink-0 w-2.5 h-2.5">
         <span className="absolute inset-0 rounded-full bg-emerald-400 motion-safe:animate-ping opacity-75" />
-        <span className="relative block w-3 h-3 rounded-full bg-emerald-400" />
+        <span className="relative block w-2.5 h-2.5 rounded-full bg-emerald-400" />
       </span>
 
       {/* Text */}
@@ -89,7 +89,7 @@ export const ClientActiveJobBanner = () => {
           Tu trabajo está en curso
           <span className="font-normal text-background/70"> — {job.title}</span>
         </p>
-        <p className="text-[11px] text-background/60 truncate">
+        <p className="text-[11px] text-background/60 truncate hidden sm:block">
           {job.provider_name && <span>{job.provider_name}</span>}
           {job.provider_name && scheduledDate && <span> · </span>}
           {scheduledDate && (
