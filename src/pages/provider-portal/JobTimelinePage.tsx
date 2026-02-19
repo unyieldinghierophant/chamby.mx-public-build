@@ -118,6 +118,10 @@ const JobTimelinePage = () => {
   const [chatDebug, setChatDebug] = useState<{ selectError: string | null; insertError: string | null; realtimeStatus: string }>({ selectError: null, insertError: null, realtimeStatus: 'connecting' });
   const [showDebug, setShowDebug] = useState(false);
 
+  // Rating hook - must be called unconditionally (Rules of Hooks)
+  const { canRate, hasRated, myReview, refetch: refetchRating } = useJobRating(jobId, job?.status ?? undefined);
+
+
   // Fetch job + client + messages
   const fetchAll = async () => {
     if (!jobId || !user) return;
@@ -414,8 +418,6 @@ const JobTimelinePage = () => {
   const isTerminal = currentStatus === 'completed' || currentStatus === 'cancelled';
   const actions = isTerminal ? [] : (STATUS_ACTIONS[currentStatus] || []);
 
-  // Rating hook - only active for completed jobs
-  const { canRate, hasRated, myReview, refetch: refetchRating } = useJobRating(jobId, job.status);
 
   return (
     <div className="pb-24 min-h-screen bg-muted/30">
