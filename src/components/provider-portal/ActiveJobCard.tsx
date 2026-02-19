@@ -24,47 +24,49 @@ export const ActiveJobCard = ({ job }: ActiveJobCardProps) => {
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      whileTap={{ scale: 0.98 }}
+      whileTap={{ scale: 0.97 }}
       onClick={() => navigate(`/provider-portal/jobs/${job.id}`)}
-      className="bg-background border border-border/60 rounded-2xl p-3.5 shadow-sm cursor-pointer"
+      className="bg-background border-2 border-foreground/80 rounded-2xl p-4 shadow-md hover:shadow-lg cursor-pointer transition-shadow"
     >
       {/* Header row */}
-      <div className="flex items-center justify-between mb-2">
-        <Badge className="bg-primary/10 text-primary text-[10px] px-2 py-0.5 font-medium border-0">
+      <div className="flex items-center justify-between mb-2.5">
+        <Badge className="bg-foreground text-background text-[11px] px-2.5 py-0.5 font-bold border-0 uppercase tracking-wide">
           Trabajo activo
         </Badge>
-        <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
+        <div className="w-8 h-8 rounded-full bg-foreground/5 flex items-center justify-center">
+          <ChevronRight className="w-5 h-5 text-foreground/70" />
+        </div>
       </div>
 
       {/* Job title */}
-      <h3 className="font-semibold text-sm text-foreground line-clamp-1 mb-2">
+      <h3 className="font-bold text-lg md:text-xl text-foreground line-clamp-1 mb-2.5">
         {job.title}
       </h3>
 
       {/* Meta row */}
-      <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+      <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
         {scheduledDate && (
           <span className="flex items-center gap-1">
-            <Calendar className="w-3 h-3" />
+            <Calendar className="w-3.5 h-3.5" />
             {format(scheduledDate, "d MMM", { locale: es })}
           </span>
         )}
         {scheduledDate && (
           <span className="flex items-center gap-1">
-            <Clock className="w-3 h-3" />
+            <Clock className="w-3.5 h-3.5" />
             {format(scheduledDate, "HH:mm")}
           </span>
         )}
         {job.location && (
           <span className="flex items-center gap-1">
-            <MapPin className="w-3 h-3" />
+            <MapPin className="w-3.5 h-3.5" />
             {getCity(job.location)}
           </span>
         )}
       </div>
 
-      {/* Subtle helper text */}
-      <p className="text-[10px] text-muted-foreground/50 mt-2">
+      {/* Helper text */}
+      <p className="text-[10px] text-muted-foreground/60 mt-2.5">
         Finaliza este trabajo para aceptar otro
       </p>
     </motion.div>

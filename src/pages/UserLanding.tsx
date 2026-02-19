@@ -26,6 +26,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CategoryTabs } from "@/components/CategoryTabs";
 import { SearchingJobBanner } from "@/components/SearchingJobBanner";
+import { ClientActiveJobBanner } from "@/components/ClientActiveJobBanner";
 import { FullPageSkeleton } from "@/components/skeletons";
 const faqs = [
   {
@@ -101,6 +102,10 @@ const UserLanding = () => {
     return null;
   }
   return <div className="min-h-screen bg-gradient-subtle">
+      {/* Active Job Banner - above everything */}
+      <div className="fixed top-0 left-0 right-0 z-[60]">
+        <ClientActiveJobBanner />
+      </div>
       {/* Simple Header matching home page */}
       <header className="fixed top-0 left-0 right-0 bg-background border-b border-border z-50">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-0 flex items-center justify-between">
