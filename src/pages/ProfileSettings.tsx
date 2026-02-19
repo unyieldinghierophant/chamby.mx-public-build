@@ -17,6 +17,7 @@ import { User, Camera, Save, ArrowLeft, Upload, Loader2 } from "lucide-react";
 import { Link, Navigate } from "react-router-dom";
 import { toast } from 'sonner';
 import { supabase } from "@/integrations/supabase/client";
+import { GenericPageSkeleton } from "@/components/skeletons";
 
 const ProfileSettings = () => {
   const { user } = useAuth();
@@ -131,11 +132,7 @@ const ProfileSettings = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <GenericPageSkeleton />;
   }
 
   if (!user) {

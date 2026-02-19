@@ -53,7 +53,7 @@ export const QuickActionsGridSkeleton = ({ count = 4 }: { count?: number }) => (
 
 // Job Card Skeleton
 export const JobCardSkeleton = ({ className, style }: SkeletonProps) => (
-  <Card className={cn("animate-fade-in bg-gradient-card shadow-raised border-0", className)} style={style}>
+  <Card className={cn("animate-fade-in", className)} style={style}>
     <CardContent className="p-4">
       <div className="flex items-start space-x-3">
         <Skeleton className="h-12 w-12 rounded-full" />
@@ -122,7 +122,7 @@ export const UpcomingJobsListSkeleton = ({ count = 3 }: { count?: number }) => (
 
 // Profile Card Skeleton
 export const ProfileCardSkeleton = ({ className, style }: SkeletonProps) => (
-  <Card className={cn("animate-fade-in bg-gradient-card shadow-raised border-0", className)} style={style}>
+  <Card className={cn("animate-fade-in", className)} style={style}>
     <CardContent className="p-6">
       <div className="flex items-center space-x-4">
         <Skeleton className="h-16 w-16 rounded-full" />
@@ -140,10 +140,10 @@ export const ProfileCardSkeleton = ({ className, style }: SkeletonProps) => (
 export const MenuSectionSkeleton = ({ itemCount = 3 }: { itemCount?: number }) => (
   <div className="animate-fade-in">
     <Skeleton className="h-4 w-20 mb-3 ml-2" />
-    <Card className="bg-gradient-card shadow-raised border-0">
+    <Card>
       <CardContent className="p-0">
         {Array.from({ length: itemCount }).map((_, i) => (
-          <div key={i} className="flex items-center justify-between p-4 border-b border-white/10 last:border-b-0">
+          <div key={i} className="flex items-center justify-between p-4 border-b last:border-b-0">
             <div className="flex items-center space-x-3">
               <Skeleton className="w-10 h-10 rounded-xl" />
               <div className="space-y-2">
@@ -161,7 +161,7 @@ export const MenuSectionSkeleton = ({ itemCount = 3 }: { itemCount?: number }) =
 
 // Category Card Skeleton
 export const CategoryCardSkeleton = ({ className, style }: SkeletonProps) => (
-  <Card className={cn("animate-fade-in bg-gradient-card border-white/20 h-full", className)} style={style}>
+  <Card className={cn("animate-fade-in h-full", className)} style={style}>
     <CardHeader className="pb-6 flex flex-col items-center text-center">
       <Skeleton className="w-24 h-24 rounded-lg mb-4" />
       <Skeleton className="h-6 w-28 mb-2" />
@@ -181,53 +181,42 @@ export const CategoryGridSkeleton = ({ count = 4 }: { count?: number }) => (
 
 // Provider Dashboard Skeleton
 export const ProviderDashboardSkeleton = () => (
-  <div className="container mx-auto p-4 lg:p-6 space-y-6 animate-fade-in">
-    {/* Header */}
-    <div className="space-y-2">
-      <Skeleton className="h-9 w-64" />
-      <Skeleton className="h-5 w-48" />
-    </div>
-
-    {/* Stats Grid */}
-    <StatsGridSkeleton />
-
-    {/* Verification Card */}
-    <Card className="border-yellow-500/20 animate-fade-in" style={{ animationDelay: '200ms' }}>
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-5 w-5 rounded" />
-          <Skeleton className="h-6 w-44" />
+  <div className="min-h-screen bg-muted/30 animate-fade-in">
+    {/* Welcome bar */}
+    <div className="bg-background border-b border-border/50">
+      <div className="px-4 py-3 flex items-center gap-3">
+        <Skeleton className="w-10 h-10 rounded-full" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-4 w-36" />
+          <Skeleton className="h-3 w-20" />
         </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <Skeleton className="h-4 w-full max-w-md" />
-        <Skeleton className="h-10 w-44 rounded-md" />
-      </CardContent>
-    </Card>
-
-    {/* Upcoming Jobs */}
-    <Card className="animate-fade-in" style={{ animationDelay: '300ms' }}>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <Skeleton className="h-6 w-36" />
-        <Skeleton className="h-8 w-24 rounded-md" />
-      </CardHeader>
-      <CardContent>
-        <UpcomingJobsListSkeleton count={3} />
-      </CardContent>
-    </Card>
-
-    {/* Quick Actions */}
-    <div className="grid gap-4 md:grid-cols-2">
-      {[1, 2].map((i) => (
-        <Card key={i} className="animate-fade-in" style={{ animationDelay: `${400 + i * 100}ms` }}>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Skeleton className="h-5 w-5 rounded" />
-              <Skeleton className="h-6 w-48" />
+      </div>
+    </div>
+    {/* Availability circle */}
+    <div className="flex justify-center mt-4">
+      <Skeleton className="w-24 h-24 rounded-full" />
+    </div>
+    <Skeleton className="h-3 w-40 mx-auto mt-2" />
+    {/* Job cards */}
+    <div className="px-4 mt-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-4 w-32" />
+        <Skeleton className="h-4 w-4 rounded-full" />
+      </div>
+      <Skeleton className="h-6 w-full rounded-lg" />
+      {Array.from({ length: 3 }).map((_, i) => (
+        <Card key={i} className="animate-fade-in" style={{ animationDelay: `${i * 100}ms` }}>
+          <CardContent className="p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-5 w-40" />
+              <Skeleton className="h-5 w-16 rounded-full" />
             </div>
-          </CardHeader>
-          <CardContent>
-            <Skeleton className="h-4 w-64" />
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-4 w-48" />
+            <div className="flex gap-2">
+              <Skeleton className="h-8 flex-1 rounded-md" />
+              <Skeleton className="h-8 w-8 rounded-md" />
+            </div>
           </CardContent>
         </Card>
       ))}
@@ -239,21 +228,14 @@ export const ProviderDashboardSkeleton = () => (
 export const HomePageSkeleton = () => (
   <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-20 animate-fade-in">
     <div className="max-w-4xl mx-auto text-center space-y-12">
-      {/* Welcome Heading */}
       <div className="space-y-4">
         <Skeleton className="h-12 sm:h-16 w-80 mx-auto" />
         <Skeleton className="h-6 w-64 mx-auto" />
       </div>
-
-      {/* Search Bar */}
       <div className="max-w-xl mx-auto">
         <Skeleton className="h-14 w-full rounded-xl" />
       </div>
-
-      {/* Quick Actions */}
       <QuickActionsGridSkeleton />
-
-      {/* Trust Indicators */}
       <div className="flex flex-wrap items-center justify-center gap-6">
         <Skeleton className="h-12 w-48 rounded-full" />
         <Skeleton className="h-12 w-44 rounded-full" />
@@ -262,15 +244,208 @@ export const HomePageSkeleton = () => (
   </div>
 );
 
-// Full Page Loading Skeleton
+// ─── NEW SKELETONS ───
+
+// Full Page Loading Skeleton (redesigned — header + content blocks)
 export const FullPageSkeleton = () => (
-  <div className="min-h-screen bg-background flex items-center justify-center">
-    <div className="text-center space-y-4 animate-fade-in">
-      <div className="relative">
-        <div className="w-16 h-16 border-4 border-primary/20 rounded-full animate-pulse" />
-        <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-primary rounded-full animate-spin" />
+  <div className="min-h-screen bg-background animate-fade-in">
+    {/* Header bar */}
+    <div className="h-16 border-b border-border/50 flex items-center px-4 md:px-8 justify-between">
+      <Skeleton className="h-10 w-32" />
+      <div className="flex items-center gap-4">
+        <Skeleton className="h-8 w-20 rounded-md hidden md:block" />
+        <Skeleton className="h-8 w-20 rounded-md hidden md:block" />
+        <Skeleton className="h-8 w-8 rounded-full" />
       </div>
-      <Skeleton className="h-4 w-24 mx-auto" />
+    </div>
+    {/* Hero area */}
+    <div className="flex flex-col items-center justify-center py-20 px-4 space-y-6">
+      <Skeleton className="h-12 w-72 sm:w-96" />
+      <Skeleton className="h-6 w-56" />
+      <Skeleton className="h-14 w-full max-w-xl rounded-xl" />
+    </div>
+    {/* Content cards */}
+    <div className="max-w-5xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <Card key={i} className="animate-fade-in" style={{ animationDelay: `${i * 80}ms` }}>
+          <CardContent className="p-6 space-y-3">
+            <Skeleton className="h-10 w-10 rounded-lg" />
+            <Skeleton className="h-5 w-28" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  </div>
+);
+
+// Provider Portal Skeleton (sidebar + top bar + content)
+export const ProviderPortalSkeleton = () => (
+  <div className="min-h-screen flex w-full bg-background animate-fade-in">
+    {/* Sidebar (desktop only) */}
+    <div className="hidden md:flex flex-col w-64 border-r border-border/50 p-4 space-y-4">
+      <Skeleton className="h-10 w-32 mb-4" />
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="flex items-center gap-3">
+          <Skeleton className="h-5 w-5 rounded" />
+          <Skeleton className="h-4 w-24" />
+        </div>
+      ))}
+    </div>
+    {/* Main content */}
+    <div className="flex-1 flex flex-col">
+      {/* Top bar */}
+      <div className="h-14 border-b border-border/50 flex items-center px-4 justify-between">
+        <Skeleton className="h-5 w-32" />
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-5 w-5 rounded" />
+          <Skeleton className="h-8 w-8 rounded-full" />
+        </div>
+      </div>
+      {/* Page content placeholder */}
+      <div className="p-4 lg:p-6 space-y-6">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-4 space-y-2">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-7 w-16" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <JobListSkeleton count={3} />
+      </div>
+    </div>
+  </div>
+);
+
+// Provider Jobs Skeleton (tabs + job cards)
+export const ProviderJobsSkeleton = () => (
+  <div className="container mx-auto p-4 lg:p-6 space-y-6 animate-fade-in">
+    <div className="space-y-2">
+      <Skeleton className="h-8 w-32" />
+      <Skeleton className="h-4 w-64" />
+    </div>
+    {/* Tabs */}
+    <div className="flex gap-2">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <Skeleton key={i} className="h-9 w-24 rounded-md" />
+      ))}
+    </div>
+    {/* Job cards */}
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <Card key={i} className="animate-fade-in" style={{ animationDelay: `${i * 100}ms` }}>
+          <CardContent className="p-4 space-y-3">
+            <div className="flex justify-between">
+              <Skeleton className="h-5 w-36" />
+              <Skeleton className="h-5 w-16 rounded-full" />
+            </div>
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-4 w-44" />
+            <div className="flex justify-between pt-2">
+              <Skeleton className="h-5 w-20" />
+              <Skeleton className="h-8 w-20 rounded-md" />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  </div>
+);
+
+// Job Timeline Skeleton
+export const JobTimelineSkeleton = () => (
+  <div className="container mx-auto p-4 lg:p-6 space-y-6 max-w-4xl animate-fade-in">
+    {/* Back + title */}
+    <div className="flex items-center gap-3">
+      <Skeleton className="h-8 w-8 rounded" />
+      <div className="space-y-2">
+        <Skeleton className="h-6 w-48" />
+        <Skeleton className="h-4 w-32" />
+      </div>
+    </div>
+    {/* Status timeline */}
+    <Card>
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-6">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <React.Fragment key={i}>
+              <div className="flex flex-col items-center gap-2">
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <Skeleton className="h-3 w-14" />
+              </div>
+              {i < 4 && <Skeleton className="h-0.5 flex-1 mx-2" />}
+            </React.Fragment>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+    {/* Detail cards */}
+    {Array.from({ length: 3 }).map((_, i) => (
+      <Card key={i} className="animate-fade-in" style={{ animationDelay: `${i * 100}ms` }}>
+        <CardHeader>
+          <Skeleton className="h-5 w-32" />
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-3/4" />
+          <Skeleton className="h-4 w-1/2" />
+        </CardContent>
+      </Card>
+    ))}
+    {/* Action buttons */}
+    <div className="flex gap-3">
+      <Skeleton className="h-10 flex-1 rounded-md" />
+      <Skeleton className="h-10 flex-1 rounded-md" />
+    </div>
+  </div>
+);
+
+// Generic Page Skeleton (header + avatar + settings rows)
+export const GenericPageSkeleton = () => (
+  <div className="min-h-screen bg-background animate-fade-in">
+    {/* Header bar */}
+    <div className="h-16 border-b border-border/50 flex items-center px-4 justify-between">
+      <div className="flex items-center gap-3">
+        <Skeleton className="h-8 w-8 rounded" />
+        <Skeleton className="h-5 w-32" />
+      </div>
+      <Skeleton className="h-8 w-8 rounded-full" />
+    </div>
+    {/* Content */}
+    <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+      {/* Profile card */}
+      <div className="flex items-center gap-4">
+        <Skeleton className="h-16 w-16 rounded-full" />
+        <div className="space-y-2">
+          <Skeleton className="h-6 w-36" />
+          <Skeleton className="h-4 w-48" />
+        </div>
+      </div>
+      {/* Settings rows */}
+      <Card>
+        <CardContent className="p-0">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex items-center justify-between p-4 border-b last:border-b-0">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-5 w-5 rounded" />
+                <div className="space-y-1">
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-3 w-40" />
+                </div>
+              </div>
+              <Skeleton className="h-4 w-4" />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
     </div>
   </div>
 );

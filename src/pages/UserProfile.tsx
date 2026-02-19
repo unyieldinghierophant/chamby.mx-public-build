@@ -15,6 +15,7 @@ import {
   MapPin
 } from "lucide-react";
 import { Link, Navigate } from "react-router-dom";
+import { GenericPageSkeleton } from "@/components/skeletons";
 
 const UserProfile = () => {
   const { user } = useAuth();
@@ -23,11 +24,7 @@ const UserProfile = () => {
   const { profile: providerProfile } = useProviderProfile(user?.id);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <GenericPageSkeleton />;
   }
 
   if (!user) {

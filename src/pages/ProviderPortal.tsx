@@ -9,6 +9,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { ROUTES } from "@/constants/routes";
 import { supabase } from "@/integrations/supabase/client";
 import { ProviderErrorBoundary } from "@/components/provider-portal/ProviderErrorBoundary";
+import { ProviderPortalSkeleton } from "@/components/skeletons";
 
 
 const ProviderPortalContent = () => {
@@ -69,11 +70,7 @@ const ProviderPortalContent = () => {
 
   // Show loading state while checking auth, roles, and onboarding
   if (authLoading || roleLoading || checkingOnboarding) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
-      </div>
-    );
+    return <ProviderPortalSkeleton />;
   }
 
   // Redirect to login if not authenticated

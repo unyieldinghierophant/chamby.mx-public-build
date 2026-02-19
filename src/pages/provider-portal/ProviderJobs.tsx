@@ -1,6 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { ProviderJobsSkeleton, JobListSkeleton } from "@/components/skeletons";
 import { useAvailableJobs } from "@/hooks/useAvailableJobs";
 import { useActiveJobs } from "@/hooks/useActiveJobs";
 import { JobCardAvailable } from "@/components/provider-portal/JobCardAvailable";
@@ -124,9 +124,7 @@ const ProviderJobs = () => {
 
         <TabsContent value="disponibles" className="space-y-4">
           {loadingAvailable ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
+            <JobListSkeleton count={3} />
           ) : availableJobs.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
@@ -153,9 +151,7 @@ const ProviderJobs = () => {
 
         <TabsContent value="activos" className="space-y-4">
           {loadingActive ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
+            <JobListSkeleton count={3} />
           ) : activeJobs.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
@@ -182,9 +178,7 @@ const ProviderJobs = () => {
 
         <TabsContent value="futuros" className="space-y-4">
           {loadingFuture ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
+            <JobListSkeleton count={2} />
           ) : futureJobs.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
@@ -223,9 +217,7 @@ const ProviderJobs = () => {
 
         <TabsContent value="historial" className="space-y-4">
           {loadingHistory ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
+            <JobListSkeleton count={3} />
           ) : historicalJobs.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">

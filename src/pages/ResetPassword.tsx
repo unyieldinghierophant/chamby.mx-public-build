@@ -11,6 +11,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { PasswordStrengthBar } from '@/components/PasswordStrengthBar';
+import { FullPageSkeleton } from '@/components/skeletons';
 
 const passwordSchema = z.object({
   password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
@@ -152,16 +153,7 @@ const ResetPassword = () => {
 
   // Loading state
   if (verifying) {
-    return (
-      <div className="min-h-screen bg-gradient-main bg-gradient-mesh flex items-center justify-center py-12 px-4">
-        <Card className="w-full max-w-md bg-card/95 backdrop-blur-sm shadow-raised border-border/20">
-          <CardContent className="pt-8 pb-8 text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
-            <p className="text-muted-foreground">Verificando enlace de recuperación...</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <FullPageSkeleton />;
   }
 
   // Error state

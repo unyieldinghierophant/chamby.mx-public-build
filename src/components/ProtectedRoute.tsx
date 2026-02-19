@@ -2,6 +2,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { ROUTES } from '@/constants/routes';
+import { GenericPageSkeleton } from '@/components/skeletons';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -29,14 +30,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Show loading while checking auth and roles
   if (authLoading || ((requireProvider || requireAdmin) && roleLoading)) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Cargando...</p>
-        </div>
-      </div>
-    );
+    return <GenericPageSkeleton />;
   }
 
   // Redirect to login if auth is required and user is not logged in
