@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAvailableJobs, AvailableJob } from "@/hooks/useAvailableJobs";
 import { useFilteredJobs, JobWithDistance } from "@/hooks/useFilteredJobs";
@@ -11,9 +11,11 @@ import { JobFeedFilters, CategoryFilter, DateFilter } from "@/components/provide
 import { JobFeedSkeleton } from "@/components/provider-portal/JobFeedSkeleton";
 import { JobDetailSheet } from "@/components/provider-portal/JobDetailSheet";
 import { EligibilityBlockModal } from "@/components/provider-portal/EligibilityBlockModal";
+import { UnverifiedJobsPlaceholder } from "@/components/provider-portal/UnverifiedJobsPlaceholder";
 import { Briefcase, RefreshCw, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 const AvailableJobs = () => {
   const { user } = useAuth();
@@ -24,6 +26,20 @@ const AvailableJobs = () => {
   const [selectedJob, setSelectedJob] = useState<AvailableJob | null>(null);
   const [showJobDetail, setShowJobDetail] = useState(false);
   const [showEligibilityModal, setShowEligibilityModal] = useState(false);
+  const [isVerified, setIsVerified] = useState<boolean | null>(null);
+
+  // Check verification status
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('provider_details')
+      .select('verification_status')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        setIsVerified(data?.verification_status === 'verified');
+      });
+  }, [user]);
 
   // Filters
   const [category, setCategory] = useState<CategoryFilter>(null);
@@ -135,7 +151,9 @@ const AvailableJobs = () => {
           )}
         </AnimatePresence>
 
-        {loading ? (
+        {isVerified === false ? (
+          <UnverifiedJobsPlaceholder />
+        ) : loading ? (
           <JobFeedSkeleton count={4} />
         ) : filteredJobs.length === 0 ? (
           <motion.div
@@ -172,7 +190,7 @@ const AvailableJobs = () => {
           </div>
         )}
 
-        {hasActiveJob && filteredJobs.length > 0 && (
+        {isVerified !== false && hasActiveJob && filteredJobs.length > 0 && (
           <div className="mt-4 p-3 bg-muted/50 rounded-lg border border-border text-center">
             <p className="text-sm text-muted-foreground">
               Finaliza tu trabajo activo para aceptar otro
