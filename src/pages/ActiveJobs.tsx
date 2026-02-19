@@ -307,21 +307,6 @@ const ActiveJobs = () => {
                 />
               )}
 
-              {/* Map */}
-              {selectedJob.provider && (
-                <Card>
-                  <CardContent className="p-6">
-                    <JobTrackingMap
-                      clientLat={14.6349}
-                      clientLng={-90.5069}
-                      providerLat={selectedJob.provider.current_latitude}
-                      providerLng={selectedJob.provider.current_longitude}
-                      providerName={selectedJob.provider.full_name}
-                    />
-                  </CardContent>
-                </Card>
-              )}
-
               {/* Provider Info */}
               {selectedJob.provider && (
                 <Card>
