@@ -63,8 +63,8 @@ serve(async (req) => {
       // Create new account link for existing account
       const accountLink = await stripe.accountLinks.create({
         account: provider.stripe_account_id,
-        refresh_url: `${req.headers.get("origin")}/provider-portal/profile`,
-        return_url: `${req.headers.get("origin")}/provider-portal/profile?stripe_connected=true`,
+        refresh_url: `${req.headers.get("origin")}/provider-portal/account`,
+        return_url: `${req.headers.get("origin")}/provider-portal/account?stripe_connected=true`,
         type: "account_onboarding",
       });
 
@@ -120,8 +120,8 @@ serve(async (req) => {
     // Create account onboarding link
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
-      refresh_url: `${req.headers.get("origin")}/provider-portal/profile`,
-      return_url: `${req.headers.get("origin")}/provider-portal/profile?stripe_connected=true`,
+      refresh_url: `${req.headers.get("origin")}/provider-portal/account`,
+      return_url: `${req.headers.get("origin")}/provider-portal/account?stripe_connected=true`,
       type: "account_onboarding",
     });
 

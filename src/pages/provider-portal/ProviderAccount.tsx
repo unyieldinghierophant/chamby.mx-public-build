@@ -1,9 +1,12 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
+import ProviderStripePayoutStatusCard from "@/components/provider-portal/ProviderStripePayoutStatusCard";
+import { toast } from "sonner";
 import {
   User,
   Star,
@@ -27,8 +30,17 @@ interface MenuItem {
 const ProviderAccount = () => {
   const { user, signOut } = useAuth();
   const { profile } = useProfile();
-  const { profile: providerProfile } = useProviderProfile(user?.id);
+  const { profile: providerProfile, refetch } = useProviderProfile(user?.id);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Detect Stripe return
+  useEffect(() => {
+    if (searchParams.get("stripe_connected") === "true") {
+      toast.success("¡Stripe conectado! Tu estado se actualizará en breve.");
+      refetch();
+    }
+  }, [searchParams, refetch]);
 
   const getInitials = (name: string) =>
     name
@@ -138,6 +150,18 @@ const ProviderAccount = () => {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Stripe Payout Status */}
+        <div className="mb-4">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
+            Pagos
+          </p>
+          <ProviderStripePayoutStatusCard
+            stripeOnboardingStatus={providerProfile?.stripe_onboarding_status || "not_started"}
+            stripeAccountId={providerProfile?.stripe_account_id || null}
+            onStatusChange={refetch}
+          />
         </div>
 
         {/* Menu Sections */}

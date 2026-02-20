@@ -21,7 +21,9 @@ interface ProviderProfile {
   last_location_update: string | null;
   created_at: string;
   updated_at: string;
-  verification_status?: string; // For display from provider_details
+  verification_status?: string;
+  stripe_account_id: string | null;
+  stripe_onboarding_status: string;
 }
 
 interface BaseProfile {
