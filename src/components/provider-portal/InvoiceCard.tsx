@@ -34,14 +34,16 @@ export const INVOICE_STATUS_LABELS: Record<string, string> = {
   sent: "Enviada",
   accepted: "Aceptada",
   rejected: "Rechazada",
+  paid: "Pagada",
   cancelled: "Cancelada",
 };
 
 const INVOICE_STATUS_CONFIG: Record<string, { bg: string; text: string }> = {
   draft: { bg: "bg-muted", text: "text-muted-foreground" },
   sent: { bg: "bg-amber-100", text: "text-amber-800" },
-  accepted: { bg: "bg-emerald-100", text: "text-emerald-800" },
+  accepted: { bg: "bg-blue-100", text: "text-blue-800" },
   rejected: { bg: "bg-red-100", text: "text-red-800" },
+  paid: { bg: "bg-emerald-100", text: "text-emerald-800" },
   cancelled: { bg: "bg-muted", text: "text-muted-foreground" },
 };
 
@@ -515,13 +517,25 @@ export const InvoiceCard = ({
             </div>
           )}
 
+          {/* Client: Pay accepted invoice */}
+          {!isProvider && invoice && invoice.status === "accepted" && (
+            <PayInvoiceSection invoiceId={invoice.id} totalAmount={invoice.total_customer_amount} />
+          )}
+
+          {/* Paid badge */}
+          {invoice && invoice.status === "paid" && (
+            <div className="flex items-center justify-center gap-2 py-2 text-emerald-700 dark:text-emerald-400">
+              <CheckCircle className="w-4 h-4" />
+              <span className="text-sm font-medium">Factura pagada</span>
+            </div>
+          )}
+
           {/* Provider: edit if rejected */}
           {canEditInvoice && (
             <Button
               variant="outline"
               className="w-full gap-2 text-sm"
               onClick={() => {
-                // Populate form with existing data
                 setLineItems(
                   (invoice.items ?? []).map((item) => ({
                     id: item.id,
@@ -540,5 +554,42 @@ export const InvoiceCard = ({
         </CardContent>
       </Collapsible>
     </Card>
+  );
+};
+
+// ─── Pay Invoice Section (client-side) ───
+const PayInvoiceSection = ({ invoiceId, totalAmount }: { invoiceId: string; totalAmount: number }) => {
+  const [paying, setPaying] = useState(false);
+
+  const handlePay = async () => {
+    setPaying(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-invoice-payment", {
+        body: { invoice_id: invoiceId },
+      });
+
+      if (error) throw new Error(error.message);
+      if (!data?.url) throw new Error("No se recibió enlace de pago");
+
+      window.location.href = data.url;
+    } catch (err: any) {
+      toast.error(err.message || "Error al iniciar el pago");
+      setPaying(false);
+    }
+  };
+
+  return (
+    <Button
+      className="w-full gap-2"
+      onClick={handlePay}
+      disabled={paying}
+    >
+      {paying ? (
+        <Loader2 className="w-4 h-4 animate-spin" />
+      ) : (
+        <DollarSign className="w-4 h-4" />
+      )}
+      Pagar factura — ${toFixedSafe(totalAmount, 2, '0.00')} MXN
+    </Button>
   );
 };

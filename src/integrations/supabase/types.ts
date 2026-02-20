@@ -97,6 +97,7 @@ export type Database = {
           pdf_url: string | null
           provider_id: string
           provider_notes: string | null
+          rejection_reason: string | null
           status: string
           stripe_payment_intent_id: string | null
           subtotal_provider: number
@@ -112,6 +113,7 @@ export type Database = {
           pdf_url?: string | null
           provider_id: string
           provider_notes?: string | null
+          rejection_reason?: string | null
           status?: string
           stripe_payment_intent_id?: string | null
           subtotal_provider?: number
@@ -127,6 +129,7 @@ export type Database = {
           pdf_url?: string | null
           provider_id?: string
           provider_notes?: string | null
+          rejection_reason?: string | null
           status?: string
           stripe_payment_intent_id?: string | null
           subtotal_provider?: number

@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, XCircle, Plus, MessageCircle, MapPin, Clock } from "lucide-react";
+import { InvoiceCard } from "@/components/provider-portal/InvoiceCard";
 import { JobTrackingMap } from "@/components/JobTrackingMap";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -45,7 +46,14 @@ interface ActiveJob {
     total_reviews: number;
   };
   invoice?: {
+    id: string;
     status: string;
+    total_customer_amount: number;
+    subtotal_provider: number;
+    chamby_commission_amount: number;
+    provider_notes: string | null;
+    created_at: string;
+    items: any[];
   } | null;
 }
 
@@ -70,7 +78,7 @@ const ActiveJobs = () => {
 
       const { data: jobsData, error: jobsError } = await supabase
         .from("jobs")
-        .select("*, invoices(status)")
+        .select("*, invoices(id, status, total_customer_amount, subtotal_provider, chamby_commission_amount, provider_notes, created_at)")
         .eq("client_id", user.id)
         .in("status", ["searching", "active", "accepted", "confirmed", "en_route", "on_site", "quoted", "in_progress"])
         .order("created_at", { ascending: false });
@@ -80,26 +88,29 @@ const ActiveJobs = () => {
       const jobsWithProviders = await Promise.all(
         (jobsData || []).map(async (job) => {
           // Get the first invoice if exists (from the joined data)
-          const invoices = (job as any).invoices;
-          const invoice = Array.isArray(invoices) && invoices.length > 0 
-            ? invoices[0] 
+          const invoicesRaw = (job as any).invoices;
+          const invoiceRow = Array.isArray(invoicesRaw) && invoicesRaw.length > 0 
+            ? invoicesRaw[0] 
             : null;
+          const invoice = invoiceRow ? { ...invoiceRow, items: [] } : null;
+          // Remove raw invoices array from job to avoid React child errors
+          const { invoices: _inv, ...jobClean } = job as any;
 
-          if (job.provider_id) {
+          if (jobClean.provider_id) {
             const { data: userData } = await supabase
               .from("users")
               .select("full_name, phone, avatar_url")
-              .eq("id", job.provider_id)
+              .eq("id", jobClean.provider_id)
               .maybeSingle();
 
             const { data: providerData } = await supabase
               .from("providers")
               .select("current_latitude, current_longitude, rating, total_reviews")
-              .eq("user_id", job.provider_id)
+              .eq("user_id", jobClean.provider_id)
               .maybeSingle();
 
             return {
-              ...job,
+              ...jobClean,
               invoice,
               provider: {
                 ...userData,
@@ -107,7 +118,7 @@ const ActiveJobs = () => {
               },
             };
           }
-          return { ...job, invoice };
+          return { ...jobClean, invoice };
         })
       );
 
@@ -387,6 +398,18 @@ const ActiveJobs = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Invoice Card - client side */}
+              {selectedJob.invoice && (
+                <InvoiceCard
+                  jobId={selectedJob.id}
+                  clientId={user?.id || ""}
+                  jobStatus={selectedJob.status}
+                  invoice={selectedJob.invoice}
+                  onInvoiceCreated={fetchActiveJobs}
+                  isProvider={false}
+                />
+              )}
 
               {/* Actions */}
               <Card>
