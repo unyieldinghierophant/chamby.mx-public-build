@@ -101,3 +101,6 @@ verify_jwt = false
 
 [functions.release-provider-payout]
 verify_jwt = false
+
+[functions.create-invoice-payment]
+verify_jwt = false

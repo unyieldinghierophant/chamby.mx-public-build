@@ -133,6 +133,61 @@ serve(async (req) => {
               });
           }
         }
+
+        // ── Invoice payment via checkout ──────────────────────────
+        if (metadata.type === "invoice_payment" && metadata.invoiceId) {
+          const invoiceId = metadata.invoiceId;
+
+          // Mark invoice as paid
+          const { error: invError } = await supabaseClient
+            .from("invoices")
+            .update({
+              status: "paid",
+              stripe_payment_intent_id: session.payment_intent as string,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", invoiceId);
+
+          if (invError) {
+            logStep("Failed to update invoice to paid", { error: invError.message });
+          } else {
+            logStep("Invoice marked as paid via checkout", { invoiceId });
+          }
+
+          // Update payments ledger
+          await supabaseClient
+            .from("payments")
+            .update({ status: "succeeded" })
+            .eq("stripe_checkout_session_id", session.id);
+
+          // Notify provider
+          if (metadata.providerId) {
+            await supabaseClient
+              .from("notifications")
+              .insert({
+                user_id: metadata.providerId,
+                type: "payment_received",
+                title: "Pago de factura recibido",
+                message: "El cliente ha pagado la factura del trabajo",
+                link: `/provider-portal/jobs`,
+                data: { invoiceId, jobId: metadata.jobId },
+              });
+          }
+
+          // Notify client
+          if (metadata.userId) {
+            await supabaseClient
+              .from("notifications")
+              .insert({
+                user_id: metadata.userId,
+                type: "payment_confirmed",
+                title: "Pago de factura confirmado",
+                message: "Tu pago ha sido procesado exitosamente",
+                link: `/active-jobs`,
+                data: { invoiceId, type: "invoice_payment" },
+              });
+          }
+        }
         break;
       }
 
