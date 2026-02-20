@@ -377,6 +377,66 @@ export type Database = {
         }
         Relationships: []
       }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          job_id: string
+          metadata: Json | null
+          provider_id: string | null
+          status: string
+          stripe_checkout_session_id: string | null
+          stripe_payment_intent_id: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          job_id: string
+          metadata?: Json | null
+          provider_id?: string | null
+          status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          job_id?: string
+          metadata?: Json | null
+          provider_id?: string | null
+          status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       payouts: {
         Row: {
           amount: number
@@ -387,6 +447,7 @@ export type Database = {
           paid_at: string | null
           provider_id: string
           status: string
+          stripe_transfer_id: string | null
           updated_at: string
         }
         Insert: {
@@ -398,6 +459,7 @@ export type Database = {
           paid_at?: string | null
           provider_id: string
           status?: string
+          stripe_transfer_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -409,6 +471,7 @@ export type Database = {
           paid_at?: string | null
           provider_id?: string
           status?: string
+          stripe_transfer_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -560,6 +623,7 @@ export type Database = {
           skills: string[] | null
           specialty: string | null
           stripe_account_id: string | null
+          stripe_onboarding_status: string
           total_reviews: number | null
           updated_at: string | null
           user_id: string
@@ -584,6 +648,7 @@ export type Database = {
           skills?: string[] | null
           specialty?: string | null
           stripe_account_id?: string | null
+          stripe_onboarding_status?: string
           total_reviews?: number | null
           updated_at?: string | null
           user_id: string
@@ -608,6 +673,7 @@ export type Database = {
           skills?: string[] | null
           specialty?: string | null
           stripe_account_id?: string | null
+          stripe_onboarding_status?: string
           total_reviews?: number | null
           updated_at?: string | null
           user_id?: string

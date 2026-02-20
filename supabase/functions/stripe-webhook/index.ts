@@ -51,6 +51,32 @@ serve(async (req) => {
     );
 
     switch (event.type) {
+      // ── Provider onboarding status ──────────────────────────
+      case "account.updated": {
+        const account = event.data.object as Stripe.Account;
+        logStep("Account updated", { accountId: account.id });
+
+        let onboardingStatus = "onboarding";
+        if (account.charges_enabled && account.payouts_enabled) {
+          onboardingStatus = "enabled";
+        } else if (account.details_submitted) {
+          onboardingStatus = "onboarding";
+        }
+
+        const { error: providerUpdateErr } = await supabaseClient
+          .from("providers")
+          .update({ stripe_onboarding_status: onboardingStatus })
+          .eq("stripe_account_id", account.id);
+
+        if (providerUpdateErr) {
+          logStep("Failed to update provider onboarding status", { error: providerUpdateErr.message });
+        } else {
+          logStep("Provider onboarding status updated", { accountId: account.id, status: onboardingStatus });
+        }
+        break;
+      }
+
+      // ── Checkout completed (visit fee) ──────────────────────
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
         logStep("Checkout session completed", { sessionId: session.id });
@@ -78,6 +104,21 @@ serve(async (req) => {
             logStep("Job updated - visit fee paid", { jobId });
           }
 
+          // Record in payments ledger
+          await supabaseClient
+            .from("payments")
+            .insert({
+              job_id: jobId,
+              provider_id: metadata.providerId || null,
+              stripe_payment_intent_id: session.payment_intent as string,
+              stripe_checkout_session_id: session.id,
+              amount: session.amount_total || 0,
+              currency: session.currency || "mxn",
+              type: "visit_fee",
+              status: "succeeded",
+              metadata: metadata,
+            });
+
           // Create notification for client
           if (metadata.userId) {
             await supabaseClient
@@ -95,11 +136,18 @@ serve(async (req) => {
         break;
       }
 
+      // ── Payment intent succeeded (invoice payments) ─────────
       case "payment_intent.succeeded": {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         logStep("Payment intent succeeded", { paymentIntentId: paymentIntent.id });
 
         const metadata = paymentIntent.metadata || {};
+
+        // Update payments ledger
+        await supabaseClient
+          .from("payments")
+          .update({ status: "succeeded" })
+          .eq("stripe_payment_intent_id", paymentIntent.id);
 
         if (metadata.type === "invoice_payment" && metadata.invoiceId) {
           const invoiceId = metadata.invoiceId;
@@ -156,11 +204,18 @@ serve(async (req) => {
         break;
       }
 
+      // ── Payment intent failed ───────────────────────────────
       case "payment_intent.payment_failed": {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         logStep("Payment intent failed", { paymentIntentId: paymentIntent.id });
 
         const metadata = paymentIntent.metadata || {};
+
+        // Update payments ledger
+        await supabaseClient
+          .from("payments")
+          .update({ status: "failed" })
+          .eq("stripe_payment_intent_id", paymentIntent.id);
 
         if (metadata.type === "invoice_payment" && metadata.invoiceId) {
           await supabaseClient
@@ -168,6 +223,26 @@ serve(async (req) => {
             .update({ status: "failed" })
             .eq("id", metadata.invoiceId);
           logStep("Invoice marked as failed", { invoiceId: metadata.invoiceId });
+        }
+        break;
+      }
+
+      // ── Transfer created (payout to provider) ───────────────
+      case "transfer.created": {
+        const transfer = event.data.object as Stripe.Transfer;
+        logStep("Transfer created", { transferId: transfer.id, amount: transfer.amount });
+
+        const transferMeta = transfer.metadata || {};
+        if (transferMeta.payout_id) {
+          await supabaseClient
+            .from("payouts")
+            .update({
+              stripe_transfer_id: transfer.id,
+              status: "paid",
+              paid_at: new Date().toISOString(),
+            })
+            .eq("id", transferMeta.payout_id);
+          logStep("Payout updated from transfer webhook", { payoutId: transferMeta.payout_id });
         }
         break;
       }

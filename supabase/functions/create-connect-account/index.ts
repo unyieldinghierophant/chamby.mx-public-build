@@ -104,10 +104,13 @@ serve(async (req) => {
 
     logStep("Stripe Connect account created", { accountId: account.id });
 
-    // Save account ID to provider
+    // Save account ID and set onboarding status
     const { error: updateError } = await supabaseClient
       .from("providers")
-      .update({ stripe_account_id: account.id })
+      .update({ 
+        stripe_account_id: account.id,
+        stripe_onboarding_status: "onboarding",
+      })
       .eq("id", provider.id);
 
     if (updateError) {
