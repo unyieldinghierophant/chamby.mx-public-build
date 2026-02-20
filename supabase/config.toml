@@ -98,3 +98,6 @@ verify_jwt = false
 
 [functions.claim-welcome-credit]
 verify_jwt = false
+
+[functions.release-provider-payout]
+verify_jwt = false
