@@ -219,14 +219,8 @@ serve(async (req) => {
             logStep("Invoice marked as paid", { invoiceId });
           }
 
-          // Update job if exists
-          if (metadata.jobId) {
-            await supabaseClient
-              .from("jobs")
-              .update({ status: "completed" })
-              .eq("id", metadata.jobId);
-            logStep("Job marked as completed", { jobId: metadata.jobId });
-          }
+          // Do NOT auto-complete job here — completion handshake handles this
+          // Job stays in current status until provider marks done + client confirms
 
           // Create notification for provider
           if (metadata.providerId) {

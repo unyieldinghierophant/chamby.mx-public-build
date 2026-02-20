@@ -156,6 +156,9 @@ export type Database = {
           category: string
           client_confirmed_visit: boolean | null
           client_id: string
+          completion_confirmed_at: string | null
+          completion_marked_at: string | null
+          completion_status: string
           created_at: string | null
           description: string | null
           duration_hours: number | null
@@ -197,6 +200,9 @@ export type Database = {
           category: string
           client_confirmed_visit?: boolean | null
           client_id: string
+          completion_confirmed_at?: string | null
+          completion_marked_at?: string | null
+          completion_status?: string
           created_at?: string | null
           description?: string | null
           duration_hours?: number | null
@@ -238,6 +244,9 @@ export type Database = {
           category?: string
           client_confirmed_visit?: boolean | null
           client_id?: string
+          completion_confirmed_at?: string | null
+          completion_marked_at?: string | null
+          completion_status?: string
           created_at?: string | null
           description?: string | null
           duration_hours?: number | null
