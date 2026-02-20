@@ -17,6 +17,9 @@ import { FullPageSkeleton } from "@/components/skeletons";
 import { LandingPageSkeleton } from "@/components/LandingPageSkeleton";
 import { useLandingSkeleton } from "@/hooks/useLandingSkeleton";
 import { WelcomeCreditModal } from "@/components/WelcomeCreditModal";
+import { EmailCaptureModalV2 } from "@/components/EmailCaptureModalV2";
+
+const EMAIL_CAPTURE_V2 = true;
 const Index = () => {
   const {
     user,
@@ -177,7 +180,7 @@ const Index = () => {
         <div className="desktop-only">
           <MobileBottomNav />
         </div>
-        <WelcomeCreditModal />
+        {EMAIL_CAPTURE_V2 ? <EmailCaptureModalV2 /> : <WelcomeCreditModal />}
       </div>;
   }
 
