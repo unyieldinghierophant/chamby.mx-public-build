@@ -39,6 +39,7 @@ import { useProviderEligibility } from "@/hooks/useProviderEligibility";
 import { AvailableJobsAlert } from "@/components/provider-portal/AvailableJobsAlert";
 import { EligibilityBlockModal } from "@/components/provider-portal/EligibilityBlockModal";
 import { UnverifiedJobsPlaceholder } from "@/components/provider-portal/UnverifiedJobsPlaceholder";
+import ProviderStripePayoutStatusCard from "@/components/provider-portal/ProviderStripePayoutStatusCard";
 
 import { useSidebar } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -326,6 +327,17 @@ const ProviderDashboardHome = () => {
             </span>
             <span className="opacity-60">→</span>
           </motion.button>
+        </div>
+      )}
+
+      {/* Stripe Payout Status Tile */}
+      {providerProfile?.stripe_onboarding_status !== "enabled" && (
+        <div className="px-4 mt-2">
+          <ProviderStripePayoutStatusCard
+            stripeOnboardingStatus={providerProfile?.stripe_onboarding_status || "not_started"}
+            stripeAccountId={providerProfile?.stripe_account_id || null}
+            compact
+          />
         </div>
       )}
 
