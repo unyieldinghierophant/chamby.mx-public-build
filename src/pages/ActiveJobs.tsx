@@ -36,6 +36,10 @@ interface ActiveJob {
   visit_confirmation_deadline: string | null;
   visit_dispute_status: string | null;
   visit_dispute_reason: string | null;
+  // Completion handshake
+  completion_status: string | null;
+  completion_marked_at: string | null;
+  completion_confirmed_at: string | null;
   provider?: {
     full_name: string;
     phone: string;
@@ -63,6 +67,7 @@ const ActiveJobs = () => {
   const [jobs, setJobs] = useState<ActiveJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedJob, setSelectedJob] = useState<ActiveJob | null>(null);
+  const [confirmingCompletion, setConfirmingCompletion] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -160,8 +165,33 @@ const ActiveJobs = () => {
            !job.visit_dispute_status;
   };
 
+  // Check if job needs completion confirmation
+  const needsCompletionConfirmation = (job: ActiveJob) => {
+    return job.completion_status === 'provider_marked_done';
+  };
+
+  const handleConfirmCompletion = async (jobId: string) => {
+    setConfirmingCompletion(true);
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke('complete-job', {
+        body: { job_id: jobId, action: 'client_confirm' },
+      });
+      if (fnError || data?.error) {
+        toast.error(data?.error || fnError?.message || 'Error al confirmar');
+        return;
+      }
+      toast.success('¡Trabajo confirmado! El pago será liberado al proveedor.');
+      fetchActiveJobs();
+    } catch (err) {
+      toast.error('Error inesperado');
+    } finally {
+      setConfirmingCompletion(false);
+    }
+  };
+
   // Jobs pending client confirmation
   const pendingConfirmationJobs = jobs.filter(needsClientConfirmation);
+  const pendingCompletionJobs = jobs.filter(needsCompletionConfirmation);
 
   if (loading) {
     return (
@@ -317,6 +347,41 @@ const ActiveJobs = () => {
                   }}
                   onConfirmed={fetchActiveJobs}
                 />
+              )}
+
+              {/* Completion Confirmation Banner */}
+              {needsCompletionConfirmation(selectedJob) && (
+                <Card className="border-primary/50 bg-primary/5">
+                  <CardContent className="p-4 space-y-3">
+                    <h3 className="font-semibold text-foreground">
+                      ✅ El proveedor indicó que el trabajo terminó
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Confirma que estás satisfecho con el trabajo para liberar el pago al proveedor.
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => handleConfirmCompletion(selectedJob.id)}
+                        disabled={confirmingCompletion}
+                        className="flex-1"
+                      >
+                        {confirmingCompletion ? "Confirmando..." : "Confirmar trabajo"}
+                      </Button>
+                      <Button variant="outline" disabled className="flex-1 opacity-60">
+                        Necesito ayuda
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Pago liberado */}
+              {selectedJob.invoice?.status === 'released' && (
+                <Card className="border-emerald-500/30 bg-emerald-500/5">
+                  <CardContent className="p-4 text-center">
+                    <p className="text-sm font-medium text-foreground">💸 Pago liberado al proveedor</p>
+                  </CardContent>
+                </Card>
               )}
 
               {/* Provider Info */}

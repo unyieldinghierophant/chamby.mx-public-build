@@ -104,3 +104,9 @@ verify_jwt = false
 
 [functions.create-invoice-payment]
 verify_jwt = false
+
+[functions.complete-job]
+verify_jwt = false
+
+[functions.auto-complete-jobs]
+verify_jwt = false

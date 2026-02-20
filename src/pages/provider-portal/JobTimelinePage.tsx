@@ -67,6 +67,9 @@ interface JobDetail {
   problem: string | null;
   service_type: string | null;
   amount_booking_fee: number | null;
+  completion_status: string | null;
+  completion_marked_at: string | null;
+  completion_confirmed_at: string | null;
 }
 
 interface ChatMessage {
@@ -119,6 +122,7 @@ const JobTimelinePage = () => {
   const [ratingDismissed, setRatingDismissed] = useState(false);
   const [chatDebug, setChatDebug] = useState<{ selectError: string | null; insertError: string | null; realtimeStatus: string }>({ selectError: null, insertError: null, realtimeStatus: 'connecting' });
   const [showDebug, setShowDebug] = useState(false);
+  const [markingDone, setMarkingDone] = useState(false);
 
   // Rating hook - must be called unconditionally (Rules of Hooks)
   const { canRate, hasRated, myReview, refetch: refetchRating } = useJobRating(jobId, job?.status ?? undefined);
@@ -265,49 +269,25 @@ const JobTimelinePage = () => {
       return;
     }
 
-    // Double confirmation for completion: provider marks as "terminado"
+    // Completion via edge function
     if (nextStatus === 'completed') {
-      setTransitioning(true);
-      // Set provider_confirmed_visit AND status to completed
-      const { data: updateResult, error: updateError } = await supabase
-        .from('jobs')
-        .update({ 
-          provider_confirmed_visit: true, 
-          status: 'completed',
-          updated_at: new Date().toISOString() 
-        })
-        .eq('id', job.id)
-        .eq('provider_id', user.id)
-        .select('id, status');
-
-      console.log('[JobTimelinePage] Completion update:', { updateResult, updateError });
-
-      if (updateError) {
-        toast.error('Error al completar', { description: updateError.message });
-        setTransitioning(false);
-        return;
+      setMarkingDone(true);
+      try {
+        const { data, error: fnError } = await supabase.functions.invoke('complete-job', {
+          body: { job_id: job.id, action: 'provider_mark_done' },
+        });
+        if (fnError || data?.error) {
+          toast.error(data?.error || fnError?.message || 'Error al marcar como terminado');
+          setMarkingDone(false);
+          return;
+        }
+        toast.success('Trabajo marcado como terminado. Esperando confirmación del cliente.');
+        setMarkingDone(false);
+        await fetchAll();
+      } catch (err) {
+        toast.error('Error inesperado');
+        setMarkingDone(false);
       }
-
-      if (!updateResult || updateResult.length === 0) {
-        toast.error('No se pudo completar el trabajo', { description: 'Verifica que el trabajo esté asignado a ti.' });
-        setTransitioning(false);
-        return;
-      }
-
-      // Send system message
-      await supabase.from('messages').insert({
-        job_id: job.id,
-        sender_id: user.id,
-        receiver_id: job.client_id,
-        message_text: '🎉 El trabajo fue completado correctamente',
-        is_system_message: true,
-        system_event_type: 'completed',
-        read: false,
-      });
-
-      toast.success('¡Trabajo completado!');
-      setTransitioning(false);
-      await fetchAll();
       return;
     }
 
@@ -678,13 +658,26 @@ const JobTimelinePage = () => {
             </Card>
           )}
 
-          {/* Double confirmation state */}
-          {currentStatus === 'in_progress' && job.provider_confirmed_visit && !job.client_confirmed_visit && (
-            <Card className="border-border bg-muted/50">
+          {/* Provider marked done — waiting client confirmation */}
+          {job.completion_status === 'provider_marked_done' && (
+            <Card className="border-primary/30 bg-primary/5">
               <CardContent className="p-4 text-center">
-                <Clock className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
+                <Clock className="w-6 h-6 text-primary mx-auto mb-2" />
                 <p className="text-sm font-medium text-foreground">Esperando confirmación del cliente</p>
-                <p className="text-xs text-muted-foreground mt-1">El cliente debe confirmar que el trabajo fue completado</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  El cliente debe confirmar que el trabajo fue completado para liberar el pago
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Pago liberado indicator */}
+          {invoice?.status === 'released' && (
+            <Card className="border-emerald-500/30 bg-emerald-500/5">
+              <CardContent className="p-4 text-center">
+                <CheckCircle className="w-6 h-6 text-emerald-600 mx-auto mb-2" />
+                <p className="text-sm font-medium text-foreground">Pago liberado</p>
+                <p className="text-xs text-muted-foreground mt-1">El pago fue depositado en tu cuenta de Stripe</p>
               </CardContent>
             </Card>
           )}
@@ -695,20 +688,24 @@ const JobTimelinePage = () => {
               {actions.map((action) => {
                 const Icon = action.icon;
                 const isClientAction = action.nextStatus === 'confirmed';
-                // Hide "completed" button if provider already confirmed
-                if (action.nextStatus === 'completed' && job.provider_confirmed_visit) return null;
+                // Hide "completed" button if provider already marked done or completion_status != in_progress
+                if (action.nextStatus === 'completed') {
+                  if (job.completion_status !== 'in_progress') return null;
+                  // Only show if invoice is paid
+                  if (!invoice || invoice.status !== 'paid') return null;
+                }
                 return (
                   <Button
                     key={action.nextStatus}
                     onClick={() => handleTransition(action.nextStatus)}
-                    disabled={transitioning || isClientAction}
+                    disabled={transitioning || markingDone || isClientAction}
                     className={cn(
                       "w-full gap-2",
                       isClientAction && "opacity-60"
                     )}
                     variant={isClientAction ? "outline" : "default"}
                   >
-                    {transitioning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Icon className="w-4 h-4" />}
+                    {(transitioning || markingDone) ? <Loader2 className="w-4 h-4 animate-spin" /> : <Icon className="w-4 h-4" />}
                     {action.label}
                   </Button>
                 );
