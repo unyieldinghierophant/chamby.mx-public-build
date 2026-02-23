@@ -27,6 +27,7 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { toFixedSafe } from "@/utils/formatSafe";
+import { VAT_RATE, VAT_LABEL, calcInvoiceVat } from "@/lib/pricing";
 
 // Invoice status labels
 export const INVOICE_STATUS_LABELS: Record<string, string> = {
@@ -134,8 +135,8 @@ export const InvoiceCard = ({
     (sum, item) => sum + item.amount * item.quantity,
     0
   );
-  const customerFee = Math.round(subtotal * 0.1 * 100) / 100;
-  const totalCustomer = subtotal + customerFee;
+  const vatAmount = calcInvoiceVat(subtotal);
+  const totalCustomer = subtotal + vatAmount;
 
   const handleSubmitInvoice = async () => {
     if (!user || subtotal <= 0) {
@@ -155,9 +156,7 @@ export const InvoiceCard = ({
     setSubmitting(true);
 
     try {
-      const providerFee = Math.round(subtotal * 0.1 * 100) / 100;
-      const chambyCommission = providerFee + customerFee;
-      const subtotalProviderNet = subtotal - providerFee;
+      const chambyCommission = vatAmount; // Platform keeps IVA portion
 
       // Create invoice
       const { data: newInvoice, error: invError } = await supabase
@@ -166,9 +165,11 @@ export const InvoiceCard = ({
           job_id: jobId,
           provider_id: user.id,
           user_id: clientId,
-          subtotal_provider: subtotalProviderNet,
+          subtotal_provider: subtotal,
           chamby_commission_amount: chambyCommission,
           total_customer_amount: totalCustomer,
+          vat_rate: VAT_RATE,
+          vat_amount: vatAmount,
           status: "sent",
           provider_notes: description || null,
         })
@@ -370,8 +371,8 @@ export const InvoiceCard = ({
               <span>${toFixedSafe(subtotal, 2, '0.00')}</span>
             </div>
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Cargo por servicio (10%)</span>
-              <span>+${toFixedSafe(customerFee, 2, '0.00')}</span>
+              <span>{VAT_LABEL}</span>
+              <span>+${toFixedSafe(vatAmount, 2, '0.00')}</span>
             </div>
             <div className="flex justify-between font-semibold border-t border-border/50 pt-1.5">
               <span>Total cliente</span>
@@ -472,7 +473,7 @@ export const InvoiceCard = ({
                   </span>
                 </div>
                 <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>Cargo servicio</span>
+                  <span>{VAT_LABEL}</span>
                   <span>
                     +$
                     {toFixedSafe(

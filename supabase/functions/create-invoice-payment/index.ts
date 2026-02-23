@@ -66,9 +66,11 @@ serve(async (req) => {
 
     // Calculate amount in centavos for Stripe (total_customer_amount is in pesos)
     const amountCentavos = Math.round(invoice.total_customer_amount * 100);
+    const baseCentavos = Math.round((invoice.subtotal_provider ?? invoice.total_customer_amount) * 100);
+    const vatCentavos = Math.round((invoice.vat_amount ?? 0) * 100);
     if (amountCentavos <= 0) throw new Error("Invalid invoice amount");
 
-    logStep("Creating checkout session", { amountCentavos, currency: "mxn" });
+    logStep("Creating checkout session", { amountCentavos, baseCentavos, vatCentavos, currency: "mxn" });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
@@ -123,6 +125,9 @@ serve(async (req) => {
         jobId: invoice.job_id,
         providerId: invoice.provider_id,
         userId: user.id,
+        base_amount_cents: String(baseCentavos),
+        vat_amount_cents: String(vatCentavos),
+        pricing_version: "invoice_v2_iva16",
       },
     });
 
@@ -136,7 +141,7 @@ serve(async (req) => {
         .eq("id", invoice.id);
     }
 
-    // Record in payments ledger
+    // Record in payments ledger with IVA breakdown
     await supabaseClient
       .from("payments")
       .insert({
@@ -152,6 +157,10 @@ serve(async (req) => {
           invoice_id: invoice.id,
           client_id: user.id,
         },
+        base_amount_cents: baseCentavos,
+        vat_amount_cents: vatCentavos,
+        total_amount_cents: amountCentavos,
+        pricing_version: "invoice_v2_iva16",
       });
 
     logStep("Payment ledger entry created");

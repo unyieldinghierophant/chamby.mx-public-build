@@ -65,8 +65,11 @@ serve(async (req) => {
       throw new Error("Visit fee has already been paid for this job");
     }
 
-    const visitFeeAmount = job.visit_fee_amount || 350;
-    logStep("Job found", { jobId: job.id, title: job.title, visitFeeAmount });
+    const visitFeeBase = job.visit_fee_amount || 350;
+    const VAT_RATE = 0.16;
+    const visitFeeVat = Math.round(visitFeeBase * VAT_RATE * 100) / 100;
+    const visitFeeTotal = visitFeeBase + visitFeeVat;
+    logStep("Job found", { jobId: job.id, title: job.title, visitFeeBase, visitFeeVat, visitFeeTotal });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
@@ -80,7 +83,8 @@ serve(async (req) => {
       }
     }
 
-    // Create checkout session for visit fee
+    // Create checkout session for visit fee (base + IVA)
+    const amountCentavos = Math.round(visitFeeTotal * 100);
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
@@ -90,9 +94,9 @@ serve(async (req) => {
             currency: "mxn",
             product_data: {
               name: "Tarifa de visita - Chamby",
-              description: `Tarifa de visita para: ${job.title}`,
+              description: `Visita: $${visitFeeBase} + IVA $${visitFeeVat} = $${visitFeeTotal} MXN`,
             },
-            unit_amount: visitFeeAmount * 100, // Convert to centavos
+            unit_amount: amountCentavos,
           },
           quantity: 1,
         },
@@ -104,6 +108,9 @@ serve(async (req) => {
         jobId,
         userId: user.id,
         type: "visit_fee",
+        base_amount_cents: String(Math.round(visitFeeBase * 100)),
+        vat_amount_cents: String(Math.round(visitFeeVat * 100)),
+        pricing_version: "visit_v2_iva16",
       },
     });
 
