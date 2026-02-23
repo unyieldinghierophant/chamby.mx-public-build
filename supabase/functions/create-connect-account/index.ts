@@ -97,6 +97,11 @@ serve(async (req) => {
         transfers: { requested: true },
       },
       business_type: "individual",
+      business_profile: {
+        url: "https://chamby.mx",
+        product_description: "Marketplace de servicios a domicilio (plomería, limpieza, electricidad, jardinería) gestionado por Chamby",
+        mcc: "7299",
+      },
       metadata: {
         providerId: provider.id,
         userId: user.id,
