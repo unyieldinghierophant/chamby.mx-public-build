@@ -79,6 +79,7 @@ import ClientInvoiceListPage from "./pages/client/ClientInvoiceListPage";
 import AdminPayoutDashboard from "./pages/admin/AdminPayoutDashboard";
 import AdminPayoutDetailPage from "./pages/admin/AdminPayoutDetailPage";
 import AdminSupportInbox from "./pages/admin/AdminSupportInbox";
+import AdminDisputesPage from "./pages/admin/AdminDisputesPage";
 import VisitFeePaymentPage from "./pages/VisitFeePaymentPage";
 import ResetPassword from "./pages/ResetPassword";
 import Login from "./pages/Login";
@@ -406,6 +407,16 @@ const App = () => {
             element={
               <ProtectedRoute requireAdmin>
                 <AdminSupportInbox />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Admin Disputes Page */}
+          <Route
+            path="/admin/disputes"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AdminDisputesPage />
               </ProtectedRoute>
             }
           />

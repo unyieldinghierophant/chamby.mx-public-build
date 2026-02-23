@@ -20,8 +20,9 @@ serve(async (req) => {
 
     const { data: jobs, error } = await supabase
       .from("jobs")
-      .select("id, provider_id, client_id, completion_marked_at")
+      .select("id, provider_id, client_id, completion_marked_at, has_open_dispute")
       .eq("completion_status", "provider_marked_done")
+      .eq("has_open_dispute", false)
       .lt("completion_marked_at", cutoff);
 
     if (error) {

@@ -14,6 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      disputes: {
+        Row: {
+          created_at: string
+          id: string
+          invoice_id: string | null
+          job_id: string
+          opened_by_role: string
+          opened_by_user_id: string
+          reason_code: string
+          reason_text: string | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by_admin_id: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invoice_id?: string | null
+          job_id: string
+          opened_by_role: string
+          opened_by_user_id: string
+          reason_code: string
+          reason_text?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by_admin_id?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invoice_id?: string | null
+          job_id?: string
+          opened_by_role?: string
+          opened_by_user_id?: string
+          reason_code?: string
+          reason_text?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by_admin_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disputes_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disputes_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           doc_type: string | null
@@ -161,9 +221,11 @@ export type Database = {
           completion_status: string
           created_at: string | null
           description: string | null
+          dispute_status: string | null
           duration_hours: number | null
           exact_time: string | null
           final_price: number | null
+          has_open_dispute: boolean
           id: string
           location: string | null
           original_scheduled_date: string | null
@@ -205,9 +267,11 @@ export type Database = {
           completion_status?: string
           created_at?: string | null
           description?: string | null
+          dispute_status?: string | null
           duration_hours?: number | null
           exact_time?: string | null
           final_price?: number | null
+          has_open_dispute?: boolean
           id?: string
           location?: string | null
           original_scheduled_date?: string | null
@@ -249,9 +313,11 @@ export type Database = {
           completion_status?: string
           created_at?: string | null
           description?: string | null
+          dispute_status?: string | null
           duration_hours?: number | null
           exact_time?: string | null
           final_price?: number | null
+          has_open_dispute?: boolean
           id?: string
           location?: string | null
           original_scheduled_date?: string | null
