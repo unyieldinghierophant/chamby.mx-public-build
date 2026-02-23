@@ -4,8 +4,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calendar, XCircle, Plus, MessageCircle, MapPin, Clock } from "lucide-react";
+import { ArrowLeft, Calendar, XCircle, Plus, MessageCircle, MapPin, Clock, AlertTriangle } from "lucide-react";
 import { InvoiceCard } from "@/components/provider-portal/InvoiceCard";
+import { DisputeModal } from "@/components/DisputeModal";
 import { JobTrackingMap } from "@/components/JobTrackingMap";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +41,8 @@ interface ActiveJob {
   completion_status: string | null;
   completion_marked_at: string | null;
   completion_confirmed_at: string | null;
+  has_open_dispute: boolean | null;
+  dispute_status: string | null;
   provider?: {
     full_name: string;
     phone: string;
@@ -68,6 +71,7 @@ const ActiveJobs = () => {
   const [loading, setLoading] = useState(true);
   const [selectedJob, setSelectedJob] = useState<ActiveJob | null>(null);
   const [confirmingCompletion, setConfirmingCompletion] = useState(false);
+  const [disputeModalOpen, setDisputeModalOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -350,7 +354,7 @@ const ActiveJobs = () => {
               )}
 
               {/* Completion Confirmation Banner */}
-              {needsCompletionConfirmation(selectedJob) && (
+              {needsCompletionConfirmation(selectedJob) && !selectedJob.has_open_dispute && (
                 <Card className="border-primary/50 bg-primary/5">
                   <CardContent className="p-4 space-y-3">
                     <h3 className="font-semibold text-foreground">
@@ -371,6 +375,21 @@ const ActiveJobs = () => {
                         Necesito ayuda
                       </Button>
                     </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Dispute Banner */}
+              {selectedJob.has_open_dispute && (
+                <Card className="border-destructive/50 bg-destructive/5">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-1">
+                      <AlertTriangle className="h-4 w-4 text-destructive" />
+                      <h3 className="font-semibold text-foreground text-sm">Disputa abierta</h3>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      El pago está congelado hasta que un administrador resuelva la disputa.
+                    </p>
                   </CardContent>
                 </Card>
               )}
@@ -489,6 +508,19 @@ const ActiveJobs = () => {
                       <Plus className="mr-2 h-4 w-4" />
                       Agregar servicios
                     </Button>
+                    {/* Dispute button — show if invoice paid and not released and no open dispute */}
+                    {selectedJob.invoice &&
+                      ["paid", "ready_to_release"].includes(selectedJob.invoice.status) &&
+                      !selectedJob.has_open_dispute && (
+                        <Button
+                          variant="outline"
+                          className="col-span-2 border-destructive/30 text-destructive hover:bg-destructive/5"
+                          onClick={() => setDisputeModalOpen(true)}
+                        >
+                          <AlertTriangle className="mr-2 h-4 w-4" />
+                          Iniciar disputa
+                        </Button>
+                      )}
                     <Button
                       variant="destructive"
                       className="col-span-2"
@@ -500,6 +532,14 @@ const ActiveJobs = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Dispute Modal */}
+              <DisputeModal
+                open={disputeModalOpen}
+                onOpenChange={setDisputeModalOpen}
+                jobId={selectedJob.id}
+                onDisputeOpened={fetchActiveJobs}
+              />
             </div>
           )}
         </div>

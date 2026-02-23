@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { DisputeModal } from "@/components/DisputeModal";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   useJobStatusTransition,
@@ -70,6 +71,8 @@ interface JobDetail {
   completion_status: string | null;
   completion_marked_at: string | null;
   completion_confirmed_at: string | null;
+  has_open_dispute: boolean | null;
+  dispute_status: string | null;
 }
 
 interface ChatMessage {
@@ -123,6 +126,7 @@ const JobTimelinePage = () => {
   const [chatDebug, setChatDebug] = useState<{ selectError: string | null; insertError: string | null; realtimeStatus: string }>({ selectError: null, insertError: null, realtimeStatus: 'connecting' });
   const [showDebug, setShowDebug] = useState(false);
   const [markingDone, setMarkingDone] = useState(false);
+  const [disputeModalOpen, setDisputeModalOpen] = useState(false);
 
   // Rating hook - must be called unconditionally (Rules of Hooks)
   const { canRate, hasRated, myReview, refetch: refetchRating } = useJobRating(jobId, job?.status ?? undefined);
@@ -659,7 +663,7 @@ const JobTimelinePage = () => {
           )}
 
           {/* Provider marked done — waiting client confirmation */}
-          {job.completion_status === 'provider_marked_done' && (
+          {job.completion_status === 'provider_marked_done' && !job.has_open_dispute && (
             <Card className="border-primary/30 bg-primary/5">
               <CardContent className="p-4 text-center">
                 <Clock className="w-6 h-6 text-primary mx-auto mb-2" />
@@ -670,6 +674,41 @@ const JobTimelinePage = () => {
               </CardContent>
             </Card>
           )}
+
+          {/* Dispute banner */}
+          {job.has_open_dispute && (
+            <Card className="border-destructive/30 bg-destructive/5">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <AlertTriangle className="h-4 w-4 text-destructive" />
+                  <p className="text-sm font-medium text-foreground">Disputa abierta</p>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  El pago está congelado hasta que un administrador resuelva la disputa.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Dispute button — provider can initiate */}
+          {invoice && ["paid", "ready_to_release"].includes(invoice.status) && !job.has_open_dispute && (
+            <Button
+              variant="outline"
+              className="w-full border-destructive/30 text-destructive hover:bg-destructive/5 text-sm"
+              onClick={() => setDisputeModalOpen(true)}
+            >
+              <AlertTriangle className="w-4 h-4 mr-2" />
+              Iniciar disputa
+            </Button>
+          )}
+
+          {/* Dispute Modal */}
+          <DisputeModal
+            open={disputeModalOpen}
+            onOpenChange={setDisputeModalOpen}
+            jobId={job.id}
+            onDisputeOpened={fetchAll}
+          />
 
           {/* Pago liberado indicator */}
           {invoice?.status === 'released' && (

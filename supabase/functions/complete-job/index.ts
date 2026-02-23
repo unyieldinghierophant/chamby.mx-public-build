@@ -43,7 +43,7 @@ serve(async (req) => {
     // Fetch job
     const { data: job, error: jobErr } = await supabase
       .from("jobs")
-      .select("id, status, client_id, provider_id, completion_status")
+      .select("id, status, client_id, provider_id, completion_status, has_open_dispute")
       .eq("id", job_id)
       .single();
 
@@ -110,6 +110,9 @@ serve(async (req) => {
       if (job.client_id !== userId) throw new Error("Not the job client");
       if (job.completion_status !== "provider_marked_done") {
         throw new Error(`Cannot confirm: completion_status is '${job.completion_status}'`);
+      }
+      if (job.has_open_dispute) {
+        throw new Error("Cannot confirm while a dispute is open");
       }
 
       const now = new Date().toISOString();
