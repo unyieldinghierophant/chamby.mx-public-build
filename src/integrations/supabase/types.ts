@@ -719,7 +719,13 @@ export type Database = {
           skills: string[] | null
           specialty: string | null
           stripe_account_id: string | null
+          stripe_charges_enabled: boolean
+          stripe_details_submitted: boolean
+          stripe_disabled_reason: string | null
           stripe_onboarding_status: string
+          stripe_payouts_enabled: boolean
+          stripe_requirements_currently_due: Json
+          stripe_requirements_eventually_due: Json
           total_reviews: number | null
           updated_at: string | null
           user_id: string
@@ -744,7 +750,13 @@ export type Database = {
           skills?: string[] | null
           specialty?: string | null
           stripe_account_id?: string | null
+          stripe_charges_enabled?: boolean
+          stripe_details_submitted?: boolean
+          stripe_disabled_reason?: string | null
           stripe_onboarding_status?: string
+          stripe_payouts_enabled?: boolean
+          stripe_requirements_currently_due?: Json
+          stripe_requirements_eventually_due?: Json
           total_reviews?: number | null
           updated_at?: string | null
           user_id: string
@@ -769,7 +781,13 @@ export type Database = {
           skills?: string[] | null
           specialty?: string | null
           stripe_account_id?: string | null
+          stripe_charges_enabled?: boolean
+          stripe_details_submitted?: boolean
+          stripe_disabled_reason?: string | null
           stripe_onboarding_status?: string
+          stripe_payouts_enabled?: boolean
+          stripe_requirements_currently_due?: Json
+          stripe_requirements_eventually_due?: Json
           total_reviews?: number | null
           updated_at?: string | null
           user_id?: string

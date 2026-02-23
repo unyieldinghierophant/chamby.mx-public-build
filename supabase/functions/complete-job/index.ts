@@ -182,19 +182,43 @@ async function triggerEscrowRelease(
       return;
     }
 
-    // Check provider has Stripe account
+    // Check provider has Stripe account AND payouts enabled
     const { data: provider } = await supabase
       .from("providers")
-      .select("stripe_account_id, stripe_onboarding_status")
+      .select("stripe_account_id, stripe_onboarding_status, stripe_payouts_enabled")
       .eq("user_id", providerId)
       .single();
 
-    if (!provider?.stripe_account_id || provider.stripe_onboarding_status !== "enabled") {
-      log2("Provider not ready for payout, marking as ready_to_release", { providerId });
+    if (
+      !provider?.stripe_account_id ||
+      provider.stripe_onboarding_status !== "enabled" ||
+      !provider.stripe_payouts_enabled
+    ) {
+      log2("Provider not payout-enabled, marking as awaiting_provider_onboarding", { providerId });
+
+      // Create payout record in pending state
+      await supabase.from("payouts").insert({
+        invoice_id: invoice.id,
+        provider_id: providerId,
+        amount: invoice.subtotal_provider,
+        status: "awaiting_provider_onboarding",
+      });
+
       await supabase
         .from("invoices")
         .update({ status: "ready_to_release", updated_at: new Date().toISOString() })
         .eq("id", invoice.id);
+
+      // Notify provider
+      await supabase.from("notifications").insert({
+        user_id: providerId,
+        type: "payout_pending_onboarding",
+        title: "Pago pendiente",
+        message: "Completa tu verificación de Stripe para recibir tu pago.",
+        link: "/provider-portal/account",
+        data: { job_id: jobId },
+      });
+
       return;
     }
 
