@@ -87,7 +87,8 @@ serve(async (req) => {
     }
 
     // Create new Express account
-    const account = await stripe.accounts.create({
+    // We strictly set business_type to 'individual' to avoid company onboarding
+    const accountParams: any = {
       type: "express",
       country: "MX",
       email: provider.business_email || user.email,
@@ -100,7 +101,25 @@ serve(async (req) => {
         providerId: provider.id,
         userId: user.id,
       },
-    });
+      // Pre-fill individual details to speed up onboarding
+      individual: {
+        email: provider.business_email || user.email,
+      }
+    };
+
+    // Try to pre-fill name if available
+    const nameToUse = provider.display_name || user.user_metadata?.full_name;
+    if (nameToUse) {
+      const parts = nameToUse.trim().split(/\s+/);
+      if (parts.length > 0) {
+        accountParams.individual.first_name = parts[0];
+        if (parts.length > 1) {
+          accountParams.individual.last_name = parts.slice(1).join(' ');
+        }
+      }
+    }
+
+    const account = await stripe.accounts.create(accountParams);
 
     logStep("Stripe Connect account created", { accountId: account.id });
 
