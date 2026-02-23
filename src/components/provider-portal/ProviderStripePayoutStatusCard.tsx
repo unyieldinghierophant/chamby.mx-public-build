@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -77,6 +77,33 @@ const ProviderStripePayoutStatusCard = ({
 }: Props) => {
   const [loading, setLoading] = useState(false);
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const syncAttempted = useRef(false);
+
+  // Auto-sync when card loads if provider has stripe_account_id but fields look stale
+  useEffect(() => {
+    if (syncAttempted.current) return;
+    if (!stripeAccountId) return;
+    // If status is not "enabled" and we have no currently_due data, trigger a sync
+    const isStale =
+      stripeOnboardingStatus !== "enabled" &&
+      stripeCurrentlyDue.length === 0 &&
+      !stripePayoutsEnabled;
+    if (!isStale) return;
+
+    syncAttempted.current = true;
+    setSyncing(true);
+
+    supabase.functions
+      .invoke("sync-stripe-status")
+      .then(() => {
+        onStatusChange?.();
+      })
+      .catch(() => {
+        // Silently fail — card still works with existing data
+      })
+      .finally(() => setSyncing(false));
+  }, [stripeAccountId, stripeOnboardingStatus, stripeCurrentlyDue, stripePayoutsEnabled, onStatusChange]);
 
   const handleConnectStripe = async () => {
     setLoading(true);
@@ -148,7 +175,9 @@ const ProviderStripePayoutStatusCard = ({
                   : "Activa tus pagos"}
               </p>
               <p className="text-[10px] text-muted-foreground truncate">
-                {status === "enabled"
+                {syncing
+                  ? "Actualizando estatus…"
+                  : status === "enabled"
                   ? "Depósitos automáticos"
                   : hasRequirements
                   ? `${stripeCurrentlyDue.length} dato(s) faltante(s)`
@@ -234,7 +263,9 @@ const ProviderStripePayoutStatusCard = ({
                 )}
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {status === "enabled"
+                {syncing
+                  ? "Actualizando estatus de Stripe…"
+                  : status === "enabled"
                   ? "Ya puedes recibir depósitos automáticos."
                   : hasRequirements
                   ? "Stripe necesita los siguientes datos para activar tus pagos."

@@ -932,6 +932,33 @@ export type Database = {
         }
         Relationships: []
       }
+      stripe_sync_logs: {
+        Row: {
+          created_at: string
+          error: string | null
+          id: string
+          provider_id: string
+          status: string
+          stripe_account_id: string
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          provider_id: string
+          status: string
+          stripe_account_id: string
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          provider_id?: string
+          status?: string
+          stripe_account_id?: string
+        }
+        Relationships: []
+      }
       support_messages: {
         Row: {
           created_at: string
