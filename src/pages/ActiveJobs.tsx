@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { PaymentStatusBadge } from "@/components/PaymentStatusBadge";
 import { ClientVisitConfirmation } from "@/components/ClientVisitConfirmation";
 import { getVisitFeeStatus, getInvoiceStatus } from "@/utils/jobPaymentStatus";
-import { DISPLAY } from "@/utils/visitPricing";
+import { VISIT_DISPLAY, VAT_LABEL } from "@/lib/pricing";
 import Header from "@/components/Header";
 import { toast } from "sonner";
 import { startBooking } from "@/lib/booking";
@@ -468,15 +468,15 @@ const ActiveJobs = () => {
                       <p className="text-sm font-medium text-muted-foreground">Desglose de visita</p>
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Visita</span>
-                        <span>{DISPLAY.baseFee}</span>
+                        <span>{VISIT_DISPLAY.base}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">IVA (16%)</span>
-                        <span>{DISPLAY.iva}</span>
+                        <span className="text-muted-foreground">{VAT_LABEL}</span>
+                        <span>{VISIT_DISPLAY.vat}</span>
                       </div>
                       <div className="flex justify-between text-sm font-semibold border-t pt-1">
                         <span>Total</span>
-                        <span>{DISPLAY.customerTotal}</span>
+                        <span>{VISIT_DISPLAY.total}</span>
                       </div>
                     </div>
                   </div>

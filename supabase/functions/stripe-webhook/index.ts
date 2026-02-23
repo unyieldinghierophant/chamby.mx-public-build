@@ -104,7 +104,9 @@ serve(async (req) => {
             logStep("Job updated - visit fee paid", { jobId });
           }
 
-          // Record in payments ledger
+          // Record in payments ledger with IVA breakdown
+          const baseCents = metadata.base_amount_cents ? parseInt(metadata.base_amount_cents) : null;
+          const vatCents = metadata.vat_amount_cents ? parseInt(metadata.vat_amount_cents) : null;
           await supabaseClient
             .from("payments")
             .insert({
@@ -117,6 +119,10 @@ serve(async (req) => {
               type: "visit_fee",
               status: "succeeded",
               metadata: metadata,
+              base_amount_cents: baseCents,
+              vat_amount_cents: vatCents,
+              total_amount_cents: session.amount_total || 0,
+              pricing_version: metadata.pricing_version || "visit_v1",
             });
 
           // Create notification for client

@@ -164,6 +164,8 @@ export type Database = {
           total_customer_amount: number
           updated_at: string | null
           user_id: string
+          vat_amount: number
+          vat_rate: number
         }
         Insert: {
           chamby_commission_amount?: number
@@ -180,6 +182,8 @@ export type Database = {
           total_customer_amount?: number
           updated_at?: string | null
           user_id: string
+          vat_amount?: number
+          vat_rate?: number
         }
         Update: {
           chamby_commission_amount?: number
@@ -196,6 +200,8 @@ export type Database = {
           total_customer_amount?: number
           updated_at?: string | null
           user_id?: string
+          vat_amount?: number
+          vat_rate?: number
         }
         Relationships: [
           {
@@ -458,45 +464,57 @@ export type Database = {
       payments: {
         Row: {
           amount: number
+          base_amount_cents: number | null
           created_at: string
           currency: string
           id: string
           job_id: string
           metadata: Json | null
+          pricing_version: string | null
           provider_id: string | null
           status: string
           stripe_checkout_session_id: string | null
           stripe_payment_intent_id: string | null
+          total_amount_cents: number | null
           type: string
           updated_at: string
+          vat_amount_cents: number | null
         }
         Insert: {
           amount: number
+          base_amount_cents?: number | null
           created_at?: string
           currency?: string
           id?: string
           job_id: string
           metadata?: Json | null
+          pricing_version?: string | null
           provider_id?: string | null
           status?: string
           stripe_checkout_session_id?: string | null
           stripe_payment_intent_id?: string | null
+          total_amount_cents?: number | null
           type: string
           updated_at?: string
+          vat_amount_cents?: number | null
         }
         Update: {
           amount?: number
+          base_amount_cents?: number | null
           created_at?: string
           currency?: string
           id?: string
           job_id?: string
           metadata?: Json | null
+          pricing_version?: string | null
           provider_id?: string | null
           status?: string
           stripe_checkout_session_id?: string | null
           stripe_payment_intent_id?: string | null
+          total_amount_cents?: number | null
           type?: string
           updated_at?: string
+          vat_amount_cents?: number | null
         }
         Relationships: [
           {

@@ -45,7 +45,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { DISPLAY } from "@/utils/visitPricing";
+import { VISIT_DISPLAY, VAT_LABEL } from "@/lib/pricing";
 
 interface JobDetail {
   id: string;
@@ -496,7 +496,7 @@ const JobTimelinePage = () => {
               <div className="flex items-center gap-2">
                 <DollarSign className="w-5 h-5 text-primary" />
                 <span className="text-base font-bold text-foreground">
-                  Tu ganancia garantizada: {DISPLAY.providerPayout}
+                  Tu ganancia garantizada: {VISIT_DISPLAY.providerNet}
                 </span>
               </div>
 
@@ -514,19 +514,19 @@ const JobTimelinePage = () => {
                 <div className="mt-2 space-y-1.5 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Total cobrado al cliente</span>
-                    <span className="font-medium">{DISPLAY.customerTotal}</span>
+                    <span className="font-medium">{VISIT_DISPLAY.total}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Comisión Chamby</span>
-                    <span className="text-destructive">-{DISPLAY.chambyFee}</span>
+                    <span className="text-destructive">-{VISIT_DISPLAY.platformFee}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">IVA (16%)</span>
-                    <span className="text-destructive">-{DISPLAY.iva}</span>
+                    <span className="text-muted-foreground">{VAT_LABEL}</span>
+                    <span className="text-destructive">-{VISIT_DISPLAY.vat}</span>
                   </div>
                   <div className="border-t border-border/50 pt-1.5 flex justify-between">
                     <span className="font-semibold text-foreground">Tu ganancia neta</span>
-                    <span className="font-bold text-primary">{DISPLAY.providerPayout}</span>
+                    <span className="font-bold text-primary">{VISIT_DISPLAY.providerNet}</span>
                   </div>
                 </div>
               </details>

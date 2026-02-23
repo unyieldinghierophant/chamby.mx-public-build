@@ -104,8 +104,11 @@ serve(async (req) => {
       logStep("Reset visit_fee_paid to false");
     }
 
-    const visitFeeAmount = job.visit_fee_amount || 350;
-    logStep("Job validated", { jobId: job.id, title: job.title, visitFeeAmount, clientId: job.client_id });
+    const visitFeeBase = job.visit_fee_amount || 350; // base in pesos
+    const VAT_RATE = 0.16;
+    const visitFeeVat = Math.round(visitFeeBase * VAT_RATE * 100) / 100;
+    const visitFeeTotal = visitFeeBase + visitFeeVat; // total with IVA
+    logStep("Job validated", { jobId: job.id, title: job.title, visitFeeBase, visitFeeVat, visitFeeTotal, clientId: job.client_id });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
@@ -178,24 +181,28 @@ serve(async (req) => {
     }
 
     // Step 2: Create PaymentIntent with manual capture
-    // Using MXN (Mexican Pesos) - amount is in centavos
+    // Using MXN (Mexican Pesos) - amount is in centavos, includes IVA
+    const amountCentavos = Math.round(visitFeeTotal * 100);
     logStep("Creating PaymentIntent with manual capture", { 
-      amount: visitFeeAmount * 100, 
+      amountCentavos, 
       currency: "mxn",
       customerId: stripeCustomerId 
     });
 
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: visitFeeAmount * 100, // Convert to centavos (MXN)
+      amount: amountCentavos,
       currency: "mxn",
       customer: stripeCustomerId,
       capture_method: "manual",
       automatic_payment_methods: { enabled: true },
-      description: `Visit fee authorization for job ${jobId}`,
+      description: `Visit fee authorization (base $${visitFeeBase} + IVA $${visitFeeVat}) for job ${jobId}`,
       metadata: {
         jobId,
         userId: user.id,
-        type: "visit_fee_authorization"
+        type: "visit_fee_authorization",
+        base_amount_cents: String(Math.round(visitFeeBase * 100)),
+        vat_amount_cents: String(Math.round(visitFeeVat * 100)),
+        pricing_version: "visit_v2_iva16",
       }
     });
 
@@ -222,7 +229,9 @@ serve(async (req) => {
       JSON.stringify({ 
         client_secret: paymentIntent.client_secret,
         payment_intent_id: paymentIntent.id,
-        amount: visitFeeAmount,
+        amount: visitFeeTotal,
+        base_amount: visitFeeBase,
+        vat_amount: visitFeeVat,
         currency: "mxn"
       }),
       {
