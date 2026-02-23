@@ -75,6 +75,15 @@ serve(async (req) => {
           onboardingStatus = "enabled";
         }
 
+        // Fetch previous DB state to detect transitions
+        const { data: prevProvider } = await supabaseClient
+          .from("providers")
+          .select("stripe_payouts_enabled, user_id")
+          .eq("stripe_account_id", account.id)
+          .maybeSingle();
+
+        const wasPreviouslyDisabled = prevProvider && !prevProvider.stripe_payouts_enabled;
+
         const updatePayload = {
           stripe_onboarding_status: onboardingStatus,
           stripe_charges_enabled: chargesEnabled,
@@ -98,6 +107,54 @@ serve(async (req) => {
             status: onboardingStatus,
             currentlyDue,
           });
+
+          // ── Edge transition: payouts became enabled ──
+          if (wasPreviouslyDisabled && payoutsEnabled && prevProvider) {
+            logStep("Payout transition: disabled → enabled", { providerId: prevProvider.user_id });
+
+            // Find pending payouts for this provider
+            const { data: pendingPayouts } = await supabaseClient
+              .from("payouts")
+              .select("id")
+              .eq("provider_id", prevProvider.user_id)
+              .eq("status", "awaiting_provider_onboarding");
+
+            const pendingCount = pendingPayouts?.length ?? 0;
+
+            // Notify provider
+            await supabaseClient.from("notifications").insert({
+              user_id: prevProvider.user_id,
+              type: "payout_enabled",
+              title: "¡Ya puedes recibir pagos!",
+              message: pendingCount > 0
+                ? `Listo. Tu verificación fue aprobada. Tienes ${pendingCount} pago(s) pendiente(s) por liberar.`
+                : "Tu verificación de Stripe fue completada. Ya puedes recibir pagos.",
+              link: "/provider-portal/account",
+              data: { pending_payouts: pendingCount },
+            });
+
+            // Notify admins
+            if (pendingCount > 0) {
+              const { data: admins } = await supabaseClient
+                .from("user_roles")
+                .select("user_id")
+                .eq("role", "admin");
+
+              if (admins && admins.length > 0) {
+                const adminNotifs = admins.map((a: { user_id: string }) => ({
+                  user_id: a.user_id,
+                  type: "admin_provider_payout_enabled",
+                  title: "Proveedor habilitado para pagos",
+                  message: `Proveedor habilitado. ${pendingCount} payout(s) listos para liberar.`,
+                  link: "/admin/payouts",
+                  data: { provider_id: prevProvider.user_id, pending_payouts: pendingCount },
+                }));
+                await supabaseClient.from("notifications").insert(adminNotifs);
+              }
+            }
+
+            logStep("Payout-enabled notifications sent", { providerId: prevProvider.user_id, pendingCount });
+          }
         }
         break;
       }

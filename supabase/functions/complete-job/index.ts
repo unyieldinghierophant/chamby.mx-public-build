@@ -185,7 +185,7 @@ async function triggerEscrowRelease(
     // Check provider has Stripe account AND payouts enabled
     const { data: provider } = await supabase
       .from("providers")
-      .select("stripe_account_id, stripe_onboarding_status, stripe_payouts_enabled")
+      .select("stripe_account_id, stripe_onboarding_status, stripe_payouts_enabled, stripe_requirements_currently_due")
       .eq("user_id", providerId)
       .single();
 
@@ -214,11 +214,35 @@ async function triggerEscrowRelease(
         user_id: providerId,
         type: "payout_pending_onboarding",
         title: "Pago pendiente",
-        message: "Completa tu verificación de Stripe para recibir tu pago.",
+        message: "Tu pago está listo, pero Stripe requiere verificación para liberarlo. Completa tu verificación desde tu cuenta.",
         link: "/provider-portal/account",
         data: { job_id: jobId },
       });
 
+      // Notify all admins about blocked payout
+      const currentlyDue = provider.stripe_requirements_currently_due ?? [];
+      const dueItems = Array.isArray(currentlyDue) ? currentlyDue : [];
+      const topItems = dueItems.slice(0, 3).join(", ") || "N/A";
+      const summary = `${dueItems.length} requisito(s) pendiente(s): ${topItems}`;
+
+      const { data: admins } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "admin");
+
+      if (admins && admins.length > 0) {
+        const adminNotifications = admins.map((a: { user_id: string }) => ({
+          user_id: a.user_id,
+          type: "admin_payout_blocked",
+          title: "Pago bloqueado por verificación",
+          message: `Proveedor ${providerId} no puede recibir pagos. ${summary}`,
+          link: "/admin/payouts",
+          data: { job_id: jobId, provider_id: providerId, missing_count: dueItems.length, top_items: dueItems.slice(0, 5) },
+        }));
+        await supabase.from("notifications").insert(adminNotifications);
+      }
+
+      log2("Payout blocked, notifications sent", { providerId, missingCount: dueItems.length });
       return;
     }
 
