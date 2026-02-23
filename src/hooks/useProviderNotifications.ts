@@ -11,6 +11,9 @@ const PROVIDER_NOTIFICATION_TYPES = [
   'payment',
   'review_received',
   'payout_completed',
+  'payout_released',
+  'payout_pending_onboarding',
+  'payout_enabled',
   'verification_approved',
   'verification_rejected',
   'reschedule_request',
@@ -19,6 +22,7 @@ const PROVIDER_NOTIFICATION_TYPES = [
   'visit_confirmed',
   'client_confirmed_visit',
   'invoice_paid',
+  'job_completion_pending',
 ];
 
 export const useProviderNotifications = () => {

@@ -95,6 +95,15 @@ serve(async (req) => {
 
     const account = await stripe.accounts.retrieve(targetProvider.stripe_account_id);
 
+    // Fetch current DB state for transition detection
+    const { data: currentDbState } = await supabase
+      .from("providers")
+      .select("stripe_payouts_enabled")
+      .eq("id", targetProvider.id)
+      .single();
+
+    const wasPreviouslyDisabled = currentDbState && !currentDbState.stripe_payouts_enabled;
+
     const chargesEnabled = account.charges_enabled ?? false;
     const payoutsEnabled = account.payouts_enabled ?? false;
     const detailsSubmitted = account.details_submitted ?? false;
@@ -126,6 +135,49 @@ serve(async (req) => {
       .eq("id", targetProvider.id);
 
     if (updateErr) throw new Error(`DB update failed: ${updateErr.message}`);
+
+    // ── Edge transition: payouts became enabled ──
+    if (wasPreviouslyDisabled && payoutsEnabled) {
+      logStep("Payout transition detected: disabled → enabled", { providerId: targetProvider.user_id });
+
+      const { data: pendingPayouts } = await supabase
+        .from("payouts")
+        .select("id")
+        .eq("provider_id", targetProvider.user_id)
+        .eq("status", "awaiting_provider_onboarding");
+
+      const pendingCount = pendingPayouts?.length ?? 0;
+
+      await supabase.from("notifications").insert({
+        user_id: targetProvider.user_id,
+        type: "payout_enabled",
+        title: "¡Ya puedes recibir pagos!",
+        message: pendingCount > 0
+          ? `Listo. Tu verificación fue aprobada. Tienes ${pendingCount} pago(s) pendiente(s) por liberar.`
+          : "Tu verificación de Stripe fue completada. Ya puedes recibir pagos.",
+        link: "/provider-portal/account",
+        data: { pending_payouts: pendingCount },
+      });
+
+      if (pendingCount > 0) {
+        const { data: admins } = await supabase
+          .from("user_roles")
+          .select("user_id")
+          .eq("role", "admin");
+
+        if (admins && admins.length > 0) {
+          const adminNotifs = admins.map((a: { user_id: string }) => ({
+            user_id: a.user_id,
+            type: "admin_provider_payout_enabled",
+            title: "Proveedor habilitado para pagos",
+            message: `Proveedor habilitado. ${pendingCount} payout(s) listos para liberar.`,
+            link: "/admin/payouts",
+            data: { provider_id: targetProvider.user_id, pending_payouts: pendingCount },
+          }));
+          await supabase.from("notifications").insert(adminNotifs);
+        }
+      }
+    }
 
     logStep("Sync complete", {
       providerId: targetProvider.id,
