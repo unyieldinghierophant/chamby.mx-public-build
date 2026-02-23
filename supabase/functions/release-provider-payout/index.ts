@@ -73,15 +73,15 @@ serve(async (req) => {
       // Get provider's stripe account
       const { data: provider } = await supabase
         .from("providers")
-        .select("stripe_account_id, stripe_onboarding_status")
+        .select("stripe_account_id, stripe_onboarding_status, stripe_payouts_enabled")
         .eq("user_id", payout.provider_id)
         .single();
 
       if (!provider?.stripe_account_id) {
         throw new Error("Provider has no Stripe connected account");
       }
-      if (provider.stripe_onboarding_status !== "enabled") {
-        throw new Error(`Provider onboarding status is '${provider.stripe_onboarding_status}', must be 'enabled'`);
+      if (!provider.stripe_payouts_enabled) {
+        throw new Error("Provider payouts not enabled by Stripe. Currently due requirements may still be pending.");
       }
 
       logStep("Creating transfer", {
@@ -139,15 +139,15 @@ serve(async (req) => {
       // Get provider's stripe account
       const { data: provider } = await supabase
         .from("providers")
-        .select("stripe_account_id, stripe_onboarding_status, user_id")
+        .select("stripe_account_id, stripe_onboarding_status, stripe_payouts_enabled, user_id")
         .eq("user_id", job.provider_id)
         .single();
 
       if (!provider?.stripe_account_id) {
         throw new Error("Provider has no Stripe connected account");
       }
-      if (provider.stripe_onboarding_status !== "enabled") {
-        throw new Error(`Provider onboarding not complete: ${provider.stripe_onboarding_status}`);
+      if (!provider.stripe_payouts_enabled) {
+        throw new Error("Provider payouts not enabled by Stripe. Requirements may still be pending.");
       }
 
       // Find unpaid payout for this job

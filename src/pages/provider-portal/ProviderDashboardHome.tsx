@@ -336,6 +336,8 @@ const ProviderDashboardHome = () => {
           <ProviderStripePayoutStatusCard
             stripeOnboardingStatus={providerProfile?.stripe_onboarding_status || "not_started"}
             stripeAccountId={providerProfile?.stripe_account_id || null}
+            stripePayoutsEnabled={(providerProfile as any)?.stripe_payouts_enabled ?? false}
+            stripeCurrentlyDue={((providerProfile as any)?.stripe_requirements_currently_due as string[]) ?? []}
             compact
           />
         </div>

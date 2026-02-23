@@ -54,24 +54,50 @@ serve(async (req) => {
       // ── Provider onboarding status ──────────────────────────
       case "account.updated": {
         const account = event.data.object as Stripe.Account;
-        logStep("Account updated", { accountId: account.id });
+        logStep("Account updated", {
+          accountId: account.id,
+          charges_enabled: account.charges_enabled,
+          payouts_enabled: account.payouts_enabled,
+          details_submitted: account.details_submitted,
+        });
+
+        const chargesEnabled = account.charges_enabled ?? false;
+        const payoutsEnabled = account.payouts_enabled ?? false;
+        const detailsSubmitted = account.details_submitted ?? false;
+
+        const requirements = account.requirements ?? {};
+        const currentlyDue = requirements.currently_due ?? [];
+        const eventuallyDue = requirements.eventually_due ?? [];
+        const disabledReason = requirements.disabled_reason ?? null;
 
         let onboardingStatus = "onboarding";
-        if (account.charges_enabled && account.payouts_enabled) {
+        if (payoutsEnabled && chargesEnabled) {
           onboardingStatus = "enabled";
-        } else if (account.details_submitted) {
-          onboardingStatus = "onboarding";
         }
+
+        const updatePayload = {
+          stripe_onboarding_status: onboardingStatus,
+          stripe_charges_enabled: chargesEnabled,
+          stripe_payouts_enabled: payoutsEnabled,
+          stripe_details_submitted: detailsSubmitted,
+          stripe_requirements_currently_due: currentlyDue,
+          stripe_requirements_eventually_due: eventuallyDue,
+          stripe_disabled_reason: disabledReason,
+        };
 
         const { error: providerUpdateErr } = await supabaseClient
           .from("providers")
-          .update({ stripe_onboarding_status: onboardingStatus })
+          .update(updatePayload)
           .eq("stripe_account_id", account.id);
 
         if (providerUpdateErr) {
           logStep("Failed to update provider onboarding status", { error: providerUpdateErr.message });
         } else {
-          logStep("Provider onboarding status updated", { accountId: account.id, status: onboardingStatus });
+          logStep("Provider onboarding status updated", {
+            accountId: account.id,
+            status: onboardingStatus,
+            currentlyDue,
+          });
         }
         break;
       }
