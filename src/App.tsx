@@ -66,6 +66,7 @@ import RoleSelection from "./pages/RoleSelection";
 import Blog from "./pages/Blog";
 import HelpCenter from "./pages/HelpCenter";
 import ActiveJobs from "./pages/ActiveJobs";
+import Messages from "./pages/Messages";
 import FindingProvider from "./pages/FindingProvider";
 import AdminDashboard from "./pages/AdminDashboard";
 import InvoicePayPage from "./pages/InvoicePayPage";
@@ -165,6 +166,7 @@ const App = () => {
               <Route path="/booking/:jobId" element={<BookingForm />} />
               <Route path="/esperando-proveedor" element={<EsperandoProveedor />} />
               <Route path="/active-jobs" element={<ActiveJobs />} />
+              <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
               <Route path="/finding-provider" element={<FindingProvider />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/help-center" element={<HelpCenter />} />

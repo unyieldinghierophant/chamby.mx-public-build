@@ -428,7 +428,7 @@ const ActiveJobs = () => {
                     </div>
                     <Button
                       className="w-full"
-                      onClick={() => navigate(`/messages`)}
+                      onClick={() => navigate(`/messages?jobId=${selectedJob.id}`)}
                     >
                       <MessageCircle className="mr-2 h-4 w-4" />
                       Mensaje
