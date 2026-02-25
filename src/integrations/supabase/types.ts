@@ -154,11 +154,14 @@ export type Database = {
           created_at: string | null
           id: string
           job_id: string
+          notes: string | null
           parent_invoice_id: string | null
           pdf_url: string | null
+          proposed_visit_window: unknown
           provider_id: string
           provider_notes: string | null
           rejection_reason: string | null
+          requires_followup_visit: boolean
           revision_number: number
           status: string
           stripe_payment_intent_id: string | null
@@ -166,6 +169,7 @@ export type Database = {
           total_customer_amount: number
           updated_at: string | null
           user_id: string
+          valid_until: string | null
           vat_amount: number
           vat_rate: number
         }
@@ -174,11 +178,14 @@ export type Database = {
           created_at?: string | null
           id?: string
           job_id: string
+          notes?: string | null
           parent_invoice_id?: string | null
           pdf_url?: string | null
+          proposed_visit_window?: unknown
           provider_id: string
           provider_notes?: string | null
           rejection_reason?: string | null
+          requires_followup_visit?: boolean
           revision_number?: number
           status?: string
           stripe_payment_intent_id?: string | null
@@ -186,6 +193,7 @@ export type Database = {
           total_customer_amount?: number
           updated_at?: string | null
           user_id: string
+          valid_until?: string | null
           vat_amount?: number
           vat_rate?: number
         }
@@ -194,11 +202,14 @@ export type Database = {
           created_at?: string | null
           id?: string
           job_id?: string
+          notes?: string | null
           parent_invoice_id?: string | null
           pdf_url?: string | null
+          proposed_visit_window?: unknown
           provider_id?: string
           provider_notes?: string | null
           rejection_reason?: string | null
+          requires_followup_visit?: boolean
           revision_number?: number
           status?: string
           stripe_payment_intent_id?: string | null
@@ -206,6 +217,7 @@ export type Database = {
           total_customer_amount?: number
           updated_at?: string | null
           user_id?: string
+          valid_until?: string | null
           vat_amount?: number
           vat_rate?: number
         }
