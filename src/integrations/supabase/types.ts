@@ -154,10 +154,12 @@ export type Database = {
           created_at: string | null
           id: string
           job_id: string
+          parent_invoice_id: string | null
           pdf_url: string | null
           provider_id: string
           provider_notes: string | null
           rejection_reason: string | null
+          revision_number: number
           status: string
           stripe_payment_intent_id: string | null
           subtotal_provider: number
@@ -172,10 +174,12 @@ export type Database = {
           created_at?: string | null
           id?: string
           job_id: string
+          parent_invoice_id?: string | null
           pdf_url?: string | null
           provider_id: string
           provider_notes?: string | null
           rejection_reason?: string | null
+          revision_number?: number
           status?: string
           stripe_payment_intent_id?: string | null
           subtotal_provider?: number
@@ -190,10 +194,12 @@ export type Database = {
           created_at?: string | null
           id?: string
           job_id?: string
+          parent_invoice_id?: string | null
           pdf_url?: string | null
           provider_id?: string
           provider_notes?: string | null
           rejection_reason?: string | null
+          revision_number?: number
           status?: string
           stripe_payment_intent_id?: string | null
           subtotal_provider?: number
@@ -209,6 +215,13 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_parent_invoice_id_fkey"
+            columns: ["parent_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
         ]
