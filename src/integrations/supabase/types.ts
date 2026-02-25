@@ -256,6 +256,9 @@ export type Database = {
           duration_hours: number | null
           exact_time: string | null
           final_price: number | null
+          followup_invoice_id: string | null
+          followup_scheduled_at: string | null
+          followup_status: string | null
           has_open_dispute: boolean
           id: string
           location: string | null
@@ -302,6 +305,9 @@ export type Database = {
           duration_hours?: number | null
           exact_time?: string | null
           final_price?: number | null
+          followup_invoice_id?: string | null
+          followup_scheduled_at?: string | null
+          followup_status?: string | null
           has_open_dispute?: boolean
           id?: string
           location?: string | null
@@ -348,6 +354,9 @@ export type Database = {
           duration_hours?: number | null
           exact_time?: string | null
           final_price?: number | null
+          followup_invoice_id?: string | null
+          followup_scheduled_at?: string | null
+          followup_status?: string | null
           has_open_dispute?: boolean
           id?: string
           location?: string | null
@@ -377,7 +386,15 @@ export type Database = {
           visit_fee_amount?: number | null
           visit_fee_paid?: boolean | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "jobs_followup_invoice_id_fkey"
+            columns: ["followup_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       messages: {
         Row: {
