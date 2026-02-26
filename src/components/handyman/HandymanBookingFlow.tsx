@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { VISIT_BASE_FEE } from "@/lib/pricing";
 import { Button } from "@/components/ui/button";
 import { ModernButton } from "@/components/ui/modern-button";
 import { Input } from "@/components/ui/input";
@@ -375,7 +376,7 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
           problem: richDescription,
           location: formData.serviceAddress || '',
           photos: formData.photos.filter(f => f.uploaded).map(f => f.url),
-          rate: 1,
+          rate: VISIT_BASE_FEE,
           status: 'active',
           scheduled_at: scheduledAt,
           time_preference: timePreference,

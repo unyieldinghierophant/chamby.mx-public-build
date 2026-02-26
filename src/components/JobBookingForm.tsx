@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { VISIT_BASE_FEE } from "@/lib/pricing";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
@@ -509,7 +510,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
           problem: details,
           location: location,
           photos: uploadedFiles.filter(f => f.uploaded).map(f => f.url),
-          rate: 1,
+          rate: VISIT_BASE_FEE,
           status: 'active',
           scheduled_at: scheduledDate.toISOString(),
           time_preference: selectedTimeSlots.join(', '),

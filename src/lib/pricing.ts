@@ -16,6 +16,9 @@ export const VISIT_TOTAL_CENTS      = VISIT_BASE_CENTS + VISIT_VAT_CENTS;      /
 export const VISIT_PROVIDER_NET_CENTS  = 25_000; // $250.00 MXN
 export const VISIT_PLATFORM_FEE_CENTS  = 10_000; // $100.00 MXN
 
+// ── Peso-denominated values (for DB columns stored in pesos) ──
+export const VISIT_BASE_FEE = VISIT_BASE_CENTS / 100; // 350
+
 // ── Generic Helpers ─────────────────────────────────────────
 
 /** Calculate VAT in centavos from a base amount in centavos */
