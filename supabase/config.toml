@@ -119,3 +119,6 @@ verify_jwt = false
 
 [functions.send-invoice]
 verify_jwt = true
+
+[functions.expire-invoices]
+verify_jwt = false
