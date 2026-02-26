@@ -234,7 +234,6 @@ const ProviderDashboardHome = () => {
   };
 
   const { status, admin_notes, documentsCount } = verificationDetails;
-  const showVerificationBanner = status !== 'verified' && !verificationDismissed;
 
   // Conditional stats display - hide if both are zero
   const showStats = stats.activeJobs > 0 || earnings.total > 0;
@@ -298,37 +297,56 @@ const ProviderDashboardHome = () => {
       />
 
       {/* Verification Banner - Yellow pill below header */}
-      {showVerificationBanner && (
-        <div className="px-4 mt-2 flex justify-center">
-          <motion.button
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            onClick={() => navigate("/provider-portal/verification")}
-            className={cn(
-              "inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-[11px] font-medium border transition-colors",
-              status === 'rejected' 
-                ? "border-destructive/50 bg-destructive/5 text-destructive" 
-                : status === 'pending'
-                  ? "border-yellow-400 bg-yellow-50 text-yellow-700 dark:border-yellow-500/50 dark:bg-yellow-900/20 dark:text-yellow-400"
-                  : "border-muted-foreground/30 bg-muted/30 text-muted-foreground"
-            )}
-          >
-            {status === 'rejected' ? (
-              <XCircle className="w-3 h-3 flex-shrink-0" />
-            ) : status === 'pending' ? (
-              <Clock className="w-3 h-3 flex-shrink-0" />
-            ) : (
-              <AlertCircle className="w-3 h-3 flex-shrink-0" />
-            )}
-            <span>
-              {status === 'rejected' ? 'Verificación rechazada' :
-               status === 'pending' ? 'Verificación en revisión' :
-               'Completa tu verificación'}
-            </span>
-            <span className="opacity-60">→</span>
-          </motion.button>
-        </div>
-      )}
+      {(() => {
+        const isVerified = status === 'verified';
+        const stripeReady = providerProfile?.stripe_onboarding_status === 'enabled';
+        
+        // Determine banner message
+        let bannerMessage: string | null = null;
+        let bannerIcon: React.ReactNode = null;
+        let bannerStyle = '';
+
+        if (status === 'rejected') {
+          bannerMessage = 'Verificación rechazada — revisa tus documentos';
+          bannerIcon = <XCircle className="w-3 h-3 flex-shrink-0" />;
+          bannerStyle = 'border-destructive/50 bg-destructive/5 text-destructive';
+        } else if (status === 'pending' && documentsCount > 0) {
+          bannerMessage = 'Documentos pendientes de revisión';
+          bannerIcon = <Clock className="w-3 h-3 flex-shrink-0" />;
+          bannerStyle = 'border-yellow-400 bg-yellow-50 text-yellow-700 dark:border-yellow-500/50 dark:bg-yellow-900/20 dark:text-yellow-400';
+        } else if (!isVerified && documentsCount === 0) {
+          bannerMessage = 'Sube tus documentos para verificarte';
+          bannerIcon = <AlertCircle className="w-3 h-3 flex-shrink-0" />;
+          bannerStyle = 'border-muted-foreground/30 bg-muted/30 text-muted-foreground';
+        } else if (isVerified && !stripeReady) {
+          bannerMessage = 'Completa tu cuenta de Stripe para recibir pagos';
+          bannerIcon = <DollarSign className="w-3 h-3 flex-shrink-0" />;
+          bannerStyle = 'border-primary/50 bg-primary/5 text-primary';
+        }
+
+        if (!bannerMessage || verificationDismissed) return null;
+
+        return (
+          <div className="px-4 mt-2 flex justify-center">
+            <motion.button
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              onClick={() => isVerified && !stripeReady
+                ? navigate("/provider-portal/account")
+                : navigate("/provider-portal/verification")
+              }
+              className={cn(
+                "inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-[11px] font-medium border transition-colors",
+                bannerStyle
+              )}
+            >
+              {bannerIcon}
+              <span>{bannerMessage}</span>
+              <span className="opacity-60">→</span>
+            </motion.button>
+          </div>
+        );
+      })()}
 
       {/* Stripe Payout Status Tile */}
       {providerProfile?.stripe_onboarding_status !== "enabled" && (
