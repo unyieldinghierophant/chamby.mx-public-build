@@ -236,8 +236,9 @@ const UserLanding = () => {
       </header>
 
       {/* Active Job Banner - in flow, below header */}
-      <div className="pt-16 px-4">
+      <div className="pt-16 px-4 space-y-2">
         <ClientActiveJobBanner />
+        <SearchingJobBanner />
       </div>
       
       {/* Hero Section with Interactive Background - matching Provider Landing */}
@@ -302,8 +303,6 @@ const UserLanding = () => {
       </section>
 
       <main className="container mx-auto px-4 pb-24">
-        {/* Searching job banner */}
-        <SearchingJobBanner />
 
         {/* Category Tabs - Using shared component */}
         <div className="mb-8 md:mb-12 -mt-8">
