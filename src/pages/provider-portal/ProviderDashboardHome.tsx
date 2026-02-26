@@ -27,6 +27,8 @@ import {
   RefreshCw,
   ChevronRight,
   Menu,
+  Power,
+  Shield,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -43,6 +45,7 @@ import ProviderStripePayoutStatusCard from "@/components/provider-portal/Provide
 
 import { useSidebar } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { toFixedSafe } from "@/utils/formatSafe";
 
 interface VerificationDetails {
   status: 'none' | 'pending' | 'verified' | 'rejected';
@@ -111,12 +114,9 @@ const ProviderDashboardHome = () => {
   // Show popup alert when there are available jobs
   useEffect(() => {
     if (!availableJobsLoading && availableJobs.length > 0) {
-      // Only show alert once per session
       const alertShownKey = 'provider_jobs_alert_shown';
       const lastShown = sessionStorage.getItem(alertShownKey);
       const now = Date.now();
-      
-      // Show alert if not shown in the last 5 minutes
       if (!lastShown || now - parseInt(lastShown) > 5 * 60 * 1000) {
         setShowJobsAlert(true);
         sessionStorage.setItem(alertShownKey, now.toString());
@@ -132,19 +132,16 @@ const ProviderDashboardHome = () => {
 
   const fetchVerificationDetails = async () => {
     if (!user) return;
-    
     try {
       const { data: details } = await supabase
         .from('provider_details')
         .select('verification_status, admin_notes')
         .eq('user_id', user.id)
         .maybeSingle();
-      
       const { count } = await supabase
         .from('documents')
         .select('id', { count: 'exact' })
         .eq('provider_id', user.id);
-
       setVerificationDetails({
         status: (details?.verification_status as 'none' | 'pending' | 'verified' | 'rejected') || 'none',
         admin_notes: details?.admin_notes || null,
@@ -157,41 +154,32 @@ const ProviderDashboardHome = () => {
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch earnings using user.id
       const { data: payments } = await supabase
         .from("jobs")
         .select("total_amount")
         .eq("provider_id", user?.id)
         .eq("status", "completed");
-
       if (payments) {
         const total = payments.reduce((sum, p) => sum + Number(p.total_amount || 0), 0);
         setEarnings({ total, pending: 0 });
       }
-
-      // Fetch stats using user.id
       const { data: completedJobs } = await supabase
         .from("jobs")
         .select("id", { count: "exact" })
         .eq("provider_id", user?.id)
         .eq("status", "completed");
-
       const { data: activeJobsData } = await supabase
         .from("jobs")
         .select("id", { count: "exact" })
         .eq("provider_id", user?.id)
         .in("status", ["pending", "confirmed", "in_progress", "assigned", "accepted", "en_route", "on_site", "quoted"]);
-
-      // Fetch reviews
       const { data: reviews } = await supabase
         .from("reviews")
         .select("rating")
         .eq("provider_id", user?.id);
-
       const avgRating = reviews?.length
         ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
         : 0;
-
       setStats({
         completedJobs: completedJobs?.length || 0,
         activeJobs: activeJobsData?.length || 0,
@@ -211,7 +199,6 @@ const ProviderDashboardHome = () => {
     setTimeout(() => setIsRefreshing(false), 500);
   }, [refetch]);
 
-  // Eligibility-gated accept
   const handleGatedAccept = useCallback(async (jobId: string) => {
     if (!eligible) {
       setShowEligibilityModal(true);
@@ -235,57 +222,158 @@ const ProviderDashboardHome = () => {
 
   const { status, admin_notes, documentsCount } = verificationDetails;
 
-  // Conditional stats display - hide if both are zero
-  const showStats = stats.activeJobs > 0 || earnings.total > 0;
-
   return (
-    <div className="min-h-screen bg-muted/30 overflow-x-hidden w-full max-w-full">
-      {/* Welcome Card - Compact below header */}
-      <div className="bg-background border-b border-border/50">
-        <div className="px-4 py-3">
-          <div className="flex items-center gap-3">
-            {/* Avatar */}
-            <div className="relative flex-shrink-0">
-              <Avatar className="w-10 h-10 border-2 border-background shadow-sm">
-                <AvatarImage 
-                  src={providerProfile?.avatar_url || profile?.avatar_url} 
-                  alt={profile?.full_name || 'Provider'} 
-                />
-                <AvatarFallback className="text-xs font-bold bg-primary/10 text-primary">
-                  {getInitials(profile?.full_name || providerProfile?.display_name || 'CH')}
-                </AvatarFallback>
-              </Avatar>
-              {providerProfile?.verification_status === 'verified' && (
-                <div className="absolute -bottom-0.5 -right-0.5 bg-background rounded-full p-0.5">
-                  <BadgeCheck className="w-3.5 h-3.5 text-primary fill-primary/20" />
-                </div>
-              )}
-            </div>
+    <div className="min-h-screen overflow-x-hidden w-full max-w-full" style={{ background: '#f2f6fd', fontFamily: "'Nunito', sans-serif" }}>
+      
+      {/* ─── DARK HERO HEADER ─── */}
+      <div className="relative overflow-hidden" style={{ background: '#060e1a' }}>
+        {/* Animated mesh gradient */}
+        <div className="absolute inset-0" style={{
+          background: `
+            radial-gradient(ellipse 80% 60% at 100% 0%, rgba(12,85,173,0.6) 0%, transparent 60%),
+            radial-gradient(ellipse 60% 80% at 0% 100%, rgba(46,143,255,0.25) 0%, transparent 50%),
+            radial-gradient(ellipse 40% 40% at 50% 50%, rgba(26,111,212,0.15) 0%, transparent 70%)
+          `
+        }} />
+        {/* Dot grid texture */}
+        <div className="absolute inset-0 pointer-events-none" style={{
+          backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px)',
+          backgroundSize: '24px 24px',
+        }} />
 
-            {/* Greeting + optional rating */}
-            <div className="flex-1 min-w-0">
-              <h1 className="text-base font-bold text-foreground truncate font-jakarta">
-                ¡Hola, {profile?.full_name?.split(' ')[0] || 'Chambynauta'}!
-              </h1>
-              {stats.rating > 0 && (
-                <span className="flex items-center gap-1 text-[11px] text-muted-foreground mt-0.5">
-                  <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                  <span className="font-medium text-foreground/70">{Number(stats.rating ?? 0).toFixed(1)}</span>
+        <div className="relative z-10 px-5 pt-14 pb-6 md:pt-8">
+          {/* Top row: avatar + greeting + menu */}
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-3">
+              {/* Avatar */}
+              <div className="relative flex-shrink-0">
+                <Avatar className="w-[46px] h-[46px] rounded-[14px] border-2 border-white/20">
+                  <AvatarImage
+                    src={providerProfile?.avatar_url || profile?.avatar_url}
+                    alt={profile?.full_name || 'Provider'}
+                  />
+                  <AvatarFallback 
+                    className="rounded-[14px] text-white font-extrabold text-lg"
+                    style={{ background: 'linear-gradient(135deg, #2e8fff, #0c55ad)', fontFamily: "'Syne', sans-serif" }}
+                  >
+                    {getInitials(profile?.full_name || providerProfile?.display_name || 'CH')}
+                  </AvatarFallback>
+                </Avatar>
+                {providerProfile?.verification_status === 'verified' && (
+                  <div className="absolute -bottom-[3px] -right-[3px] w-[15px] h-[15px] rounded-full flex items-center justify-center" style={{ background: '#2e8fff', border: '2px solid #060e1a' }}>
+                    <svg viewBox="0 0 8 8" fill="none" className="w-[7px] h-[7px]">
+                      <path d="M1.5 4l1.5 1.5 3.5-3" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                )}
+              </div>
+
+              {/* Greeting */}
+              <div className="flex-1 min-w-0">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.08em] block mb-0.5" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                  Bienvenido de vuelta
                 </span>
-              )}
+                <h1 className="text-xl font-extrabold text-white tracking-tight truncate" style={{ fontFamily: "'Syne', sans-serif", letterSpacing: '-0.03em' }}>
+                  ¡Hola, {profile?.full_name?.split(' ')[0] || 'Chambynauta'}!
+                </h1>
+              </div>
             </div>
 
-            {/* Mobile-only: Hamburger menu only */}
+            {/* Menu button */}
             {isMobile && (
               <motion.button
                 whileTap={{ scale: 0.9 }}
                 onClick={toggleSidebar}
-                className="h-10 w-10 flex items-center justify-center rounded-full bg-muted/60 transition-colors flex-shrink-0"
+                className="w-[42px] h-[42px] rounded-xl flex flex-col items-center justify-center gap-1 transition-colors flex-shrink-0"
+                style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.1)' }}
               >
-                <Menu className="h-5 w-5 text-muted-foreground" />
+                <span className="block h-[2px] bg-white rounded-full" style={{ width: 20 }} />
+                <span className="block h-[2px] bg-white rounded-full" style={{ width: 14 }} />
+                <span className="block h-[2px] bg-white rounded-full" style={{ width: 17 }} />
               </motion.button>
             )}
           </div>
+
+          {/* Availability Widget */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="flex items-center justify-between gap-4 rounded-[20px] px-[18px] py-4 backdrop-blur-xl"
+            style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.12)' }}
+          >
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-[3px]">
+                {/* Pulse ring */}
+                <div className="relative w-3 h-3 flex-shrink-0">
+                  <div className="absolute inset-0 rounded-full" style={{ background: isAvailable ? '#00d084' : '#94a3b8' }} />
+                  {isAvailable && (
+                    <div className="absolute -inset-[3px] rounded-full border-2 animate-ping" style={{ borderColor: '#00d084', animationDuration: '2s' }} />
+                  )}
+                </div>
+                <span className="text-[17px] font-bold text-white" style={{ fontFamily: "'Syne', sans-serif", letterSpacing: '-0.02em' }}>
+                  {isAvailable ? 'Disponible' : 'No disponible'}
+                </span>
+              </div>
+              <div className="text-[11.5px] pl-5" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                {isAvailable ? 'Estás recibiendo solicitudes ahora' : 'No recibirás nuevas solicitudes'}
+              </div>
+            </div>
+
+            {/* Power toggle button */}
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={() => {
+                if (!eligible && !isAvailable) {
+                  setShowEligibilityModal(true);
+                  return;
+                }
+                setIsAvailable(!isAvailable);
+              }}
+              className="w-[52px] h-[52px] rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300"
+              style={{
+                background: isAvailable ? 'rgba(0,208,132,0.12)' : 'rgba(255,255,255,0.06)',
+                border: isAvailable ? '2px solid rgba(0,208,132,0.4)' : '2px solid rgba(255,255,255,0.15)',
+                boxShadow: isAvailable ? '0 0 20px rgba(0,208,132,0.2)' : 'none',
+              }}
+            >
+              <Power className="w-[22px] h-[22px]" style={{ color: isAvailable ? '#00d084' : 'rgba(255,255,255,0.3)' }} />
+            </motion.button>
+          </motion.div>
+
+          {/* Stats Strip */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="grid grid-cols-3 gap-[1px] rounded-2xl overflow-hidden mt-3.5"
+            style={{ background: 'rgba(255,255,255,0.08)' }}
+          >
+            <div className="text-center py-3 px-2.5" style={{ background: 'rgba(255,255,255,0.05)' }}>
+              <div className="text-xl font-extrabold text-white leading-none" style={{ fontFamily: "'Syne', sans-serif", letterSpacing: '-0.03em' }}>
+                {stats.completedJobs}
+              </div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.06em] mt-[3px]" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                Trabajos
+              </div>
+            </div>
+            <div className="text-center py-3 px-2.5" style={{ background: 'rgba(255,255,255,0.05)' }}>
+              <div className="text-xl font-extrabold leading-none" style={{ fontFamily: "'Syne', sans-serif", letterSpacing: '-0.03em', color: '#00d084' }}>
+                ${earnings.total.toLocaleString('es-MX')}
+              </div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.06em] mt-[3px]" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                Ganado
+              </div>
+            </div>
+            <div className="text-center py-3 px-2.5" style={{ background: 'rgba(255,255,255,0.05)' }}>
+              <div className="text-xl font-extrabold leading-none" style={{ fontFamily: "'Syne', sans-serif", letterSpacing: '-0.03em', color: '#ffb340' }}>
+                {toFixedSafe(stats.rating, 1, '0')}★
+              </div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.06em] mt-[3px]" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                Rating
+              </div>
+            </div>
+          </motion.div>
         </div>
       </div>
 
@@ -296,155 +384,105 @@ const ProviderDashboardHome = () => {
         onClose={() => setShowJobsAlert(false)}
       />
 
-      {/* Verification Banner - Yellow pill below header */}
-      {(() => {
-        const isVerified = status === 'verified';
-        const stripeReady = providerProfile?.stripe_onboarding_status === 'enabled';
-        
-        // Determine banner message
-        let bannerMessage: string | null = null;
-        let bannerIcon: React.ReactNode = null;
-        let bannerStyle = '';
+      {/* ─── ALERT BANNERS ─── */}
+      <div className="px-5 pt-3.5 flex flex-col gap-2">
+        {/* Stripe Banner */}
+        {providerProfile?.stripe_onboarding_status !== "enabled" && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            onClick={() => navigate("/provider-portal/account")}
+            className="relative rounded-2xl p-[13px_15px] flex items-center gap-3 cursor-pointer overflow-hidden active:scale-[0.98] transition-transform"
+            style={{
+              background: 'linear-gradient(135deg, #0c55ad 0%, #1e7be0 50%, #0a4a99 100%)',
+              boxShadow: '0 8px 24px rgba(12,85,173,0.3)',
+            }}
+          >
+            {/* Shine sweep */}
+            <div className="absolute top-0 left-0 w-[60%] h-full pointer-events-none" style={{
+              background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent)',
+              animation: 'shineSweep 4s ease-in-out infinite',
+            }} />
+            
+            <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.18)' }}>
+              <DollarSign className="w-[18px] h-[18px] text-white" />
+            </div>
+            <div className="flex-1 relative z-10">
+              <div className="text-[13px] font-bold text-white leading-tight" style={{ fontFamily: "'Syne', sans-serif" }}>
+                Conecta tu cuenta de Stripe
+              </div>
+              <div className="text-[11px] mt-0.5" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                Necesario para recibir tus pagos
+              </div>
+            </div>
+            <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.18)' }}>
+              <ChevronRight className="w-3 h-3 text-white" />
+            </div>
+          </motion.div>
+        )}
 
-        if (status === 'rejected') {
-          bannerMessage = 'Verificación rechazada — revisa tus documentos';
-          bannerIcon = <XCircle className="w-3 h-3 flex-shrink-0" />;
-          bannerStyle = 'border-destructive/50 bg-destructive/5 text-destructive';
-        } else if (status === 'pending' && documentsCount > 0) {
-          bannerMessage = 'Documentos pendientes de revisión';
-          bannerIcon = <Clock className="w-3 h-3 flex-shrink-0" />;
-          bannerStyle = 'border-yellow-400 bg-yellow-50 text-yellow-700 dark:border-yellow-500/50 dark:bg-yellow-900/20 dark:text-yellow-400';
-        } else if (!isVerified && documentsCount === 0) {
-          bannerMessage = 'Sube tus documentos para verificarte';
-          bannerIcon = <AlertCircle className="w-3 h-3 flex-shrink-0" />;
-          bannerStyle = 'border-muted-foreground/30 bg-muted/30 text-muted-foreground';
-        } else if (isVerified && !stripeReady) {
-          bannerMessage = 'Completa tu cuenta de Stripe para recibir pagos';
-          bannerIcon = <DollarSign className="w-3 h-3 flex-shrink-0" />;
-          bannerStyle = 'border-primary/50 bg-primary/5 text-primary';
-        }
-
-        if (!bannerMessage || verificationDismissed) return null;
-
-        return (
-          <div className="px-4 mt-2 flex justify-center">
-            <motion.button
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              onClick={() => isVerified && !stripeReady
-                ? navigate("/provider-portal/account")
-                : navigate("/provider-portal/verification")
-              }
-              className={cn(
-                "inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-[11px] font-medium border transition-colors",
-                bannerStyle
-              )}
+        {/* Verification Banner */}
+        {(() => {
+          const isVerified = status === 'verified';
+          if (isVerified || verificationDismissed) return null;
+          
+          const progressPercent = status === 'pending' ? 30 : status === 'rejected' ? 10 : 0;
+          
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              onClick={() => navigate("/provider-portal/verification")}
+              className="rounded-2xl p-[13px_15px] flex items-center gap-3 cursor-pointer active:scale-[0.98] transition-transform"
+              style={{
+                background: 'white',
+                border: '1.5px solid #fde68a',
+                boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+              }}
             >
-              {bannerIcon}
-              <span>{bannerMessage}</span>
-              <span className="opacity-60">→</span>
-            </motion.button>
-          </div>
-        );
-      })()}
+              <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: '#fef3c7' }}>
+                <Shield className="w-[18px] h-[18px]" style={{ color: '#d97706' }} />
+              </div>
+              <div className="flex-1">
+                <div className="text-[13px] font-bold leading-tight" style={{ fontFamily: "'Syne', sans-serif", color: '#92400e' }}>
+                  {status === 'rejected' ? 'Verificación rechazada' : status === 'pending' ? `Verificación pendiente — ${documentsCount} docs` : 'Sube tus documentos'}
+                </div>
+                <div className="text-[11px] mt-0.5" style={{ color: '#b45309' }}>
+                  {status === 'rejected' ? 'Revisa tus documentos y vuelve a intentar' : 'Completa tu perfil para más trabajos'}
+                </div>
+                {/* Progress bar */}
+                <div className="h-[3px] rounded-full mt-[7px] overflow-hidden" style={{ background: 'rgba(0,0,0,0.08)' }}>
+                  <div className="h-full rounded-full" style={{ width: `${progressPercent}%`, background: 'linear-gradient(90deg, #f59e0b, #fbbf24)' }} />
+                </div>
+              </div>
+              <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#fef3c7' }}>
+                <ChevronRight className="w-3 h-3" style={{ color: '#d97706' }} />
+              </div>
+            </motion.div>
+          );
+        })()}
+      </div>
 
-      {/* Stripe Payout Status Tile */}
-      {providerProfile?.stripe_onboarding_status !== "enabled" && (
-        <div className="px-4 mt-2">
-          <ProviderStripePayoutStatusCard
-            stripeOnboardingStatus={providerProfile?.stripe_onboarding_status || "not_started"}
-            stripeAccountId={providerProfile?.stripe_account_id || null}
-            stripePayoutsEnabled={(providerProfile as any)?.stripe_payouts_enabled ?? false}
-            stripeCurrentlyDue={((providerProfile as any)?.stripe_requirements_currently_due as string[]) ?? []}
-            compact
-          />
+      {/* ─── ACTIVE JOB CARD ─── */}
+      {hasActiveJob && firstActiveJob && (
+        <div className="px-5 mt-5">
+          <ActiveJobCard job={firstActiveJob} />
         </div>
       )}
 
-      {/* Availability Button - Large Circle */}
-      <div className="px-4 mt-4 flex justify-center">
-        <motion.button
-          whileTap={{ scale: 0.93 }}
-          onClick={() => {
-            if (!eligible && !isAvailable) {
-              setShowEligibilityModal(true);
-              return;
-            }
-            setIsAvailable(!isAvailable);
-          }}
-          className="relative flex items-center justify-center"
-        >
-          {/* Animated aura rings */}
-          <motion.div
-            className={cn(
-              "absolute rounded-full",
-              isAvailable ? "bg-emerald-400/20" : "bg-red-400/20"
-            )}
-            animate={{
-              width: [100, 130, 100],
-              height: [100, 130, 100],
-              opacity: [0.4, 0.1, 0.4],
-            }}
-            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.div
-            className={cn(
-              "absolute rounded-full",
-              isAvailable ? "bg-emerald-400/15" : "bg-red-400/15"
-            )}
-            animate={{
-              width: [110, 150, 110],
-              height: [110, 150, 110],
-              opacity: [0.3, 0.05, 0.3],
-            }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
-          />
-          {/* Main circle */}
-          <div className={cn(
-            "relative w-24 h-24 rounded-full flex flex-col items-center justify-center transition-all duration-500 shadow-lg",
-            isAvailable 
-              ? "bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-emerald-400/30" 
-              : "bg-gradient-to-br from-red-400 to-red-600 shadow-red-400/30"
-          )}>
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={isAvailable ? 'on' : 'off'}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ duration: 0.2 }}
-                className="flex flex-col items-center"
-              >
-                {isAvailable ? (
-                  <CheckCircle className="w-7 h-7 text-white mb-0.5" />
-                ) : (
-                  <XCircle className="w-7 h-7 text-white mb-0.5" />
-                )}
-                <span className="text-[9px] font-bold text-white/90 uppercase tracking-wider">
-                  {isAvailable ? 'Disponible' : 'No disponible'}
-                </span>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </motion.button>
-      </div>
-      <p className="text-[10px] text-muted-foreground/60 text-center mt-1">
-        Toca para cambiar tu disponibilidad
-      </p>
-
-      {/* Jobs Feed Section */}
+      {/* ─── JOBS FEED ─── */}
       <div className="mt-3">
         {/* Unavailable Overlay */}
         {!isAvailable && (
-          <div className="mx-4 mb-3 p-5 bg-muted/30 rounded-xl text-center">
-            <div className="w-10 h-10 rounded-full bg-muted/60 mx-auto flex items-center justify-center mb-1.5">
-              <Briefcase className="w-5 h-5 text-muted-foreground/60" />
-            </div>
-            <p className="text-sm font-medium text-foreground/80 mb-0.5">
+          <div className="mx-5 mb-3 p-8 rounded-2xl text-center" style={{ background: '#e8eef8' }}>
+            <div className="text-[52px] mb-4" style={{ animation: 'floatEmoji 3s ease-in-out infinite' }}>😴</div>
+            <h3 className="text-lg font-extrabold mb-2" style={{ fontFamily: "'Syne', sans-serif", color: '#060e1a' }}>
               No estás disponible
-            </p>
-            <p className="text-[11px] text-muted-foreground">
-              Activa tu disponibilidad para ver trabajos
+            </h3>
+            <p className="text-[13px] max-w-[240px] mx-auto" style={{ color: '#64748b', lineHeight: 1.6 }}>
+              Activa tu disponibilidad y te notificaremos en cuanto llegue algo cerca de ti.
             </p>
           </div>
         )}
@@ -454,53 +492,42 @@ const ProviderDashboardHome = () => {
           "transition-all duration-300",
           !isAvailable && "opacity-30 blur-sm pointer-events-none"
         )}>
-          {/* Active Job Pinned Card */}
-          {hasActiveJob && firstActiveJob && (
-            <div className="px-4 mb-2">
-              <ActiveJobCard job={firstActiveJob} />
+          {/* Section header */}
+          <div className="flex items-center justify-between px-5 pt-5 pb-3">
+            <div className="flex items-center gap-2.5">
+              <span className="text-[19px] font-extrabold" style={{ fontFamily: "'Syne', sans-serif", color: '#060e1a', letterSpacing: '-0.03em' }}>
+                Disponibles
+              </span>
+              {availableJobs.length > 0 && (
+                <span className="text-[11px] font-extrabold text-white px-2 py-0.5 rounded-full" style={{ background: '#0c55ad', fontFamily: "'Syne', sans-serif" }}>
+                  {availableJobs.length}
+                </span>
+              )}
             </div>
-          )}
-
-          <div className="px-4 pb-2">
-            {/* Header Row */}
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5">
-                <h2 className="text-sm font-semibold text-foreground/80">
-                  Trabajos disponibles
-                </h2>
-                {availableJobs.length > 0 && (
-                  <Badge className="bg-primary text-primary-foreground text-[10px] px-1.5 py-0">
-                    {availableJobs.length}
-                  </Badge>
-                )}
-              </div>
+            <div className="flex items-center gap-2">
+              <JobFeedFilters
+                category={categoryFilter}
+                onCategoryChange={setCategoryFilter}
+                radius={radiusFilter}
+                onRadiusChange={setRadiusFilter}
+                dateFilter={dateFilter}
+                onDateFilterChange={setDateFilter}
+                hasLocation={!!providerLocation}
+              />
               <motion.button
                 whileTap={{ scale: 0.9 }}
                 onClick={handleRefresh}
                 disabled={isRefreshing}
-                className={cn(
-                  "p-1.5 rounded-full transition-colors",
-                  isRefreshing && "animate-spin"
-                )}
+                className="w-9 h-9 flex items-center justify-center rounded-[10px] border-[1.5px] transition-colors"
+                style={{ background: 'white', borderColor: '#e2e8f0' }}
               >
-                <RefreshCw className="w-3.5 h-3.5 text-muted-foreground" />
+                <RefreshCw className={cn("w-[15px] h-[15px]", isRefreshing && "animate-spin")} style={{ color: '#64748b' }} />
               </motion.button>
             </div>
-
-            {/* Filter Chips */}
-            <JobFeedFilters
-              category={categoryFilter}
-              onCategoryChange={setCategoryFilter}
-              radius={radiusFilter}
-              onRadiusChange={setRadiusFilter}
-              dateFilter={dateFilter}
-              onDateFilterChange={setDateFilter}
-              hasLocation={!!providerLocation}
-            />
           </div>
 
           {/* Job Cards */}
-          <div className="px-4 pb-28 md:pb-6">
+          <div className="px-5 pb-28 md:pb-6">
             <AnimatePresence>
               {isRefreshing && (
                 <motion.div
@@ -509,7 +536,7 @@ const ProviderDashboardHome = () => {
                   exit={{ opacity: 0, height: 0 }}
                   className="flex justify-center py-2"
                 >
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-2 text-xs" style={{ color: '#64748b' }}>
                     <RefreshCw className="w-3 h-3 animate-spin" />
                     <span>Actualizando...</span>
                   </div>
@@ -527,19 +554,17 @@ const ProviderDashboardHome = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="flex flex-col items-center justify-center py-12 text-center"
               >
-                <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mb-2">
-                  <Briefcase className="w-6 h-6 text-muted-foreground/50" />
-                </div>
-                <h3 className="text-sm font-medium text-foreground/70 mb-0.5">
+                <div className="text-[52px] mb-4" style={{ animation: 'floatEmoji 3s ease-in-out infinite' }}>😴</div>
+                <h3 className="text-lg font-extrabold mb-2" style={{ fontFamily: "'Syne', sans-serif", color: '#060e1a' }}>
                   Sin trabajos por ahora
                 </h3>
-                <p className="text-[11px] text-muted-foreground max-w-[200px]">
+                <p className="text-[13px] max-w-[240px] mx-auto" style={{ color: '#64748b', lineHeight: 1.6 }}>
                   Te notificaremos cuando haya nuevas oportunidades
                 </p>
               </motion.div>
             ) : (
               <div className={cn(
-                "space-y-2.5 md:grid md:grid-cols-2 md:gap-4 md:space-y-0",
+                "flex flex-col gap-3 md:grid md:grid-cols-2 md:gap-4",
                 hasActiveJob && "opacity-50 grayscale"
               )}>
                 {filteredJobs.slice(0, 4).map((job, index) => (
@@ -587,7 +612,6 @@ const ProviderDashboardHome = () => {
             </p>
           </CardContent>
         </Card>
-
         <Card className="cursor-pointer hover:border-primary transition-colors"
           onClick={() => navigate("/provider-portal/earnings")}>
           <CardHeader className="pb-2">

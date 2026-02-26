@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, Clock, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -24,51 +23,72 @@ export const ActiveJobCard = ({ job }: ActiveJobCardProps) => {
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      whileTap={{ scale: 0.97 }}
+      whileTap={{ scale: 0.98 }}
       onClick={() => navigate(`/provider-portal/jobs/${job.id}`)}
-      className="bg-background border-2 border-foreground/80 rounded-2xl p-4 shadow-md hover:shadow-lg cursor-pointer transition-shadow"
+      className="rounded-[20px] overflow-hidden cursor-pointer transition-all duration-200 relative"
+      style={{
+        background: '#0f1e33',
+        boxShadow: '0 8px 32px rgba(6,14,26,0.25)',
+      }}
     >
-      {/* Header row */}
-      <div className="flex items-center justify-between mb-2.5">
-        <Badge className="bg-foreground text-background text-[11px] px-2.5 py-0.5 font-bold border-0 uppercase tracking-wide">
-          Trabajo activo
-        </Badge>
-        <div className="w-8 h-8 rounded-full bg-foreground/5 flex items-center justify-center">
-          <ChevronRight className="w-5 h-5 text-foreground/70" />
+      {/* Subtle blue gradient overlay */}
+      <div className="absolute inset-0 pointer-events-none" style={{
+        background: 'radial-gradient(ellipse 70% 50% at 100% 0%, rgba(46,143,255,0.2) 0%, transparent 60%)',
+      }} />
+
+      <div className="p-4 relative z-10">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-3">
+          {/* Active pill with glowing green dot */}
+          <div className="flex items-center gap-1.5 rounded-full px-2.5 py-1" style={{
+            background: 'rgba(0,208,132,0.15)',
+            border: '1px solid rgba(0,208,132,0.3)',
+          }}>
+            <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#00d084', animation: 'blink 1.5s ease-in-out infinite' }} />
+            <span className="text-[10px] font-extrabold uppercase tracking-[0.08em]" style={{ color: '#00d084' }}>
+              Trabajo activo
+            </span>
+          </div>
+          <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.08)' }}>
+            <ChevronRight className="w-3.5 h-3.5 text-white" />
+          </div>
+        </div>
+
+        {/* Title */}
+        <h3 className="text-[22px] font-extrabold text-white leading-tight mb-2.5" style={{ fontFamily: "'Syne', sans-serif", letterSpacing: '-0.03em' }}>
+          {job.title}
+        </h3>
+
+        {/* Meta row */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          {scheduledDate && (
+            <span className="flex items-center gap-[5px] text-[11.5px] font-semibold" style={{ color: 'rgba(255,255,255,0.55)' }}>
+              <Calendar className="w-3 h-3" />
+              {format(scheduledDate, "d MMM", { locale: es })}
+            </span>
+          )}
+          {scheduledDate && (
+            <span className="flex items-center gap-[5px] text-[11.5px] font-semibold" style={{ color: 'rgba(255,255,255,0.55)' }}>
+              <Clock className="w-3 h-3" />
+              {format(scheduledDate, "HH:mm")}
+            </span>
+          )}
+          {job.location && (
+            <span className="flex items-center gap-[5px] text-[11.5px] font-semibold" style={{ color: 'rgba(255,255,255,0.55)' }}>
+              <MapPin className="w-3 h-3" />
+              {getCity(job.location)}
+            </span>
+          )}
         </div>
       </div>
 
-      {/* Job title */}
-      <h3 className="font-bold text-lg md:text-xl text-foreground line-clamp-1 mb-2.5">
-        {job.title}
-      </h3>
-
-      {/* Meta row */}
-      <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-        {scheduledDate && (
-          <span className="flex items-center gap-1">
-            <Calendar className="w-3.5 h-3.5" />
-            {format(scheduledDate, "d MMM", { locale: es })}
-          </span>
-        )}
-        {scheduledDate && (
-          <span className="flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5" />
-            {format(scheduledDate, "HH:mm")}
-          </span>
-        )}
-        {job.location && (
-          <span className="flex items-center gap-1">
-            <MapPin className="w-3.5 h-3.5" />
-            {getCity(job.location)}
-          </span>
-        )}
+      {/* Footer */}
+      <div className="flex items-center gap-2 px-[18px] py-2.5" style={{ background: 'rgba(255,255,255,0.04)', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: '#ffb340' }} />
+        <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          Finaliza este trabajo para aceptar otro
+        </span>
       </div>
-
-      {/* Helper text */}
-      <p className="text-[10px] text-muted-foreground/60 mt-2.5">
-        Finaliza este trabajo para aceptar otro
-      </p>
     </motion.div>
   );
 };

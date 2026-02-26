@@ -280,3 +280,19 @@ All colors MUST be HSL.
 .animate-pull-refresh {
   animation: pull-refresh 1s linear infinite;
 }
+
+/* Provider portal animations */
+@keyframes shineSweep {
+  0% { left: -100%; }
+  40%, 100% { left: 150%; }
+}
+
+@keyframes floatEmoji {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}

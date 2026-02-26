@@ -7,7 +7,7 @@ import { useSupportMessages } from "@/hooks/useSupportMessages";
 interface NavItem {
   id: string;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   path: string;
 }
 
@@ -45,10 +45,9 @@ export const ProviderBottomNav = () => {
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 safe-area-bottom">
-      <div className="relative mx-3 mb-2">
-        {/* Background pill */}
-        <div className="bg-background rounded-2xl shadow-[0_-2px_20px_rgba(0,0,0,0.08)] border border-border/50">
-          <div className="flex items-end justify-around h-16 px-2">
+      <div className="relative mx-0 mb-0">
+        <div className="bg-white" style={{ borderTop: '1px solid #f1f5f9', boxShadow: '0 -8px 32px rgba(0,0,0,0.06)' }}>
+          <div className="grid grid-cols-4 py-2.5 pb-[22px]">
             {navItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item);
@@ -58,32 +57,42 @@ export const ProviderBottomNav = () => {
                   key={item.id}
                   onClick={() => handleNavClick(item)}
                   whileTap={{ scale: 0.9 }}
-                  className="relative flex flex-col items-center justify-center py-2 min-w-[56px]"
+                  className="relative flex flex-col items-center gap-1 py-1"
                 >
-                  <div className="relative">
-                    <motion.div
-                      initial={false}
-                      animate={active ? { scale: 1 } : { scale: 0 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                      className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary"
-                    />
+                  {/* Icon wrap with active background */}
+                  <div
+                    className="w-8 h-8 rounded-[10px] flex items-center justify-center transition-colors duration-150"
+                    style={{
+                      background: active ? 'rgba(12,85,173,0.1)' : 'transparent',
+                    }}
+                  >
                     <Icon
-                      className={cn(
-                        "h-[22px] w-[22px] transition-colors duration-200",
-                        active ? "text-foreground" : "text-muted-foreground"
-                      )}
+                      className="w-[21px] h-[21px]"
+                      style={{ color: active ? '#0c55ad' : '#94a3b8' }}
                     />
-                    {item.id === "messages" && supportUnread > 0 && (
-                      <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-[16px] bg-destructive text-destructive-foreground text-[9px] font-bold rounded-full flex items-center justify-center px-1">
-                        {supportUnread > 99 ? '99+' : supportUnread}
-                      </span>
-                    )}
                   </div>
+                  
+                  {/* Notification dot for messages */}
+                  {item.id === "messages" && supportUnread > 0 && (
+                    <div
+                      className="absolute top-[2px] rounded-full"
+                      style={{
+                        right: 'calc(50% - 14px)',
+                        width: 7,
+                        height: 7,
+                        background: '#ff4d6a',
+                        border: '2px solid white',
+                      }}
+                    />
+                  )}
+
                   <span
-                    className={cn(
-                      "text-[10px] mt-1 transition-colors duration-200",
-                      active ? "font-semibold text-foreground" : "font-medium text-muted-foreground"
-                    )}
+                    className="text-[10.5px] transition-colors duration-150"
+                    style={{
+                      fontFamily: "'Nunito', sans-serif",
+                      fontWeight: active ? 800 : 600,
+                      color: active ? '#0c55ad' : '#94a3b8',
+                    }}
                   >
                     {item.label}
                   </span>

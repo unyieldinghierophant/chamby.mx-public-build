@@ -25,6 +25,36 @@ interface JobCardMobileProps {
   distanceKm?: number | null;
 }
 
+const categoryEmoji: Record<string, string> = {
+  'handyman': '🔧',
+  'plumbing': '🔧',
+  'plomería': '🔧',
+  'electrical': '⚡',
+  'electricidad': '⚡',
+  'cleaning': '🧹',
+  'limpieza': '🧹',
+  'gardening': '🌿',
+  'jardinería': '🌿',
+  'auto': '🚗',
+  'auto-wash': '🚗',
+  'lavado': '🚗',
+};
+
+const categoryGradient: Record<string, string> = {
+  'handyman': 'linear-gradient(135deg, #0c55ad 0%, #1a6fd4 50%, #2e8fff 100%)',
+  'plumbing': 'linear-gradient(135deg, #0c55ad 0%, #1a6fd4 50%, #2e8fff 100%)',
+  'plomería': 'linear-gradient(135deg, #0c55ad 0%, #1a6fd4 50%, #2e8fff 100%)',
+  'electrical': 'linear-gradient(135deg, #d97706 0%, #f59e0b 50%, #fbbf24 100%)',
+  'electricidad': 'linear-gradient(135deg, #d97706 0%, #f59e0b 50%, #fbbf24 100%)',
+  'cleaning': 'linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%)',
+  'limpieza': 'linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%)',
+  'gardening': 'linear-gradient(135deg, #16a34a 0%, #22c55e 50%, #4ade80 100%)',
+  'jardinería': 'linear-gradient(135deg, #16a34a 0%, #22c55e 50%, #4ade80 100%)',
+  'auto': 'linear-gradient(135deg, #0369a1 0%, #0ea5e9 60%, #38bdf8 100%)',
+  'auto-wash': 'linear-gradient(135deg, #0369a1 0%, #0ea5e9 60%, #38bdf8 100%)',
+  'lavado': 'linear-gradient(135deg, #0369a1 0%, #0ea5e9 60%, #38bdf8 100%)',
+};
+
 export const JobCardMobile = ({ job, onAccept, onViewDetails, isMatch = false, index = 0, disabled = false, distanceKm }: JobCardMobileProps) => {
   const scheduledDate = job.scheduled_at ? new Date(job.scheduled_at) : null;
   const isNew = new Date(job.created_at) > new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -48,150 +78,119 @@ export const JobCardMobile = ({ job, onAccept, onViewDetails, isMatch = false, i
     }
   };
 
+  const catKey = (job.category || '').toLowerCase();
+  const emoji = categoryEmoji[catKey] || '🔧';
+  const gradient = categoryGradient[catKey] || 'linear-gradient(135deg, #0c55ad 0%, #1a6fd4 50%, #2e8fff 100%)';
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.03, duration: 0.2 }}
+      transition={{ delay: 0.3 + index * 0.08, duration: 0.4 }}
       onClick={handleCardClick}
       whileTap={disabled ? {} : { scale: 0.98 }}
       className={cn(
-        "bg-background rounded-2xl overflow-hidden shadow-sm border transition-all duration-200 w-full max-w-full cursor-pointer",
-        isMatch ? 'border-amber-400/40 ring-1 ring-amber-400/10' : 'border-border/50',
+        "rounded-[20px] overflow-hidden cursor-pointer transition-all duration-250 w-full max-w-full relative",
         disabled ? 'opacity-50 grayscale pointer-events-none' : ''
       )}
+      style={{
+        background: 'white',
+        border: isMatch ? '1.5px solid #fde68a' : '1.5px solid transparent',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+      }}
     >
-      <div className="flex flex-col w-full max-w-full overflow-hidden">
-        {/* Image Section */}
-        <div className="relative w-full aspect-[3/1] bg-muted/40 overflow-hidden">
-          {job.photos && job.photos.length > 0 ? (
-            <>
-              <div className="absolute inset-0 animate-pulse bg-muted/60" />
-              <img 
-                src={job.photos[0]} 
-                alt={job.title}
-                className="absolute inset-0 w-full h-full object-cover"
-                loading="lazy"
-                onLoad={(e) => {
-                  const prev = e.currentTarget.previousElementSibling as HTMLElement;
-                  if (prev) prev.style.display = 'none';
-                }}
-              />
-            </>
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="flex items-center gap-2 text-muted-foreground/50">
-                <ImageIcon className="w-4 h-4" />
-                <span className="text-[11px]">{job.category}</span>
-              </div>
-            </div>
-          )}
-
-          {/* Badges - Top left */}
-          <div className="absolute top-1.5 left-1.5 flex flex-wrap gap-1">
-            {isNew && (
-              <Badge className="bg-primary text-primary-foreground text-[9px] px-1.5 py-0">
-                <Sparkles className="w-2.5 h-2.5 mr-0.5" />
-                Nuevo
-              </Badge>
-            )}
-            {job.urgent && (
-              <Badge variant="destructive" className="text-[9px] px-1.5 py-0 animate-pulse">
-                <AlertCircle className="w-2.5 h-2.5 mr-0.5" />
-                Urgente
-              </Badge>
-            )}
-          </div>
-
-          {/* Distance badge - Top right */}
-          {formatDistance(distanceKm) && (
-            <div className="absolute top-1.5 right-1.5 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
-              <Navigation className="w-2.5 h-2.5" />
-              {formatDistance(distanceKm)}
-            </div>
-          )}
-
-          {/* Photo count */}
-          {job.photos && job.photos.length > 1 && (
-            <div className="absolute bottom-1.5 right-1.5 bg-black/50 text-white text-[9px] px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
-              <ImageIcon className="w-2.5 h-2.5" />
-              {job.photos.length}
-            </div>
-          )}
+      {/* ─── Category Image Banner ─── */}
+      <div className="relative h-[140px] overflow-hidden">
+        <div className="absolute inset-0 flex items-center justify-center" style={{ background: gradient }}>
+          {/* Decorative circles */}
+          <div className="absolute -top-5 -right-5 w-[120px] h-[120px] rounded-full" style={{ background: 'rgba(255,255,255,0.08)' }} />
+          <div className="absolute -bottom-[30px] -left-2.5 w-[100px] h-[100px] rounded-full" style={{ background: 'rgba(0,0,0,0.08)' }} />
+          
+          {/* Floating emoji */}
+          <span className="text-[64px] relative z-10 drop-shadow-lg" style={{ animation: 'floatEmoji 3s ease-in-out infinite' }}>
+            {emoji}
+          </span>
         </div>
 
-        {/* Content Section */}
-        <div className="p-3 flex flex-col min-w-0 overflow-hidden">
-          {/* Category + Title */}
-          <div className="flex items-start gap-2 mb-1">
-            <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <ImageIcon className="w-3 h-3 text-primary" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] text-primary font-medium truncate">
-                {job.category} {job.service_type && `• ${job.service_type}`}
-              </p>
-              <h3 className="font-semibold text-sm text-foreground line-clamp-1">
-                {job.title}
-              </h3>
-            </div>
-          </div>
-
-          {/* Description */}
-          {(job.problem || job.description) && (
-            <p className="text-xs text-muted-foreground line-clamp-2 mb-2 pl-8">
-              {job.problem || job.description}
-            </p>
-          )}
-
-          {/* Meta Row */}
-          <div className="flex items-center gap-2 text-[10px] text-muted-foreground mb-2 pl-8 flex-wrap">
-            {scheduledDate && (
-              <span className="flex items-center gap-0.5">
-                <Calendar className="w-2.5 h-2.5" />
-                {format(scheduledDate, "d MMM", { locale: es })}
-              </span>
-            )}
-            {scheduledDate && (
-              <span className="flex items-center gap-0.5">
-                <Clock className="w-2.5 h-2.5" />
-                {format(scheduledDate, "HH:mm")}
-              </span>
-            )}
-            {job.location && (
-              <span className="flex items-center gap-0.5">
-                <MapPin className="w-2.5 h-2.5" />
-                {getCity(job.location)}
-              </span>
-            )}
-            {distanceKm === null && distanceKm === undefined ? null : !formatDistance(distanceKm) && (
-              <span className="flex items-center gap-0.5 italic">
-                <Navigation className="w-2.5 h-2.5" />
-                Distancia no disponible
-              </span>
-            )}
-          </div>
-
-          {/* Price + Trust Badge + CTA Row */}
-          <div className="flex items-center justify-between pt-2 border-t border-border/50">
-            <div className="flex items-center gap-2">
-              <div className="flex items-baseline gap-0.5">
-                <span className="text-base font-bold text-foreground">
-                  ${job.rate.toLocaleString('es-MX')}
-                </span>
-                <span className="text-[10px] text-muted-foreground">MXN</span>
-              </div>
-              {job.visit_fee_paid && (
-                <Badge variant="outline" className="text-[9px] px-1.5 py-0 border-green-500/50 text-green-600 bg-green-50">
-                  <CheckCircle2 className="w-2.5 h-2.5 mr-0.5" />
-                  Visita pagada
-                </Badge>
-              )}
-            </div>
-            <span className="text-[10px] font-medium text-primary">
-              Ver detalles →
+        {/* "Nuevo" badge top-left */}
+        {isNew && (
+          <div className="absolute top-3 left-3 flex items-center gap-[5px] rounded-full px-2.5 py-1 z-10" style={{
+            background: 'rgba(255,255,255,0.95)',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          }}>
+            <span className="text-[9px]">✦</span>
+            <span className="text-[10.5px] font-extrabold" style={{ color: '#0c55ad', fontFamily: "'Syne', sans-serif" }}>
+              Nuevo
             </span>
           </div>
+        )}
+
+        {/* Price badge top-right */}
+        <div className="absolute top-3 right-3 rounded-[10px] px-2.5 py-[5px] z-10" style={{
+          background: 'rgba(0,0,0,0.55)',
+          backdropFilter: 'blur(8px)',
+        }}>
+          <span className="text-[15px] font-extrabold text-white" style={{ fontFamily: "'Syne', sans-serif" }}>
+            ${job.rate.toLocaleString('es-MX')}
+          </span>
+          <span className="text-[9px] font-medium text-white/70 ml-0.5">MXN</span>
+        </div>
+
+        {/* Urgent badge */}
+        {job.urgent && (
+          <div className="absolute bottom-3 left-3 flex items-center gap-1 rounded-full px-2.5 py-1 z-10 animate-pulse" style={{ background: 'rgba(255,77,106,0.9)' }}>
+            <AlertCircle className="w-2.5 h-2.5 text-white" />
+            <span className="text-[10px] font-bold text-white">Urgente</span>
+          </div>
+        )}
+      </div>
+
+      {/* ─── Card Body ─── */}
+      <div className="p-[14px_16px_16px]">
+        {/* Category label */}
+        <div className="flex items-center gap-1.5 mb-1.5">
+          <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#2e8fff' }} />
+          <span className="text-[11px] font-bold uppercase tracking-[0.07em]" style={{ color: '#1a6fd4' }}>
+            {job.category} {job.service_type && `· ${job.service_type}`}
+          </span>
+        </div>
+
+        {/* Title */}
+        <h3 className="text-[17px] font-extrabold leading-tight mb-1.5" style={{ fontFamily: "'Syne', sans-serif", color: '#060e1a', letterSpacing: '-0.02em' }}>
+          {job.title}
+        </h3>
+
+        {/* Description */}
+        {(job.problem || job.description) && (
+          <p className="text-[12px] leading-[1.5] mb-3 line-clamp-2" style={{ color: '#64748b' }}>
+            {job.problem || job.description}
+          </p>
+        )}
+
+        {/* Footer chips */}
+        <div className="flex items-center justify-between pt-[11px]" style={{ borderTop: '1px solid #f1f5f9' }}>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {scheduledDate && (
+              <div className="flex items-center gap-1 rounded-full px-[9px] py-1 text-[11px] font-semibold" style={{ background: '#f2f6fd', color: '#475569' }}>
+                <Calendar className="w-[11px] h-[11px]" />
+                {format(scheduledDate, "d MMM", { locale: es })} · {format(scheduledDate, "HH:mm")}
+              </div>
+            )}
+            {(formatDistance(distanceKm) || job.location) && (
+              <div className="flex items-center gap-1 rounded-full px-[9px] py-1 text-[11px] font-semibold" style={{ background: '#f2f6fd', color: '#475569' }}>
+                <MapPin className="w-[11px] h-[11px]" />
+                {formatDistance(distanceKm) || getCity(job.location)}
+              </div>
+            )}
+            {job.visit_fee_paid && (
+              <div className="flex items-center gap-1 rounded-full px-[9px] py-1 text-[11px] font-bold" style={{ background: '#dcfce7', color: '#16a34a' }}>
+                ✓ Visita pagada
+              </div>
+            )}
+          </div>
+          <span className="flex items-center gap-1 text-[12px] font-bold whitespace-nowrap" style={{ color: '#0c55ad', fontFamily: "'Syne', sans-serif" }}>
+            Ver →
+          </span>
         </div>
       </div>
     </motion.div>
