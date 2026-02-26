@@ -81,7 +81,10 @@ const ActiveJobs = () => {
   }, [user]);
 
   const fetchActiveJobs = async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
     try {
       setLoading(true);
@@ -93,42 +96,58 @@ const ActiveJobs = () => {
         .in("status", ["searching", "active", "accepted", "confirmed", "en_route", "on_site", "quoted", "in_progress"])
         .order("created_at", { ascending: false });
 
-      if (jobsError) throw jobsError;
+      if (jobsError) {
+        console.error("Error fetching active jobs query:", jobsError);
+        setJobs([]);
+        setLoading(false);
+        return;
+      }
 
       const jobsWithProviders = await Promise.all(
         (jobsData || []).map(async (job) => {
-          // Get the first invoice if exists (from the joined data)
-          const invoicesRaw = (job as any).invoices;
-          const invoiceRow = Array.isArray(invoicesRaw) && invoicesRaw.length > 0 
-            ? invoicesRaw[0] 
-            : null;
-          const invoice = invoiceRow ? { ...invoiceRow, items: [] } : null;
-          // Remove raw invoices array from job to avoid React child errors
-          const { invoices: _inv, ...jobClean } = job as any;
+          try {
+            // Get the first invoice if exists (from the joined data)
+            const invoicesRaw = (job as any).invoices;
+            const invoiceRow = Array.isArray(invoicesRaw) && invoicesRaw.length > 0 
+              ? invoicesRaw[0] 
+              : null;
+            const invoice = invoiceRow ? { ...invoiceRow, items: [] } : null;
+            // Remove raw invoices array from job to avoid React child errors
+            const { invoices: _inv, ...jobClean } = job as any;
 
-          if (jobClean.provider_id) {
-            const { data: userData } = await supabase
-              .from("users")
-              .select("full_name, phone, avatar_url")
-              .eq("id", jobClean.provider_id)
-              .maybeSingle();
+            if (jobClean.provider_id) {
+              const { data: userData } = await supabase
+                .from("users")
+                .select("full_name, phone, avatar_url")
+                .eq("id", jobClean.provider_id)
+                .maybeSingle();
 
-            const { data: providerData } = await supabase
-              .from("providers")
-              .select("current_latitude, current_longitude, rating, total_reviews")
-              .eq("user_id", jobClean.provider_id)
-              .maybeSingle();
+              const { data: providerData } = await supabase
+                .from("providers")
+                .select("current_latitude, current_longitude, rating, total_reviews")
+                .eq("user_id", jobClean.provider_id)
+                .maybeSingle();
 
-            return {
-              ...jobClean,
-              invoice,
-              provider: {
-                ...userData,
-                ...providerData,
-              },
-            };
+              return {
+                ...jobClean,
+                invoice,
+                provider: userData || providerData ? {
+                  full_name: userData?.full_name || "Proveedor",
+                  phone: userData?.phone || "",
+                  avatar_url: userData?.avatar_url || "",
+                  current_latitude: providerData?.current_latitude ?? null,
+                  current_longitude: providerData?.current_longitude ?? null,
+                  rating: providerData?.rating ?? 0,
+                  total_reviews: providerData?.total_reviews ?? 0,
+                } : undefined,
+              };
+            }
+            return { ...jobClean, invoice };
+          } catch (jobError) {
+            console.warn("Error processing job, skipping:", job.id, jobError);
+            const { invoices: _inv, ...jobClean } = job as any;
+            return { ...jobClean, invoice: null };
           }
-          return { ...jobClean, invoice };
         })
       );
 
@@ -138,7 +157,7 @@ const ActiveJobs = () => {
       }
     } catch (error) {
       console.error("Error fetching active jobs:", error);
-      toast.error("Error al cargar trabajos activos");
+      setJobs([]);
     } finally {
       setLoading(false);
     }
