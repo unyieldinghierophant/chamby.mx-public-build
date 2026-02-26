@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, XCircle, Plus, MessageCircle, MapPin, Clock, AlertTriangle } from "lucide-react";
 import { InvoiceCard } from "@/components/provider-portal/InvoiceCard";
+import { JobInvoiceSection } from "@/components/JobInvoiceSection";
 import { DisputeModal } from "@/components/DisputeModal";
 import { JobTrackingMap } from "@/components/JobTrackingMap";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -483,17 +484,12 @@ const ActiveJobs = () => {
                 </CardContent>
               </Card>
 
-              {/* Invoice Card - client side */}
-              {selectedJob.invoice && (
-                <InvoiceCard
-                  jobId={selectedJob.id}
-                  clientId={user?.id || ""}
-                  jobStatus={selectedJob.status}
-                  invoice={selectedJob.invoice}
-                  onInvoiceCreated={fetchActiveJobs}
-                  isProvider={false}
-                />
-              )}
+              {/* Invoice Section - client side */}
+              <JobInvoiceSection
+                jobId={selectedJob.id}
+                role="client"
+                onUpdate={fetchActiveJobs}
+              />
 
               {/* Actions */}
               <Card>

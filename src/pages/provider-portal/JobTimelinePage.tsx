@@ -12,6 +12,7 @@ import {
   ACTIVE_JOB_STATUSES,
 } from "@/hooks/useJobStatusTransition";
 import { InvoiceCard } from "@/components/provider-portal/InvoiceCard";
+import { JobInvoiceSection } from "@/components/JobInvoiceSection";
 import { CancellationSummary } from "@/components/provider-portal/CancellationSummary";
 import { RatingDialog } from "@/components/provider-portal/RatingDialog";
 import { useJobRating } from "@/hooks/useJobRating";
@@ -651,7 +652,13 @@ const JobTimelinePage = () => {
             />
           )}
 
-          {/* Waiting for client to accept invoice */}
+          {/* Invoice Status & Actions Section */}
+          <JobInvoiceSection
+            jobId={job.id}
+            role="provider"
+            onUpdate={fetchAll}
+          />
+
           {currentStatus === 'quoted' && invoice?.status === 'sent' && (
             <Card className="border-border bg-muted/50">
               <CardContent className="p-4 text-center">
