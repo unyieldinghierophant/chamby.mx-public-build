@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Receipt, CheckCircle as CheckCircleInvoice, XCircle as XCircleInvoice, RefreshCw, Clock as ClockInvoice } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { DisputeModal } from "@/components/DisputeModal";
 import { useAuth } from "@/contexts/AuthContext";
@@ -894,6 +895,43 @@ const JobTimelinePage = () => {
               messages.map((msg) => {
                 const isMe = msg.sender_id === user?.id;
                 if (msg.is_system_message) {
+                  // Detect invoice event type
+                  const eventType = msg.system_event_type;
+                  const text = msg.message_text;
+                  let invoiceStyle: { icon: React.ElementType; bg: string; border: string; iconColor: string } | null = null;
+
+                  if (eventType === 'invoice_sent' || /sent an invoice|envió una factura/i.test(text)) {
+                    invoiceStyle = { icon: Receipt, bg: 'bg-blue-50 dark:bg-blue-950/30', border: 'border-blue-200 dark:border-blue-800', iconColor: 'text-blue-500' };
+                  } else if (eventType === 'invoice_accepted' || /accepted|aceptada|aceptó/i.test(text)) {
+                    invoiceStyle = { icon: CheckCircleInvoice, bg: 'bg-emerald-50 dark:bg-emerald-950/30', border: 'border-emerald-200 dark:border-emerald-800', iconColor: 'text-emerald-500' };
+                  } else if (eventType === 'invoice_rejected' || /rejected|rechaz|declined|solicitó ajustes/i.test(text)) {
+                    invoiceStyle = { icon: XCircleInvoice, bg: 'bg-red-50 dark:bg-red-950/30', border: 'border-red-200 dark:border-red-800', iconColor: 'text-red-500' };
+                  } else if (eventType === 'invoice_countered' || /counter|contraoferta/i.test(text)) {
+                    invoiceStyle = { icon: RefreshCw, bg: 'bg-orange-50 dark:bg-orange-950/30', border: 'border-orange-200 dark:border-orange-800', iconColor: 'text-orange-500' };
+                  } else if (eventType === 'invoice_expired' || /expired|expirad/i.test(text)) {
+                    invoiceStyle = { icon: ClockInvoice, bg: 'bg-muted', border: 'border-border', iconColor: 'text-muted-foreground' };
+                  }
+
+                  if (invoiceStyle) {
+                    const Icon = invoiceStyle.icon;
+                    return (
+                      <motion.div
+                        key={msg.id}
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="flex justify-center"
+                      >
+                        <div className={cn(
+                          'flex items-center gap-2 px-4 py-2.5 rounded-xl border max-w-[90%]',
+                          invoiceStyle.bg, invoiceStyle.border
+                        )}>
+                          <Icon className={cn('w-4 h-4 shrink-0', invoiceStyle.iconColor)} />
+                          <span className="text-xs text-foreground/80">{msg.message_text}</span>
+                        </div>
+                      </motion.div>
+                    );
+                  }
+
                   return (
                     <motion.div
                       key={msg.id}

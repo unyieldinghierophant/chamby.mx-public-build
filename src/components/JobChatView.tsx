@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Send, Loader2, MessageSquare, User } from 'lucide-react';
+import { ArrowLeft, Send, Loader2, MessageSquare, User, Receipt, CheckCircle, XCircle, RefreshCw, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
@@ -9,6 +9,27 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+
+type InvoiceEventType = 'invoice_sent' | 'invoice_accepted' | 'invoice_rejected' | 'invoice_countered' | 'invoice_expired' | 'followup_scheduled' | null;
+
+const detectInvoiceEvent = (text: string, eventType?: string | null): InvoiceEventType => {
+  if (eventType === 'invoice_sent' || /sent an invoice|envió una factura/i.test(text)) return 'invoice_sent';
+  if (eventType === 'invoice_accepted' || /accepted|aceptada|aceptó/i.test(text)) return 'invoice_accepted';
+  if (eventType === 'invoice_rejected' || /rejected|rechaz|declined|solicitó ajustes/i.test(text)) return 'invoice_rejected';
+  if (eventType === 'invoice_countered' || /counter|contraoferta|proposed changes/i.test(text)) return 'invoice_countered';
+  if (eventType === 'invoice_expired' || /expired|expirad/i.test(text)) return 'invoice_expired';
+  if (eventType === 'followup_scheduled' || /follow-up|seguimiento.*programad/i.test(text)) return 'followup_scheduled';
+  return null;
+};
+
+const INVOICE_EVENT_STYLES: Record<string, { icon: React.ElementType; bg: string; border: string; iconColor: string }> = {
+  invoice_sent:      { icon: Receipt,      bg: 'bg-blue-50 dark:bg-blue-950/30',    border: 'border-blue-200 dark:border-blue-800',    iconColor: 'text-blue-500' },
+  invoice_accepted:  { icon: CheckCircle,  bg: 'bg-emerald-50 dark:bg-emerald-950/30', border: 'border-emerald-200 dark:border-emerald-800', iconColor: 'text-emerald-500' },
+  invoice_rejected:  { icon: XCircle,      bg: 'bg-red-50 dark:bg-red-950/30',      border: 'border-red-200 dark:border-red-800',      iconColor: 'text-red-500' },
+  invoice_countered: { icon: RefreshCw,    bg: 'bg-orange-50 dark:bg-orange-950/30', border: 'border-orange-200 dark:border-orange-800', iconColor: 'text-orange-500' },
+  invoice_expired:   { icon: Clock,        bg: 'bg-muted',                           border: 'border-border',                            iconColor: 'text-muted-foreground' },
+  followup_scheduled:{ icon: CheckCircle,  bg: 'bg-primary/5',                       border: 'border-primary/20',                        iconColor: 'text-primary' },
+};
 
 interface JobChatViewProps {
   jobId: string;
@@ -94,6 +115,29 @@ const JobChatView = ({ jobId, onBack, headerTitle }: JobChatViewProps) => {
             const isMe = msg.sender_id === user?.id;
 
             if (msg.is_system_message) {
+              const invoiceEvent = detectInvoiceEvent(msg.message_text, msg.system_event_type);
+              const eventStyle = invoiceEvent ? INVOICE_EVENT_STYLES[invoiceEvent] : null;
+
+              if (eventStyle) {
+                const Icon = eventStyle.icon;
+                return (
+                  <motion.div
+                    key={msg.id}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex justify-center"
+                  >
+                    <div className={cn(
+                      'flex items-center gap-2 px-4 py-2.5 rounded-xl border max-w-[90%]',
+                      eventStyle.bg, eventStyle.border
+                    )}>
+                      <Icon className={cn('w-4 h-4 shrink-0', eventStyle.iconColor)} />
+                      <span className="text-xs text-foreground/80">{msg.message_text}</span>
+                    </div>
+                  </motion.div>
+                );
+              }
+
               return (
                 <div key={msg.id} className="flex justify-center">
                   <div className="bg-muted/60 text-muted-foreground text-xs px-3 py-1.5 rounded-full max-w-[85%] text-center">
