@@ -865,7 +865,8 @@ const JobTimelinePage = () => {
       ) : (
         /* Chat Tab */
         <div className="flex flex-col" style={{ height: 'calc(100vh - 10rem)' }}>
-          {/* Debug Panel */}
+          {/* Debug Panel - dev only */}
+          {import.meta.env.DEV && (
           <div className="px-4 pt-2">
             <button
               onClick={() => setShowDebug(d => !d)}
@@ -885,6 +886,7 @@ const JobTimelinePage = () => {
               </div>
             )}
           </div>
+          )}
           <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2.5">
             {messages.length === 0 ? (
               <div className="text-center py-12">
