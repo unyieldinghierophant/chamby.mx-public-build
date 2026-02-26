@@ -10,7 +10,7 @@ import {
 import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import chambyLogo from "@/assets/chamby-logo-new-horizontal.png";
+import chambyLogo from "@/assets/chamby-logo-horizontal.svg";
 
 export function ProviderTopBar() {
   const { profile } = useProfile();
