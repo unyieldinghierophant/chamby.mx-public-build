@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Menu, X, LogOut, User, Settings, CreditCard, Users } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import chambyLogo from "@/assets/chamby-logo-horizontal.svg";
+import ChambyLogoInline from "@/components/ChambyLogoInline";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -97,11 +97,7 @@ const Header = ({
               onClick={() => navigate(getLogoDestination())}
               className="hover:opacity-80 transition-opacity cursor-pointer"
             >
-              <img 
-                src={chambyLogo} 
-                alt="Chamby.mx" 
-                className="h-48 md:h-56 w-auto -my-16 md:-my-20"
-              />
+              <ChambyLogoInline className="h-48 md:h-56 w-auto -my-16 md:-my-20" />
             </button>
           </div>
 
