@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Menu, X, LogOut, User, Settings, CreditCard, Users } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import chambyLogo from "@/assets/chamby-logo-new-horizontal.png";
+import chambyLogo from "@/assets/chamby-logo-horizontal.svg";
 import {
   DropdownMenu,
   DropdownMenuContent,
