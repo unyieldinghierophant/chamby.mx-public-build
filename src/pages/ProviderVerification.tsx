@@ -3,16 +3,21 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle, Clock, XCircle, FileText, Upload, User, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Clock, XCircle, FileText, Upload, User, AlertTriangle, DollarSign } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 
-interface ProviderDetailsDoc {
+interface DocumentRecord {
+  doc_type: string;
   verification_status: string | null;
-  ine_front_url: string | null;
-  ine_back_url: string | null;
-  selfie_url: string | null;
-  selfie_with_id_url: string | null;
+}
+
+interface ProviderDetailsRecord {
+  verification_status: string | null;
+}
+
+interface ProviderRecord {
+  stripe_onboarding_status: string;
 }
 
 interface Profile {
@@ -21,18 +26,18 @@ interface Profile {
   created_at: string | null;
 }
 
-const DOC_ITEMS = [
-  { field: 'ine_front_url' as const, label: 'INE frente' },
-  { field: 'ine_back_url' as const, label: 'INE reverso' },
-  { field: 'selfie_url' as const, label: 'Selfie' },
-  { field: 'selfie_with_id_url' as const, label: 'Selfie con INE' },
+const REQUIRED_DOC_TYPES = [
+  { type: 'face_photo', label: 'Foto del rostro' },
+  { type: 'id_card', label: 'INE / Identificación' },
+  { type: 'criminal_record', label: 'Carta de antecedentes no penales' },
 ];
 
 const ProviderVerification = () => {
   const { user } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [details, setDetails] = useState<ProviderDetailsDoc | null>(null);
-  const [verified, setVerified] = useState(false);
+  const [details, setDetails] = useState<ProviderDetailsRecord | null>(null);
+  const [documents, setDocuments] = useState<DocumentRecord[]>([]);
+  const [stripeStatus, setStripeStatus] = useState<string>('not_started');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -42,17 +47,24 @@ const ProviderVerification = () => {
   const fetchData = async () => {
     if (!user) return;
     try {
-      const [userRes, detailsRes] = await Promise.all([
+      const [userRes, detailsRes, docsRes, providerRes] = await Promise.all([
         supabase.from('users').select('full_name, phone, created_at').eq('id', user.id).maybeSingle(),
         supabase.from('provider_details')
-          .select('verification_status, ine_front_url, ine_back_url, selfie_url, selfie_with_id_url')
+          .select('verification_status')
+          .eq('user_id', user.id)
+          .maybeSingle(),
+        supabase.from('documents')
+          .select('doc_type, verification_status')
+          .eq('provider_id', user.id),
+        supabase.from('providers')
+          .select('stripe_onboarding_status')
           .eq('user_id', user.id)
           .maybeSingle(),
       ]);
       setProfile(userRes.data);
-      setDetails(detailsRes.data as ProviderDetailsDoc | null);
-      // Single source of truth: provider_details.verification_status
-      setVerified(detailsRes.data?.verification_status === 'verified');
+      setDetails(detailsRes.data as ProviderDetailsRecord | null);
+      setDocuments((docsRes.data as DocumentRecord[]) || []);
+      setStripeStatus((providerRes.data as ProviderRecord | null)?.stripe_onboarding_status || 'not_started');
     } catch (error) {
       console.error('Error fetching verification data:', error);
     } finally {
@@ -61,11 +73,20 @@ const ProviderVerification = () => {
   };
 
   const verificationStatus = details?.verification_status || 'pending';
-  const allDocsPresent = details && DOC_ITEMS.every(d => {
-    const val = (details as any)[d.field];
-    return val && typeof val === 'string' && val.trim() !== '';
-  });
-  const isInconsistent = verified && !allDocsPresent;
+  const isVerified = verificationStatus === 'verified';
+
+  const getDocStatus = (docType: string): 'verified' | 'pending' | 'rejected' | 'missing' => {
+    // id_card can also match id_front
+    const doc = documents.find(d =>
+      d.doc_type === docType || (docType === 'id_card' && d.doc_type === 'id_front')
+    );
+    if (!doc) return 'missing';
+    if (doc.verification_status === 'verified' || doc.verification_status === 'approved') return 'verified';
+    if (doc.verification_status === 'rejected') return 'rejected';
+    return 'pending';
+  };
+
+  const allDocsVerified = REQUIRED_DOC_TYPES.every(d => getDocStatus(d.type) === 'verified');
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -93,6 +114,26 @@ const ProviderVerification = () => {
       case 'rejected': return 'Rechazado';
       default: return status;
     }
+  };
+
+  const getDocStatusIcon = (status: 'verified' | 'pending' | 'rejected' | 'missing') => {
+    switch (status) {
+      case 'verified': return <CheckCircle className="w-4 h-4 text-green-600" />;
+      case 'pending': return <Clock className="w-4 h-4 text-yellow-600" />;
+      case 'rejected': return <XCircle className="w-4 h-4 text-red-600" />;
+      case 'missing': return <XCircle className="w-4 h-4 text-red-400" />;
+    }
+  };
+
+  const getDocStatusBadge = (status: 'verified' | 'pending' | 'rejected' | 'missing') => {
+    const map = {
+      verified: { cls: 'bg-green-100 text-green-800 border-green-200', label: 'Aprobado' },
+      pending: { cls: 'bg-yellow-100 text-yellow-800 border-yellow-200', label: 'En revisión' },
+      rejected: { cls: 'bg-red-100 text-red-800 border-red-200', label: 'Rechazado' },
+      missing: { cls: 'bg-red-100 text-red-800 border-red-200', label: 'Faltante' },
+    };
+    const { cls, label } = map[status];
+    return <Badge className={cls}><span className="flex items-center gap-1">{getDocStatusIcon(status)}{label}</span></Badge>;
   };
 
   if (loading) {
@@ -134,15 +175,6 @@ const ProviderVerification = () => {
                 <p className="text-sm"><strong>Fecha de registro:</strong> {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : 'No disponible'}</p>
               </div>
 
-              {isInconsistent && (
-                <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                  <p className="text-amber-800 text-sm flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4" />
-                    Verificación inconsistente: tu perfil está marcado como verificado pero faltan documentos. Contacta soporte.
-                  </p>
-                </div>
-              )}
-
               {verificationStatus === 'rejected' && (
                 <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
                   <p className="text-red-800 text-sm">
@@ -151,7 +183,7 @@ const ProviderVerification = () => {
                 </div>
               )}
 
-              {verificationStatus === 'verified' && allDocsPresent ? (
+              {isVerified && allDocsVerified ? (
                 <Link to="/provider-profile">
                   <Button className="w-full">
                     <User className="w-4 h-4 mr-2" />
@@ -168,35 +200,47 @@ const ProviderVerification = () => {
               )}
             </div>
 
-            {/* Documents Status — reads from provider_details doc URL fields */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Estado de Documentos</h3>
-              <div className="space-y-3">
-                {DOC_ITEMS.map((doc) => {
-                  const val = details ? (details as any)[doc.field] : null;
-                  const isPresent = val && typeof val === 'string' && val.trim() !== '';
-
-                  return (
-                    <div key={doc.field} className="p-3 bg-muted/30 rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-muted-foreground" />
-                          <span className="text-sm font-medium">{doc.label}</span>
+            {/* Documents Status — reads from documents table with per-doc status */}
+            {!(isVerified && allDocsVerified) && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Estado de Documentos</h3>
+                <div className="space-y-3">
+                  {REQUIRED_DOC_TYPES.map((doc) => {
+                    const docStatus = getDocStatus(doc.type);
+                    return (
+                      <div key={doc.type} className="p-3 bg-muted/30 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <FileText className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-sm font-medium">{doc.label}</span>
+                          </div>
+                          {getDocStatusBadge(docStatus)}
                         </div>
-                        <Badge className={isPresent ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'}>
-                          <span className="flex items-center gap-1">
-                            {isPresent ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
-                            {isPresent ? 'Subido' : 'Faltante'}
-                          </span>
-                        </Badge>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
 
-            {verificationStatus === 'verified' && allDocsPresent && (
+            {/* Stripe onboarding status */}
+            {isVerified && stripeStatus !== 'enabled' && (
+              <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                <p className="text-sm flex items-center gap-2 text-foreground">
+                  <DollarSign className="w-4 h-4 text-primary" />
+                  <span>
+                    <strong>Completa tu cuenta de Stripe</strong> para recibir pagos por tus servicios.
+                  </span>
+                </p>
+                <Link to="/provider-portal/account">
+                  <Button variant="outline" size="sm" className="mt-2">
+                    Configurar Stripe
+                  </Button>
+                </Link>
+              </div>
+            )}
+
+            {isVerified && allDocsVerified && (
               <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                 <p className="text-green-800 text-sm flex items-center gap-2">
                   <CheckCircle className="w-4 h-4" />
