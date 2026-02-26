@@ -20,6 +20,8 @@ interface Job {
   status: string;
   total_amount: number;
   customer: { full_name: string } | null;
+  isFollowup?: boolean;
+  followup_status?: string | null;
 }
 
 const ProviderCalendar = () => {
@@ -95,16 +97,25 @@ const ProviderCalendar = () => {
       // Fetch assigned jobs using user.id directly
       const { data: assignedJobs, error: assignedError } = await supabase
         .from("jobs")
-        .select("id, title, scheduled_at, location, status, total_amount, client_id")
+        .select("id, title, scheduled_at, location, status, total_amount, client_id, followup_scheduled_at, followup_status")
         .eq("provider_id", user.id)
         .in("status", ["pending", "confirmed", "in_progress", "assigned"])
         .gte("scheduled_at", monthStart.toISOString())
         .lte("scheduled_at", monthEnd.toISOString());
 
+      // Fetch assigned jobs with followups in this month (even if initial visit is in another month)
+      const { data: followupJobs, error: followupError } = await supabase
+        .from("jobs")
+        .select("id, title, scheduled_at, location, status, total_amount, client_id, followup_scheduled_at, followup_status")
+        .eq("provider_id", user.id)
+        .not("followup_scheduled_at", "is", null)
+        .gte("followup_scheduled_at", monthStart.toISOString())
+        .lte("followup_scheduled_at", monthEnd.toISOString());
+
       // Fetch available jobs (not assigned yet)
       const { data: availableJobs, error: availableError } = await supabase
         .from("jobs")
-        .select("id, title, scheduled_at, location, status, total_amount, client_id")
+        .select("id, title, scheduled_at, location, status, total_amount, client_id, followup_scheduled_at, followup_status")
         .is("provider_id", null)
         .eq("status", "active")
         .gte("scheduled_at", monthStart.toISOString())
@@ -122,8 +133,26 @@ const ProviderCalendar = () => {
         .lte("scheduled_at", monthEnd.toISOString());
 
       if (assignedError) throw assignedError;
+      if (followupError) throw followupError;
       if (availableError) throw availableError;
       if (jobRequestsError) throw jobRequestsError;
+
+      // Helper to create followup entries from jobs
+      const createFollowupEntries = (jobList: any[]): Job[] => {
+        return jobList
+          .filter(job => job.followup_scheduled_at)
+          .map(job => ({
+            id: job.id,
+            title: `Seguimiento: ${job.title}`,
+            scheduled_date: job.followup_scheduled_at,
+            address: job.location || "Sin dirección",
+            status: 'followup',
+            total_amount: job.total_amount,
+            customer: null,
+            isFollowup: true,
+            followup_status: job.followup_status,
+          }));
+      };
 
       // Mark available jobs with a special status
       const markedAvailableJobs = (availableJobs || []).map(job => ({
@@ -158,12 +187,27 @@ const ProviderCalendar = () => {
         })
       );
 
+      // Combine assigned jobs as initial entries
+      const assignedEntries = (assignedJobs || []).map((job: any) => ({
+        ...job,
+        scheduled_date: job.scheduled_at,
+        address: job.location || "Sin dirección",
+        isFollowup: false,
+      }));
+
+      // Followup entries from both assigned and followup queries (deduplicated)
+      const allFollowupSources = [...(assignedJobs || []), ...(followupJobs || [])];
+      const seenIds = new Set<string>();
+      const dedupedFollowupSources = allFollowupSources.filter(j => {
+        if (seenIds.has(j.id)) return false;
+        seenIds.add(j.id);
+        return true;
+      });
+      const followupEntries = createFollowupEntries(dedupedFollowupSources);
+
       setJobs([
-        ...(assignedJobs || []).map((job: any) => ({
-          ...job,
-          scheduled_date: job.scheduled_at,
-          address: job.location || "Sin dirección"
-        })),
+        ...assignedEntries,
+        ...followupEntries,
         ...markedAvailableJobs,
         ...formattedJobRequests
       ]);
@@ -182,6 +226,8 @@ const ProviderCalendar = () => {
         return "bg-yellow-500/10 text-yellow-700 border-yellow-500/20";
       case "available":
         return "bg-yellow-500/20 text-yellow-700 border-yellow-500/30 animate-pulse";
+      case "followup":
+        return "bg-orange-500/10 text-orange-700 border-orange-500/20";
       case "in_progress":
         return "bg-blue-500/10 text-blue-700 border-blue-500/20";
       default:
@@ -189,7 +235,7 @@ const ProviderCalendar = () => {
     }
   };
 
-  const getStatusText = (status: string) => {
+  const getStatusText = (status: string, followupStatus?: string | null) => {
     switch (status) {
       case "confirmed":
         return "Confirmado";
@@ -197,6 +243,11 @@ const ProviderCalendar = () => {
         return "Pendiente";
       case "available":
         return "Disponible";
+      case "followup":
+        return followupStatus === "completed" ? "Seguimiento completado" 
+          : followupStatus === "in_progress" ? "Seguimiento en progreso"
+          : followupStatus === "cancelled" ? "Seguimiento cancelado"
+          : "Seguimiento programado";
       case "in_progress":
         return "En progreso";
       default:
@@ -217,6 +268,7 @@ const ProviderCalendar = () => {
     pending: jobs.filter(j => j.status === "pending").length,
     confirmed: jobs.filter(j => j.status === "confirmed").length,
     in_progress: jobs.filter(j => j.status === "in_progress").length,
+    followup: jobs.filter(j => j.status === "followup").length,
   };
 
   const modifiers = {
@@ -232,6 +284,9 @@ const ProviderCalendar = () => {
     inProgress: jobs
       .filter((j) => j.status === "in_progress")
       .map((j) => new Date(j.scheduled_date)),
+    followup: jobs
+      .filter((j) => j.status === "followup")
+      .map((j) => new Date(j.scheduled_date)),
   };
 
   const modifiersClassNames = {
@@ -239,6 +294,7 @@ const ProviderCalendar = () => {
     pending: "bg-yellow-500/20 text-yellow-900 font-semibold hover:bg-yellow-500/30",
     available: "bg-yellow-500/30 text-yellow-900 font-bold hover:bg-yellow-500/40 animate-pulse",
     inProgress: "bg-blue-500/20 text-blue-900 font-semibold hover:bg-blue-500/30",
+    followup: "bg-orange-500/20 text-orange-900 font-semibold hover:bg-orange-500/30",
   };
 
   if (loading) {
@@ -297,6 +353,14 @@ const ProviderCalendar = () => {
                 <span>En progreso</span>
                 <Badge variant="secondary">{jobCounts.in_progress}</Badge>
               </Button>
+              <Button
+                variant={statusFilter === "followup" ? "default" : "ghost"}
+                className="w-full justify-between"
+                onClick={() => setStatusFilter("followup")}
+              >
+                <span>Seguimiento</span>
+                <Badge variant="secondary">{jobCounts.followup}</Badge>
+              </Button>
             </div>
 
             <div className="pt-4 border-t">
@@ -317,6 +381,10 @@ const ProviderCalendar = () => {
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 rounded bg-blue-500/40" />
                   <span>En progreso</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-orange-500/40" />
+                  <span>Seguimiento</span>
                 </div>
               </div>
             </div>
@@ -439,7 +507,7 @@ const ProviderCalendar = () => {
                   {selectedDateJobs
                     .sort((a, b) => new Date(a.scheduled_date).getTime() - new Date(b.scheduled_date).getTime())
                     .map((job) => (
-                      <Card key={job.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                      <Card key={`${job.id}-${job.isFollowup ? 'followup' : 'initial'}`} className={`overflow-hidden hover:shadow-md transition-shadow ${job.isFollowup ? 'border-l-4 border-l-orange-500' : ''}`}>
                         <CardContent className="p-4 space-y-3">
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1">
@@ -452,7 +520,7 @@ const ProviderCalendar = () => {
                               </div>
                             </div>
                             <Badge className={getStatusColor(job.status)}>
-                              {getStatusText(job.status)}
+                              {getStatusText(job.status, job.followup_status)}
                             </Badge>
                           </div>
                           
