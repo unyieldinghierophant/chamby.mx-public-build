@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Search, ArrowRight } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { ChevronRight } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 
 /**
  * Persistent banner shown on UserLanding when the client has an active
- * job in 'searching' status. Clicking navigates to EsperandoProveedor.
+ * job in 'searching' status. Styled to match ClientActiveJobBanner.
  */
 export const SearchingJobBanner = () => {
   const { user } = useAuth();
@@ -35,7 +35,6 @@ export const SearchingJobBanner = () => {
 
     fetchSearching();
 
-    // Listen for changes
     const channel = supabase
       .channel("searching-banner")
       .on("postgres_changes", {
@@ -52,37 +51,35 @@ export const SearchingJobBanner = () => {
   return (
     <AnimatePresence>
       {searchingJob && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
+        <motion.button
+          initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          className="mx-4 mb-4"
+          exit={{ opacity: 0, y: -12 }}
+          onClick={() => navigate(`/esperando-proveedor?job_id=${searchingJob.id}`)}
+          className="w-full bg-amber-500 text-white px-4 py-3 flex items-center gap-3 cursor-pointer hover:bg-amber-500/90 transition-colors rounded-xl shadow-md"
         >
-          <button
-            onClick={() => navigate(`/esperando-proveedor?job_id=${searchingJob.id}`)}
-            className="w-full flex items-center gap-3 p-4 rounded-xl bg-primary/10 border border-primary/20 hover:bg-primary/15 transition-colors text-left"
-          >
-            <div className="relative flex-shrink-0">
-              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                <Search className="w-5 h-5 text-primary" />
-              </div>
-              <motion.div
-                className="absolute inset-0 rounded-full border border-primary/30"
-                animate={{ scale: [1, 1.5], opacity: [0.5, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-              />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">
-                Buscando proveedor para tu solicitud
-              </p>
-              <p className="text-xs text-muted-foreground truncate capitalize">
-                {searchingJob.category}
-              </p>
-            </div>
-            <ArrowRight className="w-4 h-4 text-primary flex-shrink-0" />
-          </button>
-        </motion.div>
+          {/* Pulsing search dot */}
+          <span className="relative flex-shrink-0 w-2.5 h-2.5">
+            <span className="absolute inset-0 rounded-full bg-white motion-safe:animate-ping opacity-75" />
+            <span className="relative block w-2.5 h-2.5 rounded-full bg-white" />
+          </span>
+
+          {/* Text */}
+          <div className="flex-1 min-w-0 text-left">
+            <p className="text-sm font-bold truncate">
+              Buscando un proveedor para tu servicio...
+            </p>
+            <p className="text-[11px] text-white/70 truncate">
+              Te notificaremos cuando un proveedor acepte
+            </p>
+          </div>
+
+          {/* CTA */}
+          <span className="flex-shrink-0 bg-white text-amber-600 text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1">
+            Ver estado
+            <ChevronRight className="w-3.5 h-3.5" />
+          </span>
+        </motion.button>
       )}
     </AnimatePresence>
   );
