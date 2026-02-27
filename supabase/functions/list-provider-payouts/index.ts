@@ -100,13 +100,15 @@ Deno.serve(async (req) => {
       .reduce((sum, p) => sum + Number(p.amount), 0)
 
     const pendingAmount = enrichedPayouts
-      .filter(p => p.status === 'pending')
+      .filter(p => p.status === 'pending' || p.status === 'awaiting_provider_onboarding')
       .reduce((sum, p) => sum + Number(p.amount), 0)
 
     const paidPayouts = enrichedPayouts.filter(p => p.status === 'paid')
     const lastPaidAt = paidPayouts.length > 0 
       ? paidPayouts.sort((a, b) => new Date(b.paid_at!).getTime() - new Date(a.paid_at!).getTime())[0].paid_at
       : null
+
+    const awaitingOnboardingCount = enrichedPayouts.filter(p => p.status === 'awaiting_provider_onboarding').length
 
     console.log(`Found ${enrichedPayouts.length} payouts for provider ${user.id}`)
 
@@ -119,7 +121,8 @@ Deno.serve(async (req) => {
           lastPaidAt,
           totalPayouts: enrichedPayouts.length,
           paidCount: paidPayouts.length,
-          pendingCount: enrichedPayouts.filter(p => p.status === 'pending').length
+          pendingCount: enrichedPayouts.filter(p => p.status === 'pending').length,
+          awaitingOnboardingCount,
         }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

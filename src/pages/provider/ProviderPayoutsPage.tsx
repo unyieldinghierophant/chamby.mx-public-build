@@ -30,6 +30,8 @@ const ProviderPayoutsPage = () => {
         return <Badge className="bg-green-500/10 text-green-600 border-green-500/20">Pagado</Badge>;
       case 'pending':
         return <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">Pendiente</Badge>;
+      case 'awaiting_provider_onboarding':
+        return <Badge className="bg-orange-500/10 text-orange-600 border-orange-500/20">Esperando Stripe</Badge>;
       case 'failed':
         return <Badge variant="destructive">Fallido</Badge>;
       default:
@@ -75,6 +77,33 @@ const ProviderPayoutsPage = () => {
           <Card className="border-destructive">
             <CardContent className="py-4">
               <p className="text-destructive text-sm">{error}</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Stripe Onboarding Callout */}
+        {(summary?.awaitingOnboardingCount ?? 0) > 0 && (
+          <Card className="border-orange-500/30 bg-orange-500/5">
+            <CardContent className="py-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <div className="p-2 rounded-full bg-orange-500/20 shrink-0">
+                <Clock className="h-5 w-5 text-orange-600" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-foreground">
+                  {summary!.awaitingOnboardingCount} pago{summary!.awaitingOnboardingCount > 1 ? 's' : ''} esperando verificación de Stripe
+                </p>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  Completa tu cuenta de Stripe Connect para liberar estos fondos.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="shrink-0"
+                onClick={() => navigate('/provider-portal/account')}
+              >
+                Configurar Stripe
+              </Button>
             </CardContent>
           </Card>
         )}
@@ -193,14 +222,18 @@ const ProviderPayoutsPage = () => {
                           ? 'bg-green-500/20' 
                           : payout.status === 'pending'
                             ? 'bg-yellow-500/20'
-                            : 'bg-red-500/20'
+                            : payout.status === 'awaiting_provider_onboarding'
+                              ? 'bg-orange-500/20'
+                              : 'bg-red-500/20'
                       }`}>
                         <DollarSign className={`h-4 w-4 ${
                           payout.status === 'paid' 
                             ? 'text-green-600' 
                             : payout.status === 'pending'
                               ? 'text-yellow-600'
-                              : 'text-red-600'
+                              : payout.status === 'awaiting_provider_onboarding'
+                                ? 'text-orange-600'
+                                : 'text-red-600'
                         }`} />
                       </div>
                       <div>
