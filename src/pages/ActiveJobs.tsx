@@ -18,6 +18,7 @@ import { VISIT_DISPLAY, VAT_LABEL } from "@/lib/pricing";
 import Header from "@/components/Header";
 import { toast } from "sonner";
 import { startBooking } from "@/lib/booking";
+import { RescheduleDialog } from "@/components/RescheduleDialog";
 
 interface ActiveJob {
   id: string;
@@ -73,6 +74,7 @@ const ActiveJobs = () => {
   const [selectedJob, setSelectedJob] = useState<ActiveJob | null>(null);
   const [confirmingCompletion, setConfirmingCompletion] = useState(false);
   const [disputeModalOpen, setDisputeModalOpen] = useState(false);
+  const [rescheduleDialogOpen, setRescheduleDialogOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -515,11 +517,11 @@ const ActiveJobs = () => {
                 <CardContent className="p-6">
                   <h3 className="font-semibold mb-4">Acciones</h3>
                   <div className="grid grid-cols-2 gap-3">
-                    <Button variant="outline">
+                    <Button variant="outline" onClick={() => setRescheduleDialogOpen(true)}>
                       <Calendar className="mr-2 h-4 w-4" />
                       Reagendar
                     </Button>
-                    <Button variant="outline">
+                    <Button variant="outline" onClick={() => navigate(`/book-job?category=${selectedJob.category}`)}>
                       <Plus className="mr-2 h-4 w-4" />
                       Agregar servicios
                     </Button>
@@ -554,6 +556,16 @@ const ActiveJobs = () => {
                 onOpenChange={setDisputeModalOpen}
                 jobId={selectedJob.id}
                 onDisputeOpened={fetchActiveJobs}
+              />
+
+              <RescheduleDialog
+                open={rescheduleDialogOpen}
+                onOpenChange={setRescheduleDialogOpen}
+                jobId={selectedJob.id}
+                currentScheduledAt={selectedJob.scheduled_at}
+                providerId={selectedJob.provider_id}
+                clientId={user?.id || ""}
+                onRescheduleComplete={fetchActiveJobs}
               />
             </div>
           )}

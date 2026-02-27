@@ -17,6 +17,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
 import { GenericPageSkeleton } from "@/components/skeletons";
+import { RescheduleDialog } from "@/components/RescheduleDialog";
 
 const ASSIGNMENT_WINDOW_HOURS = 4;
 
@@ -69,6 +70,7 @@ const EsperandoProveedor = () => {
   const [cancelling, setCancelling] = useState(false);
   const [emailNotify, setEmailNotify] = useState(false);
   const [showFullDetails, setShowFullDetails] = useState(false);
+  const [rescheduleOpen, setRescheduleOpen] = useState(false);
 
   // Prevent scroll-jump: anchor scroll position
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -324,7 +326,7 @@ const EsperandoProveedor = () => {
               <CardContent className="p-5 space-y-3">
                 <p className="text-sm font-medium">La ventana de asignación ha expirado.</p>
                 <div className="flex flex-col gap-2">
-                  <Button className="w-full" onClick={() => toast.info("Reagendamiento próximamente disponible")}>
+                  <Button className="w-full" onClick={() => setRescheduleOpen(true)}>
                     <CalendarClock className="mr-2 h-4 w-4" />
                     Reagendar fecha y hora
                   </Button>
@@ -539,6 +541,18 @@ const EsperandoProveedor = () => {
           </div>
         </div>
       </div>
+
+      {job && (
+        <RescheduleDialog
+          open={rescheduleOpen}
+          onOpenChange={setRescheduleOpen}
+          jobId={job.id}
+          currentScheduledAt={job.scheduled_at}
+          providerId={job.provider_id}
+          clientId={user?.id || ""}
+          onRescheduleComplete={fetchJob}
+        />
+      )}
     </div>
   );
 };
