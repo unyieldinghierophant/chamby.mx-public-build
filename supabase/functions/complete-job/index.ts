@@ -139,6 +139,16 @@ serve(async (req) => {
         read: false,
       });
 
+      // Notify provider that client confirmed
+      await supabase.from("notifications").insert({
+        user_id: job.provider_id!,
+        type: "job_completed",
+        title: "Trabajo completado",
+        message: "El cliente confirmó que el trabajo fue completado. Tu pago será procesado.",
+        link: "/provider-portal/jobs",
+        data: { job_id },
+      });
+
       // Trigger escrow release
       await triggerEscrowRelease(supabase, job_id, job.provider_id!);
 
