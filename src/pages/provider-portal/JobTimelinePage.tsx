@@ -75,6 +75,8 @@ interface JobDetail {
   completion_confirmed_at: string | null;
   has_open_dispute: boolean | null;
   dispute_status: string | null;
+  followup_scheduled_at: string | null;
+  followup_status: string | null;
 }
 
 interface ChatMessage {
@@ -450,103 +452,220 @@ const JobTimelinePage = () => {
 
       {activeTab === 'timeline' ? (
         <div className="px-4 pt-3 space-y-4">
-          {/* Job Info Card */}
+
+          {/* ── 1. Header Card: Title, Status, Client ── */}
           <Card className="border-border/50">
             <CardContent className="p-4 space-y-3">
-              {/* Job ID */}
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span className="font-mono bg-muted px-1.5 py-0.5 rounded">ID: {job.id.slice(0, 8)}</span>
-                <span>•</span>
-                <span>{job.category}</span>
-                {job.service_type && <><span>•</span><span>{job.service_type}</span></>}
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-base font-bold text-foreground leading-tight">{job.title}</h2>
+                  <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground">
+                    <span>{job.category}</span>
+                    {job.service_type && <><span>•</span><span>{job.service_type}</span></>}
+                    <span>•</span>
+                    <span className="font-mono">{job.id.slice(0, 8)}</span>
+                  </div>
+                </div>
+                <Badge className={cn("text-[10px] px-2 py-0.5 border shrink-0", statusConfig.bg, statusConfig.text, statusConfig.border)}>
+                  {JOB_STATUS_LABELS[currentStatus] || currentStatus}
+                </Badge>
               </div>
 
               {client && (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2.5 pt-2 border-t border-border/30">
+                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
                     <User className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm">{client.full_name || 'Cliente'}</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{client.full_name || 'Cliente'}</p>
+                    {client.phone && (
+                      <p className="text-xs text-muted-foreground">{client.phone}</p>
+                    )}
                   </div>
                 </div>
               )}
-              {job.scheduled_at && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="w-4 h-4" />
-                  <span>{format(new Date(job.scheduled_at), "d 'de' MMMM, HH:mm", { locale: es })}</span>
-                </div>
-              )}
-              {job.location && (
-                <div className="flex items-start gap-2 text-sm text-muted-foreground">
-                  <MapPin className="w-4 h-4 mt-0.5 shrink-0" />
-                  <span>{job.location}</span>
-                </div>
-              )}
+
               {job.description && (
-                <p className="text-xs text-muted-foreground">{job.description}</p>
+                <p className="text-xs text-muted-foreground pt-2 border-t border-border/30">{job.description}</p>
               )}
               {job.problem && (
                 <div className="text-xs text-muted-foreground">
-                  <span className="font-medium">Problema:</span> {job.problem}
+                  <span className="font-medium text-foreground">Problema:</span> {job.problem}
                 </div>
               )}
             </CardContent>
           </Card>
 
-          {/* Payment Breakdown Card */}
+          {/* ── 2. Schedule Section ── */}
           <Card className="border-border/50">
             <CardContent className="p-4 space-y-3">
-              <div className="flex items-center gap-2">
-                <DollarSign className="w-5 h-5 text-primary" />
-                <span className="text-base font-bold text-foreground">
-                  Tu ganancia garantizada: {VISIT_DISPLAY.providerNet}
-                </span>
-              </div>
-
-              {job.visit_fee_paid && (
-                <Badge variant="outline" className="bg-green-500/10 text-green-700 border-green-500/20 text-xs">
-                  Pago confirmado
-                </Badge>
-              )}
-
-              {/* Desglose */}
-              <details className="group">
-                <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
-                  Ver desglose ▸
-                </summary>
-                <div className="mt-2 space-y-1.5 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Total cobrado al cliente</span>
-                    <span className="font-medium">{VISIT_DISPLAY.total}</span>
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Agenda</h3>
+              {job.scheduled_at ? (
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <Calendar className="w-5 h-5 text-primary" />
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Comisión Chamby</span>
-                    <span className="text-destructive">-{VISIT_DISPLAY.platformFee}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">{VAT_LABEL}</span>
-                    <span className="text-destructive">-{VISIT_DISPLAY.vat}</span>
-                  </div>
-                  <div className="border-t border-border/50 pt-1.5 flex justify-between">
-                    <span className="font-semibold text-foreground">Tu ganancia neta</span>
-                    <span className="font-bold text-primary">{VISIT_DISPLAY.providerNet}</span>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">
+                      {format(new Date(job.scheduled_at), "EEEE d 'de' MMMM", { locale: es })}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {format(new Date(job.scheduled_at), "HH:mm", { locale: es })} hrs
+                    </p>
                   </div>
                 </div>
-              </details>
+              ) : (
+                <p className="text-sm text-muted-foreground">Fecha no programada</p>
+              )}
+
+              {job.followup_scheduled_at && (
+                <div className="flex items-center gap-3 pt-2 border-t border-border/30">
+                  <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center shrink-0">
+                    <Calendar className="w-5 h-5 text-orange-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-orange-600">Visita de seguimiento</p>
+                    <p className="text-sm font-semibold text-foreground">
+                      {format(new Date(job.followup_scheduled_at), "EEEE d 'de' MMMM, HH:mm", { locale: es })}
+                    </p>
+                    {job.followup_status && (
+                      <Badge variant="outline" className="text-[10px] mt-1">{job.followup_status}</Badge>
+                    )}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          {/* Job Photos */}
+          {/* ── 3. Location Section ── */}
+          <Card className="border-border/50">
+            <CardContent className="p-4 space-y-3">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Ubicación</h3>
+              {job.location ? (
+                <>
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                      <MapPin className="w-5 h-5 text-muted-foreground" />
+                    </div>
+                    <p className="text-sm text-foreground leading-relaxed">{job.location}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2 text-xs"
+                      onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(job.location!)}`, '_blank')}
+                    >
+                      <Navigation className="w-3.5 h-3.5" />
+                      Iniciar ruta
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2 text-xs"
+                      onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(job.location!)}`, '_blank')}
+                    >
+                      <MapPin className="w-3.5 h-3.5" />
+                      Abrir en Maps
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-4">
+                  <MapPin className="w-6 h-6 text-muted-foreground/40 mx-auto mb-1" />
+                  <p className="text-xs text-muted-foreground">Ubicación no disponible</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* ── 4. Financial Section ── */}
+          <Card className="border-border/50">
+            <CardContent className="p-4 space-y-3">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Finanzas</h3>
+
+              {/* Visit fee */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm text-foreground">Cuota de visita</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold">{VISIT_DISPLAY.total}</span>
+                  {job.visit_fee_paid ? (
+                    <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-600 border-emerald-500/20">Pagado</Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-600 border-amber-500/20">Pendiente</Badge>
+                  )}
+                </div>
+              </div>
+
+              {/* Invoice amount if exists */}
+              {invoice && (
+                <div className="flex items-center justify-between pt-2 border-t border-border/30">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm text-foreground">Factura</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold">${invoice.total_customer_amount?.toLocaleString('es-MX')} MXN</span>
+                    <Badge variant="outline" className={cn("text-[10px]",
+                      invoice.status === 'paid' ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" :
+                      invoice.status === 'sent' ? "bg-blue-500/10 text-blue-600 border-blue-500/20" :
+                      invoice.status === 'accepted' ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" :
+                      "bg-muted text-muted-foreground"
+                    )}>
+                      {invoice.status === 'paid' ? 'Pagada' :
+                       invoice.status === 'sent' ? 'Enviada' :
+                       invoice.status === 'accepted' ? 'Aceptada' :
+                       invoice.status === 'draft' ? 'Borrador' :
+                       invoice.status}
+                    </Badge>
+                  </div>
+                </div>
+              )}
+
+              {/* Provider earnings */}
+              <div className="pt-2 border-t border-border/30">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-foreground">Tu ganancia neta</span>
+                  <span className="text-base font-bold text-primary">{VISIT_DISPLAY.providerNet}</span>
+                </div>
+                <details className="mt-2 group">
+                  <summary className="text-[11px] text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
+                    Ver desglose completo ▸
+                  </summary>
+                  <div className="mt-2 space-y-1 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Cobro al cliente</span>
+                      <span>{VISIT_DISPLAY.total}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Comisión Chamby</span>
+                      <span className="text-destructive">-{VISIT_DISPLAY.platformFee}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">{VAT_LABEL}</span>
+                      <span className="text-destructive">-{VISIT_DISPLAY.vat}</span>
+                    </div>
+                  </div>
+                </details>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* ── Job Photos ── */}
           {job.photos && job.photos.length > 0 && (
             <Card className="border-border/50">
               <CardContent className="p-4 space-y-2">
-                <h3 className="text-sm font-semibold text-foreground">Fotos del trabajo</h3>
-                <div className="grid grid-cols-2 gap-2">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Fotos</h3>
+                <div className="grid grid-cols-3 gap-2">
                   {job.photos.map((photoUrl, i) => (
                     <a key={i} href={photoUrl} target="_blank" rel="noopener noreferrer" className="block">
                       <img
                         src={photoUrl}
                         alt={`Foto ${i + 1}`}
-                        className="rounded-lg w-full h-32 object-cover border border-border/30"
+                        className="rounded-lg w-full h-24 object-cover border border-border/30"
                         loading="lazy"
                       />
                     </a>
@@ -556,119 +675,102 @@ const JobTimelinePage = () => {
             </Card>
           )}
 
-          {/* Map Card — safe fallback, no JS embed */}
-          <Card className="border-border/50 overflow-hidden">
-            <CardContent className="p-0">
-              <div className="p-3 border-b border-border/30">
-                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <MapPin className="w-4 h-4" />
-                  Ubicación del trabajo
-                </h3>
+          {/* ── 5. Status Timeline ── */}
+          <Card className="border-border/50">
+            <CardContent className="p-4">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Progreso</h3>
+              <div className="relative pl-6">
+                {STATUS_ORDER.map((step, i) => {
+                  const isPast = currentIndex >= i;
+                  const isCurrent = currentStatus === step;
+                  const stepConfig = JOB_STATUS_CONFIG[step];
+
+                  return (
+                    <div key={step} className="relative pb-5 last:pb-0">
+                      {i < STATUS_ORDER.length - 1 && (
+                        <div className={cn(
+                          "absolute left-[-14px] top-6 w-0.5 h-full",
+                          isPast ? "bg-primary/40" : "bg-border"
+                        )} />
+                      )}
+                      <div className={cn(
+                        "absolute left-[-18px] top-1 w-2.5 h-2.5 rounded-full border-2",
+                        isCurrent
+                          ? "bg-primary border-primary ring-4 ring-primary/20"
+                          : isPast
+                            ? "bg-primary/60 border-primary/60"
+                            : "bg-muted border-border"
+                      )} />
+                      <div className={cn(
+                        "text-sm",
+                        isCurrent ? "font-semibold text-foreground" : isPast ? "text-foreground/70" : "text-muted-foreground/50"
+                      )}>
+                        {JOB_STATUS_LABELS[step]}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-              {job.location ? (
-                <>
-                  <div className="p-4 space-y-2">
-                    <p className="text-sm text-foreground">{job.location}</p>
-                  </div>
-                  <div className="p-3 border-t border-border/30 grid grid-cols-2 gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-2"
-                      onClick={() => {
-                        window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(job.location!)}`, '_blank');
-                      }}
-                    >
-                      <Navigation className="w-3.5 h-3.5" />
-                      Iniciar ruta
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-2"
-                      onClick={() => {
-                        window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(job.location!)}`, '_blank');
-                      }}
-                    >
-                      <MapPin className="w-3.5 h-3.5" />
-                      Abrir en Maps
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <div className="p-6 text-center">
-                  <MapPin className="w-6 h-6 text-muted-foreground/40 mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">Ubicación no disponible</p>
-                </div>
-              )}
             </CardContent>
           </Card>
 
-          {/* Timeline Steps */}
-          <div className="relative pl-6">
-            {STATUS_ORDER.map((step, i) => {
-              const isPast = currentIndex >= i;
-              const isCurrent = currentStatus === step;
-              const stepConfig = JOB_STATUS_CONFIG[step];
+          {/* ── 6. Contextual Actions Section ── */}
+          {!isTerminal && (
+            <Card className="border-primary/20 bg-primary/5">
+              <CardContent className="p-4 space-y-3">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Acciones</h3>
 
-              return (
-                <div key={step} className="relative pb-6 last:pb-0">
-                  {/* Vertical line */}
-                  {i < STATUS_ORDER.length - 1 && (
-                    <div className={cn(
-                      "absolute left-[-14px] top-6 w-0.5 h-full",
-                      isPast ? "bg-primary/40" : "bg-border"
-                    )} />
-                  )}
-                  {/* Dot */}
-                  <div className={cn(
-                    "absolute left-[-18px] top-1 w-2.5 h-2.5 rounded-full border-2",
-                    isCurrent
-                      ? "bg-primary border-primary ring-4 ring-primary/20"
-                      : isPast
-                        ? "bg-primary/60 border-primary/60"
-                        : "bg-muted border-border"
-                  )} />
-                  {/* Label */}
-                  <div className={cn(
-                    "text-sm",
-                    isCurrent ? "font-semibold text-foreground" : isPast ? "text-foreground/70" : "text-muted-foreground/50"
-                  )}>
-                    {JOB_STATUS_LABELS[step]}
+                {/* Invoice creation area */}
+                {(currentStatus === 'on_site' || currentStatus === 'quoted' || currentStatus === 'in_progress') && (
+                  <InvoiceCard
+                    jobId={job.id}
+                    clientId={job.client_id}
+                    jobStatus={currentStatus}
+                    invoice={invoice}
+                    onInvoiceCreated={fetchAll}
+                    isProvider={true}
+                  />
+                )}
+
+                {/* Status transition actions */}
+                {actions.map((action) => {
+                  const Icon = action.icon;
+                  const isClientAction = action.nextStatus === 'confirmed';
+                  if (action.nextStatus === 'completed') {
+                    if (job.completion_status !== 'in_progress') return null;
+                    if (!invoice || invoice.status !== 'paid') return null;
+                  }
+                  return (
+                    <Button
+                      key={action.nextStatus}
+                      onClick={() => handleTransition(action.nextStatus)}
+                      disabled={transitioning || markingDone || isClientAction}
+                      className={cn("w-full gap-2", isClientAction && "opacity-60")}
+                      variant={isClientAction ? "outline" : "default"}
+                    >
+                      {(transitioning || markingDone) ? <Loader2 className="w-4 h-4 animate-spin" /> : <Icon className="w-4 h-4" />}
+                      {action.label}
+                    </Button>
+                  );
+                })}
+
+                {/* Quoted waiting state */}
+                {currentStatus === 'quoted' && invoice?.status === 'sent' && (
+                  <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
+                    <Clock className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">Esperando aprobación del cliente</span>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Invoice Card — shows on on_site, quoted, in_progress */}
-          {(currentStatus === 'on_site' || currentStatus === 'quoted' || currentStatus === 'in_progress') && (
-            <InvoiceCard
-              jobId={job.id}
-              clientId={job.client_id}
-              jobStatus={currentStatus}
-              invoice={invoice}
-              onInvoiceCreated={fetchAll}
-              isProvider={true}
-            />
+                )}
+              </CardContent>
+            </Card>
           )}
 
-          {/* Invoice Status & Actions Section */}
+          {/* Invoice Section */}
           <JobInvoiceSection
             jobId={job.id}
             role="provider"
             onUpdate={fetchAll}
           />
-
-          {currentStatus === 'quoted' && invoice?.status === 'sent' && (
-            <Card className="border-border bg-muted/50">
-              <CardContent className="p-4 text-center">
-                <Clock className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm font-medium text-foreground">Esperando aprobación del cliente</p>
-                <p className="text-xs text-muted-foreground mt-1">El cliente debe aceptar la factura para continuar</p>
-              </CardContent>
-            </Card>
-          )}
 
           {/* Provider marked done — waiting client confirmation */}
           {job.completion_status === 'provider_marked_done' && !job.has_open_dispute && (
@@ -698,7 +800,7 @@ const JobTimelinePage = () => {
             </Card>
           )}
 
-          {/* Dispute button — provider can initiate */}
+          {/* Dispute button */}
           {invoice && ["paid", "ready_to_release"].includes(invoice.status) && !job.has_open_dispute && (
             <Button
               variant="outline"
@@ -710,7 +812,6 @@ const JobTimelinePage = () => {
             </Button>
           )}
 
-          {/* Dispute Modal */}
           <DisputeModal
             open={disputeModalOpen}
             onOpenChange={setDisputeModalOpen}
@@ -718,7 +819,7 @@ const JobTimelinePage = () => {
             onDisputeOpened={fetchAll}
           />
 
-          {/* Pago liberado indicator */}
+          {/* Pago liberado */}
           {invoice?.status === 'released' && (
             <Card className="border-emerald-500/30 bg-emerald-500/5">
               <CardContent className="p-4 text-center">
@@ -727,37 +828,6 @@ const JobTimelinePage = () => {
                 <p className="text-xs text-muted-foreground mt-1">El pago fue depositado en tu cuenta de Stripe</p>
               </CardContent>
             </Card>
-          )}
-
-          {/* Actions */}
-          {!isTerminal && actions.length > 0 && (
-            <div className="space-y-2">
-              {actions.map((action) => {
-                const Icon = action.icon;
-                const isClientAction = action.nextStatus === 'confirmed';
-                // Hide "completed" button if provider already marked done or completion_status != in_progress
-                if (action.nextStatus === 'completed') {
-                  if (job.completion_status !== 'in_progress') return null;
-                  // Only show if invoice is paid
-                  if (!invoice || invoice.status !== 'paid') return null;
-                }
-                return (
-                  <Button
-                    key={action.nextStatus}
-                    onClick={() => handleTransition(action.nextStatus)}
-                    disabled={transitioning || markingDone || isClientAction}
-                    className={cn(
-                      "w-full gap-2",
-                      isClientAction && "opacity-60"
-                    )}
-                    variant={isClientAction ? "outline" : "default"}
-                  >
-                    {(transitioning || markingDone) ? <Loader2 className="w-4 h-4 animate-spin" /> : <Icon className="w-4 h-4" />}
-                    {action.label}
-                  </Button>
-                );
-              })}
-            </div>
           )}
 
           {/* Cancel section */}
@@ -779,18 +849,14 @@ const JobTimelinePage = () => {
                 {showCancelSummary ? 'Confirmar cancelación' : 'Cancelar trabajo'}
               </Button>
               {showCancelSummary && (
-                <Button
-                  variant="ghost"
-                  className="w-full text-muted-foreground text-xs"
-                  onClick={() => setShowCancelSummary(false)}
-                >
+                <Button variant="ghost" className="w-full text-muted-foreground text-xs" onClick={() => setShowCancelSummary(false)}>
                   Volver
                 </Button>
               )}
             </div>
           )}
 
-          {/* Terminal state message */}
+          {/* Terminal state */}
           {isTerminal && (
             <Card className={cn(
               "border",
@@ -812,7 +878,6 @@ const JobTimelinePage = () => {
             </Card>
           )}
 
-          {/* Invoice summary on completed */}
           {isTerminal && invoice && (
             <InvoiceCard
               jobId={job.id}
@@ -824,21 +889,17 @@ const JobTimelinePage = () => {
             />
           )}
 
-          {/* Rating section — only after successful completion */}
+          {/* Rating */}
           {currentStatus === 'completed' && canRate && !ratingDismissed && (
             <RatingDialog
               jobId={job.id}
               otherUserId={job.client_id}
               reviewerRole="provider"
-              onComplete={() => {
-                refetchRating();
-                fetchAll();
-              }}
+              onComplete={() => { refetchRating(); fetchAll(); }}
               onDismiss={() => setRatingDismissed(true)}
             />
           )}
 
-          {/* Already rated confirmation */}
           {currentStatus === 'completed' && hasRated && myReview && (
             <Card className="border-border/50">
               <CardContent className="p-4 text-center">
@@ -855,9 +916,7 @@ const JobTimelinePage = () => {
                     />
                   ))}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Ya calificaste este trabajo
-                </p>
+                <p className="text-xs text-muted-foreground">Ya calificaste este trabajo</p>
               </CardContent>
             </Card>
           )}
