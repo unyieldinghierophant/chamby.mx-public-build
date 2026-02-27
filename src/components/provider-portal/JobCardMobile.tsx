@@ -56,6 +56,7 @@ const categoryGradient: Record<string, string> = {
 };
 
 export const JobCardMobile = ({ job, onAccept, onViewDetails, isMatch = false, index = 0, disabled = false, distanceKm }: JobCardMobileProps) => {
+  const hasPhotos = job.photos && job.photos.length > 0;
   const scheduledDate = job.scheduled_at ? new Date(job.scheduled_at) : null;
   const isNew = new Date(job.created_at) > new Date(Date.now() - 24 * 60 * 60 * 1000);
 
@@ -101,16 +102,22 @@ export const JobCardMobile = ({ job, onAccept, onViewDetails, isMatch = false, i
     >
       {/* ─── Category Image Banner ─── */}
       <div className="relative h-[140px] overflow-hidden">
-        <div className="absolute inset-0 flex items-center justify-center" style={{ background: gradient }}>
-          {/* Decorative circles */}
-          <div className="absolute -top-5 -right-5 w-[120px] h-[120px] rounded-full" style={{ background: 'rgba(255,255,255,0.08)' }} />
-          <div className="absolute -bottom-[30px] -left-2.5 w-[100px] h-[100px] rounded-full" style={{ background: 'rgba(0,0,0,0.08)' }} />
-          
-          {/* Floating emoji */}
-          <span className="text-[64px] relative z-10 drop-shadow-lg" style={{ animation: 'floatEmoji 3s ease-in-out infinite' }}>
-            {emoji}
-          </span>
-        </div>
+        {hasPhotos ? (
+          <img
+            src={job.photos![0]}
+            alt={job.title}
+            className="absolute inset-0 w-full h-full object-cover"
+            loading="lazy"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center" style={{ background: gradient }}>
+            <div className="absolute -top-5 -right-5 w-[120px] h-[120px] rounded-full" style={{ background: 'rgba(255,255,255,0.08)' }} />
+            <div className="absolute -bottom-[30px] -left-2.5 w-[100px] h-[100px] rounded-full" style={{ background: 'rgba(0,0,0,0.08)' }} />
+            <span className="text-[64px] relative z-10 drop-shadow-lg" style={{ animation: 'floatEmoji 3s ease-in-out infinite' }}>
+              {emoji}
+            </span>
+          </div>
+        )}
 
         {/* "Nuevo" badge top-left */}
         {isNew && (
@@ -141,6 +148,17 @@ export const JobCardMobile = ({ job, onAccept, onViewDetails, isMatch = false, i
           <div className="absolute bottom-3 left-3 flex items-center gap-1 rounded-full px-2.5 py-1 z-10 animate-pulse" style={{ background: 'rgba(255,77,106,0.9)' }}>
             <AlertCircle className="w-2.5 h-2.5 text-white" />
             <span className="text-[10px] font-bold text-white">Urgente</span>
+          </div>
+        )}
+
+        {/* Photo count indicator */}
+        {hasPhotos && job.photos!.length > 1 && (
+          <div className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full px-2 py-0.5 z-10" style={{
+            background: 'rgba(0,0,0,0.55)',
+            backdropFilter: 'blur(8px)',
+          }}>
+            <ImageIcon className="w-3 h-3 text-white" />
+            <span className="text-[10px] font-bold text-white">{job.photos!.length}</span>
           </div>
         )}
       </div>
