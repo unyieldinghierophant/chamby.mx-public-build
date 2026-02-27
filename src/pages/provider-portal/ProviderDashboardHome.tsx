@@ -382,6 +382,7 @@ const ProviderDashboardHome = () => {
         jobCount={availableJobs.length}
         isOpen={showJobsAlert}
         onClose={() => setShowJobsAlert(false)}
+        previewJob={availableJobs[0] || null}
       />
 
       {/* ─── ALERT BANNERS ─── */}
