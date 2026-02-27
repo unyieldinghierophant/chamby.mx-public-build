@@ -254,7 +254,7 @@ const ProviderDashboardHome = () => {
                   />
                   <AvatarFallback 
                     className="rounded-[14px] text-white font-extrabold text-lg"
-                    style={{ background: 'linear-gradient(135deg, #2e8fff, #0c55ad)', fontFamily: "'Syne', sans-serif" }}
+                    style={{ background: 'linear-gradient(135deg, #2e8fff, #0c55ad)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                   >
                     {getInitials(profile?.full_name || providerProfile?.display_name || 'CH')}
                   </AvatarFallback>
@@ -273,7 +273,7 @@ const ProviderDashboardHome = () => {
                 <span className="text-[11px] font-semibold uppercase tracking-[0.08em] block mb-0.5" style={{ color: 'rgba(255,255,255,0.45)' }}>
                   Bienvenido de vuelta
                 </span>
-                <h1 className="text-xl font-extrabold text-white tracking-tight truncate" style={{ fontFamily: "'Syne', sans-serif", letterSpacing: '-0.03em' }}>
+                <h1 className="text-xl font-extrabold text-white tracking-tight truncate" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", letterSpacing: '-0.03em' }}>
                   ¡Hola, {profile?.full_name?.split(' ')[0] || 'Chambynauta'}!
                 </h1>
               </div>
@@ -311,7 +311,7 @@ const ProviderDashboardHome = () => {
                     <div className="absolute -inset-[3px] rounded-full border-2 animate-ping" style={{ borderColor: '#00d084', animationDuration: '2s' }} />
                   )}
                 </div>
-                <span className="text-[17px] font-bold text-white" style={{ fontFamily: "'Syne', sans-serif", letterSpacing: '-0.02em' }}>
+                <span className="text-[17px] font-bold text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", letterSpacing: '-0.02em' }}>
                   {isAvailable ? 'Disponible' : 'No disponible'}
                 </span>
               </div>
@@ -350,7 +350,7 @@ const ProviderDashboardHome = () => {
             style={{ background: 'rgba(255,255,255,0.08)' }}
           >
             <div className="text-center py-3 px-2.5" style={{ background: 'rgba(255,255,255,0.05)' }}>
-              <div className="text-xl font-extrabold text-white leading-none" style={{ fontFamily: "'Syne', sans-serif", letterSpacing: '-0.03em' }}>
+              <div className="text-xl font-extrabold text-white leading-none" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", letterSpacing: '-0.03em' }}>
                 {stats.completedJobs}
               </div>
               <div className="text-[10px] font-semibold uppercase tracking-[0.06em] mt-[3px]" style={{ color: 'rgba(255,255,255,0.45)' }}>
@@ -358,7 +358,7 @@ const ProviderDashboardHome = () => {
               </div>
             </div>
             <div className="text-center py-3 px-2.5" style={{ background: 'rgba(255,255,255,0.05)' }}>
-              <div className="text-xl font-extrabold leading-none" style={{ fontFamily: "'Syne', sans-serif", letterSpacing: '-0.03em', color: '#00d084' }}>
+              <div className="text-xl font-extrabold leading-none" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", letterSpacing: '-0.03em', color: '#00d084' }}>
                 ${earnings.total.toLocaleString('es-MX')}
               </div>
               <div className="text-[10px] font-semibold uppercase tracking-[0.06em] mt-[3px]" style={{ color: 'rgba(255,255,255,0.45)' }}>
@@ -366,7 +366,7 @@ const ProviderDashboardHome = () => {
               </div>
             </div>
             <div className="text-center py-3 px-2.5" style={{ background: 'rgba(255,255,255,0.05)' }}>
-              <div className="text-xl font-extrabold leading-none" style={{ fontFamily: "'Syne', sans-serif", letterSpacing: '-0.03em', color: '#ffb340' }}>
+              <div className="text-xl font-extrabold leading-none" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", letterSpacing: '-0.03em', color: '#ffb340' }}>
                 {toFixedSafe(stats.rating, 1, '0')}★
               </div>
               <div className="text-[10px] font-semibold uppercase tracking-[0.06em] mt-[3px]" style={{ color: 'rgba(255,255,255,0.45)' }}>
@@ -409,7 +409,7 @@ const ProviderDashboardHome = () => {
               <DollarSign className="w-[18px] h-[18px] text-white" />
             </div>
             <div className="flex-1 relative z-10">
-              <div className="text-[13px] font-bold text-white leading-tight" style={{ fontFamily: "'Syne', sans-serif" }}>
+              <div className="text-[13px] font-bold text-white leading-tight" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                 Conecta tu cuenta de Stripe
               </div>
               <div className="text-[11px] mt-0.5" style={{ color: 'rgba(255,255,255,0.7)' }}>
@@ -446,7 +446,7 @@ const ProviderDashboardHome = () => {
                 <Shield className="w-[18px] h-[18px]" style={{ color: '#d97706' }} />
               </div>
               <div className="flex-1">
-                <div className="text-[13px] font-bold leading-tight" style={{ fontFamily: "'Syne', sans-serif", color: '#92400e' }}>
+                <div className="text-[13px] font-bold leading-tight" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#92400e' }}>
                   {status === 'rejected' ? 'Verificación rechazada' : status === 'pending' ? `Verificación pendiente — ${documentsCount} docs` : 'Sube tus documentos'}
                 </div>
                 <div className="text-[11px] mt-0.5" style={{ color: '#b45309' }}>
@@ -478,7 +478,7 @@ const ProviderDashboardHome = () => {
         {!isAvailable && (
           <div className="mx-5 mb-3 p-8 rounded-2xl text-center" style={{ background: '#e8eef8' }}>
             <div className="text-[52px] mb-4" style={{ animation: 'floatEmoji 3s ease-in-out infinite' }}>😴</div>
-            <h3 className="text-lg font-extrabold mb-2" style={{ fontFamily: "'Syne', sans-serif", color: '#060e1a' }}>
+            <h3 className="text-lg font-extrabold mb-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#060e1a' }}>
               No estás disponible
             </h3>
             <p className="text-[13px] max-w-[240px] mx-auto" style={{ color: '#64748b', lineHeight: 1.6 }}>
@@ -495,11 +495,11 @@ const ProviderDashboardHome = () => {
           {/* Section header */}
           <div className="flex items-center justify-between px-5 pt-5 pb-3">
             <div className="flex items-center gap-2.5">
-              <span className="text-[19px] font-extrabold" style={{ fontFamily: "'Syne', sans-serif", color: '#060e1a', letterSpacing: '-0.03em' }}>
+              <span className="text-[19px] font-extrabold" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#060e1a', letterSpacing: '-0.03em' }}>
                 Disponibles
               </span>
               {availableJobs.length > 0 && (
-                <span className="text-[11px] font-extrabold text-white px-2 py-0.5 rounded-full" style={{ background: '#0c55ad', fontFamily: "'Syne', sans-serif" }}>
+                <span className="text-[11px] font-extrabold text-white px-2 py-0.5 rounded-full" style={{ background: '#0c55ad', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                   {availableJobs.length}
                 </span>
               )}
@@ -555,7 +555,7 @@ const ProviderDashboardHome = () => {
                 className="flex flex-col items-center justify-center py-12 text-center"
               >
                 <div className="text-[52px] mb-4" style={{ animation: 'floatEmoji 3s ease-in-out infinite' }}>😴</div>
-                <h3 className="text-lg font-extrabold mb-2" style={{ fontFamily: "'Syne', sans-serif", color: '#060e1a' }}>
+                <h3 className="text-lg font-extrabold mb-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#060e1a' }}>
                   Sin trabajos por ahora
                 </h3>
                 <p className="text-[13px] max-w-[240px] mx-auto" style={{ color: '#64748b', lineHeight: 1.6 }}>
