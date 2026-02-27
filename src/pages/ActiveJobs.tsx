@@ -19,6 +19,8 @@ import Header from "@/components/Header";
 import { toast } from "sonner";
 import { startBooking } from "@/lib/booking";
 import { RescheduleDialog } from "@/components/RescheduleDialog";
+import { RatingDialog, isDismissed } from "@/components/provider-portal/RatingDialog";
+import { useJobRating } from "@/hooks/useJobRating";
 
 interface ActiveJob {
   id: string;
@@ -75,6 +77,8 @@ const ActiveJobs = () => {
   const [confirmingCompletion, setConfirmingCompletion] = useState(false);
   const [disputeModalOpen, setDisputeModalOpen] = useState(false);
   const [rescheduleDialogOpen, setRescheduleDialogOpen] = useState(false);
+  const [ratingJob, setRatingJob] = useState<ActiveJob | null>(null);
+  const [showRating, setShowRating] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -208,12 +212,78 @@ const ActiveJobs = () => {
       }
       toast.success('¡Trabajo confirmado! El pago será liberado al proveedor.');
       fetchActiveJobs();
+      // After confirmation, check for rating
+      checkForRatingJob();
     } catch (err) {
       toast.error('Error inesperado');
     } finally {
       setConfirmingCompletion(false);
     }
   };
+
+  // Check if there's a recently completed job needing a client rating
+  const checkForRatingJob = async () => {
+    if (!user) return;
+    try {
+      // Get recently completed jobs (last 7 days)
+      const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const { data: completedJobs } = await supabase
+        .from("jobs")
+        .select("id, title, category, service_type, rate, provider_id, status")
+        .eq("client_id", user.id)
+        .eq("status", "completed")
+        .gte("updated_at", weekAgo)
+        .order("updated_at", { ascending: false })
+        .limit(5);
+
+      if (!completedJobs || completedJobs.length === 0) return;
+
+      for (const cj of completedJobs) {
+        // Skip if dismissed in localStorage
+        if (isDismissed(cj.id, "client")) continue;
+
+        // Check if client already reviewed this job
+        const { data: existingReview } = await supabase
+          .from("reviews")
+          .select("id")
+          .eq("job_id", cj.id)
+          .eq("reviewer_role", "client")
+          .maybeSingle();
+
+        if (existingReview) continue;
+
+        // Found a job needing rating - fetch provider info
+        if (cj.provider_id) {
+          const { data: providerUser } = await supabase
+            .from("users")
+            .select("full_name, avatar_url")
+            .eq("id", cj.provider_id)
+            .maybeSingle();
+
+          setRatingJob({
+            ...cj as any,
+            provider: providerUser ? {
+              full_name: providerUser.full_name || "Proveedor",
+              avatar_url: providerUser.avatar_url || "",
+              phone: "", current_latitude: null, current_longitude: null,
+              rating: 0, total_reviews: 0,
+            } : undefined,
+          });
+          setShowRating(true);
+        }
+        break; // Only show one at a time
+      }
+    } catch (err) {
+      console.error("Error checking for rating jobs:", err);
+    }
+  };
+
+  // Check for rating on mount
+  useEffect(() => {
+    if (user && !loading) {
+      checkForRatingJob();
+    }
+  }, [user, loading]);
 
   // Jobs pending client confirmation
   const pendingConfirmationJobs = jobs.filter(needsClientConfirmation);
@@ -570,6 +640,28 @@ const ActiveJobs = () => {
             </div>
           )}
         </div>
+
+        {/* Rating Dialog for completed jobs */}
+        {showRating && ratingJob && ratingJob.provider_id && (
+          <RatingDialog
+            jobId={ratingJob.id}
+            otherUserId={ratingJob.provider_id}
+            reviewerRole="client"
+            onComplete={() => {
+              setShowRating(false);
+              setRatingJob(null);
+            }}
+            onDismiss={() => {
+              setShowRating(false);
+              setRatingJob(null);
+            }}
+            subjectName={ratingJob.provider?.full_name || "Proveedor"}
+            subjectAvatarUrl={ratingJob.provider?.avatar_url || null}
+            jobCategory={ratingJob.category}
+            jobServiceType={""}
+            jobRate={ratingJob.rate}
+          />
+        )}
       </div>
     </div>
   );

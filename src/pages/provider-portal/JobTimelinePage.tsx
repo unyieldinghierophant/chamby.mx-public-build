@@ -15,7 +15,7 @@ import {
 import { InvoiceCard } from "@/components/provider-portal/InvoiceCard";
 import { JobInvoiceSection } from "@/components/JobInvoiceSection";
 import { CancellationSummary } from "@/components/provider-portal/CancellationSummary";
-import { RatingDialog } from "@/components/provider-portal/RatingDialog";
+import { RatingDialog, isDismissed } from "@/components/provider-portal/RatingDialog";
 import { useJobRating } from "@/hooks/useJobRating";
 import { JobTimelineSkeleton } from "@/components/skeletons";
 import { Badge } from "@/components/ui/badge";
@@ -126,7 +126,7 @@ const JobTimelinePage = () => {
   const [sending, setSending] = useState(false);
   const [activeTab, setActiveTab] = useState<'timeline' | 'chat'>('timeline');
   const [showCancelSummary, setShowCancelSummary] = useState(false);
-  const [ratingDismissed, setRatingDismissed] = useState(false);
+  const [ratingDismissed, setRatingDismissed] = useState(() => isDismissed(jobId || "", "provider"));
   const [chatDebug, setChatDebug] = useState<{ selectError: string | null; insertError: string | null; realtimeStatus: string }>({ selectError: null, insertError: null, realtimeStatus: 'connecting' });
   const [showDebug, setShowDebug] = useState(false);
   const [markingDone, setMarkingDone] = useState(false);
@@ -897,6 +897,11 @@ const JobTimelinePage = () => {
               reviewerRole="provider"
               onComplete={() => { refetchRating(); fetchAll(); }}
               onDismiss={() => setRatingDismissed(true)}
+              subjectName={client?.full_name || "Cliente"}
+              subjectAvatarUrl={null}
+              jobCategory={job.category}
+              jobServiceType={job.service_type || ""}
+              jobRate={job.rate}
             />
           )}
 
