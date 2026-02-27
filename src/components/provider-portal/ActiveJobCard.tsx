@@ -55,7 +55,7 @@ export const ActiveJobCard = ({ job }: ActiveJobCardProps) => {
         </div>
 
         {/* Title */}
-        <h3 className="text-[22px] font-extrabold text-white leading-tight mb-2.5" style={{ fontFamily: "'Syne', sans-serif", letterSpacing: '-0.03em' }}>
+        <h3 className="text-[22px] font-extrabold text-white leading-tight mb-2.5" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", letterSpacing: '-0.03em' }}>
           {job.title}
         </h3>
 
