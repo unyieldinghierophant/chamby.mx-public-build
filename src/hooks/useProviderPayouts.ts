@@ -6,7 +6,7 @@ interface Payout {
   invoice_id: string;
   provider_id: string;
   amount: number;
-  status: 'pending' | 'paid' | 'failed';
+  status: 'pending' | 'paid' | 'failed' | 'awaiting_provider_onboarding';
   notes: string | null;
   paid_at: string | null;
   created_at: string;
@@ -22,6 +22,7 @@ interface PayoutSummary {
   totalPayouts: number;
   paidCount: number;
   pendingCount: number;
+  awaitingOnboardingCount: number;
 }
 
 interface UseProviderPayoutsReturn {

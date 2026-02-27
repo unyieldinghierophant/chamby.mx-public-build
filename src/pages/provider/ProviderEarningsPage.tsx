@@ -64,11 +64,19 @@ const ProviderEarningsPage = () => {
   return (
     <div className="space-y-6 p-4 md:p-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground">Ganancias</h1>
-        <p className="text-muted-foreground mt-1">
-          Resumen de tus ingresos y pagos pendientes
-        </p>
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Ganancias</h1>
+          <p className="text-muted-foreground mt-1">
+            Resumen de tus ingresos y pagos pendientes
+          </p>
+        </div>
+        <Link to="/provider/payouts">
+          <Button variant="outline" size="sm">
+            <DollarSign className="h-4 w-4 mr-1" />
+            Ver Mis Pagos
+          </Button>
+        </Link>
       </div>
 
       {/* Summary Cards */}
