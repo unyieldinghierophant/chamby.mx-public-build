@@ -1,17 +1,184 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Headset, Send, Loader2, Search, MessageSquare } from "lucide-react";
+import { ArrowLeft, Headset, Send, Loader2, Search, MessageSquare, ExternalLink, Phone, Mail, Shield, CreditCard, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Separator } from "@/components/ui/separator";
 import { useAdminSupportInbox, useAdminSupportMessages, SupportMessage } from "@/hooks/useSupportMessages";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+
+// ── Provider detail sheet ──
+interface ProviderInfo {
+  full_name: string | null;
+  email: string | null;
+  phone: string | null;
+  verification_status: string | null;
+  stripe_onboarding_status: string;
+  stripe_payouts_enabled: boolean;
+  skills: string[] | null;
+  display_name: string | null;
+}
+
+const ProviderDetailSheet = ({
+  open,
+  onOpenChange,
+  providerId,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  providerId: string;
+}) => {
+  const [info, setInfo] = useState<ProviderInfo | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!open || !providerId) return;
+    setLoading(true);
+    (async () => {
+      const [{ data: userData }, { data: providerData }, { data: detailsData }] = await Promise.all([
+        supabase.from("users").select("full_name, email, phone").eq("id", providerId).single(),
+        supabase.from("providers").select("display_name, skills, stripe_onboarding_status, stripe_payouts_enabled").eq("user_id", providerId).single(),
+        supabase.from("provider_details").select("verification_status").eq("user_id", providerId).single(),
+      ]);
+      setInfo({
+        full_name: userData?.full_name || null,
+        email: userData?.email || null,
+        phone: userData?.phone || null,
+        verification_status: detailsData?.verification_status || "pending",
+        stripe_onboarding_status: providerData?.stripe_onboarding_status || "not_started",
+        stripe_payouts_enabled: providerData?.stripe_payouts_enabled ?? false,
+        skills: providerData?.skills || null,
+        display_name: providerData?.display_name || null,
+      });
+      setLoading(false);
+    })();
+  }, [open, providerId]);
+
+  const verificationColor = (status: string | null) => {
+    if (status === "verified") return "bg-emerald-500/10 text-emerald-600 border-emerald-500/20";
+    if (status === "rejected") return "bg-destructive/10 text-destructive border-destructive/20";
+    return "bg-amber-500/10 text-amber-600 border-amber-500/20";
+  };
+
+  const stripeColor = (status: string) => {
+    if (status === "enabled") return "bg-emerald-500/10 text-emerald-600 border-emerald-500/20";
+    if (status === "onboarding") return "bg-blue-500/10 text-blue-600 border-blue-500/20";
+    return "bg-muted text-muted-foreground";
+  };
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="w-[340px] sm:w-[400px]">
+        <SheetHeader>
+          <SheetTitle>Perfil del proveedor</SheetTitle>
+        </SheetHeader>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          </div>
+        ) : info ? (
+          <div className="space-y-5 mt-4">
+            {/* Identity */}
+            <div className="space-y-2">
+              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl mx-auto">
+                {(info.display_name || info.full_name)?.[0]?.toUpperCase() ?? "P"}
+              </div>
+              <p className="text-center text-base font-semibold text-foreground">
+                {info.display_name || info.full_name || "Proveedor"}
+              </p>
+            </div>
+
+            <Separator />
+
+            {/* Contact */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Contacto</h4>
+              {info.email && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Mail className="w-4 h-4 text-muted-foreground" />
+                  <a href={`mailto:${info.email}`} className="text-foreground hover:underline">{info.email}</a>
+                </div>
+              )}
+              {info.phone && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Phone className="w-4 h-4 text-muted-foreground" />
+                  <a href={`tel:${info.phone}`} className="text-foreground hover:underline">{info.phone}</a>
+                </div>
+              )}
+            </div>
+
+            <Separator />
+
+            {/* Verification */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Verificación</h4>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-foreground flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-muted-foreground" />
+                  Identidad
+                </span>
+                <Badge variant="outline" className={cn("text-[10px]", verificationColor(info.verification_status))}>
+                  {info.verification_status === "verified" ? "Verificado" :
+                   info.verification_status === "rejected" ? "Rechazado" : "Pendiente"}
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-foreground flex items-center gap-2">
+                  <CreditCard className="w-4 h-4 text-muted-foreground" />
+                  Stripe
+                </span>
+                <Badge variant="outline" className={cn("text-[10px]", stripeColor(info.stripe_onboarding_status))}>
+                  {info.stripe_onboarding_status === "enabled" ? "Activo" :
+                   info.stripe_onboarding_status === "onboarding" ? "En progreso" : "No iniciado"}
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-foreground flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-muted-foreground" />
+                  Pagos
+                </span>
+                <Badge variant="outline" className={cn("text-[10px]",
+                  info.stripe_payouts_enabled
+                    ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                    : "bg-destructive/10 text-destructive border-destructive/20"
+                )}>
+                  {info.stripe_payouts_enabled ? "Habilitados" : "Bloqueados"}
+                </Badge>
+              </div>
+            </div>
+
+            {/* Skills */}
+            {info.skills && info.skills.length > 0 && (
+              <>
+                <Separator />
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Habilidades</h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {info.skills.map((s) => (
+                      <Badge key={s} variant="secondary" className="text-[11px]">{s}</Badge>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground py-8 text-center">No se pudo cargar la información.</p>
+        )}
+      </SheetContent>
+    </Sheet>
+  );
+};
 
 // ── Admin chat with a specific provider ──
 const AdminChatView = ({
@@ -27,6 +194,7 @@ const AdminChatView = ({
   const { messages, loading, sending, sendMessage, markAsRead } = useAdminSupportMessages(providerId);
   const [newMessage, setNewMessage] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -71,14 +239,28 @@ const AdminChatView = ({
         <Button variant="ghost" size="icon" className="shrink-0" onClick={onBack}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
-          {providerName?.[0]?.toUpperCase() ?? "P"}
-        </div>
-        <div>
-          <h2 className="text-sm font-semibold text-foreground">{providerName || "Proveedor"}</h2>
-          <p className="text-[11px] text-muted-foreground">Soporte</p>
-        </div>
+        <button
+          onClick={() => setProfileOpen(true)}
+          className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
+        >
+          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
+            {providerName?.[0]?.toUpperCase() ?? "P"}
+          </div>
+          <div className="text-left">
+            <h2 className="text-sm font-semibold text-foreground flex items-center gap-1">
+              {providerName || "Proveedor"}
+              <ExternalLink className="w-3 h-3 text-muted-foreground" />
+            </h2>
+            <p className="text-[11px] text-muted-foreground">Toca para ver perfil</p>
+          </div>
+        </button>
       </div>
+
+      <ProviderDetailSheet
+        open={profileOpen}
+        onOpenChange={setProfileOpen}
+        providerId={providerId}
+      />
 
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
