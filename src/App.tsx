@@ -147,7 +147,7 @@ const App = () => {
               <Route path={ROUTES.HOME} element={<Index />} />
               <Route path={ROUTES.USER_LANDING} element={<UserLanding />} />
               <Route path={ROUTES.SOLICITAR_SERVICIO} element={<Navigate to={ROUTES.BOOK_JOB} replace />} />
-              <Route path={ROUTES.BOOK_JOB} element={<BookJob />} />
+              <Route path={ROUTES.BOOK_JOB} element={<ProtectedRoute requireClient><BookJob /></ProtectedRoute>} />
               <Route path={ROUTES.LOGIN} element={<Login />} />
               <Route path={ROUTES.PROVIDER_LOGIN} element={<ProviderLogin />} />
               <Route path={ROUTES.USER_AUTH} element={<UserOnboardingWizard />} />
@@ -164,10 +164,10 @@ const App = () => {
               <Route path="/booking/datetime/:providerId" element={<BookingDateTime />} />
               {/* /service/:serviceType route removed - all services are now jobs */}
               <Route path="/booking/:jobId" element={<BookingForm />} />
-              <Route path="/esperando-proveedor" element={<EsperandoProveedor />} />
-              <Route path="/active-jobs" element={<ActiveJobs />} />
+              <Route path="/esperando-proveedor" element={<ProtectedRoute requireClient><EsperandoProveedor /></ProtectedRoute>} />
+              <Route path="/active-jobs" element={<ProtectedRoute requireClient><ActiveJobs /></ProtectedRoute>} />
               <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-              <Route path="/finding-provider" element={<FindingProvider />} />
+              <Route path="/finding-provider" element={<ProtectedRoute requireClient><FindingProvider /></ProtectedRoute>} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/help-center" element={<HelpCenter />} />
               <Route path="/provider-landing" element={<ProviderLanding />} />
@@ -264,11 +264,11 @@ const App = () => {
                   </ProtectedRoute>
                 }
               />
-              {/* Mobile-specific routes */}
+              {/* Mobile-specific routes (client) */}
               <Route
                 path="/mobile-jobs"
                 element={
-                  <ProtectedRoute requireAuth>
+                  <ProtectedRoute requireClient>
                     <MobileJobs />
                   </ProtectedRoute>
                 }
@@ -276,7 +276,7 @@ const App = () => {
               <Route
                 path="/mobile-favorites"
                 element={
-                  <ProtectedRoute requireAuth>
+                  <ProtectedRoute requireClient>
                     <MobileFavorites />
                   </ProtectedRoute>
                 }
@@ -284,7 +284,7 @@ const App = () => {
               <Route
                 path="/mobile-profile"
                 element={
-                  <ProtectedRoute requireAuth>
+                  <ProtectedRoute requireClient>
                     <MobileProfile />
                   </ProtectedRoute>
                 }
@@ -307,7 +307,7 @@ const App = () => {
               <Route
                 path="/invoices"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requireClient>
                     <ClientInvoiceListPage />
                   </ProtectedRoute>
                 }
