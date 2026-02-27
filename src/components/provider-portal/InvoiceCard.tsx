@@ -262,6 +262,27 @@ export const InvoiceCard = ({
         });
       }
 
+      // Notify provider about accept/reject
+      // Client is acting, so fetch the provider_id from the invoice
+      const { data: invData } = await supabase
+        .from("invoices")
+        .select("provider_id")
+        .eq("id", invoice.id)
+        .single();
+
+      if (invData?.provider_id) {
+        await supabase.from("notifications").insert({
+          user_id: invData.provider_id,
+          type: action === "accepted" ? "invoice_accepted" : "invoice_rejected",
+          title: action === "accepted" ? "Factura aceptada" : "Factura rechazada",
+          message: action === "accepted"
+            ? "El cliente aceptó tu factura. El trabajo puede continuar."
+            : "El cliente solicitó ajustes a tu factura.",
+          link: `/provider-portal/jobs/${jobId}`,
+          data: { job_id: jobId, invoice_id: invoice.id },
+        }).then(() => {/* ignore */});
+      }
+
       toast.success(
         action === "accepted"
           ? "Factura aceptada"
