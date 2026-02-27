@@ -386,41 +386,72 @@ const ProviderDashboardHome = () => {
 
       {/* ─── ALERT BANNERS ─── */}
       <div className="px-5 pt-3.5 flex flex-col gap-2">
-        {/* Stripe Banner */}
-        {providerProfile?.stripe_onboarding_status !== "enabled" && (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            onClick={() => navigate("/provider-portal/account")}
-            className="relative rounded-2xl p-[13px_15px] flex items-center gap-3 cursor-pointer overflow-hidden active:scale-[0.98] transition-transform"
-            style={{
-              background: 'linear-gradient(135deg, #0c55ad 0%, #1e7be0 50%, #0a4a99 100%)',
-              boxShadow: '0 8px 24px rgba(12,85,173,0.3)',
-            }}
-          >
-            {/* Shine sweep */}
-            <div className="absolute top-0 left-0 w-[60%] h-full pointer-events-none" style={{
-              background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent)',
-              animation: 'shineSweep 4s ease-in-out infinite',
-            }} />
-            
-            <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.18)' }}>
-              <DollarSign className="w-[18px] h-[18px] text-white" />
-            </div>
-            <div className="flex-1 relative z-10">
-              <div className="text-[13px] font-bold text-white leading-tight" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                Conecta tu cuenta de Stripe
+        {/* Stripe / Payout Status Banner */}
+        {(() => {
+          const stripeStatus = providerProfile?.stripe_onboarding_status || 'not_started';
+          const payoutsEnabled = (providerProfile as any)?.stripe_payouts_enabled ?? false;
+          const showBanner = stripeStatus !== 'enabled' || !payoutsEnabled;
+          if (!showBanner) return null;
+
+          const isEnabled = stripeStatus === 'enabled';
+          const isOnboarding = stripeStatus === 'onboarding';
+
+          // Title & subtitle
+          const title = isEnabled && !payoutsEnabled
+            ? 'Pagos bloqueados'
+            : isOnboarding
+            ? 'Configuración en progreso'
+            : 'Conecta tu cuenta de pagos';
+          const subtitle = isEnabled && !payoutsEnabled
+            ? 'Completa tu verificación de Stripe para recibir pagos'
+            : isOnboarding
+            ? 'Continúa donde te quedaste en Stripe'
+            : 'Necesario para recibir tus pagos';
+
+          // Colors
+          const gradientBg = isEnabled && !payoutsEnabled
+            ? 'linear-gradient(135deg, #b91c1c 0%, #dc2626 50%, #991b1b 100%)'
+            : 'linear-gradient(135deg, #0c55ad 0%, #1e7be0 50%, #0a4a99 100%)';
+          const shadowColor = isEnabled && !payoutsEnabled
+            ? 'rgba(185,28,28,0.3)'
+            : 'rgba(12,85,173,0.3)';
+
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              onClick={() => navigate("/provider-portal/account")}
+              className="relative rounded-2xl p-[13px_15px] flex items-center gap-3 cursor-pointer overflow-hidden active:scale-[0.98] transition-transform"
+              style={{ background: gradientBg, boxShadow: `0 8px 24px ${shadowColor}` }}
+            >
+              {/* Shine sweep */}
+              <div className="absolute top-0 left-0 w-[60%] h-full pointer-events-none" style={{
+                background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent)',
+                animation: 'shineSweep 4s ease-in-out infinite',
+              }} />
+              
+              <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.18)' }}>
+                {isEnabled && !payoutsEnabled ? (
+                  <AlertCircle className="w-[18px] h-[18px] text-white" />
+                ) : (
+                  <DollarSign className="w-[18px] h-[18px] text-white" />
+                )}
               </div>
-              <div className="text-[11px] mt-0.5" style={{ color: 'rgba(255,255,255,0.7)' }}>
-                Necesario para recibir tus pagos
+              <div className="flex-1 relative z-10">
+                <div className="text-[13px] font-bold text-white leading-tight" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  {title}
+                </div>
+                <div className="text-[11px] mt-0.5" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                  {subtitle}
+                </div>
               </div>
-            </div>
-            <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.18)' }}>
-              <ChevronRight className="w-3 h-3 text-white" />
-            </div>
-          </motion.div>
-        )}
+              <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.18)' }}>
+                <ChevronRight className="w-3 h-3 text-white" />
+              </div>
+            </motion.div>
+          );
+        })()}
 
         {/* Verification Banner */}
         {(() => {
