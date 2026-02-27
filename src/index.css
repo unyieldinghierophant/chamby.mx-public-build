@@ -296,3 +296,34 @@ All colors MUST be HSL.
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
 }
+
+/* Available Jobs Alert popup animations */
+@keyframes alertBellShake {
+  0%, 100% { transform: rotate(0); }
+  15% { transform: rotate(-12deg); }
+  30% { transform: rotate(10deg); }
+  45% { transform: rotate(-8deg); }
+  60% { transform: rotate(6deg); }
+  75% { transform: rotate(-4deg); }
+  90% { transform: rotate(2deg); }
+}
+
+@keyframes alertBadgePop {
+  from { transform: scale(0); }
+  to { transform: scale(1); }
+}
+
+@keyframes alertRingExpand {
+  0% { transform: scale(0.9); opacity: 1; }
+  100% { transform: scale(1.1); opacity: 0; }
+}
+
+@keyframes alertBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+@keyframes alertShine {
+  0% { left: -100%; }
+  40%, 100% { left: 150%; }
+}
