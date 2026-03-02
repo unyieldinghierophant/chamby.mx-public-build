@@ -9,7 +9,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Upload, Check, Camera, ArrowLeft, Wrench, Hammer, Settings, RotateCcw, Ruler, MoveVertical, PackageOpen, HelpCircle, Building, Home, Loader2, MapPin, Navigation, CalendarIcon, Clock, Zap, Sun, Sunset, Moon } from "lucide-react";
+import { Upload, Check, Camera, ArrowLeft, Wrench, Hammer, Settings, RotateCcw, Ruler, MoveVertical, PackageOpen, HelpCircle, Building, Home, Loader2, CalendarIcon, Clock, Zap, Sun, Sunset, Moon } from "lucide-react";
+import { LocationStep } from "@/components/booking/LocationStep";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -575,69 +576,17 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
 
         {/* ---- STEP 3: Ubicación ---- */}
         {currentStep === 3 && (
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-jakarta font-medium text-foreground">Ubicación del servicio</h1>
-              <p className="text-muted-foreground mt-2">¿Dónde necesitas que vaya el proveedor?</p>
-            </div>
-
-            <div className="space-y-4">
-              <button
-                type="button"
-                onClick={() => {
-                  if (!navigator.geolocation) return;
-                  navigator.geolocation.getCurrentPosition(
-                    async (pos) => {
-                      const lat = pos.coords.latitude;
-                      const lng = pos.coords.longitude;
-                      setFormData(prev => ({ ...prev, serviceLatitude: lat, serviceLongitude: lng }));
-                      try {
-                        const res = await fetch(
-                          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18`,
-                          { headers: { 'User-Agent': 'Chamby.mx/1.0' }, signal: AbortSignal.timeout(5000) }
-                        );
-                        const data = await res.json();
-                        if (data.display_name) {
-                          setFormData(prev => ({ ...prev, serviceAddress: data.display_name }));
-                        }
-                      } catch { /* keep coords only */ }
-                    },
-                    () => { toast({ title: "No se pudo obtener ubicación", variant: "destructive" }); },
-                    { enableHighAccuracy: true, timeout: 10000 }
-                  );
-                }}
-                className="w-full flex items-center justify-center gap-2 h-12 rounded-xl border-2 border-primary/30 bg-primary/5 text-primary font-medium hover:bg-primary/10 transition-colors"
-              >
-                <Navigation className="w-4 h-4" />
-                Usar mi ubicación actual
-              </button>
-
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <Input
-                  value={formData.serviceAddress}
-                  onChange={(e) => update("serviceAddress", e.target.value)}
-                  placeholder="Escribe la dirección completa"
-                  className="h-14 text-base pl-10"
-                  maxLength={300}
-                />
-              </div>
-              <p className={cn("text-xs", formData.serviceAddress.length < 5 ? "text-muted-foreground" : "text-primary")}>
-                Mínimo 5 caracteres
-              </p>
-
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-foreground">Notas de acceso (opcional)</Label>
-                <Input
-                  value={formData.addressNotes}
-                  onChange={(e) => update("addressNotes", e.target.value)}
-                  placeholder="Ej: Puerta azul, timbre 3, dejar en portería…"
-                  className="h-12"
-                  maxLength={200}
-                />
-              </div>
-            </div>
-          </div>
+          <LocationStep
+            address={formData.serviceAddress}
+            latitude={formData.serviceLatitude}
+            longitude={formData.serviceLongitude}
+            addressNotes={formData.addressNotes}
+            onAddressChange={(val) => update("serviceAddress", val)}
+            onCoordsChange={(lat, lng) => {
+              setFormData(prev => ({ ...prev, serviceLatitude: lat, serviceLongitude: lng }));
+            }}
+            onAddressNotesChange={(val) => update("addressNotes", val)}
+          />
         )}
 
         {/* ---- STEP 4: Scheduling ---- */}
