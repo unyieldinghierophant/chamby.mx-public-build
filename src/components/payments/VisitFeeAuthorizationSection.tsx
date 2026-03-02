@@ -319,7 +319,7 @@ export const VisitFeeAuthorizationSection = ({
                 Pago por visita y gestión de asignación — {DISPLAY.customerTotal}
               </p>
               <div className="text-xs text-muted-foreground space-y-0.5 mt-1">
-                <div className="flex justify-between"><span>Visita</span><span>{DISPLAY.baseFee}</span></div>
+                <div className="flex justify-between"><span>Subtotal</span><span>{DISPLAY.subtotal}</span></div>
                 <div className="flex justify-between"><span>IVA (16%)</span><span>{DISPLAY.iva}</span></div>
                 <div className="flex justify-between font-medium text-foreground"><span>Total</span><span>{DISPLAY.customerTotal}</span></div>
               </div>

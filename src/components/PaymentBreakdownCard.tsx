@@ -39,8 +39,8 @@ export const PaymentBreakdownCard = ({
           </div>
           <div className="space-y-1.5 text-sm">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Visita</span>
-              <span>{VISIT_DISPLAY.base}</span>
+              <span className="text-muted-foreground">Subtotal</span>
+              <span>{VISIT_DISPLAY.subtotal}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">{VAT_LABEL}</span>

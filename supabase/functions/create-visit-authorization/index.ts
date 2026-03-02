@@ -104,11 +104,14 @@ serve(async (req) => {
       logStep("Reset visit_fee_paid to false");
     }
 
+    // Pricing v3: Base + Stripe fee absorption + IVA
     const visitFeeBase = job.visit_fee_amount || 350; // base in pesos
+    const STRIPE_FEE = 18.10; // absorbed into subtotal
     const VAT_RATE = 0.16;
-    const visitFeeVat = Math.round(visitFeeBase * VAT_RATE * 100) / 100;
-    const visitFeeTotal = visitFeeBase + visitFeeVat; // total with IVA
-    logStep("Job validated", { jobId: job.id, title: job.title, visitFeeBase, visitFeeVat, visitFeeTotal, clientId: job.client_id });
+    const subtotal = visitFeeBase + STRIPE_FEE; // 368.10
+    const visitFeeVat = Math.round(visitFeeBase * VAT_RATE * 100) / 100; // 56.00
+    const visitFeeTotal = subtotal + visitFeeVat; // 424.10
+    logStep("Job validated", { jobId: job.id, title: job.title, visitFeeBase, subtotal, visitFeeVat, visitFeeTotal, clientId: job.client_id });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
@@ -195,14 +198,14 @@ serve(async (req) => {
       customer: stripeCustomerId,
       capture_method: "manual",
       automatic_payment_methods: { enabled: true },
-      description: `Visit fee authorization (base $${visitFeeBase} + IVA $${visitFeeVat}) for job ${jobId}`,
+      description: `Visit fee authorization (subtotal $${subtotal.toFixed(2)} + IVA $${visitFeeVat.toFixed(2)}) for job ${jobId}`,
       metadata: {
         jobId,
         userId: user.id,
         type: "visit_fee_authorization",
-        base_amount_cents: String(Math.round(visitFeeBase * 100)),
+        base_amount_cents: String(Math.round(subtotal * 100)),
         vat_amount_cents: String(Math.round(visitFeeVat * 100)),
-        pricing_version: "visit_v2_iva16",
+        pricing_version: "visit_v3_fee_absorbed",
       }
     });
 
