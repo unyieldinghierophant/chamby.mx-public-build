@@ -312,32 +312,56 @@ serve(async (req) => {
           // Do NOT auto-complete job here — completion handshake handles this
           // Job stays in current status until provider marks done + client confirms
 
-          // Create notification for provider
+          // Create notification for provider (skip if checkout.session.completed already sent one)
           if (metadata.providerId) {
-            await supabaseClient
+            const { data: existingProvNotif } = await supabaseClient
               .from("notifications")
-              .insert({
-                user_id: metadata.providerId,
-                type: "payment_received",
-                title: "Pago recibido",
-                message: "El cliente ha pagado tu factura",
-                link: `/provider-portal/invoices`,
-                data: { invoiceId, jobId: metadata.jobId },
-              });
+              .select("id")
+              .eq("user_id", metadata.providerId)
+              .eq("type", "payment_received")
+              .gte("created_at", new Date(Date.now() - 5 * 60 * 1000).toISOString())
+              .limit(1);
+
+            if (!existingProvNotif || existingProvNotif.length === 0) {
+              await supabaseClient
+                .from("notifications")
+                .insert({
+                  user_id: metadata.providerId,
+                  type: "payment_received",
+                  title: "Pago recibido",
+                  message: "El cliente ha pagado tu factura",
+                  link: `/provider-portal/invoices`,
+                  data: { invoiceId, jobId: metadata.jobId },
+                });
+            } else {
+              logStep("Skipped duplicate provider notification", { invoiceId });
+            }
           }
 
-          // Create notification for client
+          // Create notification for client (skip if checkout.session.completed already sent one)
           if (metadata.userId) {
-            await supabaseClient
+            const { data: existingClientNotif } = await supabaseClient
               .from("notifications")
-              .insert({
-                user_id: metadata.userId,
-                type: "payment_confirmed",
-                title: "Pago confirmado",
-                message: "Tu pago ha sido procesado exitosamente",
-                link: `/invoices/${invoiceId}`,
-                data: { invoiceId, type: "invoice_payment" },
-              });
+              .select("id")
+              .eq("user_id", metadata.userId)
+              .eq("type", "payment_confirmed")
+              .gte("created_at", new Date(Date.now() - 5 * 60 * 1000).toISOString())
+              .limit(1);
+
+            if (!existingClientNotif || existingClientNotif.length === 0) {
+              await supabaseClient
+                .from("notifications")
+                .insert({
+                  user_id: metadata.userId,
+                  type: "payment_confirmed",
+                  title: "Pago confirmado",
+                  message: "Tu pago ha sido procesado exitosamente",
+                  link: `/invoices/${invoiceId}`,
+                  data: { invoiceId, type: "invoice_payment" },
+                });
+            } else {
+              logStep("Skipped duplicate client notification", { invoiceId });
+            }
           }
         }
         break;
