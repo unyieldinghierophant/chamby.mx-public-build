@@ -169,12 +169,13 @@ serve(async (req) => {
         if (metadata.type === "visit_fee" && metadata.jobId) {
           const jobId = metadata.jobId;
           
-          // Update job as paid — enters 'searching' state with 4-hour assignment window
+          // Update job status — enters 'searching' state with 4-hour assignment window
+          // NOTE: visit_fee_paid is set automatically by the fn_sync_visit_fee trigger
+          // when the payments row is inserted below
           const assignmentDeadline = new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString();
           const { error: updateError } = await supabaseClient
             .from("jobs")
             .update({
-              visit_fee_paid: true,
               stripe_visit_payment_intent_id: session.payment_intent as string,
               status: "searching",
               assignment_deadline: assignmentDeadline,
