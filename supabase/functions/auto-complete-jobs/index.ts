@@ -105,15 +105,63 @@ async function triggerEscrowRelease(
 
     const { data: provider } = await supabase
       .from("providers")
-      .select("stripe_account_id, stripe_onboarding_status")
+      .select("stripe_account_id, stripe_onboarding_status, stripe_payouts_enabled, stripe_requirements_currently_due")
       .eq("user_id", providerId)
       .single();
 
-    if (!provider?.stripe_account_id || provider.stripe_onboarding_status !== "enabled") {
+    if (
+      !provider?.stripe_account_id ||
+      provider.stripe_onboarding_status !== "enabled" ||
+      !provider.stripe_payouts_enabled
+    ) {
+      console.log(`[AUTO-COMPLETE] Provider not payout-enabled, marking as awaiting_provider_onboarding`, { providerId });
+
+      // Create payout record in pending state
+      await supabase.from("payouts").insert({
+        invoice_id: invoice.id,
+        provider_id: providerId,
+        amount: invoice.subtotal_provider,
+        status: "awaiting_provider_onboarding",
+      });
+
       await supabase
         .from("invoices")
         .update({ status: "ready_to_release", updated_at: new Date().toISOString() })
         .eq("id", invoice.id);
+
+      // Notify provider
+      await supabase.from("notifications").insert({
+        user_id: providerId,
+        type: "payout_pending_onboarding",
+        title: "Pago pendiente",
+        message: "Tu pago está listo, pero Stripe requiere verificación para liberarlo. Completa tu verificación desde tu cuenta.",
+        link: "/provider-portal/account",
+        data: { job_id: jobId },
+      });
+
+      // Notify admins about blocked payout
+      const currentlyDue = provider.stripe_requirements_currently_due ?? [];
+      const dueItems = Array.isArray(currentlyDue) ? currentlyDue : [];
+      const topItems = dueItems.slice(0, 3).join(", ") || "N/A";
+      const summary = `${dueItems.length} requisito(s) pendiente(s): ${topItems}`;
+
+      const { data: admins } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "admin");
+
+      if (admins && admins.length > 0) {
+        const adminNotifications = admins.map((a: { user_id: string }) => ({
+          user_id: a.user_id,
+          type: "admin_payout_blocked",
+          title: "Pago bloqueado por verificación",
+          message: `Proveedor ${providerId} no puede recibir pagos. ${summary}`,
+          link: "/admin/payouts",
+          data: { job_id: jobId, provider_id: providerId, missing_count: dueItems.length, top_items: dueItems.slice(0, 5) },
+        }));
+        await supabase.from("notifications").insert(adminNotifications);
+      }
+
       return;
     }
 
