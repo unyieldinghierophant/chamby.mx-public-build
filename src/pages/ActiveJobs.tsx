@@ -114,7 +114,7 @@ const ActiveJobs = () => {
         .from("jobs")
         .select("*, invoices(id, status, total_customer_amount, subtotal_provider, chamby_commission_amount, provider_notes, created_at)")
         .eq("client_id", user.id)
-        .in("status", ["pending", "searching", "active", "accepted", "assigned", "confirmed", "en_route", "on_site", "quoted", "in_progress"])
+        .in("status", ["searching", "active", "accepted", "confirmed", "en_route", "on_site", "quoted", "in_progress"])
         .order("created_at", { ascending: false });
 
       if (jobsError) {

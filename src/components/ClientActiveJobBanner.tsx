@@ -26,7 +26,7 @@ export const ClientActiveJobBanner = () => {
         .from("jobs")
         .select("id, title, scheduled_at, provider_id")
         .eq("client_id", user.id)
-        .in("status", ["pending", "searching", "active", "accepted", "assigned", "confirmed", "en_route", "on_site", "quoted", "in_progress"])
+        .in("status", ["assigned", "accepted", "confirmed", "en_route", "on_site", "in_progress"])
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
