@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -70,6 +70,7 @@ interface ActiveJob {
 
 const ActiveJobs = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const [jobs, setJobs] = useState<ActiveJob[]>([]);
   const [loading, setLoading] = useState(true);
@@ -79,6 +80,20 @@ const ActiveJobs = () => {
   const [rescheduleDialogOpen, setRescheduleDialogOpen] = useState(false);
   const [ratingJob, setRatingJob] = useState<ActiveJob | null>(null);
   const [showRating, setShowRating] = useState(false);
+
+  // Handle Stripe redirect query params
+  useEffect(() => {
+    if (searchParams.get("invoice_paid") === "true") {
+      toast.success("Pago realizado con éxito. Tu proveedor será notificado.", { duration: 5000 });
+      searchParams.delete("invoice_paid");
+      setSearchParams(searchParams, { replace: true });
+    }
+    if (searchParams.get("invoice_cancelled") === "true") {
+      toast.error("Pago cancelado. Puedes pagar desde el detalle del trabajo.", { duration: 5000 });
+      searchParams.delete("invoice_cancelled");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, []);
 
   useEffect(() => {
     if (user) {

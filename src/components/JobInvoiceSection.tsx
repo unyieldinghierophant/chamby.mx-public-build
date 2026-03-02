@@ -25,6 +25,7 @@ import {
   XCircle,
   RefreshCw,
   Loader2,
+  CreditCard,
 } from "lucide-react";
 import { toast } from "sonner";
 import { toFixedSafe } from "@/utils/formatSafe";
@@ -159,7 +160,33 @@ export const JobInvoiceSection = ({ jobId, role, onUpdate }: JobInvoiceSectionPr
     }
   };
 
-  // Client: Accept invoice
+  // Redirect to Stripe Checkout for an invoice
+  const redirectToCheckout = async (invoiceId: string) => {
+    setActing(true);
+    try {
+      toast.loading("Preparando pago seguro...", { id: "checkout-loading" });
+      const { data, error } = await supabase.functions.invoke("create-invoice-payment", {
+        body: { invoice_id: invoiceId },
+      });
+      toast.dismiss("checkout-loading");
+      if (error || data?.error) {
+        toast.error(data?.error || error?.message || "Error al crear sesión de pago");
+        return;
+      }
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        toast.error("No se recibió la URL de pago");
+      }
+    } catch (err) {
+      toast.dismiss("checkout-loading");
+      toast.error("Error inesperado al preparar el pago");
+    } finally {
+      setActing(false);
+    }
+  };
+
+  // Client: Accept invoice then redirect to payment
   const handleAccept = async () => {
     if (!invoice || !user) return;
     setActing(true);
@@ -169,14 +196,14 @@ export const JobInvoiceSection = ({ jobId, role, onUpdate }: JobInvoiceSectionPr
       });
       if (error || data?.error) {
         toast.error(data?.error || error?.message || "Error al aceptar");
+        setActing(false);
         return;
       }
-      toast.success("Factura aceptada");
-      fetchInvoice();
-      onUpdate?.();
+      toast.success("Factura aceptada — redirigiendo al pago...");
+      // Don't setActing(false) — we're redirecting
+      await redirectToCheckout(invoice.id);
     } catch (err) {
       toast.error("Error inesperado");
-    } finally {
       setActing(false);
     }
   };
@@ -348,9 +375,25 @@ export const JobInvoiceSection = ({ jobId, role, onUpdate }: JobInvoiceSectionPr
                 disabled={acting}
               >
                 {acting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />}
-                Aceptar
+                Aceptar y pagar
               </Button>
             </div>
+          )}
+
+          {/* CLIENT: Pay now for accepted but unpaid invoices */}
+          {role === "client" && invoice.status === "accepted" && (
+            <Button
+              onClick={() => redirectToCheckout(invoice.id)}
+              disabled={acting}
+              className="w-full gap-2"
+            >
+              {acting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <CreditCard className="w-4 h-4" />
+              )}
+              Pagar ahora — ${toFixedSafe(invoice.total_customer_amount, 2)} MXN
+            </Button>
           )}
         </CardContent>
       </Card>
