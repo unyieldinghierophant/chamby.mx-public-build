@@ -3,15 +3,17 @@ import { loadStripe } from "@stripe/stripe-js";
 /**
  * Centralized Stripe publishable key configuration.
  * 
- * To switch between TEST and LIVE mode:
- * - TEST: use pk_test_... key
- * - LIVE: use pk_live_... key
+ * Set VITE_STRIPE_PUBLISHABLE_KEY in .env to match the backend mode:
+ * - TEST: pk_test_* + sk_test_* (Supabase secret)
+ * - LIVE: pk_live_* + sk_live_* (Supabase secret)
  * 
- * IMPORTANT: The backend (edge functions) must use the matching secret key mode.
- * Mismatched keys (e.g., test publishable + live secret) will cause payment failures.
+ * IMPORTANT: Frontend and backend keys MUST be in the same mode.
  */
 
-// Current mode: TEST
-export const STRIPE_PUBLISHABLE_KEY = "pk_test_51S97FmEZPwoUz41xz8Cg1rUooVh7FS9TvfeXUfvFgPjhAE2gklqVF0kdpZdvByo3XVf76aTfcmHkH39fOQX9yVnQ00801XKEJu";
+export const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string;
 
-export const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
+if (!STRIPE_PUBLISHABLE_KEY) {
+  console.error("⚠️ VITE_STRIPE_PUBLISHABLE_KEY is not set. Stripe will not work.");
+}
+
+export const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY || "");
