@@ -23,7 +23,9 @@ import { AuthModal } from './AuthModal';
 import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { BookingConfirmation } from './BookingConfirmation';
 import { JobSuccessScreen } from './JobSuccessScreen';
-import { VisitFeeAuthorizationSection } from './payments/VisitFeeAuthorizationSection';
+// DEPRECATED: Authorization flow disabled in favor of Checkout flow. See Phase 4 S5.
+// import { VisitFeeAuthorizationSection } from './payments/VisitFeeAuthorizationSection';
+import { useVisitFeeCheckout } from '@/hooks/useVisitFeeCheckout';
 
 // Input validation schema
 const jobRequestSchema = z.object({
@@ -186,9 +188,9 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [showVisitFeeAuth, setShowVisitFeeAuth] = useState(false);
-  const [visitFeeAuthorized, setVisitFeeAuthorized] = useState(false);
+  // DEPRECATED: showVisitFeeAuth removed — now using Checkout redirect. See Phase 4 S5.
   const [createdJobId, setCreatedJobId] = useState<string | null>(null);
+  const { redirectToCheckout } = useVisitFeeCheckout();
   const [isLoadingForm, setIsLoadingForm] = useState(true);
   const { toast } = useToast();
   const { saveFormData, loadFormData, clearFormData } = useFormPersistence('job-booking');
@@ -543,10 +545,10 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
       // Clear saved form data
       clearFormData();
       
-      // Store job ID and show visit fee authorization step
+      // Store job ID and redirect to Stripe Checkout
       setCreatedJobId(newJob.id);
       setShowConfirmation(false);
-      setShowVisitFeeAuth(true);
+      await redirectToCheckout(newJob.id);
 
     } catch (error: any) {
       console.error('Error submitting task:', error);
@@ -601,45 +603,12 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
     setDetails("");
     setUploadedFiles([]);
     setShowSuccess(false);
-    setShowVisitFeeAuth(false);
-    setVisitFeeAuthorized(false);
     
-    // Navigate based on payment status
-    if (visitFeeAuthorized) {
-      // Payment was authorized, go to waiting page
-      navigate(`/esperando-proveedor?job_id=${createdJobId}`);
-    } else {
-      // Payment was skipped, go to payment page
-      navigate(`/job/${createdJobId}/payment`);
-    }
+    // Navigate to waiting page (Checkout handles payment)
+    navigate(`/esperando-proveedor?job_id=${createdJobId}`);
   };
 
-  const handleVisitFeeAuthorized = () => {
-    setVisitFeeAuthorized(true);
-    setShowVisitFeeAuth(false);
-    setShowSuccess(true);
-    toast({
-      title: "Visita asegurada",
-      description: "Tu pago de visita ha sido preautorizado correctamente.",
-    });
-  };
-
-  const handleVisitFeeFailed = (error: string) => {
-    // Keep on the authorization page but show the error
-    // The component itself shows error state
-    console.error('Visit fee authorization failed:', error);
-  };
-
-  const handleSkipVisitFee = () => {
-    // Allow user to continue without authorization
-    setShowVisitFeeAuth(false);
-    setShowSuccess(true);
-    toast({
-      title: "Solicitud creada",
-      description: "Tu solicitud ha sido creada. Podrás asegurar el pago de visita más tarde.",
-      variant: "default",
-    });
-  };
+  // DEPRECATED: Authorization handlers removed in favor of Checkout flow. See Phase 4 S5.
 
   const handleGoBack = () => {
     setShowConfirmation(false);
@@ -747,25 +716,8 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
           <JobSuccessScreen
             jobId={createdJobId}
             onNavigate={handleSuccessNavigate}
-            visitFeeAuthorized={visitFeeAuthorized}
+            visitFeeAuthorized={true}
           />
-        ) : showVisitFeeAuth && createdJobId ? (
-          <div className="space-y-6 animate-fade-in">
-            <div className="text-center space-y-2">
-              <h1 className="text-3xl font-jakarta font-medium text-foreground">
-                ¡Solicitud creada!
-              </h1>
-              <p className="text-muted-foreground">
-                Ahora asegura tu visita para continuar
-              </p>
-            </div>
-            <VisitFeeAuthorizationSection
-              jobId={createdJobId}
-              onAuthorized={handleVisitFeeAuthorized}
-              onFailed={handleVisitFeeFailed}
-              onSkip={handleSkipVisitFee}
-            />
-          </div>
         ) : showConfirmation ? (
           <BookingConfirmation
             service={taskDescription}

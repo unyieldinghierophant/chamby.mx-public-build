@@ -15,7 +15,9 @@ import { useNavigate } from "react-router-dom";
 import { AuthModal } from "@/components/AuthModal";
 import { useFormPersistence } from "@/hooks/useFormPersistence";
 import { JobSuccessScreen } from "@/components/JobSuccessScreen";
-import { VisitFeeAuthorizationSection } from "@/components/payments/VisitFeeAuthorizationSection";
+// DEPRECATED: Authorization flow disabled in favor of Checkout flow. See Phase 4 S5.
+// import { VisitFeeAuthorizationSection } from "@/components/payments/VisitFeeAuthorizationSection";
+import { useVisitFeeCheckout } from "@/hooks/useVisitFeeCheckout";
 import { CleaningSummary } from "./CleaningSummary";
 import { CleaningStepIndicator } from "./CleaningStepIndicator";
 
@@ -85,10 +87,10 @@ export const CleaningBookingFlow = ({ intentText = "" }: { intentText?: string }
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
-  const [showVisitFeeAuth, setShowVisitFeeAuth] = useState(false);
+  // DEPRECATED: showVisitFeeAuth removed — now using Checkout redirect. See Phase 4 S5.
   const [showSuccess, setShowSuccess] = useState(false);
-  const [visitFeeAuthorized, setVisitFeeAuthorized] = useState(false);
   const [createdJobId, setCreatedJobId] = useState<string | null>(null);
+  const { redirectToCheckout } = useVisitFeeCheckout();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -289,7 +291,8 @@ export const CleaningBookingFlow = ({ intentText = "" }: { intentText?: string }
       clearFormData();
       setCreatedJobId(newJob.id);
       setShowSummary(false);
-      setShowVisitFeeAuth(true);
+      // Redirect to Stripe Checkout for visit fee payment
+      await redirectToCheckout(newJob.id);
     } catch (err: any) {
       toast({ title: "Error al enviar solicitud", description: err?.message, variant: "destructive" });
     } finally {
@@ -306,11 +309,9 @@ export const CleaningBookingFlow = ({ intentText = "" }: { intentText?: string }
     navigate('/login', { state: { returnTo: returnPath } });
   };
 
-  const handleVisitFeeAuthorized = () => { setVisitFeeAuthorized(true); setShowVisitFeeAuth(false); setShowSuccess(true); };
-  const handleSkipVisitFee = () => { setShowVisitFeeAuth(false); setShowSuccess(true); };
+  // DEPRECATED: Authorization handlers removed in favor of Checkout flow. See Phase 4 S5.
   const handleSuccessNavigate = () => {
-    if (visitFeeAuthorized) navigate(`/esperando-proveedor?job_id=${createdJobId}`);
-    else navigate(`/job/${createdJobId}/payment`);
+    navigate(`/esperando-proveedor?job_id=${createdJobId}`);
   };
 
   if (isLoading) {
@@ -324,19 +325,9 @@ export const CleaningBookingFlow = ({ intentText = "" }: { intentText?: string }
   }
 
   if (showSuccess && createdJobId) {
-    return <JobSuccessScreen jobId={createdJobId} onNavigate={handleSuccessNavigate} visitFeeAuthorized={visitFeeAuthorized} />;
+    return <JobSuccessScreen jobId={createdJobId} onNavigate={handleSuccessNavigate} visitFeeAuthorized={true} />;
   }
-  if (showVisitFeeAuth && createdJobId) {
-    return (
-      <div className="space-y-6 animate-fade-in max-w-2xl mx-auto">
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-jakarta font-medium text-foreground">¡Solicitud creada!</h1>
-          <p className="text-muted-foreground">Ahora asegura tu visita para continuar</p>
-        </div>
-        <VisitFeeAuthorizationSection jobId={createdJobId} onAuthorized={handleVisitFeeAuthorized} onFailed={() => {}} onSkip={handleSkipVisitFee} />
-      </div>
-    );
-  }
+  // DEPRECATED: VisitFeeAuthorizationSection block removed. See Phase 4 S5.
 
   if (showSummary) {
     return <CleaningSummary formData={formData} onConfirm={handleSubmit} onGoBack={handleBack} isSubmitting={isSubmitting} />;
