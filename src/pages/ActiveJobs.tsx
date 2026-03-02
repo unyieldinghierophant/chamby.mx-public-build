@@ -574,8 +574,8 @@ const ActiveJobs = () => {
                     <div className="pt-3 border-t space-y-1">
                       <p className="text-sm font-medium text-muted-foreground">Desglose de visita</p>
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Visita</span>
-                        <span>{VISIT_DISPLAY.base}</span>
+                        <span className="text-muted-foreground">Subtotal</span>
+                        <span>{VISIT_DISPLAY.subtotal}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">{VAT_LABEL}</span>

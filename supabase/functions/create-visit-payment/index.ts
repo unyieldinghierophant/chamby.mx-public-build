@@ -65,11 +65,14 @@ serve(async (req) => {
       throw new Error("Visit fee has already been paid for this job");
     }
 
-    const visitFeeBase = job.visit_fee_amount || 350;
+    // Pricing v3: Base + Stripe fee absorption + IVA
+    const visitFeeBase = job.visit_fee_amount || 350; // base in pesos
+    const STRIPE_FEE = 18.10; // absorbed into subtotal
     const VAT_RATE = 0.16;
-    const visitFeeVat = Math.round(visitFeeBase * VAT_RATE * 100) / 100;
-    const visitFeeTotal = visitFeeBase + visitFeeVat;
-    logStep("Job found", { jobId: job.id, title: job.title, visitFeeBase, visitFeeVat, visitFeeTotal });
+    const subtotal = visitFeeBase + STRIPE_FEE; // 368.10
+    const visitFeeVat = Math.round(visitFeeBase * VAT_RATE * 100) / 100; // 56.00
+    const visitFeeTotal = subtotal + visitFeeVat; // 424.10
+    logStep("Job found", { jobId: job.id, title: job.title, visitFeeBase, subtotal, visitFeeVat, visitFeeTotal });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
@@ -94,7 +97,7 @@ serve(async (req) => {
             currency: "mxn",
             product_data: {
               name: "Tarifa de visita - Chamby",
-              description: `Visita: $${visitFeeBase} + IVA $${visitFeeVat} = $${visitFeeTotal} MXN`,
+              description: `Subtotal $${subtotal.toFixed(2)} + IVA $${visitFeeVat.toFixed(2)} = $${visitFeeTotal.toFixed(2)} MXN`,
             },
             unit_amount: amountCentavos,
           },
@@ -108,9 +111,9 @@ serve(async (req) => {
         jobId,
         userId: user.id,
         type: "visit_fee",
-        base_amount_cents: String(Math.round(visitFeeBase * 100)),
+        base_amount_cents: String(Math.round(subtotal * 100)),
         vat_amount_cents: String(Math.round(visitFeeVat * 100)),
-        pricing_version: "visit_v2_iva16",
+        pricing_version: "visit_v3_fee_absorbed",
       },
     });
 

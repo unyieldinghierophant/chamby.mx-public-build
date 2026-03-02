@@ -3,6 +3,9 @@
  *
  * All monetary values stored in centavos (integer) to avoid
  * floating-point issues. Display helpers convert to MXN strings.
+ *
+ * Visit fee v3: Base ($350) + Stripe fee ($18.10) + IVA ($56) = $424.10
+ * Stripe fee is absorbed — shown as part of subtotal, NOT as a line item.
  */
 
 // ── IVA Rate ────────────────────────────────────────────────
@@ -10,11 +13,13 @@ export const VAT_RATE = 0.16;
 export const VAT_LABEL = "IVA (16%)";
 
 // ── Visit Fee Constants (centavos) ──────────────────────────
-export const VISIT_BASE_CENTS       = 35_000;   // $350.00 MXN
-export const VISIT_VAT_CENTS        = Math.round(VISIT_BASE_CENTS * VAT_RATE); // 5600
-export const VISIT_TOTAL_CENTS      = VISIT_BASE_CENTS + VISIT_VAT_CENTS;      // 40600
-export const VISIT_PROVIDER_NET_CENTS  = 25_000; // $250.00 MXN
-export const VISIT_PLATFORM_FEE_CENTS  = 10_000; // $100.00 MXN
+export const VISIT_BASE_CENTS           = 35_000;   // $350.00 MXN
+export const VISIT_STRIPE_FEE_CENTS     =  1_810;   // $18.10 MXN (absorbed)
+export const VISIT_SUBTOTAL_CENTS       = 36_810;   // $368.10 MXN (base + stripe fee)
+export const VISIT_VAT_CENTS            =  5_600;   // 16% of $350 base
+export const VISIT_TOTAL_CENTS          = 42_410;   // $424.10 MXN
+export const VISIT_PROVIDER_NET_CENTS   = 25_000;   // $250.00 MXN
+export const VISIT_PLATFORM_FEE_CENTS   = 10_000;   // $100.00 MXN
 
 // ── Peso-denominated values (for DB columns stored in pesos) ──
 export const VISIT_BASE_FEE = VISIT_BASE_CENTS / 100; // 350
@@ -49,6 +54,8 @@ export const formatPesosShort = (pesos: number): string =>
 
 export const getVisitPricing = () => ({
   base: VISIT_BASE_CENTS,
+  stripeFee: VISIT_STRIPE_FEE_CENTS,
+  subtotal: VISIT_SUBTOTAL_CENTS,
   vat: VISIT_VAT_CENTS,
   total: VISIT_TOTAL_CENTS,
   providerNet: VISIT_PROVIDER_NET_CENTS,
@@ -66,11 +73,12 @@ export const calcInvoiceTotal = (subtotalPesos: number): number =>
   subtotalPesos + calcInvoiceVat(subtotalPesos);
 
 // ── Pre-formatted Display Strings ───────────────────────────
+// UI shows "Subtotal" ($368.10) and "IVA" ($56.00) — no Stripe fee line
 
 export const VISIT_DISPLAY = {
-  base:        formatMXN(VISIT_BASE_CENTS),         // "$350.00 MXN"
-  vat:         formatMXN(VISIT_VAT_CENTS),           // "$56.00 MXN"
-  total:       formatMXN(VISIT_TOTAL_CENTS),         // "$406.00 MXN"
-  providerNet: formatMXN(VISIT_PROVIDER_NET_CENTS),  // "$250.00 MXN"
-  platformFee: formatMXN(VISIT_PLATFORM_FEE_CENTS),  // "$100.00 MXN"
+  subtotal:    formatMXN(VISIT_SUBTOTAL_CENTS),        // "$368.10 MXN"
+  vat:         formatMXN(VISIT_VAT_CENTS),              // "$56.00 MXN"
+  total:       formatMXN(VISIT_TOTAL_CENTS),             // "$424.10 MXN"
+  providerNet: formatMXN(VISIT_PROVIDER_NET_CENTS),      // "$250.00 MXN"
+  platformFee: formatMXN(VISIT_PLATFORM_FEE_CENTS),      // "$100.00 MXN"
 } as const;
