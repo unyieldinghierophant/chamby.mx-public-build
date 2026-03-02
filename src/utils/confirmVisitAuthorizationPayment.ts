@@ -1,3 +1,4 @@
+// DEPRECATED: Authorization flow disabled in favor of Checkout flow. See Phase 4 S5.
 import { StripeError } from "@stripe/stripe-js";
 import { stripePromise } from "@/lib/stripe";
 

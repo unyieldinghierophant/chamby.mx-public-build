@@ -1,3 +1,4 @@
+// DEPRECATED: Authorization flow disabled in favor of Checkout flow. See Phase 4 S5.
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 

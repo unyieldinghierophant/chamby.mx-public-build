@@ -1,3 +1,5 @@
+// DEPRECATED: Authorization flow disabled in favor of Checkout flow. See Phase 4 S5.
+// This component is no longer rendered by any booking flow. Kept for potential future use.
 import { useState, useEffect } from "react";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
