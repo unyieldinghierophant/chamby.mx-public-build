@@ -144,10 +144,11 @@ const App = () => {
             <AnalyticsTracker />
             <RedirectHandler />
             <Routes>
-              <Route path={ROUTES.HOME} element={<Index />} />
+              <Route path={ROUTES.HOME} element={<UserLanding />} />
               <Route path={ROUTES.USER_LANDING} element={<UserLanding />} />
               <Route path={ROUTES.SOLICITAR_SERVICIO} element={<Navigate to={ROUTES.BOOK_JOB} replace />} />
-              <Route path={ROUTES.BOOK_JOB} element={<ProtectedRoute requireClient><BookJob /></ProtectedRoute>} />
+              {/* Auth deferred to final confirm/pay step inside booking flows */}
+              <Route path={ROUTES.BOOK_JOB} element={<BookJob />} />
               <Route path={ROUTES.LOGIN} element={<Login />} />
               <Route path={ROUTES.PROVIDER_LOGIN} element={<ProviderLogin />} />
               <Route path={ROUTES.USER_AUTH} element={<UserOnboardingWizard />} />
