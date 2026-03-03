@@ -10,6 +10,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { PaymentStatusBadge } from '@/components/PaymentStatusBadge';
 import { getVisitFeeStatus, getInvoiceStatus } from '@/utils/jobPaymentStatus';
 import { useCompleteFirstVisit } from '@/hooks/useCompleteFirstVisit';
@@ -62,6 +64,7 @@ interface PendingVerification {
   user_id: string;
   verification_status: string;
   admin_notes: string | null;
+  interview_completed: boolean;
   created_at: string;
   user: {
     full_name: string | null;
@@ -187,7 +190,7 @@ const AdminDashboard = () => {
       // Fetch provider_details with pending or recently updated status
       const { data: providerDetails, error } = await supabase
         .from('provider_details')
-        .select('id, user_id, verification_status, admin_notes, created_at')
+        .select('id, user_id, verification_status, admin_notes, interview_completed, created_at')
         .in('verification_status', ['pending', 'rejected'])
         .order('created_at', { ascending: false });
 
@@ -315,11 +318,66 @@ const AdminDashboard = () => {
 
   const documentTypeLabels: Record<string, string> = {
     'face_photo': 'Foto de Rostro',
+    'face': 'Foto de Rostro',
     'id_front': 'INE Frente',
+    'ine_front': 'INE Frente',
     'id_back': 'INE Reverso',
+    'ine_back': 'INE Reverso',
     'id_card': 'INE/ID',
+    'INE': 'INE',
+    'ine': 'INE',
     'criminal_record': 'Carta de Antecedentes',
+    'selfie': 'Selfie',
+    'selfie_with_id': 'Selfie con INE',
+    'selfie_with_ine': 'Selfie con INE',
+    'proof_of_address': 'Comprobante de Domicilio',
+    'comprobante_domicilio': 'Comprobante de Domicilio',
   }
+
+  const handleApproveDocument = async (docId: string, userId: string) => {
+    try {
+      const { error } = await supabase
+        .from('documents')
+        .update({ verification_status: 'verified', reviewed_by: user?.id, reviewed_at: new Date().toISOString() })
+        .eq('id', docId);
+      if (error) throw error;
+      toast.success('Documento aprobado');
+      fetchPendingVerifications();
+    } catch (error) {
+      console.error('Error approving document:', error);
+      toast.error('Error al aprobar documento');
+    }
+  };
+
+  const handleRejectDocument = async (docId: string, userId: string) => {
+    try {
+      const { error } = await supabase
+        .from('documents')
+        .update({ verification_status: 'rejected', reviewed_by: user?.id, reviewed_at: new Date().toISOString() })
+        .eq('id', docId);
+      if (error) throw error;
+      toast.success('Documento rechazado');
+      fetchPendingVerifications();
+    } catch (error) {
+      console.error('Error rejecting document:', error);
+      toast.error('Error al rechazar documento');
+    }
+  };
+
+  const handleToggleInterview = async (userId: string, completed: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('provider_details')
+        .update({ interview_completed: completed })
+        .eq('user_id', userId);
+      if (error) throw error;
+      toast.success(completed ? 'Entrevista marcada como completada' : 'Entrevista desmarcada');
+      fetchPendingVerifications();
+    } catch (error) {
+      console.error('Error toggling interview:', error);
+      toast.error('Error al actualizar entrevista');
+    }
+  };
   const handleResolveCapture = async (jobId: string) => {
     setResolvingJobId(jobId);
     try {
@@ -885,35 +943,71 @@ const AdminDashboard = () => {
                           {verification.documents.map((doc) => (
                             <div 
                               key={doc.id} 
-                              className="flex items-center justify-between p-2 bg-muted/20 rounded-lg"
+                              className="flex items-center justify-between p-2 bg-muted/20 rounded-lg gap-2"
                             >
-                              <div className="flex items-center gap-2">
-                                <FileText className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-sm">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                <span className="text-sm truncate">
                                   {documentTypeLabels[doc.doc_type] || doc.doc_type}
                                 </span>
                                 <Badge 
                                   variant={doc.verification_status === 'verified' ? 'default' : 
                                            doc.verification_status === 'rejected' ? 'destructive' : 'secondary'}
-                                  className="text-xs"
+                                  className="text-xs flex-shrink-0"
                                 >
-                                  {doc.verification_status === 'verified' ? '✓' : 
-                                   doc.verification_status === 'rejected' ? '✗' : '⏳'}
+                                  {doc.verification_status === 'verified' ? '✓ Aprobado' : 
+                                   doc.verification_status === 'rejected' ? '✗ Rechazado' : '⏳ Pendiente'}
                                 </Badge>
                               </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleViewDocument(doc.file_url)}
-                                className="h-8"
-                              >
-                                <Eye className="h-4 w-4 mr-1" />
-                                Ver
-                              </Button>
+                              <div className="flex items-center gap-1 flex-shrink-0">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleViewDocument(doc.file_url)}
+                                  className="h-8 px-2"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                                {doc.verification_status !== 'verified' && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleApproveDocument(doc.id, verification.user_id)}
+                                    className="h-8 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                  >
+                                    <CheckCircle className="h-4 w-4" />
+                                  </Button>
+                                )}
+                                {doc.verification_status !== 'rejected' && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleRejectDocument(doc.id, verification.user_id)}
+                                    className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  >
+                                    <XCircle className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </div>
                             </div>
                           ))}
                         </div>
                       )}
+                    </div>
+
+                    {/* Interview Toggle */}
+                    <div className="flex items-center justify-between p-3 bg-muted/20 rounded-lg">
+                      <div className="space-y-0.5">
+                        <Label htmlFor={`interview-${verification.user_id}`} className="text-sm font-medium">
+                          ¿Entrevista completada satisfactoriamente?
+                        </Label>
+                        <p className="text-xs text-muted-foreground">Marca si la entrevista presencial fue aprobada</p>
+                      </div>
+                      <Switch
+                        id={`interview-${verification.user_id}`}
+                        checked={verification.interview_completed}
+                        onCheckedChange={(checked) => handleToggleInterview(verification.user_id, checked)}
+                      />
                     </div>
 
                     {/* Admin Notes */}

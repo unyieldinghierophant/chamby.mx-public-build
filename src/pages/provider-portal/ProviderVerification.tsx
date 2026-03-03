@@ -73,7 +73,8 @@ const ProviderVerification = () => {
   const [verificationDetails, setVerificationDetails] = useState<{
     status: string;
     admin_notes: string | null;
-  }>({ status: 'pending', admin_notes: null });
+    interview_completed: boolean;
+  }>({ status: 'pending', admin_notes: null, interview_completed: false });
 
   const isVerified = verificationDetails.status === 'verified';
 
@@ -104,14 +105,15 @@ const ProviderVerification = () => {
 
       const { data: details } = await supabase
         .from("provider_details")
-        .select("verification_status, admin_notes")
+        .select("verification_status, admin_notes, interview_completed")
         .eq("user_id", user.id)
         .maybeSingle();
 
       if (details) {
         setVerificationDetails({
           status: details.verification_status || 'pending',
-          admin_notes: details.admin_notes
+          admin_notes: details.admin_notes,
+          interview_completed: details.interview_completed ?? false
         });
       }
     } catch (error) {
@@ -172,7 +174,7 @@ const ProviderVerification = () => {
 
   const calculateProgress = () => {
     if (isVerified) return 100;
-    // 5 docs + interview = 6 items, each ~16.7%. Round to nearest integer.
+    // 5 docs + interview = 6 items
     const totalItems = DOC_REQUIREMENTS.length + 1; // +1 for interview
     let completed = 0;
     for (const req of DOC_REQUIREMENTS) {
@@ -181,8 +183,8 @@ const ProviderVerification = () => {
         completed++;
       }
     }
-    // Interview counts as completed if verified
-    if (isVerified) completed++;
+    // Interview counts as completed if interview_completed is true
+    if (verificationDetails.interview_completed) completed++;
     return Math.round((completed / totalItems) * 100);
   };
 
@@ -195,7 +197,8 @@ const ProviderVerification = () => {
   // Render a single requirement step with proper status
   const renderRequirementStep = (req: DocRequirement) => {
     const doc = getDocForRequirement(req);
-    const status = doc?.verification_status || null;
+    // If overall provider is verified, treat all docs as verified
+    const status = isVerified ? 'verified' : (doc?.verification_status || null);
 
     let icon: React.ReactNode;
     let badge: React.ReactNode = null;
@@ -205,7 +208,7 @@ const ProviderVerification = () => {
       icon = <CheckCircle className="h-6 w-6 text-green-600" />;
       badge = (
         <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20">
-          Aprobado
+          Documento verificado
         </Badge>
       );
       actions = doc?.file_url ? (
@@ -399,10 +402,10 @@ const ProviderVerification = () => {
             {/* Document requirement steps — driven by per-document status */}
             {DOC_REQUIREMENTS.map(renderRequirementStep)}
 
-            {/* Step 4: Interview (Admin controlled) */}
+            {/* Step: Interview (Admin controlled via interview_completed) */}
             <div className="flex items-start gap-4 p-4 border rounded-lg">
               <div className="mt-1">
-                {isVerified ? (
+                {isVerified || verificationDetails.interview_completed ? (
                   <CheckCircle className="h-6 w-6 text-green-600" />
                 ) : (
                   <Circle className="h-6 w-6 text-muted-foreground" />
@@ -410,12 +413,20 @@ const ProviderVerification = () => {
               </div>
               <div className="flex-1 space-y-1">
                 <h3 className="font-medium">Completar entrevista presencial</h3>
-                <p className="text-sm text-muted-foreground">
-                  Contacta al equipo de Chamby para agendar tu entrevista
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Email: armando@chamby.mx | Tel: 223 543 8136
-                </p>
+                {isVerified || verificationDetails.interview_completed ? (
+                  <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20">
+                    Entrevista completada
+                  </Badge>
+                ) : (
+                  <>
+                    <p className="text-sm text-muted-foreground">
+                      Contacta al equipo de Chamby para agendar tu entrevista
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Email: armando@chamby.mx | Tel: 223 543 8136
+                    </p>
+                  </>
+                )}
               </div>
             </div>
 

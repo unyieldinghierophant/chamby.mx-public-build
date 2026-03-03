@@ -693,6 +693,7 @@ export type Database = {
           id_document_url: string | null
           ine_back_url: string | null
           ine_front_url: string | null
+          interview_completed: boolean
           provider_id: string | null
           selfie_url: string | null
           selfie_with_id_url: string | null
@@ -709,6 +710,7 @@ export type Database = {
           id_document_url?: string | null
           ine_back_url?: string | null
           ine_front_url?: string | null
+          interview_completed?: boolean
           provider_id?: string | null
           selfie_url?: string | null
           selfie_with_id_url?: string | null
@@ -725,6 +727,7 @@ export type Database = {
           id_document_url?: string | null
           ine_back_url?: string | null
           ine_front_url?: string | null
+          interview_completed?: boolean
           provider_id?: string | null
           selfie_url?: string | null
           selfie_with_id_url?: string | null
