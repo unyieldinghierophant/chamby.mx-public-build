@@ -58,7 +58,7 @@ const Hero = ({ onMediaReady }: { onMediaReady?: () => void }) => {
                 <source src={HERO_VIDEO_URL} type="video/mp4" />
               </video>
               {/* Dark overlay for text legibility */}
-              <div className="absolute inset-0 bg-primary/60" />
+              <div className="absolute inset-0 bg-black/40" />
             </div>
 
             {/* Subtle grid pattern background */}
