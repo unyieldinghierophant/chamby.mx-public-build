@@ -63,9 +63,11 @@ const Header = () => {
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/40">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="relative flex items-center h-16 md:h-20">
-            {/* Logo — absolute center */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-              <ChambyLogoText onClick={() => navigate(getLogoDestination())} size="md" />
+            {/* Logo — absolute center, ignoring siblings */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="pointer-events-auto">
+                <ChambyLogoText onClick={() => navigate(getLogoDestination())} size="md" />
+              </div>
             </div>
             <div className="hidden lg:flex items-center gap-5 ml-auto">
               <HeaderSearchBar />
