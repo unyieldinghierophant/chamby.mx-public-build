@@ -6,6 +6,15 @@ import { ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
+/**
+ * Canonical status list – must match ActiveJobs.tsx exactly.
+ * "searching" is excluded here because SearchingJobBanner handles it.
+ */
+const ACTIVE_JOB_STATUSES = [
+  "pending", "active", "accepted", "assigned",
+  "confirmed", "en_route", "on_site", "quoted", "in_progress",
+];
+
 interface ClientActiveJob {
   id: string;
   title: string;
@@ -21,17 +30,21 @@ export const ClientActiveJobBanner = () => {
   useEffect(() => {
     if (!user) return;
 
+    let cancelled = false;
+
     const fetchActiveJob = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("jobs")
         .select("id, title, scheduled_at, provider_id")
         .eq("client_id", user.id)
-        .in("status", ["pending", "searching", "active", "accepted", "assigned", "confirmed", "en_route", "on_site", "quoted", "in_progress"])
+        .in("status", ACTIVE_JOB_STATUSES)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
 
-      if (!data) {
+      if (cancelled) return;
+
+      if (error || !data) {
         setJob(null);
         return;
       }
@@ -46,6 +59,8 @@ export const ClientActiveJobBanner = () => {
         providerName = providerData?.full_name ?? null;
       }
 
+      if (cancelled) return;
+
       setJob({
         id: data.id,
         title: data.title,
@@ -58,13 +73,17 @@ export const ClientActiveJobBanner = () => {
 
     const channel = supabase
       .channel("client-active-job-banner")
-      .on("postgres_changes", { event: "*", schema: "public", table: "jobs" }, () => {
+      .on("postgres_changes", {
+        event: "*", schema: "public", table: "jobs",
+        filter: `client_id=eq.${user.id}`,
+      }, () => {
         fetchActiveJob();
       })
       .subscribe();
 
     return () => {
-      channel.unsubscribe();
+      cancelled = true;
+      supabase.removeChannel(channel);
     };
   }, [user]);
 
