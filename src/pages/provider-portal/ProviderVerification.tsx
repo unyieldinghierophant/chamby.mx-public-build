@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Circle, Upload, UserCheck, Award, ArrowLeft, Clock, XCircle, FileText, Eye, Download, RefreshCw, AlertTriangle } from "lucide-react";
+import { CheckCircle, Circle, Upload, ArrowLeft, Clock, XCircle, Eye, RefreshCw } from "lucide-react";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { DocumentUploadDialog } from "@/components/provider-portal/DocumentUploadDialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -172,34 +172,6 @@ const ProviderVerification = () => {
     }
   };
 
-  const handleDownloadDocument = async (doc: any) => {
-    if (!doc.file_url) {
-      toast.error("No se encontró el archivo del documento.");
-      return;
-    }
-    try {
-      // If it's a signed URL, just open it
-      if (doc.file_url.startsWith('http')) {
-        window.open(doc.file_url, "_blank");
-        return;
-      }
-      const { data, error } = await supabase.storage
-        .from("user-documents")
-        .download(doc.file_url);
-      if (error) throw error;
-      const url = URL.createObjectURL(data);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${documentTypes[doc.doc_type] || doc.doc_type}.${doc.file_url.split('.').pop() || 'pdf'}`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error("Download error:", err);
-      toast.error("Error al descargar el archivo.");
-    }
-  };
 
   const calculateProgress = () => {
     if (isVerified) return 100;
@@ -218,16 +190,6 @@ const ProviderVerification = () => {
 
   const handleUploadClick = (docType: string, title: string, description: string) => {
     setUploadDialog({ open: true, docType, title, description });
-  };
-
-  const documentTypes: Record<string, string> = {
-    'id_card': 'INE/ID',
-    'id_front': 'INE Frente',
-    'id_back': 'INE Reverso',
-    'criminal_record': 'Carta de Antecedentes',
-    'face_photo': 'Foto del Rostro',
-    'selfie': 'Foto del Rostro',
-    'face': 'Foto del Rostro',
   };
 
   // Render a single requirement step with proper status
@@ -409,78 +371,6 @@ const ProviderVerification = () => {
         </Card>
       )}
 
-      {/* Documents List (uploaded docs with view/download) */}
-      {documents.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Mis Documentos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {documents.map((doc) => (
-                <div key={doc.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-muted/30 rounded-lg border border-border">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <FileText className="w-5 h-5 text-muted-foreground shrink-0" />
-                    <div className="min-w-0">
-                      <span className="text-sm font-medium block">
-                        {documentTypes[doc.doc_type] || doc.doc_type}
-                      </span>
-                      {doc.uploaded_at && (
-                        <span className="text-xs text-muted-foreground">
-                          Subido: {new Date(doc.uploaded_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge
-                      variant={doc.verification_status === 'verified' || doc.verification_status === 'approved' ? 'default' :
-                               doc.verification_status === 'rejected' ? 'destructive' : 'secondary'}
-                    >
-                      {doc.verification_status === 'verified' || doc.verification_status === 'approved' ? 'Verificado' :
-                       doc.verification_status === 'rejected' ? 'Rechazado' : 'En Revisión'}
-                    </Badge>
-                    {doc.file_url && (
-                      <>
-                        <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => handleViewDocument(doc)} title="Ver documento">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => handleDownloadDocument(doc)} title="Descargar documento">
-                          <Download className="h-4 w-4" />
-                        </Button>
-                      </>
-                    )}
-                    {!doc.file_url && (
-                      <span className="text-xs text-muted-foreground flex items-center gap-1">
-                        <AlertTriangle className="h-3 w-3" />
-                        Archivo no disponible
-                      </span>
-                    )}
-                    {doc.verification_status === 'rejected' && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-8 text-xs"
-                        onClick={() => handleUploadClick(
-                          doc.doc_type,
-                          documentTypes[doc.doc_type] || doc.doc_type,
-                          "Vuelve a subir este documento"
-                        )}
-                      >
-                        <RefreshCw className="h-3 w-3 mr-1" />
-                        Re-subir
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Compact approved line when verified */}
       {isVerified && (
