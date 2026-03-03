@@ -157,7 +157,7 @@ const ProviderProfileEdit = () => {
     try {
       // Delete user account
       const { error } = await supabase.rpc('delete_user_account', {
-        user_id: user.id
+        p_user_id: user.id
       });
 
       if (error) throw error;
