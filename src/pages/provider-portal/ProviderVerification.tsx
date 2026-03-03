@@ -11,52 +11,49 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
-// Normalize doc_type aliases to canonical types
-const DOC_TYPE_ALIASES: Record<string, string> = {
-  'selfie': 'face_photo',
-  'face': 'face_photo',
-  'face_photo': 'face_photo',
-  'id_card': 'id_card',
-  'id_front': 'id_card',
-  'INE': 'id_card',
-  'ine': 'id_card',
-  'criminal_record': 'criminal_record',
-  'antecedentes': 'criminal_record',
-};
-
-function normalizeDocType(docType: string): string {
-  return DOC_TYPE_ALIASES[docType] || docType;
-}
-
 interface DocRequirement {
-  key: string; // canonical key
-  rawTypes: string[]; // all doc_type values that map to this requirement
+  key: string;
+  rawTypes: string[];
   title: string;
   description: string;
-  uploadDocType: string; // the doc_type to use when uploading
+  uploadDocType: string;
 }
 
 const DOC_REQUIREMENTS: DocRequirement[] = [
   {
-    key: 'face_photo',
-    rawTypes: ['face_photo', 'selfie', 'face'],
-    title: 'Subir foto de rostro',
+    key: 'ine_front',
+    rawTypes: ['ine_front', 'id_front', 'id_card', 'INE', 'ine'],
+    title: 'INE Frente',
+    description: 'Foto clara del frente de tu INE',
+    uploadDocType: 'ine_front',
+  },
+  {
+    key: 'ine_back',
+    rawTypes: ['ine_back', 'id_back'],
+    title: 'INE Reverso',
+    description: 'Foto clara del reverso de tu INE',
+    uploadDocType: 'ine_back',
+  },
+  {
+    key: 'selfie',
+    rawTypes: ['selfie', 'face_photo', 'face'],
+    title: 'Selfie',
     description: 'Una foto clara de tu rostro para identificación',
-    uploadDocType: 'face_photo',
+    uploadDocType: 'selfie',
   },
   {
-    key: 'id_card',
-    rawTypes: ['id_card', 'id_front', 'INE', 'ine'],
-    title: 'Subir INE',
-    description: 'Identificación oficial para verificación',
-    uploadDocType: 'id_card',
+    key: 'selfie_with_id',
+    rawTypes: ['selfie_with_id', 'selfie_with_ine'],
+    title: 'Selfie con INE',
+    description: 'Foto tuya sosteniendo tu INE junto a tu rostro',
+    uploadDocType: 'selfie_with_id',
   },
   {
-    key: 'criminal_record',
-    rawTypes: ['criminal_record', 'antecedentes'],
-    title: 'Carta de antecedentes no penales',
-    description: 'Documento de antecedentes no penales actualizado',
-    uploadDocType: 'criminal_record',
+    key: 'proof_of_address',
+    rawTypes: ['proof_of_address', 'comprobante_domicilio'],
+    title: 'Comprobante de Domicilio',
+    description: 'Recibo de luz, agua o estado de cuenta reciente',
+    uploadDocType: 'proof_of_address',
   },
 ];
 
@@ -175,15 +172,18 @@ const ProviderVerification = () => {
 
   const calculateProgress = () => {
     if (isVerified) return 100;
-    let progress = 0;
+    // 5 docs + interview = 6 items, each ~16.7%. Round to nearest integer.
+    const totalItems = DOC_REQUIREMENTS.length + 1; // +1 for interview
+    let completed = 0;
     for (const req of DOC_REQUIREMENTS) {
       const doc = getDocForRequirement(req);
       if (doc && (doc.verification_status === 'verified' || doc.verification_status === 'approved' || doc.verification_status === 'pending')) {
-        progress += 25;
+        completed++;
       }
     }
-    if (completedJobs >= 5) progress += 25;
-    return progress;
+    // Interview counts as completed if verified
+    if (isVerified) completed++;
+    return Math.round((completed / totalItems) * 100);
   };
 
   const progress = calculateProgress();
@@ -419,28 +419,41 @@ const ProviderVerification = () => {
               </div>
             </div>
 
-            {/* Step 5: Complete 5 jobs */}
-            <div className="flex items-start gap-4 p-4 border rounded-lg">
-              <div className="mt-1">
-                {completedJobs >= 5 ? (
-                  <CheckCircle className="h-6 w-6 text-green-600" />
-                ) : (
-                  <Circle className="h-6 w-6 text-muted-foreground" />
-                )}
-              </div>
-              <div className="flex-1 space-y-1">
-                <h3 className="font-medium">
-                  Completar 5 trabajos con calificación positiva
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Demuestra tu calidad de servicio ({completedJobs}/5 completados)
-                </p>
-                {completedJobs >= 5 && (
-                  <Badge className="bg-green-500/10 text-green-700">
-                    Completado
-                  </Badge>
-                )}
-              </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Separate "Pro" tier section */}
+      <Card className="border-primary/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            🏆 Conviértete en Proveedor Pro
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Completa estos objetivos para desbloquear beneficios premium. No bloquean tu verificación básica.
+          </p>
+          <div className="flex items-start gap-4 p-4 border rounded-lg">
+            <div className="mt-1">
+              {completedJobs >= 5 ? (
+                <CheckCircle className="h-6 w-6 text-green-600" />
+              ) : (
+                <Circle className="h-6 w-6 text-muted-foreground" />
+              )}
+            </div>
+            <div className="flex-1 space-y-1">
+              <h3 className="font-medium">
+                Completar 5 trabajos con calificación positiva
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Demuestra tu calidad de servicio ({completedJobs}/5 completados)
+              </p>
+              {completedJobs >= 5 && (
+                <Badge className="bg-green-500/10 text-green-700">
+                  Completado
+                </Badge>
+              )}
             </div>
           </div>
         </CardContent>

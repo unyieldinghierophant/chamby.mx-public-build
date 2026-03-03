@@ -27,9 +27,11 @@ interface Profile {
 }
 
 const REQUIRED_DOC_TYPES = [
-  { type: 'face_photo', label: 'Foto del rostro' },
-  { type: 'id_card', label: 'INE / Identificación' },
-  { type: 'criminal_record', label: 'Carta de antecedentes no penales' },
+  { type: 'ine_front', label: 'INE Frente', aliases: ['id_front', 'id_card', 'INE', 'ine'] },
+  { type: 'ine_back', label: 'INE Reverso', aliases: ['id_back'] },
+  { type: 'selfie', label: 'Selfie', aliases: ['face_photo', 'face'] },
+  { type: 'selfie_with_id', label: 'Selfie con INE', aliases: ['selfie_with_ine'] },
+  { type: 'proof_of_address', label: 'Comprobante de Domicilio', aliases: ['comprobante_domicilio'] },
 ];
 
 const ProviderVerification = () => {
@@ -76,10 +78,9 @@ const ProviderVerification = () => {
   const isVerified = verificationStatus === 'verified';
 
   const getDocStatus = (docType: string): 'verified' | 'pending' | 'rejected' | 'missing' => {
-    // id_card can also match id_front
-    const doc = documents.find(d =>
-      d.doc_type === docType || (docType === 'id_card' && d.doc_type === 'id_front')
-    );
+    const reqDef = REQUIRED_DOC_TYPES.find(r => r.type === docType);
+    const allTypes = reqDef ? [reqDef.type, ...reqDef.aliases] : [docType];
+    const doc = documents.find(d => d.doc_type && allTypes.includes(d.doc_type));
     if (!doc) return 'missing';
     if (doc.verification_status === 'verified' || doc.verification_status === 'approved') return 'verified';
     if (doc.verification_status === 'rejected') return 'rejected';

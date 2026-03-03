@@ -78,9 +78,11 @@ Deno.serve(async (req) => {
       // Check canonical documents from the documents table
       // Must match ProviderVerification page requirements exactly
       const CANONICAL_DOCS = [
-        { key: 'foto_rostro', label: 'Foto del rostro', docTypes: ['face_photo'] },
-        { key: 'ine_id', label: 'INE/ID', docTypes: ['id_card', 'id_front'] },
-        { key: 'carta_antecedentes', label: 'Carta de antecedentes no penales', docTypes: ['criminal_record'] },
+        { key: 'ine_front', label: 'INE Frente', docTypes: ['ine_front', 'id_front', 'id_card'] },
+        { key: 'ine_back', label: 'INE Reverso', docTypes: ['ine_back', 'id_back'] },
+        { key: 'selfie', label: 'Selfie', docTypes: ['selfie', 'face_photo', 'face'] },
+        { key: 'selfie_with_id', label: 'Selfie con INE', docTypes: ['selfie_with_id', 'selfie_with_ine'] },
+        { key: 'proof_of_address', label: 'Comprobante de Domicilio', docTypes: ['proof_of_address', 'comprobante_domicilio'] },
       ]
 
       const { data: docs } = await supabaseAdmin
