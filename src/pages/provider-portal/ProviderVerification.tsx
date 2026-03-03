@@ -11,6 +11,55 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
+// Normalize doc_type aliases to canonical types
+const DOC_TYPE_ALIASES: Record<string, string> = {
+  'selfie': 'face_photo',
+  'face': 'face_photo',
+  'face_photo': 'face_photo',
+  'id_card': 'id_card',
+  'id_front': 'id_card',
+  'INE': 'id_card',
+  'ine': 'id_card',
+  'criminal_record': 'criminal_record',
+  'antecedentes': 'criminal_record',
+};
+
+function normalizeDocType(docType: string): string {
+  return DOC_TYPE_ALIASES[docType] || docType;
+}
+
+interface DocRequirement {
+  key: string; // canonical key
+  rawTypes: string[]; // all doc_type values that map to this requirement
+  title: string;
+  description: string;
+  uploadDocType: string; // the doc_type to use when uploading
+}
+
+const DOC_REQUIREMENTS: DocRequirement[] = [
+  {
+    key: 'face_photo',
+    rawTypes: ['face_photo', 'selfie', 'face'],
+    title: 'Subir foto de rostro',
+    description: 'Una foto clara de tu rostro para identificación',
+    uploadDocType: 'face_photo',
+  },
+  {
+    key: 'id_card',
+    rawTypes: ['id_card', 'id_front', 'INE', 'ine'],
+    title: 'Subir INE',
+    description: 'Identificación oficial para verificación',
+    uploadDocType: 'id_card',
+  },
+  {
+    key: 'criminal_record',
+    rawTypes: ['criminal_record', 'antecedentes'],
+    title: 'Carta de antecedentes no penales',
+    description: 'Documento de antecedentes no penales actualizado',
+    uploadDocType: 'criminal_record',
+  },
+];
+
 const ProviderVerification = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -29,7 +78,6 @@ const ProviderVerification = () => {
     admin_notes: string | null;
   }>({ status: 'pending', admin_notes: null });
 
-  // Single source of truth: provider_details.verification_status (set by admin)
   const isVerified = verificationDetails.status === 'verified';
 
   useEffect(() => {
@@ -42,7 +90,6 @@ const ProviderVerification = () => {
     if (!user) return;
 
     try {
-      // Fetch documents using user.id
       const { data: docs } = await supabase
         .from("documents")
         .select("*")
@@ -50,7 +97,6 @@ const ProviderVerification = () => {
 
       setDocuments(docs || []);
 
-      // Fetch completed jobs count
       const { data: jobs } = await supabase
         .from("jobs")
         .select("id", { count: "exact" })
@@ -59,7 +105,6 @@ const ProviderVerification = () => {
 
       setCompletedJobs(jobs?.length || 0);
 
-      // Fetch provider_details for verification status and notes
       const { data: details } = await supabase
         .from("provider_details")
         .select("verification_status, admin_notes")
@@ -79,23 +124,33 @@ const ProviderVerification = () => {
     }
   };
 
-  const hasDocument = (docType: string) => {
-    return documents.some((doc) => doc.doc_type === docType);
-  };
-
-  const getDocumentStatus = (docType: string) => {
-    const doc = documents.find((d) => d.doc_type === docType);
-    return doc?.verification_status || null;
+  // Find the best document for a requirement (most recent, preferring non-rejected)
+  const getDocForRequirement = (req: DocRequirement) => {
+    const matching = documents.filter(d => req.rawTypes.includes(d.doc_type));
+    if (matching.length === 0) return null;
+    // Prefer approved/verified > pending > rejected
+    const sorted = [...matching].sort((a, b) => {
+      const priority = (s: string) => {
+        if (s === 'verified' || s === 'approved') return 0;
+        if (s === 'pending') return 1;
+        return 2; // rejected
+      };
+      return priority(a.verification_status) - priority(b.verification_status);
+    });
+    return sorted[0];
   };
 
   const getSignedUrl = useCallback(async (fileUrl: string): Promise<string | null> => {
     if (!fileUrl) return null;
     try {
-      // Extract bucket and path from the stored URL
-      // file_url format: "{userId}/verification/{filename}" (path within user-documents bucket)
+      // If it's already a full URL (signed URL from old uploads), open directly
+      if (fileUrl.startsWith('http')) {
+        return fileUrl;
+      }
+      // Otherwise treat as storage path
       const { data, error } = await supabase.storage
         .from("user-documents")
-        .createSignedUrl(fileUrl, 3600); // 1 hour expiry
+        .createSignedUrl(fileUrl, 3600);
       if (error) throw error;
       return data.signedUrl;
     } catch (err) {
@@ -123,6 +178,11 @@ const ProviderVerification = () => {
       return;
     }
     try {
+      // If it's a signed URL, just open it
+      if (doc.file_url.startsWith('http')) {
+        window.open(doc.file_url, "_blank");
+        return;
+      }
       const { data, error } = await supabase.storage
         .from("user-documents")
         .download(doc.file_url);
@@ -137,16 +197,19 @@ const ProviderVerification = () => {
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error("Download error:", err);
-      toast.error("Error al descargar el archivo. Es posible que no exista o haya expirado.");
+      toast.error("Error al descargar el archivo.");
     }
   };
 
   const calculateProgress = () => {
     if (isVerified) return 100;
     let progress = 0;
-    if (hasDocument("face_photo")) progress += 25;
-    if (hasDocument("id_card") || hasDocument("id_front")) progress += 25;
-    if (hasDocument("criminal_record")) progress += 25;
+    for (const req of DOC_REQUIREMENTS) {
+      const doc = getDocForRequirement(req);
+      if (doc && (doc.verification_status === 'verified' || doc.verification_status === 'approved' || doc.verification_status === 'pending')) {
+        progress += 25;
+      }
+    }
     if (completedJobs >= 5) progress += 25;
     return progress;
   };
@@ -163,14 +226,119 @@ const ProviderVerification = () => {
     'id_back': 'INE Reverso',
     'criminal_record': 'Carta de Antecedentes',
     'face_photo': 'Foto del Rostro',
+    'selfie': 'Foto del Rostro',
+    'face': 'Foto del Rostro',
+  };
+
+  // Render a single requirement step with proper status
+  const renderRequirementStep = (req: DocRequirement) => {
+    const doc = getDocForRequirement(req);
+    const status = doc?.verification_status || null;
+
+    let icon: React.ReactNode;
+    let badge: React.ReactNode = null;
+    let actions: React.ReactNode = null;
+
+    if (status === 'verified' || status === 'approved') {
+      icon = <CheckCircle className="h-6 w-6 text-green-600" />;
+      badge = (
+        <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20">
+          Aprobado
+        </Badge>
+      );
+      actions = doc?.file_url ? (
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => handleViewDocument(doc)} title="Ver documento">
+            <Eye className="h-4 w-4" />
+          </Button>
+        </div>
+      ) : null;
+    } else if (status === 'pending') {
+      icon = <Clock className="h-6 w-6 text-amber-500" />;
+      badge = (
+        <Badge variant="secondary" className="bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20">
+          En revisión
+        </Badge>
+      );
+      actions = doc?.file_url ? (
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => handleViewDocument(doc)} title="Ver documento">
+            <Eye className="h-4 w-4" />
+          </Button>
+        </div>
+      ) : null;
+    } else if (status === 'rejected') {
+      icon = <XCircle className="h-6 w-6 text-destructive" />;
+      badge = (
+        <Badge variant="destructive">
+          Rechazado
+        </Badge>
+      );
+      if (doc?.rejection_reason) {
+        badge = (
+          <div className="space-y-1">
+            <Badge variant="destructive">Rechazado</Badge>
+            <p className="text-xs text-destructive/80">{doc.rejection_reason}</p>
+          </div>
+        );
+      }
+      actions = (
+        <div className="flex items-center gap-1">
+          {doc?.file_url && (
+            <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => handleViewDocument(doc)} title="Ver documento">
+              <Eye className="h-4 w-4" />
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs"
+            onClick={() => handleUploadClick(req.uploadDocType, req.title, "Vuelve a subir este documento")}
+          >
+            <RefreshCw className="h-3 w-3 mr-1" />
+            Re-subir
+          </Button>
+        </div>
+      );
+    } else {
+      // No document uploaded
+      icon = <Circle className="h-6 w-6 text-muted-foreground" />;
+      badge = (
+        <Badge variant="outline" className="text-muted-foreground">
+          Pendiente
+        </Badge>
+      );
+      actions = !isVerified ? (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleUploadClick(req.uploadDocType, req.title, req.description)}
+        >
+          <Upload className="h-4 w-4 mr-1" />
+          Subir
+        </Button>
+      ) : null;
+    }
+
+    return (
+      <div key={req.key} className="flex items-start gap-4 p-4 border rounded-lg">
+        <div className="mt-1">{icon}</div>
+        <div className="flex-1 space-y-1 min-w-0">
+          <h3 className="font-medium">{req.title}</h3>
+          <p className="text-sm text-muted-foreground">{req.description}</p>
+          {badge}
+        </div>
+        {actions}
+      </div>
+    );
   };
 
   return (
     <div className="container mx-auto p-4 lg:p-6 space-y-6 max-w-4xl">
       {/* Header with Back Button */}
       <div className="flex items-center gap-4">
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           size="icon"
           onClick={() => navigate('/provider-portal')}
           className="shrink-0"
@@ -198,8 +366,8 @@ const ProviderVerification = () => {
             <p className="text-sm text-destructive/80">
               <strong>Razón:</strong> {verificationDetails.admin_notes}
             </p>
-            <Button 
-              className="mt-3" 
+            <Button
+              className="mt-3"
               size="sm"
               onClick={() => navigate('/provider/onboarding')}
             >
@@ -241,7 +409,7 @@ const ProviderVerification = () => {
         </Card>
       )}
 
-      {/* Documents Status — show for all states, with view/download */}
+      {/* Documents List (uploaded docs with view/download) */}
       {documents.length > 0 && (
         <Card>
           <CardHeader>
@@ -268,8 +436,8 @@ const ProviderVerification = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Badge 
-                      variant={doc.verification_status === 'verified' || doc.verification_status === 'approved' ? 'default' : 
+                    <Badge
+                      variant={doc.verification_status === 'verified' || doc.verification_status === 'approved' ? 'default' :
                                doc.verification_status === 'rejected' ? 'destructive' : 'secondary'}
                     >
                       {doc.verification_status === 'verified' || doc.verification_status === 'approved' ? 'Verificado' :
@@ -277,22 +445,10 @@ const ProviderVerification = () => {
                     </Badge>
                     {doc.file_url && (
                       <>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 px-2"
-                          onClick={() => handleViewDocument(doc)}
-                          title="Ver documento"
-                        >
+                        <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => handleViewDocument(doc)} title="Ver documento">
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 px-2"
-                          onClick={() => handleDownloadDocument(doc)}
-                          title="Descargar documento"
-                        >
+                        <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => handleDownloadDocument(doc)} title="Descargar documento">
                           <Download className="h-4 w-4" />
                         </Button>
                       </>
@@ -350,116 +506,8 @@ const ProviderVerification = () => {
           </div>
 
           <div className="space-y-4 mt-6">
-            {/* Step 1: Face Photo */}
-            <div className="flex items-start gap-4 p-4 border rounded-lg">
-              <div className="mt-1">
-                {hasDocument("face_photo") ? (
-                  <CheckCircle className="h-6 w-6 text-green-600" />
-                ) : (
-                  <Circle className="h-6 w-6 text-muted-foreground" />
-                )}
-              </div>
-              <div className="flex-1 space-y-1">
-                <h3 className="font-medium">Subir foto de rostro</h3>
-                <p className="text-sm text-muted-foreground">
-                  Una foto clara de tu rostro para identificación
-                </p>
-                {hasDocument("face_photo") && (
-                  <Badge className="bg-green-500/10 text-green-700">
-                    Completado
-                  </Badge>
-                )}
-              </div>
-              {!hasDocument("face_photo") && !isVerified && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    handleUploadClick(
-                      "face_photo",
-                      "Foto de Rostro",
-                      "Sube una foto clara de tu rostro"
-                    )
-                  }
-                >
-                  Subir
-                </Button>
-              )}
-            </div>
-
-            {/* Step 2: ID Card */}
-            <div className="flex items-start gap-4 p-4 border rounded-lg">
-              <div className="mt-1">
-                {hasDocument("id_card") || hasDocument("id_front") ? (
-                  <CheckCircle className="h-6 w-6 text-green-600" />
-                ) : (
-                  <Circle className="h-6 w-6 text-muted-foreground" />
-                )}
-              </div>
-              <div className="flex-1 space-y-1">
-                <h3 className="font-medium">Subir INE</h3>
-                <p className="text-sm text-muted-foreground">
-                  Identificación oficial para verificación
-                </p>
-                {(hasDocument("id_card") || hasDocument("id_front")) && (
-                  <Badge className="bg-green-500/10 text-green-700">
-                    Completado
-                  </Badge>
-                )}
-              </div>
-              {!hasDocument("id_card") && !hasDocument("id_front") && !isVerified && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    handleUploadClick(
-                      "id_card",
-                      "INE/IFE",
-                      "Sube tu identificación oficial por ambos lados"
-                    )
-                  }
-                >
-                  Subir
-                </Button>
-              )}
-            </div>
-
-            {/* Step 3: Criminal Record */}
-            <div className="flex items-start gap-4 p-4 border rounded-lg">
-              <div className="mt-1">
-                {hasDocument("criminal_record") ? (
-                  <CheckCircle className="h-6 w-6 text-green-600" />
-                ) : (
-                  <Circle className="h-6 w-6 text-muted-foreground" />
-                )}
-              </div>
-              <div className="flex-1 space-y-1">
-                <h3 className="font-medium">Carta de antecedentes no penales</h3>
-                <p className="text-sm text-muted-foreground">
-                  Documento de antecedentes no penales actualizado
-                </p>
-                {hasDocument("criminal_record") && (
-                  <Badge className="bg-green-500/10 text-green-700">
-                    Completado
-                  </Badge>
-                )}
-              </div>
-              {!hasDocument("criminal_record") && !isVerified && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    handleUploadClick(
-                      "criminal_record",
-                      "Antecedentes No Penales",
-                      "Sube tu carta de antecedentes no penales"
-                    )
-                  }
-                >
-                  Subir
-                </Button>
-              )}
-            </div>
+            {/* Document requirement steps — driven by per-document status */}
+            {DOC_REQUIREMENTS.map(renderRequirementStep)}
 
             {/* Step 4: Interview (Admin controlled) */}
             <div className="flex items-start gap-4 p-4 border rounded-lg">
@@ -553,4 +601,3 @@ const ProviderVerification = () => {
 };
 
 export default ProviderVerification;
-
