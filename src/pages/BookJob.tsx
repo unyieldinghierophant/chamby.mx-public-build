@@ -41,11 +41,13 @@ const BookJob = () => {
   return (
     <>
       <header className="fixed top-0 left-0 right-0 bg-background border-b border-border z-50">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
-          <ChambyLogoText onClick={() => navigate(ROUTES.USER_LANDING)} size="lg" />
+        <div className="max-w-7xl mx-auto px-4 md:px-8 relative flex items-center h-16 md:h-20">
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+            <ChambyLogoText onClick={() => navigate(ROUTES.USER_LANDING)} size="lg" />
+          </div>
           <button
             onClick={() => navigate(ROUTES.USER_LANDING)}
-            className="p-2 hover:bg-accent rounded-lg transition-colors"
+            className="ml-auto p-2 hover:bg-accent rounded-lg transition-colors"
             aria-label="Close"
           >
             <X className="w-6 h-6" />
