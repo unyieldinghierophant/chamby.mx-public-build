@@ -18,10 +18,10 @@ const sizeClasses = {
 };
 
 const iconSizeClasses = {
-  sm: "w-6 h-6",
-  md: "w-7 h-7",
-  lg: "w-8 h-8 md:w-10 md:h-10",
-  xl: "w-10 h-10 md:w-12 md:h-12",
+  sm: "w-7 h-7",
+  md: "w-9 h-9",
+  lg: "w-10 h-10 md:w-12 md:h-12",
+  xl: "w-12 h-12 md:w-14 md:h-14",
 };
 
 const ChambyLogoText = ({
