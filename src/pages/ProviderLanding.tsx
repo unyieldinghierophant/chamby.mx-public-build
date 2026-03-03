@@ -25,7 +25,9 @@ import {
   Settings,
   CreditCard,
   TrendingUp,
-  Plus
+  Plus,
+  Menu,
+  X
 } from "lucide-react";
 import { 
   Accordion, 
@@ -56,6 +58,7 @@ const ProviderLanding = () => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [ctaPulse, setCtaPulse] = useState(false);
   const [videoReady, setVideoReady] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isSkeletonVisible, onHeroMediaReady } = useLandingSkeleton();
   
   // Parallax scroll effect
@@ -233,12 +236,38 @@ const ProviderLanding = () => {
           )}
 
           {!user && (
-            <Button onClick={() => navigate('/provider/login')} className="bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant">
-              Iniciar Sesión
-            </Button>
+            <>
+              <Button onClick={() => navigate('/provider/login')} className="hidden md:inline-flex bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant">
+                Iniciar Sesión
+              </Button>
+              <button
+                className="md:hidden p-2 hover:bg-accent rounded-md transition-colors"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
+                {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
+            </>
           )}
           </div>
         </div>
+
+        {/* Mobile menu */}
+        {mobileMenuOpen && !user && (
+          <div className="md:hidden border-t border-border bg-background px-4 py-4 space-y-3">
+            <button
+              onClick={() => { navigate('/provider/login'); setMobileMenuOpen(false); }}
+              className="block w-full text-left py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
+            >
+              Iniciar Sesión
+            </button>
+            <button
+              onClick={() => { navigate('/provider/onboarding?tab=signup'); setMobileMenuOpen(false); }}
+              className="block w-full text-left py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
+            >
+              Registrarse como Proveedor
+            </button>
+          </div>
+        )}
       </header>
       
       {/* Hero Section with Interactive Background */}
