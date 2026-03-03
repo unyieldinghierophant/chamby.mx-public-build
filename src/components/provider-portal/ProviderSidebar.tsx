@@ -16,7 +16,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import chambyLogo from "@/assets/chamby-logo-new.png";
+import ChambyLogoText from "@/components/ChambyLogoText";
 import { useAuth } from "@/contexts/AuthContext";
 
 const menuItems = [
@@ -39,7 +39,7 @@ export function ProviderSidebar() {
     <Sidebar className={collapsed ? "w-14" : "w-64"} collapsible="icon">
       <div className="h-16 px-4 border-b border-border flex items-center justify-between">
         {!collapsed && (
-          <img src={chambyLogo} alt="Chamby" className="h-40" />
+          <ChambyLogoText onClick={() => navigate('/provider-portal')} size="md" />
         )}
         <SidebarTrigger />
       </div>

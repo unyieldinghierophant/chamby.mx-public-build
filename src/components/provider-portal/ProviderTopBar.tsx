@@ -10,7 +10,7 @@ import {
 import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import chambyLogo from "@/assets/chamby-logo-horizontal.svg";
+import ChambyLogoText from "@/components/ChambyLogoText";
 
 export function ProviderTopBar() {
   const { profile } = useProfile();
@@ -27,13 +27,7 @@ export function ProviderTopBar() {
   return (
     <header className="hidden md:flex h-14 border-b border-border bg-background/95 backdrop-blur-lg px-6 items-center justify-between sticky top-0 z-20 w-full max-w-full overflow-hidden">
       <div className="flex items-center gap-2 min-w-0 flex-shrink-0">
-        {/* Logo */}
-        <img 
-          src={chambyLogo} 
-          alt="Chamby" 
-          className="h-12 cursor-pointer flex-shrink-0" 
-          onClick={() => navigate('/provider-portal')}
-        />
+        <ChambyLogoText onClick={() => navigate('/provider-portal')} size="md" />
       </div>
 
       <div className="flex items-center gap-3 flex-shrink-0">

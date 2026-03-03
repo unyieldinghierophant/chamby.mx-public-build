@@ -17,12 +17,10 @@ import {
   LogIn,
   X
 } from 'lucide-react';
-import chambyLogo from '@/assets/chamby-logo-new.png';
+import ChambyLogoText from '@/components/ChambyLogoText';
 import ufoCharacter from '@/assets/ufo-chamby-final.png';
 
 // Preload images immediately
-const preloadLogo = new window.Image();
-preloadLogo.src = chambyLogo;
 const preloadUfo = new window.Image();
 preloadUfo.src = ufoCharacter;
 import { toast } from 'sonner';
@@ -482,11 +480,9 @@ export default function UserOnboardingWizard() {
             >
               <X className="w-5 h-5" />
             </button>
-            <img 
-              src={chambyLogo} 
-              alt="Chamby" 
-              className="h-16 mx-auto mb-8"
-            />
+            <div className="mx-auto mb-8">
+              <ChambyLogoText size="xl" />
+            </div>
             <img 
               src={ufoCharacter} 
               alt="Chamby" 
@@ -536,7 +532,7 @@ export default function UserOnboardingWizard() {
           >
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <img src={chambyLogo} alt="Chamby" className="h-20" />
+          <ChambyLogoText size="lg" />
           <button 
             onClick={() => navigate(ROUTES.HOME)}
             className="p-2 -mr-2 text-muted-foreground hover:text-foreground"

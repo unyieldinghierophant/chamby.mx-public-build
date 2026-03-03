@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Menu, X, LogOut, User, Settings, CreditCard, Users } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import ChambyLogoInline from "@/components/ChambyLogoInline";
+import ChambyLogoText from "@/components/ChambyLogoText";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -93,12 +93,7 @@ const Header = ({
         <div className="flex items-center justify-center h-20 md:h-24 relative">
           {/* Logo - Absolute left */}
           <div className="absolute left-0 flex items-center">
-            <button 
-              onClick={() => navigate(getLogoDestination())}
-              className="hover:opacity-80 transition-opacity cursor-pointer"
-            >
-              <ChambyLogoInline className="h-48 md:h-56 w-auto -my-16 md:-my-20" />
-            </button>
+            <ChambyLogoText onClick={() => navigate(getLogoDestination())} size="lg" />
           </div>
 
           {/* Center - All Navigation */}

@@ -26,12 +26,10 @@ import {
   LogIn,
   FileCheck
 } from 'lucide-react';
-import chambyLogo from '@/assets/chamby-logo-new.png';
+import ChambyLogoText from '@/components/ChambyLogoText';
 import providerCharacter from '@/assets/walking-provider.png';
 
 // Preload images immediately
-const preloadLogo = new window.Image();
-preloadLogo.src = chambyLogo;
 const preloadCharacter = new window.Image();
 preloadCharacter.src = providerCharacter;
 import { toast } from 'sonner';
@@ -988,7 +986,7 @@ export default function ProviderOnboardingWizard() {
           >
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <img src={chambyLogo} alt="Chamby" className="h-32" />
+          <ChambyLogoText size="lg" />
           <button 
             onClick={() => navigate(hasProviderRole ? ROUTES.PROVIDER_PORTAL : ROUTES.HOME)}
             className="p-2 -mr-2 text-muted-foreground hover:text-foreground"

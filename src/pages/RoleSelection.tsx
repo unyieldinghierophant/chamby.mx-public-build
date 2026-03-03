@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Users, Briefcase } from 'lucide-react';
-import chambyLogo from '@/assets/chamby-logo-new.png';
+import ChambyLogoText from '@/components/ChambyLogoText';
 import { FullPageSkeleton } from '@/components/skeletons';
 
 const RoleSelection = () => {
@@ -75,11 +75,9 @@ const RoleSelection = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
       <Card className="w-full max-w-2xl shadow-elegant">
         <CardHeader className="text-center space-y-4">
-          <img 
-            src={chambyLogo} 
-            alt="Chamby" 
-            className="h-12 mx-auto"
-          />
+          <div className="flex justify-center">
+            <ChambyLogoText size="xl" />
+          </div>
           <CardTitle className="text-3xl font-bold">
             Elige cómo usar Chamby
           </CardTitle>

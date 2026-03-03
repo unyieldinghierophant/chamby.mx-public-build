@@ -13,7 +13,7 @@ import { AuthSuccessOverlay } from '@/components/AuthSuccessOverlay';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { PasswordStrengthBar } from '@/components/PasswordStrengthBar';
 import { isValidMexicanPhone, formatPhoneForStorage } from '@/utils/phoneValidation';
-import logo from '@/assets/chamby-logo-new-horizontal.png';
+import ChambyLogoText from '@/components/ChambyLogoText';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -291,7 +291,7 @@ const Login = () => {
             <Card className="bg-card/95 backdrop-blur-sm shadow-raised border-border/20">
               <CardHeader className="text-center pb-2">
                 <div className="flex justify-center mb-4">
-                  <img src={logo} alt="Chamby" className="h-40 w-auto" loading="eager" decoding="async" />
+                  <ChambyLogoText size="xl" />
                 </div>
                 <CardTitle className="text-2xl font-bold text-foreground">
                   {mode === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'}

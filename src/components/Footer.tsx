@@ -11,7 +11,7 @@ const Footer = () => {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
           <div>
-            <h3 className="text-2xl font-bold text-primary mb-4">Chamby.mx</h3>
+            <h3 className="text-2xl font-['Plus_Jakarta_Sans'] font-extrabold tracking-tight text-primary mb-4">chamby</h3>
             <p className="text-muted-foreground mb-4 leading-relaxed">
               La plataforma más confiable de México para servicios del hogar. 
               Conectamos profesionales verificados con clientes que necesitan soluciones.

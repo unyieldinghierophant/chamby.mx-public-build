@@ -8,7 +8,7 @@ import { CleaningBookingFlow } from "@/components/cleaning/CleaningBookingFlow";
 import { AutoWashBookingFlow } from "@/components/auto-wash/AutoWashBookingFlow";
 import { X } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import logo from "@/assets/chamby-logo-new-horizontal.png";
+import ChambyLogoText from "@/components/ChambyLogoText";
 import { ROUTES } from "@/constants/routes";
 import { WizardIntentStep } from "@/components/booking/WizardIntentStep";
 
@@ -42,16 +42,7 @@ const BookJob = () => {
     <>
       <header className="fixed top-0 left-0 right-0 bg-background border-b border-border z-50">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-0 flex items-center justify-between">
-          <button
-            onClick={() => navigate(ROUTES.USER_LANDING)}
-            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
-          >
-            <img
-              src={logo}
-              alt="Chamby"
-              className="h-48 md:h-56 w-auto -my-16 md:-my-20"
-            />
-          </button>
+          <ChambyLogoText onClick={() => navigate(ROUTES.USER_LANDING)} size="lg" />
           <button
             onClick={() => navigate(ROUTES.USER_LANDING)}
             className="p-2 hover:bg-accent rounded-lg transition-colors"
