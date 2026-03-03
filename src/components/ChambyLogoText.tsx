@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import ChambyHouseIcon from "@/components/ChambyHouseIcon";
 
 interface ChambyLogoTextProps {
   className?: string;
@@ -16,6 +17,13 @@ const sizeClasses = {
   xl: "text-4xl md:text-5xl",
 };
 
+const iconSizeClasses = {
+  sm: "w-6 h-6",
+  md: "w-7 h-7",
+  lg: "w-8 h-8 md:w-10 md:h-10",
+  xl: "w-10 h-10 md:w-12 md:h-12",
+};
+
 const ChambyLogoText = ({
   className,
   to,
@@ -23,14 +31,16 @@ const ChambyLogoText = ({
   size = "lg",
 }: ChambyLogoTextProps) => {
   const content = (
-    <span
-      className={cn(
-        "font-['Plus_Jakarta_Sans'] font-extrabold tracking-tight text-primary select-none",
-        sizeClasses[size],
-        className
-      )}
-    >
-      chamby
+    <span className={cn("flex items-center gap-1.5", className)}>
+      <ChambyHouseIcon className={cn("text-primary", iconSizeClasses[size])} />
+      <span
+        className={cn(
+          "font-['Plus_Jakarta_Sans'] font-extrabold tracking-tight text-foreground select-none",
+          sizeClasses[size]
+        )}
+      >
+        chamby
+      </span>
     </span>
   );
 
