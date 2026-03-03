@@ -78,6 +78,8 @@ const ProviderVerification = () => {
   const isVerified = verificationStatus === 'verified';
 
   const getDocStatus = (docType: string): 'verified' | 'pending' | 'rejected' | 'missing' => {
+    // If overall provider is verified, all docs are verified
+    if (isVerified) return 'verified';
     const reqDef = REQUIRED_DOC_TYPES.find(r => r.type === docType);
     const allTypes = reqDef ? [reqDef.type, ...reqDef.aliases] : [docType];
     const doc = documents.find(d => d.doc_type && allTypes.includes(d.doc_type));
@@ -128,7 +130,7 @@ const ProviderVerification = () => {
 
   const getDocStatusBadge = (status: 'verified' | 'pending' | 'rejected' | 'missing') => {
     const map = {
-      verified: { cls: 'bg-green-100 text-green-800 border-green-200', label: 'Aprobado' },
+      verified: { cls: 'bg-green-100 text-green-800 border-green-200', label: 'Documento verificado' },
       pending: { cls: 'bg-yellow-100 text-yellow-800 border-yellow-200', label: 'En revisión' },
       rejected: { cls: 'bg-red-100 text-red-800 border-red-200', label: 'Rechazado' },
       missing: { cls: 'bg-red-100 text-red-800 border-red-200', label: 'Faltante' },
