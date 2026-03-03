@@ -6,7 +6,6 @@ interface ChambyLogoTextProps {
   className?: string;
   to?: string;
   onClick?: () => void;
-  /** Size variant */
   size?: "sm" | "md" | "lg" | "xl";
 }
 
@@ -17,13 +16,6 @@ const sizeClasses = {
   xl: "text-4xl md:text-5xl",
 };
 
-const iconSizeClasses = {
-  sm: "w-7 h-7",
-  md: "w-9 h-9",
-  lg: "w-10 h-10 md:w-12 md:h-12",
-  xl: "w-12 h-12 md:w-14 md:h-14",
-};
-
 const ChambyLogoText = ({
   className,
   to,
@@ -31,13 +23,10 @@ const ChambyLogoText = ({
   size = "lg",
 }: ChambyLogoTextProps) => {
   const content = (
-    <span className={cn("flex items-center gap-1.5", className)}>
-      <ChambyHouseIcon className={cn("text-primary", iconSizeClasses[size])} />
+    <span className={cn("flex items-center gap-[0.2rem]", sizeClasses[size], className)}>
+      <ChambyHouseIcon className="h-[1.15em] w-auto" />
       <span
-        className={cn(
-          "font-['Plus_Jakarta_Sans'] font-extrabold tracking-tight text-foreground select-none",
-          sizeClasses[size]
-        )}
+        className="font-['Plus_Jakarta_Sans'] font-extrabold tracking-tight text-foreground select-none -translate-y-[0.05em]"
       >
         chamby
       </span>
