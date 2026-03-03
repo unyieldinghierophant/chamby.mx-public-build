@@ -73,23 +73,14 @@ export const DocumentUploadDialog = ({
 
       if (uploadError) throw uploadError;
 
-      // Create signed URL since bucket is private (valid for 1 year)
-      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-        .from("user-documents")
-        .createSignedUrl(fileName, 60 * 60 * 24 * 365); // 1 year
-
-      if (signedUrlError) throw signedUrlError;
-
-      const fileUrl = signedUrlData?.signedUrl;
-      if (!fileUrl) throw new Error('No se pudo generar la URL del documento');
-
-      // Create document record - use provider_id (which is user.id)
+      // Store the STORAGE PATH (not a signed URL) so View/Download work reliably
+      // Signed URLs expire; storage paths can generate fresh signed URLs on demand
       const { error: dbError } = await supabase
         .from("documents")
         .insert({
           provider_id: user.id,
           doc_type: docType,
-          file_url: fileUrl,
+          file_url: fileName,
           verification_status: "pending",
         });
 
@@ -105,7 +96,7 @@ export const DocumentUploadDialog = ({
       const detailsField = docFieldMap[docType];
       if (detailsField) {
         const updatePayload: Record<string, any> = {
-          [detailsField]: fileUrl,
+          [detailsField]: fileName,
           updated_at: new Date().toISOString(),
         };
         const { data: currentDetails } = await supabase
