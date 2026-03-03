@@ -63,8 +63,8 @@ const Header = () => {
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/40">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="relative flex items-center h-16 md:h-20">
-            {/* Logo — absolute center, ignoring siblings */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            {/* Logo — fixed to viewport center */}
+            <div className="fixed left-1/2 top-0 -translate-x-1/2 h-16 md:h-20 flex items-center pointer-events-none z-[51]">
               <div className="pointer-events-auto">
                 <ChambyLogoText onClick={() => navigate(getLogoDestination())} size="md" />
               </div>
