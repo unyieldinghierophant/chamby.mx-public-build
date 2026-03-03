@@ -1,3 +1,5 @@
+import { useState, useCallback } from "react";
+import { motion } from "framer-motion";
 import { ModernButton } from "@/components/ui/modern-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -36,7 +38,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useVerificationStatus } from "@/hooks/useVerificationStatus";
 import { useProfile } from "@/hooks/useProfile";
-import { useState, useCallback } from "react";
+// useState/useCallback moved to top import
 import logo from "@/assets/chamby-logo-new-horizontal.png";
 import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
@@ -53,6 +55,7 @@ const ProviderLanding = () => {
   const { profile } = useProfile();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [ctaPulse, setCtaPulse] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
   const { isSkeletonVisible, onHeroMediaReady } = useLandingSkeleton();
   
   // Parallax scroll effect
@@ -244,8 +247,8 @@ const ProviderLanding = () => {
             loop
             muted
             playsInline
-            onCanPlay={onHeroMediaReady}
-            className="absolute inset-0 w-full h-full object-cover"
+            onCanPlay={() => { setVideoReady(true); onHeroMediaReady(); }}
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-out ${videoReady ? 'opacity-100' : 'opacity-0'}`}
           >
             <source src={providerHeroBg} type="video/mp4" />
           </video>
@@ -256,20 +259,39 @@ const ProviderLanding = () => {
         </div>
         
         <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-5xl mx-auto text-center space-y-8">
-            <Badge className="bg-white/10 text-white border-white/20 text-sm font-medium px-4 py-2 inline-flex items-center gap-2 backdrop-blur-sm">
-              🚀 Únete a más de 500+ profesionales
-            </Badge>
+          <motion.div
+            className="max-w-5xl mx-auto text-center space-y-8"
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: {},
+              visible: { transition: { staggerChildren: 0.1 } },
+            }}
+          >
+            <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } }}>
+              <Badge className="bg-white/10 text-white border-white/20 text-sm font-medium px-4 py-2 inline-flex items-center gap-2 backdrop-blur-sm">
+                🚀 Únete a más de 500+ profesionales
+              </Badge>
+            </motion.div>
             
-            <h1 className="font-jakarta font-medium text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white leading-[1.15] tracking-tight drop-shadow-lg">
+            <motion.h1
+              className="font-jakarta font-medium text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white leading-[1.15] tracking-tight drop-shadow-lg"
+              variants={{ hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6 } } }}
+            >
               Sé tu propio jefe
-            </h1>
+            </motion.h1>
             
-            <p className="text-lg md:text-xl text-white/90 leading-relaxed max-w-2xl mx-auto drop-shadow-md">
+            <motion.p
+              className="text-lg md:text-xl text-white/90 leading-relaxed max-w-2xl mx-auto drop-shadow-md"
+              variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } }}
+            >
               Con Chamby si no ganas, no pagas.
-            </p>
+            </motion.p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <motion.div
+              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+              variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } }}
+            >
               <div className="relative w-fit p-[3px] rounded-[14px] shadow-elegant overflow-hidden">
                 {/* Rotating gradient border - hugs button tightly */}
                 <div className="absolute inset-0">
@@ -283,9 +305,12 @@ const ProviderLanding = () => {
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </button>
               </div>
-            </div>
+            </motion.div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 text-sm text-white/90">
+            <motion.div
+              className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 text-sm text-white/90"
+              variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } }}
+            >
               <div className="flex items-center space-x-2">
                 <CheckCircle className="h-5 w-5 text-white" />
                 <span>Sin costos ocultos</span>
@@ -298,8 +323,8 @@ const ProviderLanding = () => {
                 <CheckCircle className="h-5 w-5 text-white" />
                 <span>Solo 10% comisión</span>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
