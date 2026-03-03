@@ -9,7 +9,8 @@ import { LocationChip } from "@/components/LocationChip";
 import { CategoryTabs } from "@/components/CategoryTabs";
 import { SavedJobBanner } from "@/components/SavedJobBanner";
 import moneyBagIcon from "@/assets/money-bag-icon.png";
-import heroBgVideo from "@/assets/hero-bg-video.mp4";
+
+const HERO_VIDEO_URL = "https://uiyjmjibshnkhwewtkoz.supabase.co/storage/v1/object/public/Video%20Assets/TR_HomeCreative_r1.mp4";
 
 // Preload icon image immediately
 const preloadMoneyBag = new window.Image();
@@ -17,12 +18,17 @@ preloadMoneyBag.src = moneyBagIcon;
 
 const Hero = ({ onMediaReady }: { onMediaReady?: () => void }) => {
   const [location, setLocation] = useState("");
+  const [videoReady, setVideoReady] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Signal that hero content is ready (no heavy media to wait for)
+  // Signal ready once video can play (or after timeout fallback)
   useEffect(() => {
-    onMediaReady?.();
+    const fallback = setTimeout(() => {
+      setVideoReady(true);
+      onMediaReady?.();
+    }, 3000);
+    return () => clearTimeout(fallback);
   }, [onMediaReady]);
 
   return (
@@ -37,10 +43,26 @@ const Hero = ({ onMediaReady }: { onMediaReady?: () => void }) => {
             initial={{ opacity: 0, y: 30, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="relative rounded-[1.5rem] md:rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] border border-primary-foreground/20 bg-primary"
+            className="relative rounded-[1.5rem] md:rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] border border-primary-foreground/20 overflow-hidden"
           >
+            {/* Video background */}
+            <div className="absolute inset-0 z-0">
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                onCanPlayThrough={() => { setVideoReady(true); onMediaReady?.(); }}
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${videoReady ? 'opacity-100' : 'opacity-0'}`}
+              >
+                <source src={HERO_VIDEO_URL} type="video/mp4" />
+              </video>
+              {/* Dark overlay for text legibility */}
+              <div className="absolute inset-0 bg-primary/60" />
+            </div>
+
             {/* Subtle grid pattern background */}
-            <div className="absolute inset-0 overflow-hidden rounded-[1.5rem] md:rounded-[2.5rem]">
+            <div className="absolute inset-0 overflow-hidden rounded-[1.5rem] md:rounded-[2.5rem] z-[1]">
               <div 
                 className="absolute inset-0 opacity-[0.05]"
                 style={{
@@ -67,7 +89,8 @@ const Hero = ({ onMediaReady }: { onMediaReady?: () => void }) => {
                 }}
               >
                 <motion.h1 
-                  className="font-jakarta font-medium text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-white leading-[1.15] tracking-tight text-center"
+                  className="font-jakarta font-medium text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-white leading-[1.15] tracking-tight text-center drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]"
+                  style={{ textShadow: '0 2px 12px rgba(0,0,0,0.5)' }}
                   variants={{
                     hidden: { opacity: 0, y: 20 },
                     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
