@@ -104,8 +104,12 @@ const UserLanding = () => {
   return <div className="min-h-screen bg-gradient-subtle">
       {/* Simple Header matching home page */}
       <header className="fixed top-0 left-0 right-0 bg-background border-b border-border z-50">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-0 flex items-center justify-between">
-          <ChambyLogoText onClick={() => navigate('/user-landing')} size="lg" />
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 grid grid-cols-3 items-center">
+          <div /> {/* Left spacer */}
+          <div className="justify-self-center">
+            <ChambyLogoText onClick={() => navigate('/user-landing')} size="lg" />
+          </div>
+          <div className="justify-self-end flex items-center">
           
           {/* Desktop Profile Menu */}
           <div className="hidden md:block">
@@ -229,6 +233,7 @@ const UserLanding = () => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+          </div>
           </div>
         </div>
       </header>

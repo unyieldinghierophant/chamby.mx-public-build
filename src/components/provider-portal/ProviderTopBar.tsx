@@ -25,7 +25,7 @@ export function ProviderTopBar() {
 
   // Hide entire header on mobile - navigation moved to bottom nav and floating hamburger
   return (
-    <header className="hidden md:flex h-14 border-b border-border bg-background/95 backdrop-blur-lg px-6 items-center justify-between sticky top-0 z-20 w-full max-w-full overflow-hidden">
+    <header className="hidden md:flex h-16 border-b border-border bg-background/95 backdrop-blur-lg px-6 items-center justify-between sticky top-0 z-20 w-full max-w-full overflow-hidden">
       <div className="flex items-center gap-2 min-w-0 flex-shrink-0">
         <ChambyLogoText onClick={() => navigate('/provider-portal')} size="md" />
       </div>

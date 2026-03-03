@@ -41,7 +41,7 @@ const BookJob = () => {
   return (
     <>
       <header className="fixed top-0 left-0 right-0 bg-background border-b border-border z-50">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-0 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
           <ChambyLogoText onClick={() => navigate(ROUTES.USER_LANDING)} size="lg" />
           <button
             onClick={() => navigate(ROUTES.USER_LANDING)}
