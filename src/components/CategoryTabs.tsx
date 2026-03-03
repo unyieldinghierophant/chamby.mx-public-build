@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence, useInView } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { categoryServicesMap } from '@/data/categoryServices';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -55,11 +55,8 @@ export const CategoryTabs = () => {
   const tabsListRef = useRef<HTMLDivElement>(null);
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 40 });
   
-  // Use Intersection Observer to detect when categories come into view
-  const isInView = useInView(containerRef, { 
-    once: true, // Only trigger once
-    amount: 0.2 // Trigger when 20% of the element is visible
-  });
+  // Animate on mount immediately (no scroll requirement)
+  const isInView = true;
 
   // Update indicator position when selected category changes
   useEffect(() => {

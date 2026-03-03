@@ -60,8 +60,8 @@ const Hero = ({ onMediaReady }: { onMediaReady?: () => void }) => {
                 variants={{
                   hidden: {},
                   visible: {
-                    transition: {
-                      staggerChildren: 0.15,
+                     transition: {
+                      staggerChildren: 0.08,
                     },
                   },
                 }}
@@ -107,7 +107,7 @@ const Hero = ({ onMediaReady }: { onMediaReady?: () => void }) => {
                 className="max-w-sm sm:max-w-md md:max-w-xl lg:max-w-2xl mx-auto px-2 sm:px-4 mt-6 md:mt-8 space-y-3"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4, duration: 0.5 }}
+                transition={{ delay: 0.3, duration: 0.4 }}
               >
                 <div className="flex justify-center">
                   <LocationChip variant="dark" />
@@ -122,7 +122,7 @@ const Hero = ({ onMediaReady }: { onMediaReady?: () => void }) => {
             className="mt-6 max-w-sm sm:max-w-md md:max-w-xl lg:max-w-2xl mx-auto px-2 sm:px-4"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, duration: 0.4 }}
+            transition={{ delay: 0.45, duration: 0.4 }}
           >
             <Link to="/provider-landing">
               <div className="group relative w-full rounded-2xl p-[2.5px] shadow-md hover:shadow-xl active:scale-[0.98] transition-all duration-200 cursor-pointer overflow-hidden">
@@ -152,7 +152,7 @@ const Hero = ({ onMediaReady }: { onMediaReady?: () => void }) => {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.7, duration: 0.5 }}
+            transition={{ delay: 0.5, duration: 0.4 }}
           >
             <CategoryTabs />
           </motion.div>
