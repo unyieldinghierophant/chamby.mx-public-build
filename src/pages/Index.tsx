@@ -6,7 +6,7 @@ import HowItWorks from "@/components/HowItWorks";
 import Trust from "@/components/Trust";
 import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
-import logo from "@/assets/chamby-logo-new-horizontal.png";
+import ChambyLogoText from "@/components/ChambyLogoText";
 import { ModernButton } from "@/components/ui/modern-button";
 import { startBooking } from "@/lib/booking";
 import { Menu, X } from "lucide-react";
@@ -64,11 +64,7 @@ const Index = () => {
       />
       <header className="fixed top-0 left-0 right-0 bg-background z-50">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-0 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img src={logo} alt="Chamby" className="h-48 md:h-56 w-auto -my-16 md:-my-20" />
-              <span className="text-xl font-['Made_Dillan'] text-foreground">
-            </span>
-            </div>
+            <ChambyLogoText to="/" size="lg" />
             
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center justify-between flex-1">

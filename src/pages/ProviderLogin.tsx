@@ -10,7 +10,7 @@ import { ArrowLeft, Mail, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { AuthSuccessOverlay } from '@/components/AuthSuccessOverlay';
-import logo from '@/assets/chamby-logo-new-horizontal.png';
+import ChambyLogoText from '@/components/ChambyLogoText';
 import { supabase } from '@/integrations/supabase/client';
 import { ROUTES } from '@/constants/routes';
 
@@ -165,7 +165,7 @@ const ProviderLogin = () => {
             <Card className="bg-card/95 backdrop-blur-sm shadow-raised border-border/20">
               <CardHeader className="text-center pb-2 px-4 sm:px-6 pt-4 sm:pt-6">
                 <div className="flex justify-center mb-3 sm:mb-4">
-                  <img src={logo} alt="Chamby" className="h-14 sm:h-20 w-auto" />
+                  <ChambyLogoText size="xl" />
                 </div>
                 <CardTitle className="text-xl sm:text-2xl font-bold text-foreground">
                   Iniciar Sesión
