@@ -23,10 +23,11 @@ const ChambyLogoText = ({
   size = "lg",
 }: ChambyLogoTextProps) => {
   const content = (
-    <span className={cn("flex items-center gap-[0.2rem]", sizeClasses[size], className)}>
-      <ChambyHouseIcon className="h-[1.15em] w-auto" />
+    <span className={cn("flex items-center", sizeClasses[size], className)}>
+      <ChambyHouseIcon className="h-[1.35em] w-auto mr-[0.1em] shrink-0" />
       <span
-        className="font-['Plus_Jakarta_Sans'] font-extrabold tracking-tight text-foreground select-none -translate-y-[0.05em]"
+        className="font-['Plus_Jakarta_Sans'] font-extrabold tracking-tight text-foreground select-none translate-y-[0.05em]"
+        style={{ lineHeight: '1' }}
       >
         chamby
       </span>
