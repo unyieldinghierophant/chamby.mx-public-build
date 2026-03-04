@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { VISIT_FEE_CLIENT } from "@/lib/pricing";
 import { useParams, useNavigate } from "react-router-dom";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -320,7 +321,7 @@ const VisitFeePaymentPage = () => {
                 </div>
                 <Badge variant="outline" className="bg-success/10 text-success border-success/20 text-xs sm:text-sm">
                   <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
-                  $350 MXN — Visita asegurada
+                  ${VISIT_FEE_CLIENT} MXN — Visita asegurada
                 </Badge>
                 <ModernButton
                   variant="primary"
@@ -420,7 +421,7 @@ const VisitFeePaymentPage = () => {
               <div className="space-y-0.5 sm:space-y-1">
                 <p className="text-xs sm:text-sm text-muted-foreground">Visita + gestión de asignación</p>
                 <p className="text-2xl sm:text-3xl font-bold text-foreground">
-                  ${status?.amount || 350} <span className="text-base sm:text-lg">MXN</span>
+                  ${status?.amount || VISIT_FEE_CLIENT} <span className="text-base sm:text-lg">MXN</span>
                 </p>
               </div>
               <ShieldCheck className="w-8 h-8 sm:w-10 sm:h-10 text-primary opacity-50 flex-shrink-0" />
