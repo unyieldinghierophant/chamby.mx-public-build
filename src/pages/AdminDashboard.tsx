@@ -470,6 +470,15 @@ const AdminDashboard = () => {
               <Button 
                 variant="outline" 
                 size="sm" 
+                onClick={() => navigate('/admin/providers')}
+                className="flex items-center gap-2"
+              >
+                <User className="h-4 w-4" />
+                <span className="hidden sm:inline">Proveedores</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
                 onClick={() => navigate('/admin/disputes')}
                 className="flex items-center gap-2"
               >
