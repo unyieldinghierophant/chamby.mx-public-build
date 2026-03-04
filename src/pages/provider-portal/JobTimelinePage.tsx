@@ -836,7 +836,7 @@ const JobTimelinePage = () => {
               {showCancelSummary && (
                 <CancellationSummary
                   jobStatus={currentStatus}
-                  visitFeeAmount={job.visit_fee_amount || 350}
+                  visitFeeAmount={job.visit_fee_amount || VISIT_FEE_CLIENT}
                 />
               )}
               <Button

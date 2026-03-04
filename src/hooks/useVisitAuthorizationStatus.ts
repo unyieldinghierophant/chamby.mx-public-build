@@ -63,7 +63,7 @@ export const useVisitAuthorizationStatus = (jobId?: string): UseVisitAuthorizati
         paymentIntentId: data.paymentIntentId,
         clientSecret: data.clientSecret,
         needsCreation: data.needsCreation || false,
-        amount: data.amount || 350,
+        amount: data.amount || VISIT_FEE_CLIENT,
         job: data.job || null,
         provider: data.provider || null
       };
