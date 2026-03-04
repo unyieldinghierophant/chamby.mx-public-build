@@ -23,8 +23,8 @@ const ChambyLogoText = ({
   size = "lg",
 }: ChambyLogoTextProps) => {
   const content = (
-    <span className={cn("inline-flex flex-row items-center gap-2", sizeClasses[size], className)}>
-      <ChambyHouseIcon className="h-[1.3em] w-auto shrink-0" />
+    <span className={cn("flex items-center", sizeClasses[size], className)}>
+      <ChambyHouseIcon className="h-[1.3em] w-auto mr-[0.02em] shrink-0 translate-y-[0.08em]" />
       <span
         className="font-['Plus_Jakarta_Sans'] font-extrabold tracking-tight text-foreground select-none"
         style={{ lineHeight: '1' }}
@@ -38,7 +38,7 @@ const ChambyLogoText = ({
     return (
       <button
         onClick={onClick}
-        className="inline-flex p-0 m-0 border-0 bg-transparent hover:opacity-80 transition-opacity cursor-pointer leading-none appearance-none"
+        className="hover:opacity-80 transition-opacity cursor-pointer"
       >
         {content}
       </button>
@@ -47,7 +47,7 @@ const ChambyLogoText = ({
 
   if (to) {
     return (
-      <Link to={to} className="inline-flex hover:opacity-80 transition-opacity leading-none">
+      <Link to={to} className="hover:opacity-80 transition-opacity">
         {content}
       </Link>
     );
