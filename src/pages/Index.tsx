@@ -64,8 +64,8 @@ const Index = () => {
       />
       <header className="fixed top-0 left-0 right-0 bg-background z-50 border-b border-border">
         <div className="relative flex h-16 w-full items-center px-4 md:px-6">
-          {/* Center - Logo (absolute for true viewport centering) */}
-          <div className="absolute left-1/2 -translate-x-[calc(50%+10px)] flex items-center">
+          {/* Logo - centered on mobile, left-aligned on desktop */}
+          <div className="absolute left-1/2 -translate-x-[calc(50%+10px)] md:static md:translate-x-0 flex items-center">
             <ChambyLogoText to="/" size="lg" />
           </div>
 
