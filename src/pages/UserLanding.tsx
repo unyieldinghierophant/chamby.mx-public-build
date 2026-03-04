@@ -104,17 +104,14 @@ const UserLanding = () => {
   return <div className="min-h-screen bg-gradient-subtle">
       {/* Simple Header matching home page */}
       <header className="fixed top-0 left-0 right-0 bg-background border-b border-border z-50">
-        <div className="flex h-16 md:h-20 w-full items-center px-4 md:px-8">
-          {/* Left Spacer */}
-          <div className="flex-1"></div>
-
-          {/* Center - Logo */}
-          <div className="flex-shrink-0 flex justify-center items-center">
+        <div className="relative flex h-16 md:h-20 w-full items-center px-4 md:px-8">
+          {/* Center - Logo (absolute for true viewport centering) */}
+          <div className="absolute left-1/2 -translate-x-1/2 flex items-center">
             <ChambyLogoText onClick={() => navigate('/user-landing')} size="lg" />
           </div>
 
           {/* Right */}
-          <div className="flex-1 flex justify-end items-center">
+          <div className="ml-auto flex items-center">
           
           {/* Desktop Profile Menu */}
           <div className="hidden md:block">

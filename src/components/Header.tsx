@@ -61,17 +61,14 @@ const Header = () => {
         onOpenChange={setCategoriesDialogOpen} 
       />
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/40">
-        <div className="flex h-16 md:h-20 w-full items-center px-4 sm:px-6 lg:px-8">
-          {/* Left Spacer */}
-          <div className="flex-1"></div>
-
-          {/* Center - Logo */}
-          <div className="flex-shrink-0 flex justify-center items-center">
+        <div className="relative flex h-16 md:h-20 w-full items-center px-4 sm:px-6 lg:px-8">
+          {/* Center - Logo (absolute for true viewport centering) */}
+          <div className="absolute left-1/2 -translate-x-1/2 flex items-center">
             <ChambyLogoText onClick={() => navigate(getLogoDestination())} size="md" />
           </div>
 
           {/* Right */}
-          <div className="flex-1 flex justify-end items-center">
+          <div className="ml-auto flex items-center">
             <div className="hidden lg:flex items-center gap-5">
               <HeaderSearchBar />
               
