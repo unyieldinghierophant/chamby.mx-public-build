@@ -61,104 +61,106 @@ const Header = () => {
         onOpenChange={setCategoriesDialogOpen} 
       />
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/40">
-        {/* Desktop Header */}
-        <div className="hidden lg:flex h-20 w-full items-center justify-between px-6 lg:px-8">
-          <ChambyLogoText onClick={() => navigate(getLogoDestination())} size="md" />
-          <div className="flex items-center gap-5">
-            <HeaderSearchBar />
-            <button 
-              onClick={() => setCategoriesDialogOpen(true)}
-              className="text-foreground/70 hover:text-foreground transition-colors text-sm font-medium whitespace-nowrap"
-            >
-              Categorías
-            </button>
-            <Link to={ROUTES.ACTIVE_JOBS} className="text-foreground/70 hover:text-foreground transition-colors text-sm font-medium whitespace-nowrap">
-              Trabajos activos
-            </Link>
-            <button 
-              onClick={handleHowItWorksClick}
-              className="text-foreground/70 hover:text-foreground transition-colors text-sm font-medium whitespace-nowrap"
-            >
-              Cómo funciona
-            </button>
-            {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="relative h-9 w-9 rounded-full hover:opacity-80 transition-opacity flex-shrink-0">
-                    <Avatar className="h-9 w-9">
-                      <AvatarImage src={user.user_metadata?.avatar_url} />
-                      <AvatarFallback className="text-sm">
-                        {(user.user_metadata?.full_name || user.email || "U").charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        {user.user_metadata?.full_name || "Usuario"}
-                      </p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        {user.email}
-                      </p>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate(ROUTES.PROFILE)}>
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Perfil</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/invoices')}>
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    <span>Facturas</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate(ROUTES.PROFILE_SETTINGS)}>
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Configuración</span>
-                  </DropdownMenuItem>
-                  {isProvider && (
-                    <DropdownMenuItem onClick={() => navigate(ROUTES.PROVIDER_PORTAL)}>
-                      <Users className="mr-2 h-4 w-4" />
-                      <span>Portal Proveedor</span>
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut} disabled={isLoggingOut}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>{isLoggingOut ? 'Saliendo...' : 'Cerrar Sesión'}</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <>
-                <Link to={ROUTES.USER_AUTH} className="text-foreground/70 hover:text-foreground transition-colors text-sm font-medium whitespace-nowrap">
-                  Registrarse
-                </Link>
-                <Link to={ROUTES.LOGIN} className="text-foreground/70 hover:text-foreground transition-colors text-sm font-medium whitespace-nowrap">
-                  Iniciar sesión
-                </Link>
-                <Link to={ROUTES.PROVIDER_AUTH} className="text-primary hover:text-primary/80 transition-colors text-sm font-semibold whitespace-nowrap">
-                  Ser Chambynauta
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Mobile Header - 3-column grid */}
-        <div className="lg:hidden grid grid-cols-3 h-16 items-center px-4">
-          <div /> {/* Empty left column for balance */}
-          <div className="flex justify-center">
+        <div className="relative flex h-16 md:h-20 w-full items-center px-4 sm:px-6 lg:px-8">
+          {/* Center - Logo (absolute for true viewport centering) */}
+          <div className="absolute left-1/2 -translate-x-[calc(50%+10px)] flex items-center">
             <ChambyLogoText onClick={() => navigate(getLogoDestination())} size="md" />
           </div>
-          <div className="flex justify-end">
-            <button
-              className="p-2 hover:bg-accent rounded-md transition-colors"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
+
+          {/* Right */}
+          <div className="ml-auto flex items-center">
+            <div className="hidden lg:flex items-center gap-5">
+              <HeaderSearchBar />
+              
+              <button 
+                onClick={() => setCategoriesDialogOpen(true)}
+                className="text-foreground/70 hover:text-foreground transition-colors text-sm font-medium whitespace-nowrap"
+              >
+                Categorías
+              </button>
+              <Link to={ROUTES.ACTIVE_JOBS} className="text-foreground/70 hover:text-foreground transition-colors text-sm font-medium whitespace-nowrap">
+                Trabajos activos
+              </Link>
+              <button 
+                onClick={handleHowItWorksClick}
+                className="text-foreground/70 hover:text-foreground transition-colors text-sm font-medium whitespace-nowrap"
+              >
+                Cómo funciona
+              </button>
+              
+              {user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="relative h-9 w-9 rounded-full hover:opacity-80 transition-opacity flex-shrink-0">
+                      <Avatar className="h-9 w-9">
+                        <AvatarImage src={user.user_metadata?.avatar_url} />
+                        <AvatarFallback className="text-sm">
+                          {(user.user_metadata?.full_name || user.email || "U").charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">
+                          {user.user_metadata?.full_name || "Usuario"}
+                        </p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                          {user.email}
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => navigate(ROUTES.PROFILE)}>
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Perfil</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/invoices')}>
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      <span>Facturas</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate(ROUTES.PROFILE_SETTINGS)}>
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Configuración</span>
+                    </DropdownMenuItem>
+                    {isProvider && (
+                      <DropdownMenuItem onClick={() => navigate(ROUTES.PROVIDER_PORTAL)}>
+                        <Users className="mr-2 h-4 w-4" />
+                        <span>Portal Proveedor</span>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleSignOut} disabled={isLoggingOut}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>{isLoggingOut ? 'Saliendo...' : 'Cerrar Sesión'}</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <>
+                  <Link to={ROUTES.USER_AUTH} className="text-foreground/70 hover:text-foreground transition-colors text-sm font-medium whitespace-nowrap">
+                    Registrarse
+                  </Link>
+                  <Link to={ROUTES.LOGIN} className="text-foreground/70 hover:text-foreground transition-colors text-sm font-medium whitespace-nowrap">
+                    Iniciar sesión
+                  </Link>
+                  <Link to={ROUTES.PROVIDER_AUTH} className="text-primary hover:text-primary/80 transition-colors text-sm font-semibold whitespace-nowrap">
+                    Ser Chambynauta
+                  </Link>
+                </>
+              )}
+            </div>
+
+            {/* Mobile Menu Button */}
+            <div className="lg:hidden">
+              <button
+                className="p-2 hover:bg-accent rounded-md transition-colors"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+              >
+                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
+            </div>
           </div>
         </div>
 
