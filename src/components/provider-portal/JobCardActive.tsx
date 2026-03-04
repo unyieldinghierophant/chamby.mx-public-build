@@ -1,4 +1,3 @@
-import { VISIT_FEE_CLIENT } from "@/lib/pricing";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -211,7 +210,7 @@ export const JobCardActive = ({ job, onComplete }: JobCardActiveProps) => {
         {/* Payment Breakdown */}
         <div className="mt-4 space-y-1">
           {(() => {
-            const visitFee = job.visit_fee_amount || VISIT_FEE_CLIENT;
+            const visitFee = job.visit_fee_amount || 350;
             const chambyFee = job.amount_booking_fee || Math.round(visitFee * 0.2857);
             const providerPayout = visitFee - chambyFee;
             return (

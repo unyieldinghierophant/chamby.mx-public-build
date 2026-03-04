@@ -1,63 +1,53 @@
 /**
- * Visit Fee Pricing — Re-exports from canonical pricing engine.
+ * Visit Fee Pricing — Single Source of Truth
  *
- * This file exists for backward compatibility. All constants
- * are derived from `src/lib/pricing.ts` (single source of truth).
+ * All monetary values are stored in centavos (integer) to avoid
+ * floating-point rounding issues.  Display helpers convert to
+ * human-readable MXN strings.
  *
- * Pricing model v3:
- *   Customer pays $429.00 MXN total (visit fee including IVA + Stripe).
- *   Provider payout: $250.00 | Chamby commission: $100.00.
+ * Pricing model v3 (fee-absorbed):
+ *   Customer pays subtotal (base + stripe fee) + IVA on base.
+ *   Stripe fee is absorbed into the subtotal — NOT shown as a line item.
+ *   Provider payout is a fixed amount (does NOT include IVA).
  */
 
-import {
-  VISIT_BASE_CENTS,
-  VISIT_STRIPE_FEE_CENTS,
-  VISIT_SUBTOTAL_CENTS,
-  VAT_RATE,
-  VISIT_VAT_CENTS,
-  VISIT_FEE_CLIENT_CENTS,
-  VISIT_FEE_PROVIDER_NET_CENTS,
-  VISIT_FEE_CHAMBY_NET_CENTS,
-  formatMXNShort,
-  formatPesosMXN as _formatPesosMXN,
-} from '@/lib/pricing';
+// ── Core constants (centavos) ───────────────────────────────
+export const VISIT_BASE_FEE_CENTS    = 35_000;  // $350.00 MXN (service base)
+export const STRIPE_FEE_CENTS        =  1_810;  // $18.10 MXN (absorbed, not shown)
+export const SUBTOTAL_CENTS          = 36_810;  // $368.10 MXN (base + stripe fee)
+export const IVA_RATE                = 0.16;
+export const IVA_AMOUNT_CENTS        =  5_600;  // 16% of $350 base
+export const CUSTOMER_TOTAL_CENTS    = 42_410;  // $424.10 MXN
+export const PROVIDER_PAYOUT_CENTS   = 25_000;  // $250.00 MXN (fixed)
+export const CHAMBY_COMMISSION_CENTS = 10_000;  // $100.00 MXN (fixed)
 
-// ── Core constants (centavos) — re-exported ─────────────────
-export const VISIT_BASE_FEE_CENTS    = VISIT_BASE_CENTS;
-export const STRIPE_FEE_CENTS        = VISIT_STRIPE_FEE_CENTS;
-export const SUBTOTAL_CENTS          = VISIT_SUBTOTAL_CENTS;
-export { VAT_RATE as IVA_RATE };
-export const IVA_AMOUNT_CENTS        = VISIT_VAT_CENTS;
-export const CUSTOMER_TOTAL_CENTS    = VISIT_FEE_CLIENT_CENTS;   // $429.00
-export const PROVIDER_PAYOUT_CENTS   = VISIT_FEE_PROVIDER_NET_CENTS;
-export const CHAMBY_COMMISSION_CENTS = VISIT_FEE_CHAMBY_NET_CENTS;
-
-// ── Derived display values (pesos) ──────────────────────────
-export const SUBTOTAL         = SUBTOTAL_CENTS         / 100;
-export const IVA_AMOUNT       = IVA_AMOUNT_CENTS       / 100;
-export const CUSTOMER_TOTAL   = CUSTOMER_TOTAL_CENTS   / 100; // 429
+// ── Derived display values (pesos, already formatted) ───────
+export const SUBTOTAL         = SUBTOTAL_CENTS         / 100; // 368.10
+export const IVA_AMOUNT       = IVA_AMOUNT_CENTS       / 100; // 56
+export const CUSTOMER_TOTAL   = CUSTOMER_TOTAL_CENTS   / 100; // 424.10
 export const PROVIDER_PAYOUT  = PROVIDER_PAYOUT_CENTS  / 100; // 250
 export const CHAMBY_COMMISSION = CHAMBY_COMMISSION_CENTS / 100; // 100
 
 // ── Formatters ──────────────────────────────────────────────
 
-/** Format centavos → "$429.00" */
+/** Format centavos → "$350.00" */
 export const formatCentavos = (centavos: number): string =>
-  formatMXNShort(centavos);
+  `$${(centavos / 100).toFixed(2)}`;
 
-/** Format pesos → "$429.00" */
+/** Format pesos → "$350.00" */
 export const formatPesos = (pesos: number): string =>
   `$${pesos.toFixed(2)}`;
 
-/** Format pesos → "$429.00 MXN" */
+/** Format pesos → "$350.00 MXN" */
 export const formatPesosMXN = (pesos: number): string =>
-  _formatPesosMXN(pesos);
+  `$${pesos.toFixed(2)} MXN`;
 
-// ── Pre-formatted strings ───────────────────────────────────
+// ── Pre-formatted strings (most common usage) ───────────────
+// NOTE: UI shows "Subtotal" and "IVA" only — no Stripe fee line item
 export const DISPLAY = {
-  subtotal:        formatPesosMXN(SUBTOTAL),
-  iva:             formatPesosMXN(IVA_AMOUNT),
-  customerTotal:   formatPesosMXN(CUSTOMER_TOTAL),      // "$429.00 MXN"
-  providerPayout:  formatPesosMXN(PROVIDER_PAYOUT),
-  chambyFee:       formatPesosMXN(CHAMBY_COMMISSION),
+  subtotal:        formatPesosMXN(SUBTOTAL),           // "$368.10 MXN"
+  iva:             formatPesosMXN(IVA_AMOUNT),          // "$56.00 MXN"
+  customerTotal:   formatPesosMXN(CUSTOMER_TOTAL),      // "$424.10 MXN"
+  providerPayout:  formatPesosMXN(PROVIDER_PAYOUT),     // "$250.00 MXN"
+  chambyFee:       formatPesosMXN(CHAMBY_COMMISSION),   // "$100.00 MXN"
 } as const;

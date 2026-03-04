@@ -383,7 +383,7 @@ const AdminDashboard = () => {
     try {
       await adminResolveCapture(jobId);
       toast.success('Pago capturado exitosamente', {
-        description: `Los $${VISIT_FEE_CLIENT} MXN han sido cobrados al cliente.`
+        description: 'Los $350 MXN han sido cobrados al cliente.'
       });
       // Refresh disputed jobs
       fetchDisputedJobs();
@@ -824,7 +824,7 @@ const AdminDashboard = () => {
                         <DollarSign className="h-4 w-4 text-primary" />
                         <span className="text-sm font-medium">Monto preautorizado</span>
                       </div>
-                      <span className="text-lg font-bold text-primary">${VISIT_FEE_CLIENT} MXN</span>
+                      <span className="text-lg font-bold text-primary">$350 MXN</span>
                     </div>
 
                     {/* Action Buttons */}
