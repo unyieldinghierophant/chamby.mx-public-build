@@ -63,46 +63,47 @@ const Index = () => {
         onOpenChange={setCategoriesDialogOpen} 
       />
       <header className="fixed top-0 left-0 right-0 bg-background z-50 border-b border-border">
-        <div className="relative flex h-16 w-full items-center px-4 md:px-6">
-          {/* Center - Logo (absolute for true viewport centering) */}
-          <div className="absolute left-1/2 -translate-x-[calc(50%+10px)] flex items-center">
+        {/* Desktop Header */}
+        <div className="hidden md:flex h-16 w-full items-center justify-between px-6">
+          <ChambyLogoText to="/" size="lg" />
+          <div className="flex items-center gap-6">
+            <button onClick={handlePostJobClick} className="px-6 py-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium">
+              Buscar Servicio
+            </button>
+            <button 
+              onClick={() => setCategoriesDialogOpen(true)}
+              className="text-foreground hover:text-primary transition-colors font-medium"
+            >
+              Categorías
+            </button>
+            <button 
+              onClick={handleHowItWorksClick}
+              className="text-foreground hover:text-primary transition-colors font-medium"
+            >
+              ¿Cómo funciona?
+            </button>
+            <Link to="/login?mode=signup" className="text-foreground hover:text-primary transition-colors font-medium">
+              Registrarse
+            </Link>
+            <Link to="/login" className="text-foreground hover:text-primary transition-colors font-medium">
+              Iniciar sesión
+            </Link>
+            <Link to="/provider/onboarding" className="text-primary hover:text-primary/80 transition-colors font-medium">
+              Ser Chambynauta
+            </Link>
+          </div>
+        </div>
+
+        {/* Mobile Header - 3-column grid */}
+        <div className="md:hidden grid grid-cols-3 h-16 items-center px-4">
+          <div /> {/* Empty left column for balance */}
+          <div className="flex justify-center">
             <ChambyLogoText to="/" size="lg" />
           </div>
-
-          {/* Right */}
-          <div className="ml-auto flex items-center">
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-6">
-              <button onClick={handlePostJobClick} className="px-6 py-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium">
-                Buscar Servicio
-              </button>
-              <button 
-                onClick={() => setCategoriesDialogOpen(true)}
-                className="text-foreground hover:text-primary transition-colors font-medium"
-              >
-                Categorías
-              </button>
-              <button 
-                onClick={handleHowItWorksClick}
-                className="text-foreground hover:text-primary transition-colors font-medium"
-              >
-                ¿Cómo funciona?
-              </button>
-              <Link to="/login?mode=signup" className="text-foreground hover:text-primary transition-colors font-medium">
-                Registrarse
-              </Link>
-              <Link to="/login" className="text-foreground hover:text-primary transition-colors font-medium">
-                Iniciar sesión
-              </Link>
-              <Link to="/provider/onboarding" className="text-primary hover:text-primary/80 transition-colors font-medium">
-                Ser Chambynauta
-              </Link>
-            </div>
-
-            {/* Mobile Hamburger Menu */}
+          <div className="flex justify-end">
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
-                <button className="md:hidden p-2 hover:bg-accent rounded-lg transition-colors">
+                <button className="p-2 hover:bg-accent rounded-lg transition-colors">
                   <Menu className="h-6 w-6 text-foreground" />
                 </button>
               </SheetTrigger>
