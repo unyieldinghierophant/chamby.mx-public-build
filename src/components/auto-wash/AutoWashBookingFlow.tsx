@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { VISIT_BASE_FEE } from "@/lib/pricing";
+import { VISIT_BASE_FEE } from "@/utils/pricingConfig";
 import { Button } from "@/components/ui/button";
 import { ModernButton } from "@/components/ui/modern-button";
 import { Input } from "@/components/ui/input";

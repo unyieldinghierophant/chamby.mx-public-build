@@ -27,7 +27,8 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { toFixedSafe } from "@/utils/formatSafe";
-import { VAT_RATE, VAT_LABEL, calcInvoiceVat } from "@/lib/pricing";
+import { VAT_LABEL, calcInvoiceVat, PRICING } from "@/utils/pricingConfig";
+const VAT_RATE = PRICING.COMMISSION.IVA_RATE;
 
 // Invoice status labels
 export const INVOICE_STATUS_LABELS: Record<string, string> = {

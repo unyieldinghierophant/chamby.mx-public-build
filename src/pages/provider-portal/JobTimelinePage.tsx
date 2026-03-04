@@ -47,7 +47,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { VISIT_DISPLAY, VAT_LABEL } from "@/lib/pricing";
+import { VISIT_DISPLAY, VAT_LABEL } from "@/utils/pricingConfig";
 
 interface JobDetail {
   id: string;
