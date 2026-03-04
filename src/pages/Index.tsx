@@ -64,8 +64,10 @@ const Index = () => {
       />
       <header className="fixed top-0 left-0 right-0 bg-background z-50 border-b border-border">
         <div className="flex h-16 w-full items-center px-4 md:px-6">
-          {/* Left Spacer */}
-          <div className="flex-1"></div>
+          {/* Left Spacer - ghost element matches hamburger button size on mobile for perfect centering */}
+          <div className="flex-1 flex items-center">
+            <div className="md:hidden w-10 h-10" aria-hidden="true"></div>
+          </div>
 
           {/* Center - Logo */}
           <div className="flex-shrink-0 flex justify-center items-center">
