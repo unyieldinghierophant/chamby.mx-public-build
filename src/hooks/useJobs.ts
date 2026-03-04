@@ -129,7 +129,7 @@ export const useProviderJobs = () => {
           ...jobData,
           client_id: user.id,
           provider_id: user.id,
-          status: 'active'
+          status: 'pending'
         })
         .select()
         .single();

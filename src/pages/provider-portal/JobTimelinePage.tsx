@@ -7,11 +7,13 @@ import { DisputeModal } from "@/components/DisputeModal";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   useJobStatusTransition,
-  JobStatus,
-  JOB_STATUS_LABELS,
-  JOB_STATUS_CONFIG,
-  ACTIVE_JOB_STATUSES,
 } from "@/hooks/useJobStatusTransition";
+import {
+  type JobStatus,
+  JOB_STATUS_CONFIG,
+  PROVIDER_ACTIVE_STATES as ACTIVE_JOB_STATUSES,
+  getStatusLabel,
+} from "@/utils/jobStateMachine";
 import { InvoiceCard } from "@/components/provider-portal/InvoiceCard";
 import { JobInvoiceSection } from "@/components/JobInvoiceSection";
 import { CancellationSummary } from "@/components/provider-portal/CancellationSummary";
@@ -96,17 +98,15 @@ interface ClientInfo {
 
 // Status timeline order
 const STATUS_ORDER: JobStatus[] = [
-  'accepted', 'confirmed', 'en_route', 'on_site', 'quoted', 'in_progress', 'completed'
+  'assigned', 'on_site', 'quoted', 'quote_accepted', 'job_paid', 'in_progress', 'provider_done', 'completed'
 ];
 
 // Actions config per status (provider-side only)
 const STATUS_ACTIONS: Record<string, { label: string; nextStatus: JobStatus; icon: React.ComponentType<any>; variant?: string }[]> = {
-  accepted:    [{ label: 'Esperando confirmación del cliente', nextStatus: 'confirmed', icon: ClipboardCheck }],
-  confirmed:   [{ label: 'Marcar en camino', nextStatus: 'en_route', icon: Navigation }],
-  en_route:    [{ label: 'Llegué al sitio', nextStatus: 'on_site', icon: MapPin }],
+  assigned:    [{ label: 'Llegué al sitio', nextStatus: 'on_site', icon: MapPin }],
   // on_site: invoice creation handled by InvoiceCard
-  // quoted: waiting for client acceptance → in_progress handled by InvoiceCard
-  in_progress: [{ label: 'Marcar trabajo como terminado', nextStatus: 'completed', icon: CheckCircle }],
+  // quoted: waiting for client acceptance
+  in_progress: [{ label: 'Marcar trabajo como terminado', nextStatus: 'provider_done', icon: CheckCircle }],
 };
 
 const JobTimelinePage = () => {
@@ -271,11 +271,7 @@ const JobTimelinePage = () => {
   const handleTransition = async (nextStatus: JobStatus) => {
     if (!job || !user) return;
 
-    // "confirmed" is a client action - provider can't do it
-    if (nextStatus === 'confirmed') {
-      toast.info('El cliente debe confirmar este trabajo');
-      return;
-    }
+    // No client-only actions in new flow
 
     // Completion via edge function
     if (nextStatus === 'completed') {
@@ -304,7 +300,7 @@ const JobTimelinePage = () => {
     setTransitioning(false);
 
     if (result.success) {
-      toast.success(`Estado actualizado: ${JOB_STATUS_LABELS[nextStatus]}`);
+      toast.success(`Estado actualizado: ${getStatusLabel(nextStatus)}`);
       await fetchAll();
     } else {
       toast.error(result.error || 'Error al actualizar estado');
@@ -417,7 +413,7 @@ const JobTimelinePage = () => {
           <p className="text-[11px] text-muted-foreground">{job.category}</p>
         </div>
         <Badge className={cn("text-[10px] px-2 py-0.5 border", statusConfig.bg, statusConfig.text, statusConfig.border)}>
-          {JOB_STATUS_LABELS[currentStatus] || currentStatus}
+          {getStatusLabel(currentStatus)}
         </Badge>
       </div>
 
@@ -467,7 +463,7 @@ const JobTimelinePage = () => {
                   </div>
                 </div>
                 <Badge className={cn("text-[10px] px-2 py-0.5 border shrink-0", statusConfig.bg, statusConfig.text, statusConfig.border)}>
-                  {JOB_STATUS_LABELS[currentStatus] || currentStatus}
+                  {getStatusLabel(currentStatus)}
                 </Badge>
               </div>
 
@@ -705,7 +701,7 @@ const JobTimelinePage = () => {
                         "text-sm",
                         isCurrent ? "font-semibold text-foreground" : isPast ? "text-foreground/70" : "text-muted-foreground/50"
                       )}>
-                        {JOB_STATUS_LABELS[step]}
+                        {getStatusLabel(step)}
                       </div>
                     </div>
                   );
@@ -735,9 +731,8 @@ const JobTimelinePage = () => {
                 {/* Status transition actions */}
                 {actions.map((action) => {
                   const Icon = action.icon;
-                  const isClientAction = action.nextStatus === 'confirmed';
-                  if (action.nextStatus === 'completed') {
-                    if (job.completion_status !== 'in_progress') return null;
+                  const isClientAction = false; // no client-only actions in new flow
+                  if (action.nextStatus === 'provider_done' || action.nextStatus === 'completed') {
                     if (!invoice || invoice.status !== 'paid') return null;
                   }
                   return (

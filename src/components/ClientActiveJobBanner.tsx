@@ -5,14 +5,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { CLIENT_ACTIVE_STATES } from "@/utils/jobStateMachine";
 
 /**
- * Canonical status list – must match ActiveJobs.tsx exactly.
  * "searching" is excluded here because SearchingJobBanner handles it.
  */
-const ACTIVE_JOB_STATUSES = [
-  "pending", "assigned", "en_route", "on_site", "quoted", "in_progress",
-];
+const BANNER_ACTIVE_STATES = CLIENT_ACTIVE_STATES.filter(s => s !== 'searching');
 
 interface ClientActiveJob {
   id: string;
@@ -36,8 +34,7 @@ export const ClientActiveJobBanner = () => {
         .from("jobs")
         .select("id, title, scheduled_at, provider_id")
         .eq("client_id", user.id)
-        .in("status", ACTIVE_JOB_STATUSES)
-        .neq("completion_status", "completed")
+        .in("status", BANNER_ACTIVE_STATES)
         .neq("status", "cancelled")
         .order("created_at", { ascending: false })
         .limit(1)

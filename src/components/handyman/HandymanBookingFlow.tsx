@@ -380,7 +380,7 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
           location: formData.serviceAddress || '',
           photos: formData.photos.filter(f => f.uploaded).map(f => f.url),
           rate: VISIT_BASE_FEE,
-          status: 'active',
+          status: 'pending',
           scheduled_at: scheduledAt,
           time_preference: timePreference,
           exact_time: '',

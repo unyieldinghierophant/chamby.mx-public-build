@@ -119,7 +119,7 @@ export const useAvailableJobs = (): UseAvailableJobsResult => {
          .from('jobs')
          .select('id')
          .eq('provider_id', user.id)
-         .in('status', ['accepted', 'confirmed', 'en_route', 'on_site', 'quoted', 'in_progress'])
+         .in('status', ['assigned', 'on_site', 'quoted', 'quote_accepted', 'job_paid', 'in_progress', 'provider_done'])
          .limit(1);
 
        if (existingActive && existingActive.length > 0) {
@@ -147,14 +147,14 @@ export const useAvailableJobs = (): UseAvailableJobsResult => {
        // Update job with provider_id (from authenticated user) and change status to accepted
        const { data: updateResult, error: updateError } = await supabase
          .from('jobs')
-         .update({ 
-           provider_id: user.id,
-           status: 'accepted',
-           updated_at: new Date().toISOString()
-         })
-         .eq('id', jobId)
-         .eq('visit_fee_paid', true)
-         .in('status', ['searching', 'active'])
+          .update({ 
+            provider_id: user.id,
+            status: 'assigned',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', jobId)
+          .eq('visit_fee_paid', true)
+          .eq('status', 'searching')
          .is('provider_id', null) // Only accept if not already taken
          .select('id');
 

@@ -327,7 +327,7 @@ export const ElectricalBookingFlow = ({ intentText = "" }: ElectricalBookingFlow
           location: '',
           photos: formData.photos.filter(f => f.uploaded).map(f => f.url),
           rate: VISIT_BASE_FEE,
-          status: 'active',
+          status: 'pending',
           scheduled_at: scheduledDate.toISOString(),
           time_preference: formData.schedule || '',
           exact_time: '',

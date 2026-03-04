@@ -63,7 +63,7 @@ const ProviderJobs = () => {
         .from('jobs')
         .select('*')
         .eq('provider_id', user.id)
-        .eq('status', 'confirmed')
+        .in('status', ['assigned', 'on_site', 'quoted', 'quote_accepted', 'job_paid'])
         .gt('scheduled_at', new Date().toISOString())
         .order('scheduled_at', { ascending: true });
 
