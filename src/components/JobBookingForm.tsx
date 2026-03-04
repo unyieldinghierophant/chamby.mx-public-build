@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { VISIT_BASE_FEE } from "@/lib/pricing";
+import { VISIT_BASE_FEE } from "@/utils/pricingConfig";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";

@@ -5,7 +5,7 @@ import {
   VISIT_DISPLAY,
   formatPesosShort,
   calcInvoiceVat,
-} from "@/lib/pricing";
+} from "@/utils/pricingConfig";
 import { toFixedSafe } from "@/utils/formatSafe";
 
 interface PaymentBreakdownCardProps {

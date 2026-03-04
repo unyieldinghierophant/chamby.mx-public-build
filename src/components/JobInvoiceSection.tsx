@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { toFixedSafe } from "@/utils/formatSafe";
-import { VAT_LABEL } from "@/lib/pricing";
+import { VAT_LABEL } from "@/utils/pricingConfig";
 
 interface InvoiceItem {
   id: string;

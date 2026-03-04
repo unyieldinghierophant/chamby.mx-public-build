@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { PaymentStatusBadge } from "@/components/PaymentStatusBadge";
 import { ClientVisitConfirmation } from "@/components/ClientVisitConfirmation";
 import { getVisitFeeStatus, getInvoiceStatus } from "@/utils/jobPaymentStatus";
-import { VISIT_DISPLAY, VAT_LABEL } from "@/lib/pricing";
+import { VISIT_DISPLAY, VAT_LABEL } from "@/utils/pricingConfig";
 import Header from "@/components/Header";
 import { toast } from "sonner";
 import { startBooking } from "@/lib/booking";
