@@ -38,7 +38,7 @@ export const JobCardActive = ({ job, onComplete }: JobCardActiveProps) => {
       .from('jobs')
       .update({ 
         provider_confirmed_visit: true,
-        status: 'completed',
+        status: 'provider_done',
         updated_at: new Date().toISOString()
       })
       .eq('id', job.id)

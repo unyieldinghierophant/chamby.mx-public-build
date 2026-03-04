@@ -52,7 +52,7 @@ const JobListingForm = ({ onClose, onSuccess }: JobListingFormProps) => {
           rate: parseFloat(formData.rate),
           client_id: user.id,
           provider_id: user.id,
-          status: 'active'
+          status: 'pending'
         });
 
       if (error) throw error;

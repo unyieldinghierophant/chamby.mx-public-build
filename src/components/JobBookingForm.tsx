@@ -513,7 +513,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
           location: location,
           photos: uploadedFiles.filter(f => f.uploaded).map(f => f.url),
           rate: VISIT_BASE_FEE,
-          status: 'active',
+          status: 'pending',
           scheduled_at: scheduledDate.toISOString(),
           time_preference: selectedTimeSlots.join(', '),
           exact_time: needsSpecificTime ? selectedTimeSlots.join(', ') : '',

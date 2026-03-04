@@ -1,3 +1,4 @@
+import { getStatusLabel } from "@/utils/jobStateMachine";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -61,7 +62,7 @@ const ProviderCalendar = () => {
             event: '*',
             schema: 'public',
             table: 'jobs',
-            filter: 'status=eq.active'
+            filter: 'status=eq.pending'
           },
           () => {
             fetchJobs();
@@ -99,7 +100,7 @@ const ProviderCalendar = () => {
         .from("jobs")
         .select("id, title, scheduled_at, location, status, total_amount, client_id, followup_scheduled_at, followup_status")
         .eq("provider_id", user.id)
-        .in("status", ["pending", "confirmed", "in_progress", "assigned"])
+        .in("status", ["pending", "assigned", "in_progress", "on_site", "quoted"])
         .gte("scheduled_at", monthStart.toISOString())
         .lte("scheduled_at", monthEnd.toISOString());
 
@@ -117,7 +118,7 @@ const ProviderCalendar = () => {
         .from("jobs")
         .select("id, title, scheduled_at, location, status, total_amount, client_id, followup_scheduled_at, followup_status")
         .is("provider_id", null)
-        .eq("status", "active")
+        .eq("status", "searching")
         .gte("scheduled_at", monthStart.toISOString())
         .lte("scheduled_at", monthEnd.toISOString());
 
@@ -125,7 +126,7 @@ const ProviderCalendar = () => {
       const { data: jobRequests, error: jobRequestsError } = await supabase
         .from("jobs")
         .select("*")
-        .eq("status", "active")
+        .eq("status", "searching")
         .is("provider_id", null)
         .eq("visit_fee_paid", true)
         .not("scheduled_at", "is", null)
@@ -220,11 +221,11 @@ const ProviderCalendar = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "confirmed":
+      case "assigned":
         return "bg-green-500/10 text-green-700 border-green-500/20";
       case "pending":
         return "bg-yellow-500/10 text-yellow-700 border-yellow-500/20";
-      case "available":
+      case "searching":
         return "bg-yellow-500/20 text-yellow-700 border-yellow-500/30 animate-pulse";
       case "followup":
         return "bg-orange-500/10 text-orange-700 border-orange-500/20";
@@ -236,23 +237,13 @@ const ProviderCalendar = () => {
   };
 
   const getStatusText = (status: string, followupStatus?: string | null) => {
-    switch (status) {
-      case "confirmed":
-        return "Confirmado";
-      case "pending":
-        return "Pendiente";
-      case "available":
-        return "Disponible";
-      case "followup":
-        return followupStatus === "completed" ? "Seguimiento completado" 
-          : followupStatus === "in_progress" ? "Seguimiento en progreso"
-          : followupStatus === "cancelled" ? "Seguimiento cancelado"
-          : "Seguimiento programado";
-      case "in_progress":
-        return "En progreso";
-      default:
-        return status;
+    if (status === "followup") {
+      return followupStatus === "completed" ? "Seguimiento completado" 
+        : followupStatus === "in_progress" ? "Seguimiento en progreso"
+        : followupStatus === "cancelled" ? "Seguimiento cancelado"
+        : "Seguimiento programado";
     }
+    return getStatusLabel(status);
   };
 
   const getDayJobsCount = (day: Date) => {
@@ -266,14 +257,14 @@ const ProviderCalendar = () => {
   const jobCounts = {
     all: jobs.length,
     pending: jobs.filter(j => j.status === "pending").length,
-    confirmed: jobs.filter(j => j.status === "confirmed").length,
+    assigned: jobs.filter(j => j.status === "assigned").length,
     in_progress: jobs.filter(j => j.status === "in_progress").length,
     followup: jobs.filter(j => j.status === "followup").length,
   };
 
   const modifiers = {
-    confirmed: jobs
-      .filter((j) => j.status === "confirmed")
+    assigned: jobs
+      .filter((j) => j.status === "assigned")
       .map((j) => new Date(j.scheduled_date)),
     pending: jobs
       .filter((j) => j.status === "pending")
@@ -338,12 +329,12 @@ const ProviderCalendar = () => {
                 <Badge variant="secondary">{jobCounts.pending}</Badge>
               </Button>
               <Button
-                variant={statusFilter === "confirmed" ? "default" : "ghost"}
+                variant={statusFilter === "assigned" ? "default" : "ghost"}
                 className="w-full justify-between"
-                onClick={() => setStatusFilter("confirmed")}
+                onClick={() => setStatusFilter("assigned")}
               >
-                <span>Confirmado</span>
-                <Badge variant="secondary">{jobCounts.confirmed}</Badge>
+                <span>Asignado</span>
+                <Badge variant="secondary">{jobCounts.assigned}</Badge>
               </Button>
               <Button
                 variant={statusFilter === "in_progress" ? "default" : "ghost"}

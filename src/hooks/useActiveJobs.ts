@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { PROVIDER_ACTIVE_STATES } from '@/utils/jobStateMachine';
 
 export interface ActiveJob {
   id: string;
@@ -57,7 +58,7 @@ export const useActiveJobs = (): UseActiveJobsResult => {
         .from('jobs')
         .select('*, invoices(status)')
         .eq('provider_id', user.id)
-        .in('status', ['assigned', 'accepted', 'confirmed', 'en_route', 'on_site', 'quoted', 'in_progress', 'scheduled'])
+        .in('status', PROVIDER_ACTIVE_STATES as string[])
         .order('scheduled_at', { ascending: true });
 
       if (fetchError) throw fetchError;
