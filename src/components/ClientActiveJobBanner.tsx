@@ -11,8 +11,7 @@ import { es } from "date-fns/locale";
  * "searching" is excluded here because SearchingJobBanner handles it.
  */
 const ACTIVE_JOB_STATUSES = [
-  "pending", "active", "accepted", "assigned",
-  "confirmed", "en_route", "on_site", "quoted", "in_progress",
+  "pending", "assigned", "en_route", "on_site", "quoted", "in_progress",
 ];
 
 interface ClientActiveJob {
@@ -38,6 +37,8 @@ export const ClientActiveJobBanner = () => {
         .select("id, title, scheduled_at, provider_id")
         .eq("client_id", user.id)
         .in("status", ACTIVE_JOB_STATUSES)
+        .neq("completion_status", "completed")
+        .neq("status", "cancelled")
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
