@@ -63,42 +63,40 @@ const Index = () => {
         onOpenChange={setCategoriesDialogOpen} 
       />
       <header className="fixed top-0 left-0 right-0 bg-background z-50">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
-            <ChambyLogoText to="/" size="lg" />
-            
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center justify-between flex-1">
-              {/* Center Navigation */}
-              <nav className="flex items-center gap-8 mx-auto">
-                <button onClick={handlePostJobClick} className="px-6 py-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium">
-                  Buscar Servicio
-                </button>
-                <button 
-                  onClick={() => setCategoriesDialogOpen(true)}
-                  className="text-foreground hover:text-primary transition-colors font-medium"
-                >
-                  Categorías
-                </button>
-                <button 
-                  onClick={handleHowItWorksClick}
-                  className="text-foreground hover:text-primary transition-colors font-medium"
-                >
-                  ¿Cómo funciona?
-                </button>
-              </nav>
+        <div className="w-full grid grid-cols-3 items-center px-4 md:px-6 h-16 border-b bg-background">
+          <div></div>
 
-              {/* Right Auth Links */}
-              <div className="flex items-center gap-6">
-                <Link to="/login?mode=signup" className="text-foreground hover:text-primary transition-colors font-medium">
-                  Registrarse
-                </Link>
-                <Link to="/login" className="text-foreground hover:text-primary transition-colors font-medium">
-                  Iniciar sesión
-                </Link>
-                <Link to="/provider/onboarding" className="text-primary hover:text-primary/80 transition-colors font-medium">
-                  Ser Chambynauta
-                </Link>
-              </div>
+          <div className="justify-self-center">
+            <ChambyLogoText to="/" size="lg" />
+          </div>
+
+          <div className="justify-self-end flex items-center">
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center gap-6">
+              <button onClick={handlePostJobClick} className="px-6 py-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium">
+                Buscar Servicio
+              </button>
+              <button 
+                onClick={() => setCategoriesDialogOpen(true)}
+                className="text-foreground hover:text-primary transition-colors font-medium"
+              >
+                Categorías
+              </button>
+              <button 
+                onClick={handleHowItWorksClick}
+                className="text-foreground hover:text-primary transition-colors font-medium"
+              >
+                ¿Cómo funciona?
+              </button>
+              <Link to="/login?mode=signup" className="text-foreground hover:text-primary transition-colors font-medium">
+                Registrarse
+              </Link>
+              <Link to="/login" className="text-foreground hover:text-primary transition-colors font-medium">
+                Iniciar sesión
+              </Link>
+              <Link to="/provider/onboarding" className="text-primary hover:text-primary/80 transition-colors font-medium">
+                Ser Chambynauta
+              </Link>
             </div>
 
             {/* Mobile Hamburger Menu */}
@@ -151,7 +149,8 @@ const Index = () => {
               </SheetContent>
             </Sheet>
           </div>
-        </header>
+        </div>
+      </header>
         <main className="pt-16">
           <div className="animate-fade-in">
             <Hero onMediaReady={onHeroMediaReady} />
