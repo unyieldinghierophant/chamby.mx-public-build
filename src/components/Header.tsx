@@ -63,7 +63,7 @@ const Header = () => {
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/40">
         <div className="relative flex h-16 md:h-20 w-full items-center px-4 sm:px-6 lg:px-8">
           {/* Center - Logo (absolute for true viewport centering) */}
-          <div className="absolute left-1/2 -translate-x-1/2 flex items-center">
+          <div className="absolute left-1/2 -translate-x-[calc(50%+10px)] flex items-center">
             <ChambyLogoText onClick={() => navigate(getLogoDestination())} size="md" />
           </div>
 
