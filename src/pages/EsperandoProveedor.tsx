@@ -71,6 +71,8 @@ const EsperandoProveedor = () => {
   const [emailNotify, setEmailNotify] = useState(false);
   const [showFullDetails, setShowFullDetails] = useState(false);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
+  const [refundRequested, setRefundRequested] = useState(false);
+  const [requestingRefund, setRequestingRefund] = useState(false);
 
   // Prevent scroll-jump: anchor scroll position
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -114,7 +116,7 @@ const EsperandoProveedor = () => {
     }
 
     setJob(data);
-    setVerifying(false);
+    if (data.has_open_dispute) setRefundRequested(true);
   }, [jobId, navigate]);
 
   /* ---------- realtime ---------- */
@@ -336,8 +338,54 @@ const EsperandoProveedor = () => {
                       Editar solicitud
                     </Button>
                   )}
-                  <Button variant="outline" className="w-full" onClick={() => toast.info("Solicitud de reembolso próximamente disponible")}>
-                    Solicitar reembolso
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    disabled={refundRequested || requestingRefund || job?.has_open_dispute}
+                    onClick={async () => {
+                      if (!user || !jobId) return;
+                      setRequestingRefund(true);
+                      try {
+                        // Check for existing dispute
+                        const { data: existing } = await supabase
+                          .from("disputes")
+                          .select("id")
+                          .eq("job_id", jobId)
+                          .eq("status", "open")
+                          .maybeSingle();
+
+                        if (existing) {
+                          setRefundRequested(true);
+                          toast.info("Ya existe una solicitud de reembolso para este trabajo");
+                          return;
+                        }
+
+                        const { error } = await supabase.from("disputes").insert({
+                          job_id: jobId,
+                          opened_by_user_id: user.id,
+                          opened_by_role: "client",
+                          reason_code: "no_match_refund",
+                          reason_text: "Solicitud de reembolso: No se encontró proveedor disponible",
+                          status: "open",
+                        });
+
+                        if (error) throw error;
+
+                        setRefundRequested(true);
+                        toast.success("Tu solicitud de reembolso fue enviada. Un administrador la revisará pronto.");
+                      } catch (err: any) {
+                        console.error("Refund request error:", err);
+                        toast.error("Error al solicitar reembolso. Intenta de nuevo.");
+                      } finally {
+                        setRequestingRefund(false);
+                      }
+                    }}
+                  >
+                    {requestingRefund
+                      ? "Enviando..."
+                      : refundRequested || job?.has_open_dispute
+                        ? "Reembolso solicitado"
+                        : "Solicitar reembolso"}
                   </Button>
                 </div>
               </CardContent>
