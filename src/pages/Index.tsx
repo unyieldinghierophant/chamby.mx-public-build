@@ -63,19 +63,14 @@ const Index = () => {
         onOpenChange={setCategoriesDialogOpen} 
       />
       <header className="fixed top-0 left-0 right-0 bg-background z-50 border-b border-border">
-        <div className="flex h-16 w-full items-center px-4 md:px-6">
-          {/* Left Spacer - ghost element matches hamburger button size on mobile for perfect centering */}
-          <div className="flex-1 flex items-center">
-            <div className="md:hidden w-10 h-10" aria-hidden="true"></div>
-          </div>
-
-          {/* Center - Logo */}
-          <div className="flex-shrink-0 flex justify-center items-center">
+        <div className="relative flex h-16 w-full items-center px-4 md:px-6">
+          {/* Center - Logo (absolute for true viewport centering) */}
+          <div className="absolute left-1/2 -translate-x-1/2 flex items-center">
             <ChambyLogoText to="/" size="lg" />
           </div>
 
           {/* Right */}
-          <div className="flex-1 flex justify-end items-center">
+          <div className="ml-auto flex items-center">
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-6">
               <button onClick={handlePostJobClick} className="px-6 py-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium">
