@@ -173,19 +173,13 @@ const ProviderLanding = () => {
           <ProviderLandingSkeleton />
         </div>
       )}
-      {/* Simple Header matching user landing page */}
+      {/* Header */}
       <header className="fixed top-0 left-0 right-0 bg-background border-b border-border z-50">
-        <div className="relative flex h-16 md:h-20 w-full items-center px-4 md:px-8">
-          {/* Center - Logo (absolute for true viewport centering) */}
-          <div className="absolute left-1/2 -translate-x-[calc(50%+10px)] flex items-center">
-            <ChambyLogoText onClick={() => navigate('/')} size="lg" />
-          </div>
-
-          {/* Right */}
-          <div className="ml-auto flex items-center">
-          
-          {user && (
-            <div className="hidden md:block">
+        {/* Desktop Header */}
+        <div className="hidden md:flex h-20 w-full items-center justify-between px-8">
+          <ChambyLogoText onClick={() => navigate('/')} size="lg" />
+          <div className="flex items-center gap-4">
+            {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full">
@@ -234,22 +228,64 @@ const ProviderLanding = () => {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            </div>
-          )}
-
-          {!user && (
-            <>
-              <Button onClick={() => navigate('/provider/login')} className="hidden md:inline-flex bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant">
+            ) : (
+              <Button onClick={() => navigate('/provider/login')} className="bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant">
                 Iniciar Sesión
               </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Mobile Header - 3-column grid */}
+        <div className="md:hidden grid grid-cols-3 h-16 items-center px-4">
+          <div /> {/* Empty left column for balance */}
+          <div className="flex justify-center">
+            <ChambyLogoText onClick={() => navigate('/')} size="lg" />
+          </div>
+          <div className="flex justify-end">
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={user?.user_metadata?.avatar_url} />
+                      <AvatarFallback>
+                        {(profile?.full_name || user?.email || "U").charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {profile?.full_name || "Usuario"}
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {user?.email}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate("/profile")}>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Perfil</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} disabled={isLoggingOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>{isLoggingOut ? 'Saliendo...' : 'Cerrar Sesión'}</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
               <button
-                className="md:hidden p-2 hover:bg-accent rounded-md transition-colors"
+                className="p-2 hover:bg-accent rounded-md transition-colors"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
                 {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
-            </>
-          )}
+            )}
           </div>
         </div>
 
