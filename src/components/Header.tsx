@@ -61,15 +61,18 @@ const Header = () => {
         onOpenChange={setCategoriesDialogOpen} 
       />
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/40">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative flex items-center h-16 md:h-20">
-            {/* Logo — fixed to viewport center */}
-            <div className="fixed left-1/2 top-0 -translate-x-1/2 h-16 md:h-20 flex items-center pointer-events-none z-[51]">
-              <div className="pointer-events-auto">
-                <ChambyLogoText onClick={() => navigate(getLogoDestination())} size="md" />
-              </div>
-            </div>
-            <div className="hidden lg:flex items-center gap-5 ml-auto">
+        <div className="flex h-16 md:h-20 w-full items-center px-4 sm:px-6 lg:px-8">
+          {/* Left Spacer */}
+          <div className="flex-1"></div>
+
+          {/* Center - Logo */}
+          <div className="flex-shrink-0 flex justify-center items-center">
+            <ChambyLogoText onClick={() => navigate(getLogoDestination())} size="md" />
+          </div>
+
+          {/* Right */}
+          <div className="flex-1 flex justify-end items-center">
+            <div className="hidden lg:flex items-center gap-5">
               <HeaderSearchBar />
               
               <button 
@@ -153,7 +156,7 @@ const Header = () => {
             </div>
 
             {/* Mobile Menu Button */}
-            <div className="lg:hidden ml-auto">
+            <div className="lg:hidden">
               <button
                 className="p-2 hover:bg-accent rounded-md transition-colors"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -162,72 +165,72 @@ const Header = () => {
               </button>
             </div>
           </div>
-
-          {/* Mobile Navigation */}
-          {isMenuOpen && (
-            <div className="lg:hidden border-t border-border/40 bg-background">
-              <div className="px-4 pt-4 pb-6 space-y-3">
-                <button 
-                  onClick={() => {
-                    setCategoriesDialogOpen(true);
-                    setIsMenuOpen(false);
-                  }}
-                  className="block w-full text-left py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
-                >
-                  Servicios
-                </button>
-                <Link 
-                  to={ROUTES.ACTIVE_JOBS}
-                  className="block py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Trabajos activos
-                </Link>
-                {user ? (
-                  <>
-                    <Link 
-                      to={ROUTES.PROFILE}
-                      className="block py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Perfil
-                    </Link>
-                    <button
-                      onClick={() => { handleSignOut(); setIsMenuOpen(false); }}
-                      className="block w-full text-left py-3 text-lg font-medium text-destructive hover:text-destructive/80 transition-colors"
-                    >
-                      Cerrar Sesión
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <Link 
-                      to={ROUTES.LOGIN} 
-                      className="block py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Iniciar sesión
-                    </Link>
-                    <Link 
-                      to={ROUTES.USER_AUTH} 
-                      className="block py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Registrarse
-                    </Link>
-                    <Link 
-                      to={ROUTES.PROVIDER_AUTH} 
-                      className="block py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Ser Chambynauta
-                    </Link>
-                  </>
-                )}
-              </div>
-            </div>
-          )}
         </div>
+
+        {/* Mobile Navigation */}
+        {isMenuOpen && (
+          <div className="lg:hidden border-t border-border/40 bg-background">
+            <div className="px-4 pt-4 pb-6 space-y-3">
+              <button 
+                onClick={() => {
+                  setCategoriesDialogOpen(true);
+                  setIsMenuOpen(false);
+                }}
+                className="block w-full text-left py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
+              >
+                Servicios
+              </button>
+              <Link 
+                to={ROUTES.ACTIVE_JOBS}
+                className="block py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Trabajos activos
+              </Link>
+              {user ? (
+                <>
+                  <Link 
+                    to={ROUTES.PROFILE}
+                    className="block py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Perfil
+                  </Link>
+                  <button
+                    onClick={() => { handleSignOut(); setIsMenuOpen(false); }}
+                    className="block w-full text-left py-3 text-lg font-medium text-destructive hover:text-destructive/80 transition-colors"
+                  >
+                    Cerrar Sesión
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link 
+                    to={ROUTES.LOGIN} 
+                    className="block py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Iniciar sesión
+                  </Link>
+                  <Link 
+                    to={ROUTES.USER_AUTH} 
+                    className="block py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Registrarse
+                  </Link>
+                  <Link 
+                    to={ROUTES.PROVIDER_AUTH} 
+                    className="block py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Ser Chambynauta
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </header>
     </>
   );
