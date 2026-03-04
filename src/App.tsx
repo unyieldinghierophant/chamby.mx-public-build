@@ -81,6 +81,7 @@ import AdminPayoutDashboard from "./pages/admin/AdminPayoutDashboard";
 import AdminPayoutDetailPage from "./pages/admin/AdminPayoutDetailPage";
 import AdminSupportInbox from "./pages/admin/AdminSupportInbox";
 import AdminDisputesPage from "./pages/admin/AdminDisputesPage";
+import AdminProvidersPage from "./pages/admin/AdminProvidersPage";
 import VisitFeePaymentPage from "./pages/VisitFeePaymentPage";
 import ResetPassword from "./pages/ResetPassword";
 import Login from "./pages/Login";
@@ -419,6 +420,16 @@ const App = () => {
             element={
               <ProtectedRoute requireAdmin>
                 <AdminDisputesPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Admin Providers Page */}
+          <Route
+            path="/admin/providers"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AdminProvidersPage />
               </ProtectedRoute>
             }
           />
