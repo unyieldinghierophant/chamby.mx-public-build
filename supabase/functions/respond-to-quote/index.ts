@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { settleVisitFeeToProvider } from "../_shared/settlement.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -129,18 +131,6 @@ serve(async (req) => {
         .eq("id", job_id);
       if (jobUpdateErr) logStep("Failed to update job status", { error: jobUpdateErr.message });
 
-      // Notify provider
-      if (job.provider_id) {
-        await supabase.from("notifications").insert({
-          user_id: job.provider_id,
-          type: "quote_rejected",
-          title: "Cotización rechazada",
-          message: `El cliente rechazó tu cotización. Motivo: ${reason}`,
-          link: `/provider-portal/jobs/${job.id}`,
-          data: { jobId: job.id, invoiceId: invoice.id, reason },
-        });
-      }
-
       // System message in chat
       await supabase.from("messages").insert({
         job_id: job.id,
@@ -150,6 +140,48 @@ serve(async (req) => {
         is_system_message: true,
         system_event_type: "quote_rejected",
       });
+
+      // ── Visit fee settlement: transfer $250 to provider ──
+      if (job.provider_id) {
+        const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+        if (stripeKey) {
+          const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+          const settlement = await settleVisitFeeToProvider(
+            supabase,
+            stripe,
+            job.id,
+            job.provider_id,
+            "RESPOND-TO-QUOTE"
+          );
+
+          logStep("Visit fee settlement", settlement as unknown as Record<string, unknown>);
+
+          // Notify provider about rejection + visit fee payment
+          const payoutMsg = settlement.status === "paid"
+            ? "El cliente rechazó tu cotización. Se procesó el pago de $250 por tu visita de diagnóstico."
+            : "El cliente rechazó tu cotización. Tu pago de $250 por la visita será procesado cuando completes tu verificación de Stripe.";
+
+          await supabase.from("notifications").insert({
+            user_id: job.provider_id,
+            type: "quote_rejected",
+            title: "Cotización rechazada",
+            message: payoutMsg,
+            link: `/provider-portal/jobs/${job.id}`,
+            data: { jobId: job.id, invoiceId: invoice.id, reason, visitFeeSettlement: settlement.status },
+          });
+        } else {
+          logStep("STRIPE_SECRET_KEY not configured, skipping visit fee settlement");
+          // Still notify provider about rejection
+          await supabase.from("notifications").insert({
+            user_id: job.provider_id,
+            type: "quote_rejected",
+            title: "Cotización rechazada",
+            message: `El cliente rechazó tu cotización. Motivo: ${reason}`,
+            link: `/provider-portal/jobs/${job.id}`,
+            data: { jobId: job.id, invoiceId: invoice.id, reason },
+          });
+        }
+      }
 
       logStep("Quote rejected", { jobId: job.id, reason });
     }

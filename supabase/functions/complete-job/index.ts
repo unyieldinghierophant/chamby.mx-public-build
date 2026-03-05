@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { settleJobCompletion } from "../_shared/settlement.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -70,6 +71,7 @@ serve(async (req) => {
         .from("jobs")
         .update({
           completion_status: "provider_marked_done",
+          status: "provider_done",
           completion_marked_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
@@ -139,22 +141,78 @@ serve(async (req) => {
         read: false,
       });
 
-      // Notify provider that client confirmed
+      // Trigger settlement (refund visit fee + transfer to provider)
+      const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+      if (!stripeKey) throw new Error("STRIPE_SECRET_KEY not configured");
+      const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+
+      const settlement = await settleJobCompletion(
+        supabase,
+        stripe,
+        job_id,
+        job.provider_id!,
+        "COMPLETE-JOB"
+      );
+
+      log("Settlement result", settlement as unknown as Record<string, unknown>);
+
+      // ── Notifications ──
+      // Notify client about refund
+      const refundMsg = settlement.visitFeeRefund
+        ? "Tu trabajo se completó. Se procesó el reembolso de $429 de tu diagnóstico."
+        : "Tu trabajo se completó. El reembolso de $429 será procesado pronto.";
+
       await supabase.from("notifications").insert({
-        user_id: job.provider_id!,
+        user_id: job.client_id,
         type: "job_completed",
         title: "Trabajo completado",
-        message: "El cliente confirmó que el trabajo fue completado. Tu pago será procesado.",
-        link: "/provider-portal/jobs",
-        data: { job_id },
+        message: refundMsg,
+        link: `/active-jobs`,
+        data: { job_id, refund_id: settlement.visitFeeRefund },
       });
 
-      // Trigger escrow release
-      await triggerEscrowRelease(supabase, job_id, job.provider_id!);
+      // Notify provider about payout
+      if (settlement.payoutStatus === "paid") {
+        // Fetch the payout amount for the notification
+        const { data: payoutRow } = await supabase
+          .from("payouts")
+          .select("amount")
+          .eq("job_id", job_id)
+          .eq("payout_type", "job_completion")
+          .maybeSingle();
 
-      log("Client confirmed, escrow released", { job_id });
+        const payoutAmount = payoutRow?.amount ?? 0;
+        await supabase.from("notifications").insert({
+          user_id: job.provider_id!,
+          type: "payout_released",
+          title: "¡Pago liberado!",
+          message: `Se depositaron $${payoutAmount.toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN a tu cuenta.`,
+          link: "/provider-portal/account",
+          data: { job_id },
+        });
+      } else {
+        await supabase.from("notifications").insert({
+          user_id: job.provider_id!,
+          type: "job_completed",
+          title: "Trabajo completado",
+          message: "El cliente confirmó el trabajo. Tu pago será procesado pronto.",
+          link: "/provider-portal/jobs",
+          data: { job_id },
+        });
+      }
+
+      log("Client confirmed, settlement complete", { job_id });
       return new Response(
-        JSON.stringify({ success: true, completion_status: "completed" }),
+        JSON.stringify({
+          success: true,
+          completion_status: "completed",
+          settlement: {
+            visitFeeRefund: settlement.visitFeeRefund,
+            providerTransfer: settlement.providerTransfer,
+            payoutStatus: settlement.payoutStatus,
+            errors: settlement.errors,
+          },
+        }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -169,191 +227,3 @@ serve(async (req) => {
     );
   }
 });
-
-async function triggerEscrowRelease(
-  supabase: ReturnType<typeof createClient>,
-  jobId: string,
-  providerId: string
-) {
-  const log2 = (s: string, d?: Record<string, unknown>) =>
-    console.log(`[ESCROW-RELEASE] ${s}${d ? ` - ${JSON.stringify(d)}` : ""}`);
-
-  try {
-    // Get the paid invoice
-    const { data: invoice } = await supabase
-      .from("invoices")
-      .select("id, subtotal_provider, status")
-      .eq("job_id", jobId)
-      .eq("status", "paid")
-      .maybeSingle();
-
-    if (!invoice) {
-      log2("No paid invoice found, skipping release", { jobId });
-      return;
-    }
-
-    // Check provider has Stripe account AND payouts enabled
-    const { data: provider } = await supabase
-      .from("providers")
-      .select("stripe_account_id, stripe_onboarding_status, stripe_payouts_enabled, stripe_requirements_currently_due")
-      .eq("user_id", providerId)
-      .single();
-
-    if (
-      !provider?.stripe_account_id ||
-      provider.stripe_onboarding_status !== "enabled" ||
-      !provider.stripe_payouts_enabled
-    ) {
-      log2("Provider not payout-enabled, marking as awaiting_provider_onboarding", { providerId });
-
-      // Create payout record in pending state
-      await supabase.from("payouts").insert({
-        invoice_id: invoice.id,
-        provider_id: providerId,
-        amount: invoice.subtotal_provider,
-        status: "awaiting_provider_onboarding",
-      });
-
-      await supabase
-        .from("invoices")
-        .update({ status: "ready_to_release", updated_at: new Date().toISOString() })
-        .eq("id", invoice.id);
-
-      // Notify provider
-      await supabase.from("notifications").insert({
-        user_id: providerId,
-        type: "payout_pending_onboarding",
-        title: "Pago pendiente",
-        message: "Tu pago está listo, pero Stripe requiere verificación para liberarlo. Completa tu verificación desde tu cuenta.",
-        link: "/provider-portal/account",
-        data: { job_id: jobId },
-      });
-
-      // Notify all admins about blocked payout
-      const currentlyDue = provider.stripe_requirements_currently_due ?? [];
-      const dueItems = Array.isArray(currentlyDue) ? currentlyDue : [];
-      const topItems = dueItems.slice(0, 3).join(", ") || "N/A";
-      const summary = `${dueItems.length} requisito(s) pendiente(s): ${topItems}`;
-
-      const { data: admins } = await supabase
-        .from("user_roles")
-        .select("user_id")
-        .eq("role", "admin");
-
-      if (admins && admins.length > 0) {
-        const adminNotifications = admins.map((a: { user_id: string }) => ({
-          user_id: a.user_id,
-          type: "admin_payout_blocked",
-          title: "Pago bloqueado por verificación",
-          message: `Proveedor ${providerId} no puede recibir pagos. ${summary}`,
-          link: "/admin/payouts",
-          data: { job_id: jobId, provider_id: providerId, missing_count: dueItems.length, top_items: dueItems.slice(0, 5) },
-        }));
-        await supabase.from("notifications").insert(adminNotifications);
-      }
-
-      log2("Payout blocked, notifications sent", { providerId, missingCount: dueItems.length });
-      return;
-    }
-
-    // Create payout record if not exists
-    const { data: existingPayout } = await supabase
-      .from("payouts")
-      .select("id")
-      .eq("invoice_id", invoice.id)
-      .maybeSingle();
-
-    let payoutId: string;
-    if (existingPayout) {
-      payoutId = existingPayout.id;
-    } else {
-      const { data: newPayout, error: payoutErr } = await supabase
-        .from("payouts")
-        .insert({
-          invoice_id: invoice.id,
-          provider_id: providerId,
-          amount: invoice.subtotal_provider,
-          status: "pending",
-        })
-        .select("id")
-        .single();
-
-      if (payoutErr || !newPayout) {
-        log2("Failed to create payout record", { error: payoutErr?.message });
-        return;
-      }
-      payoutId = newPayout.id;
-    }
-
-    // Create Stripe transfer
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) {
-      log2("STRIPE_SECRET_KEY not configured");
-      return;
-    }
-
-    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
-
-    const amountCentavos = Math.round(invoice.subtotal_provider * 100);
-    const transfer = await stripe.transfers.create({
-      amount: amountCentavos,
-      currency: "mxn",
-      destination: provider.stripe_account_id,
-      metadata: {
-        payout_id: payoutId,
-        job_id: jobId,
-        provider_id: providerId,
-      },
-    });
-
-    log2("Transfer created", { transferId: transfer.id, amount: amountCentavos });
-
-    // Update payout
-    await supabase
-      .from("payouts")
-      .update({
-        stripe_transfer_id: transfer.id,
-        status: "paid",
-        paid_at: new Date().toISOString(),
-      })
-      .eq("id", payoutId);
-
-    // Update invoice status to released
-    await supabase
-      .from("invoices")
-      .update({ status: "released", updated_at: new Date().toISOString() })
-      .eq("id", invoice.id);
-
-    // Record in payments ledger
-    await supabase.from("payments").insert({
-      job_id: jobId,
-      provider_id: providerId,
-      stripe_payment_intent_id: transfer.id,
-      amount: amountCentavos,
-      currency: "mxn",
-      type: "job_invoice",
-      status: "released",
-      metadata: { payout_id: payoutId, transfer_id: transfer.id },
-    });
-
-    // Notify provider
-    await supabase.from("notifications").insert({
-      user_id: providerId,
-      type: "payout_released",
-      title: "¡Pago liberado!",
-      message: `Se depositaron $${invoice.subtotal_provider} MXN a tu cuenta de Stripe.`,
-      link: "/provider-portal/account",
-      data: { job_id: jobId, payout_id: payoutId },
-    });
-
-    log2("Escrow release complete", { payoutId, transferId: transfer.id });
-  } catch (err) {
-    log2("Escrow release failed", { error: err instanceof Error ? err.message : String(err) });
-    // Don't throw - mark invoice as ready_to_release so admin can handle
-    await supabase
-      .from("invoices")
-      .update({ status: "ready_to_release", updated_at: new Date().toISOString() })
-      .eq("job_id", jobId)
-      .eq("status", "paid");
-  }
-}
