@@ -97,7 +97,17 @@ export const PlumbingBookingFlow = ({ intentText = "" }: { intentText?: string }
   useEffect(() => {
     const saved = loadFormData();
     if (saved?.plumbingFormData) {
-      setFormData(prev => ({ ...prev, ...saved.plumbingFormData, photos: [] }));
+      const restored = { ...saved.plumbingFormData };
+      if (restored.scheduledDate) {
+        const parsed = new Date(restored.scheduledDate);
+        restored.scheduledDate = !isNaN(parsed.getTime()) ? parsed : null;
+      }
+      if (restored.photos && Array.isArray(restored.photos)) {
+        restored.photos = restored.photos.filter((p: any) => p?.uploaded && p?.url && !p.url.startsWith('blob:'));
+      } else {
+        restored.photos = [];
+      }
+      setFormData(prev => ({ ...prev, ...restored }));
       setCurrentStep(saved.currentStep || 1);
     } else if (intentText) {
       // Auto-match intent to a problem type
@@ -125,7 +135,10 @@ export const PlumbingBookingFlow = ({ intentText = "" }: { intentText?: string }
   // Auto-save
   useEffect(() => {
     if (formData.problem) {
-      saveFormData({ plumbingFormData: { ...formData, photos: [] }, currentStep });
+      const persistablePhotos = formData.photos
+        .filter(f => f.uploaded && f.url && !f.url.startsWith('blob:'))
+        .map(f => ({ file: null, url: f.url, uploaded: true }));
+      saveFormData({ plumbingFormData: { ...formData, photos: persistablePhotos }, currentStep });
     }
   }, [formData, currentStep]);
 
@@ -305,7 +318,7 @@ export const PlumbingBookingFlow = ({ intentText = "" }: { intentText?: string }
         photos: formData.photos.filter(f => f.uploaded).map(f => f.url),
         rate: VISIT_BASE_FEE,
         status: 'pending' as const,
-        scheduled_at: scheduledDate.toISOString(),
+        scheduled_at: scheduledDate instanceof Date ? scheduledDate.toISOString() : typeof scheduledDate === 'string' ? scheduledDate : new Date().toISOString(),
         time_preference: formData.schedule || '',
         exact_time: '',
         budget: '',
@@ -350,7 +363,10 @@ export const PlumbingBookingFlow = ({ intentText = "" }: { intentText?: string }
 
   const handleAuthLogin = () => {
     localStorage.setItem('login_context', 'client');
-    saveFormData({ plumbingFormData: { ...formData, photos: [] }, currentStep });
+    const persistablePhotos = formData.photos
+      .filter(f => f.uploaded && f.url && !f.url.startsWith('blob:'))
+      .map(f => ({ file: null, url: f.url, uploaded: true }));
+    saveFormData({ plumbingFormData: { ...formData, photos: persistablePhotos }, currentStep });
     const returnPath = '/book-job?category=Fontanería';
     sessionStorage.setItem('auth_return_to', returnPath);
     localStorage.setItem('auth_return_to', returnPath);

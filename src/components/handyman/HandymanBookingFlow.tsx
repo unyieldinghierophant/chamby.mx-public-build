@@ -162,7 +162,19 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
   useEffect(() => {
     const saved = loadFormData();
     if (saved?.handymanFormData) {
-      setFormData(prev => ({ ...prev, ...saved.handymanFormData, photos: [] }));
+      const restored = { ...saved.handymanFormData };
+      // Validate scheduledDate from localStorage
+      if (restored.scheduledDate) {
+        const parsed = new Date(restored.scheduledDate);
+        restored.scheduledDate = !isNaN(parsed.getTime()) ? parsed : null;
+      }
+      // Restore only valid uploaded photo URLs
+      if (restored.photos && Array.isArray(restored.photos)) {
+        restored.photos = restored.photos.filter((p: any) => p?.uploaded && p?.url && !p.url.startsWith('blob:'));
+      } else {
+        restored.photos = [];
+      }
+      setFormData(prev => ({ ...prev, ...restored }));
       setCurrentStep(saved.currentStep || 1);
     }
     setIsLoading(false);
@@ -193,7 +205,11 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
   // Auto-save
   useEffect(() => {
     if (formData.description) {
-      saveFormData({ handymanFormData: { ...formData, photos: [] }, currentStep });
+      // Persist only uploaded photo URLs (File objects can't be serialized)
+      const persistablePhotos = formData.photos
+        .filter(f => f.uploaded && f.url && !f.url.startsWith('blob:'))
+        .map(f => ({ file: null, url: f.url, uploaded: true }));
+      saveFormData({ handymanFormData: { ...formData, photos: persistablePhotos }, currentStep });
     }
   }, [formData, currentStep]);
 
@@ -355,12 +371,18 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
         morning: "Mañana (8–12)", midday: "Mediodía (12–15)", afternoon: "Tarde (15–19)", night: "Noche (19–21)"
       };
       let scheduledAt: string;
-      if (formData.scheduleMode === 'asap') {
-        scheduledAt = new Date().toISOString();
-      } else if (formData.scheduleMode === 'today') {
+      if (formData.scheduleMode === 'asap' || formData.scheduleMode === 'today') {
         scheduledAt = new Date().toISOString();
       } else if (formData.scheduledDate) {
-        scheduledAt = formData.scheduledDate.toISOString();
+        // Safe: scheduledDate may be a string from localStorage persistence
+        if (formData.scheduledDate instanceof Date) {
+          scheduledAt = formData.scheduledDate.toISOString();
+        } else if (typeof formData.scheduledDate === 'string') {
+          const parsed = new Date(formData.scheduledDate);
+          scheduledAt = !isNaN(parsed.getTime()) ? parsed.toISOString() : new Date().toISOString();
+        } else {
+          scheduledAt = new Date().toISOString();
+        }
       } else {
         scheduledAt = new Date().toISOString();
       }
@@ -432,7 +454,10 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
 
   const handleAuthLogin = () => {
     localStorage.setItem('login_context', 'client');
-    saveFormData({ handymanFormData: { ...formData, photos: [] }, currentStep });
+    const persistablePhotos = formData.photos
+      .filter(f => f.uploaded && f.url && !f.url.startsWith('blob:'))
+      .map(f => ({ file: null, url: f.url, uploaded: true }));
+    saveFormData({ handymanFormData: { ...formData, photos: persistablePhotos }, currentStep });
     const returnPath = '/book-job?category=Handyman';
     sessionStorage.setItem('auth_return_to', returnPath);
     localStorage.setItem('auth_return_to', returnPath);

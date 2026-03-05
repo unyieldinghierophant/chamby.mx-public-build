@@ -89,7 +89,17 @@ export const AutoWashBookingFlow = ({ intentText = "" }: { intentText?: string }
   useEffect(() => {
     const saved = loadFormData();
     if (saved?.autoWashFormData) {
-      setFormData(prev => ({ ...prev, ...saved.autoWashFormData, photos: [] }));
+      const restored = { ...saved.autoWashFormData };
+      if (restored.scheduledDate) {
+        const parsed = new Date(restored.scheduledDate);
+        restored.scheduledDate = !isNaN(parsed.getTime()) ? parsed : null;
+      }
+      if (restored.photos && Array.isArray(restored.photos)) {
+        restored.photos = restored.photos.filter((p: any) => p?.uploaded && p?.url && !p.url.startsWith('blob:'));
+      } else {
+        restored.photos = [];
+      }
+      setFormData(prev => ({ ...prev, ...restored }));
       setCurrentStep(saved.currentStep || 1);
     } else if (intentText) {
       const norm = intentText.toLowerCase();
@@ -108,7 +118,10 @@ export const AutoWashBookingFlow = ({ intentText = "" }: { intentText?: string }
 
   useEffect(() => {
     if (formData.serviceType) {
-      saveFormData({ autoWashFormData: { ...formData, photos: [] }, currentStep });
+      const persistablePhotos = formData.photos
+        .filter(f => f.uploaded && f.url && !f.url.startsWith('blob:'))
+        .map(f => ({ file: null, url: f.url, uploaded: true }));
+      saveFormData({ autoWashFormData: { ...formData, photos: persistablePhotos }, currentStep });
     }
   }, [formData, currentStep]);
 
@@ -266,7 +279,7 @@ export const AutoWashBookingFlow = ({ intentText = "" }: { intentText?: string }
         photos: formData.photos.filter(f => f.uploaded).map(f => f.url),
         rate: VISIT_BASE_FEE,
         status: 'pending' as const,
-        scheduled_at: scheduledDate.toISOString(),
+        scheduled_at: scheduledDate instanceof Date ? scheduledDate.toISOString() : typeof scheduledDate === 'string' ? scheduledDate : new Date().toISOString(),
         time_preference: formData.schedule || '',
         exact_time: '',
         budget: '',
@@ -311,7 +324,10 @@ export const AutoWashBookingFlow = ({ intentText = "" }: { intentText?: string }
 
   const handleAuthLogin = () => {
     localStorage.setItem('login_context', 'client');
-    saveFormData({ autoWashFormData: { ...formData, photos: [] }, currentStep });
+    const persistablePhotos = formData.photos
+      .filter(f => f.uploaded && f.url && !f.url.startsWith('blob:'))
+      .map(f => ({ file: null, url: f.url, uploaded: true }));
+    saveFormData({ autoWashFormData: { ...formData, photos: persistablePhotos }, currentStep });
     const returnPath = '/book-job?category=Auto %26 Lavado';
     sessionStorage.setItem('auth_return_to', returnPath);
     localStorage.setItem('auth_return_to', returnPath);
