@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, XCircle, Plus, MessageCircle, MapPin, Clock, AlertTriangle } from "lucide-react";
 import { InvoiceCard } from "@/components/provider-portal/InvoiceCard";
 import { JobInvoiceSection } from "@/components/JobInvoiceSection";
+import { ClientQuoteReview } from "@/components/quotes/ClientQuoteReview";
 import { DisputeModal } from "@/components/DisputeModal";
 import { JobTrackingMap } from "@/components/JobTrackingMap";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -62,6 +63,9 @@ interface ActiveJob {
     total_customer_amount: number;
     subtotal_provider: number;
     chamby_commission_amount: number;
+    client_surcharge_amount?: number;
+    vat_amount: number;
+    provider_payout_amount?: number;
     provider_notes: string | null;
     created_at: string;
     items: any[];
@@ -112,9 +116,9 @@ const ActiveJobs = () => {
 
       const { data: jobsData, error: jobsError } = await supabase
         .from("jobs")
-        .select("*, invoices(id, status, total_customer_amount, subtotal_provider, chamby_commission_amount, provider_notes, created_at)")
+        .select("*, invoices(id, status, total_customer_amount, subtotal_provider, chamby_commission_amount, client_surcharge_amount, vat_amount, provider_payout_amount, provider_notes, created_at)")
         .eq("client_id", user.id)
-        .in("status", ["pending", "searching", "active", "accepted", "assigned", "confirmed", "en_route", "on_site", "quoted", "in_progress"])
+        .in("status", ["pending", "searching", "assigned", "on_site", "quoted", "quote_accepted", "quote_rejected", "job_paid", "in_progress", "provider_done"])
         .order("created_at", { ascending: false });
 
       if (jobsError) {
@@ -589,6 +593,15 @@ const ActiveJobs = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Quote Review — shown when job is 'quoted' and invoice is 'sent' */}
+              {selectedJob.status === "quoted" && selectedJob.invoice && selectedJob.invoice.status === "sent" && (
+                <ClientQuoteReview
+                  jobId={selectedJob.id}
+                  invoice={selectedJob.invoice}
+                  onResponse={fetchActiveJobs}
+                />
+              )}
 
               {/* Invoice Section - client side */}
               <JobInvoiceSection

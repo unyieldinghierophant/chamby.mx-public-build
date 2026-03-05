@@ -151,6 +151,7 @@ export type Database = {
       invoices: {
         Row: {
           chamby_commission_amount: number
+          client_surcharge_amount: number | null
           created_at: string | null
           id: string
           job_id: string
@@ -160,6 +161,7 @@ export type Database = {
           proposed_visit_window: unknown
           provider_id: string
           provider_notes: string | null
+          provider_payout_amount: number | null
           rejection_reason: string | null
           requires_followup_visit: boolean
           revision_number: number
@@ -175,6 +177,7 @@ export type Database = {
         }
         Insert: {
           chamby_commission_amount?: number
+          client_surcharge_amount?: number | null
           created_at?: string | null
           id?: string
           job_id: string
@@ -184,6 +187,7 @@ export type Database = {
           proposed_visit_window?: unknown
           provider_id: string
           provider_notes?: string | null
+          provider_payout_amount?: number | null
           rejection_reason?: string | null
           requires_followup_visit?: boolean
           revision_number?: number
@@ -199,6 +203,7 @@ export type Database = {
         }
         Update: {
           chamby_commission_amount?: number
+          client_surcharge_amount?: number | null
           created_at?: string | null
           id?: string
           job_id?: string
@@ -208,6 +213,7 @@ export type Database = {
           proposed_visit_window?: unknown
           provider_id?: string
           provider_notes?: string | null
+          provider_payout_amount?: number | null
           rejection_reason?: string | null
           requires_followup_visit?: boolean
           revision_number?: number
