@@ -210,9 +210,9 @@ export const JobCardActive = ({ job, onComplete }: JobCardActiveProps) => {
         {/* Payment Breakdown */}
         <div className="mt-4 space-y-1">
           {(() => {
-            const visitFee = job.visit_fee_amount || 350;
-            const chambyFee = job.amount_booking_fee || Math.round(visitFee * 0.2857);
-            const providerPayout = visitFee - chambyFee;
+            const visitFee = job.visit_fee_amount || 429;
+            const providerPayout = 250; // PRICING.VISIT_FEE.PROVIDER_SHARE_CENTS / 100
+            const chambyFee = visitFee - providerPayout;
             return (
               <>
                 <div className="flex justify-between text-sm text-muted-foreground">

@@ -50,10 +50,10 @@ serve(async (req) => {
     }
     logStep("Request parsed", { jobId });
 
-    // Fetch the job to get visit fee amount
+    // Fetch the job — verify ownership and status
     const { data: job, error: jobError } = await supabaseClient
       .from("jobs")
-      .select("id, title, visit_fee_amount, visit_fee_paid")
+      .select("id, title, visit_fee_paid, status")
       .eq("id", jobId)
       .single();
 
@@ -65,14 +65,15 @@ serve(async (req) => {
       throw new Error("Visit fee has already been paid for this job");
     }
 
-    // Pricing v3: Base + Stripe fee absorption + IVA
-    const visitFeeBase = job.visit_fee_amount || 350; // base in pesos
-    const STRIPE_FEE = 18.10; // absorbed into subtotal
-    const VAT_RATE = 0.16;
-    const subtotal = visitFeeBase + STRIPE_FEE; // 368.10
-    const visitFeeVat = Math.round(visitFeeBase * VAT_RATE * 100) / 100; // 56.00
-    const visitFeeTotal = subtotal + visitFeeVat; // 424.10
-    logStep("Job found", { jobId: job.id, title: job.title, visitFeeBase, subtotal, visitFeeVat, visitFeeTotal });
+    if (job.status !== "pending") {
+      throw new Error(`Job is not in pending status (current: ${job.status})`);
+    }
+
+    // Fixed visit fee — $429.00 MXN
+    // SYNC WITH src/utils/pricingConfig.ts PRICING.VISIT_FEE.CLIENT_TOTAL_CENTS
+    const VISIT_FEE_CENTS = 42900;
+
+    logStep("Job found", { jobId: job.id, title: job.title, amountCents: VISIT_FEE_CENTS });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
@@ -86,34 +87,27 @@ serve(async (req) => {
       }
     }
 
-    // Create checkout session for visit fee (base + IVA)
-    const amountCentavos = Math.round(visitFeeTotal * 100);
+    const origin = req.headers.get("origin") || "https://chambymk1.lovable.app";
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
-      line_items: [
-        {
-          price_data: {
-            currency: "mxn",
-            product_data: {
-              name: "Tarifa de visita - Chamby",
-              description: `Subtotal $${subtotal.toFixed(2)} + IVA $${visitFeeVat.toFixed(2)} = $${visitFeeTotal.toFixed(2)} MXN`,
-            },
-            unit_amount: amountCentavos,
-          },
-          quantity: 1,
+      line_items: [{
+        price_data: {
+          currency: "mxn",
+          product_data: { name: "Diagnóstico a domicilio — Chamby" },
+          unit_amount: VISIT_FEE_CENTS,
         },
-      ],
+        quantity: 1,
+      }],
       mode: "payment",
-      success_url: `${req.headers.get("origin")}/esperando-proveedor?job_id=${jobId}`,
-      cancel_url: `${req.headers.get("origin")}/user-landing`,
+      success_url: `${origin}/active-jobs?visit_fee_paid=true&job_id=${jobId}`,
+      cancel_url: `${origin}/user-landing?visit_fee_cancelled=true`,
       metadata: {
         jobId,
         userId: user.id,
         type: "visit_fee",
-        base_amount_cents: String(Math.round(subtotal * 100)),
-        vat_amount_cents: String(Math.round(visitFeeVat * 100)),
-        pricing_version: "visit_v3_fee_absorbed",
+        pricing_version: "visit_v4_fixed_429",
       },
     });
 

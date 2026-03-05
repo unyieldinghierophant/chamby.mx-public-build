@@ -168,59 +168,70 @@ serve(async (req) => {
         
         if (metadata.type === "visit_fee" && metadata.jobId) {
           const jobId = metadata.jobId;
-          
-          // Update job status — enters 'searching' state with 4-hour assignment window
-          // NOTE: visit_fee_paid is set automatically by the fn_sync_visit_fee trigger
-          // when the payments row is inserted below
-          const assignmentDeadline = new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString();
-          const { error: updateError } = await supabaseClient
+
+          // Idempotency guard: only process if job is still 'pending'
+          const { data: currentJob } = await supabaseClient
             .from("jobs")
-            .update({
-              stripe_visit_payment_intent_id: session.payment_intent as string,
-              status: "searching",
-              assignment_deadline: assignmentDeadline,
-            })
-            .eq("id", jobId);
+            .select("status")
+            .eq("id", jobId)
+            .single();
 
-          if (updateError) {
-            logStep("Failed to update job", { error: updateError.message });
+          if (currentJob?.status !== "pending") {
+            logStep("Skipping visit_fee processing — job not pending", { jobId, currentStatus: currentJob?.status });
           } else {
-            logStep("Job updated - visit fee paid", { jobId });
-          }
+            // Update job status — enters 'searching' state with 4-hour assignment window
+            // NOTE: visit_fee_paid is also set by the fn_sync_visit_fee trigger
+            // when the payments row is inserted below
+            const assignmentDeadline = new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString();
+            const { error: updateError } = await supabaseClient
+              .from("jobs")
+              .update({
+                stripe_visit_payment_intent_id: session.payment_intent as string,
+                status: "searching",
+                visit_fee_paid: true,
+                assignment_deadline: assignmentDeadline,
+              })
+              .eq("id", jobId);
 
-          // Record in payments ledger with IVA breakdown
-          const baseCents = metadata.base_amount_cents ? parseInt(metadata.base_amount_cents) : null;
-          const vatCents = metadata.vat_amount_cents ? parseInt(metadata.vat_amount_cents) : null;
-          await supabaseClient
-            .from("payments")
-            .insert({
-              job_id: jobId,
-              provider_id: metadata.providerId || null,
-              stripe_payment_intent_id: session.payment_intent as string,
-              stripe_checkout_session_id: session.id,
-              amount: session.amount_total || 0,
-              currency: session.currency || "mxn",
-              type: "visit_fee",
-              status: "succeeded",
-              metadata: metadata,
-              base_amount_cents: baseCents,
-              vat_amount_cents: vatCents,
-              total_amount_cents: session.amount_total || 0,
-              pricing_version: metadata.pricing_version || "visit_v1",
-            });
+            if (updateError) {
+              logStep("Failed to update job", { error: updateError.message });
+            } else {
+              logStep("Job updated - visit fee paid, status → searching", { jobId });
+            }
 
-          // Create notification for client
-          if (metadata.userId) {
+            // Record in payments ledger — fixed $429 pricing
+            // SYNC WITH src/utils/pricingConfig.ts PRICING.VISIT_FEE
             await supabaseClient
-              .from("notifications")
+              .from("payments")
               .insert({
-                user_id: metadata.userId,
-                type: "payment_confirmed",
-                title: "Pago confirmado",
-                message: "Tu tarifa de visita ha sido procesada. Estamos buscando proveedores.",
-                link: `/esperando-proveedor?job_id=${jobId}`,
-                data: { jobId, type: "visit_fee" },
+                job_id: jobId,
+                provider_id: null,
+                stripe_payment_intent_id: session.payment_intent as string,
+                stripe_checkout_session_id: session.id,
+                amount: 429,
+                currency: "mxn",
+                type: "visit_fee",
+                status: "succeeded",
+                metadata: metadata,
+                base_amount_cents: 35000,
+                vat_amount_cents: 5600,
+                total_amount_cents: 42900,
+                pricing_version: "visit_v4_fixed_429",
               });
+
+            // Create notification for client
+            if (metadata.userId) {
+              await supabaseClient
+                .from("notifications")
+                .insert({
+                  user_id: metadata.userId,
+                  type: "payment_confirmed",
+                  title: "Pago confirmado",
+                  message: "Tu diagnóstico a domicilio ha sido procesado. Estamos buscando proveedores.",
+                  link: `/active-jobs?job_id=${jobId}`,
+                  data: { jobId, type: "visit_fee" },
+                });
+            }
           }
         }
 
