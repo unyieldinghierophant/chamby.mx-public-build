@@ -58,7 +58,7 @@ export function formatMXN(centavos: number): string {
 
 // ── Backward-compatible helpers used across UI ──────────────
 export const VAT_LABEL = "IVA (16%)";
-export const VISIT_BASE_FEE = PRICING.VISIT_FEE.BASE_AMOUNT_CENTS / 100; // 350 (pesos)
+export const VISIT_BASE_FEE = PRICING.VISIT_FEE.CLIENT_TOTAL_CENTS / 100; // 429 (pesos — total client pays)
 
 export const VISIT_DISPLAY = {
   subtotal: formatMXN(PRICING.VISIT_FEE.CLIENT_TOTAL_CENTS - PRICING.VISIT_FEE.IVA_AMOUNT_CENTS), // pre-IVA
