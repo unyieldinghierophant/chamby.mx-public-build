@@ -215,7 +215,10 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
     if (savedData) {
       setTaskDescription(savedData.taskDescription || "");
       if (savedData.datePreference) setDatePreference(savedData.datePreference);
-      if (savedData.specificDate) setSpecificDate(new Date(savedData.specificDate));
+      if (savedData.specificDate) {
+        const parsed = new Date(savedData.specificDate);
+        if (!isNaN(parsed.getTime())) setSpecificDate(parsed);
+      }
       if (savedData.needsSpecificTime !== undefined) setNeedsSpecificTime(savedData.needsSpecificTime);
       setSelectedTimeSlots(savedData.selectedTimeSlots || []);
       setLocation(savedData.location || "");
@@ -521,7 +524,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
         photos: uploadedFiles.filter(f => f.uploaded).map(f => f.url),
         rate: VISIT_BASE_FEE,
         status: 'pending' as const,
-        scheduled_at: scheduledDate.toISOString(),
+        scheduled_at: scheduledDate instanceof Date ? scheduledDate.toISOString() : typeof scheduledDate === 'string' ? scheduledDate : new Date().toISOString(),
         time_preference: selectedTimeSlots.join(', '),
         exact_time: needsSpecificTime ? selectedTimeSlots.join(', ') : '',
         budget: '',

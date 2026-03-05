@@ -129,7 +129,17 @@ export const ElectricalBookingFlow = ({ intentText = "" }: ElectricalBookingFlow
   useEffect(() => {
     const saved = loadFormData();
     if (saved?.electricalFormData) {
-      setFormData(prev => ({ ...prev, ...saved.electricalFormData, photos: [] }));
+      const restored = { ...saved.electricalFormData };
+      if (restored.scheduledDate) {
+        const parsed = new Date(restored.scheduledDate);
+        restored.scheduledDate = !isNaN(parsed.getTime()) ? parsed : null;
+      }
+      if (restored.photos && Array.isArray(restored.photos)) {
+        restored.photos = restored.photos.filter((p: any) => p?.uploaded && p?.url && !p.url.startsWith('blob:'));
+      } else {
+        restored.photos = [];
+      }
+      setFormData(prev => ({ ...prev, ...restored }));
       setCurrentStep(saved.currentStep || 1);
     } else if (intentText) {
       // Auto-match search intent to a service pill and skip to step 2
@@ -147,7 +157,10 @@ export const ElectricalBookingFlow = ({ intentText = "" }: ElectricalBookingFlow
 
   useEffect(() => {
     if (formData.service) {
-      saveFormData({ electricalFormData: { ...formData, photos: [] }, currentStep });
+      const persistablePhotos = formData.photos
+        .filter(f => f.uploaded && f.url && !f.url.startsWith('blob:'))
+        .map(f => ({ file: null, url: f.url, uploaded: true }));
+      saveFormData({ electricalFormData: { ...formData, photos: persistablePhotos }, currentStep });
     }
   }, [formData, currentStep]);
 
@@ -335,7 +348,7 @@ export const ElectricalBookingFlow = ({ intentText = "" }: ElectricalBookingFlow
         photos: formData.photos.filter(f => f.uploaded).map(f => f.url),
         rate: VISIT_BASE_FEE,
         status: 'pending' as const,
-        scheduled_at: scheduledDate.toISOString(),
+        scheduled_at: scheduledDate instanceof Date ? scheduledDate.toISOString() : typeof scheduledDate === 'string' ? scheduledDate : new Date().toISOString(),
         time_preference: formData.schedule || '',
         exact_time: '',
         budget: '',
@@ -380,7 +393,10 @@ export const ElectricalBookingFlow = ({ intentText = "" }: ElectricalBookingFlow
 
   const handleAuthLogin = () => {
     localStorage.setItem('login_context', 'client');
-    saveFormData({ electricalFormData: { ...formData, photos: [] }, currentStep });
+    const persistablePhotos = formData.photos
+      .filter(f => f.uploaded && f.url && !f.url.startsWith('blob:'))
+      .map(f => ({ file: null, url: f.url, uploaded: true }));
+    saveFormData({ electricalFormData: { ...formData, photos: persistablePhotos }, currentStep });
     const returnPath = '/book-job?category=Electricidad';
     sessionStorage.setItem('auth_return_to', returnPath);
     localStorage.setItem('auth_return_to', returnPath);
