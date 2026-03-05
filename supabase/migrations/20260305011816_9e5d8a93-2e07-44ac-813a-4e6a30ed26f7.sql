@@ -1,0 +1,1 @@
+ALTER TABLE jobs ALTER COLUMN visit_fee_amount SET DEFAULT 429;

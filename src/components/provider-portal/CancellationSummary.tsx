@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertTriangle, DollarSign } from "lucide-react";
+import { PRICING, formatMXN } from "@/utils/pricingConfig";
 
 interface CancellationSummaryProps {
   jobStatus: string;
@@ -13,7 +14,7 @@ interface CancellationSummaryProps {
  * - After "on_site": Provider receives visit fee + $250 MXN compensation
  * - Platform retains $100 MXN from visit fee
  */
-export const CancellationSummary = ({ jobStatus, visitFeeAmount = 350 }: CancellationSummaryProps) => {
+export const CancellationSummary = ({ jobStatus, visitFeeAmount = PRICING.VISIT_FEE.CLIENT_TOTAL_CENTS / 100 }: CancellationSummaryProps) => {
   const afterOnSite = ["on_site", "quoted", "in_progress"].includes(jobStatus);
   const compensation = afterOnSite ? 250 : 0;
   const platformRetention = 100;

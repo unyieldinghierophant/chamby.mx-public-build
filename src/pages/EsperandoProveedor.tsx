@@ -107,7 +107,7 @@ const EsperandoProveedor = () => {
 
     // Verify payment
     const hasValidPayment = data.stripe_visit_payment_intent_id ||
-      (data.visit_fee_paid && ["searching", "active", "unassigned"].includes(data.status));
+      (data.visit_fee_paid && ["searching", "assigned"].includes(data.status));
 
     if (!hasValidPayment) {
       toast.info("Aún no has completado el pago de visita");
