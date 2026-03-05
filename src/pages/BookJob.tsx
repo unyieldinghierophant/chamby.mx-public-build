@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { JobBookingForm } from "@/components/JobBookingForm";
 import { HandymanBookingFlow } from "@/components/handyman/HandymanBookingFlow";
 import { GardeningBookingFlow } from "@/components/gardening/GardeningBookingFlow";
@@ -12,6 +12,9 @@ import ChambyLogoText from "@/components/ChambyLogoText";
 import { ROUTES } from "@/constants/routes";
 import { WizardIntentStep } from "@/components/booking/WizardIntentStep";
 
+const INTENT_CONFIRMED_KEY = 'booking_intent_confirmed';
+const INTENT_TEXT_KEY = 'booking_confirmed_intent_text';
+
 const BookJob = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -24,9 +27,34 @@ const BookJob = () => {
   const [intentConfirmed, setIntentConfirmed] = useState(false);
   const [confirmedIntent, setConfirmedIntent] = useState("");
 
+  // On mount, check if intent was already confirmed (returning from OAuth redirect)
+  useEffect(() => {
+    const wasConfirmed = localStorage.getItem(INTENT_CONFIRMED_KEY);
+    const savedIntentText = localStorage.getItem(INTENT_TEXT_KEY);
+    if (wasConfirmed === 'true' && (intentParam || savedIntentText)) {
+      setConfirmedIntent(savedIntentText || intentParam);
+      setIntentConfirmed(true);
+    }
+  }, []);
+
+  // Clear intent confirmation when navigating away from booking
+  useEffect(() => {
+    return () => {
+      // Only clear if navigating away (not on re-render)
+      const currentPath = window.location.pathname;
+      if (!currentPath.startsWith('/book-job')) {
+        localStorage.removeItem(INTENT_CONFIRMED_KEY);
+        localStorage.removeItem(INTENT_TEXT_KEY);
+      }
+    };
+  }, []);
+
   const handleIntentConfirm = (text: string) => {
     setConfirmedIntent(text);
     setIntentConfirmed(true);
+    // Persist so it survives OAuth redirects
+    localStorage.setItem(INTENT_CONFIRMED_KEY, 'true');
+    localStorage.setItem(INTENT_TEXT_KEY, text);
   };
 
   // Determine which specialized flow to render based on category
@@ -46,7 +74,12 @@ const BookJob = () => {
             <ChambyLogoText onClick={() => navigate(ROUTES.USER_LANDING)} size="lg" />
           </div>
           <button
-            onClick={() => navigate(ROUTES.USER_LANDING)}
+            onClick={() => {
+              // Clear intent persistence when user explicitly closes
+              localStorage.removeItem(INTENT_CONFIRMED_KEY);
+              localStorage.removeItem(INTENT_TEXT_KEY);
+              navigate(ROUTES.USER_LANDING);
+            }}
             className="ml-auto p-2 hover:bg-accent rounded-lg transition-colors"
             aria-label="Close"
           >

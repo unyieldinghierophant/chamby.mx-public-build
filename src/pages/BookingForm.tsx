@@ -89,25 +89,55 @@ const BookingForm = () => {
 
       const totalAmount = job.rate * duration;
 
+      // Ensure auth session is fresh before DB insert
+      const { data: { session: freshSession } } = await supabase.auth.getSession();
+      if (!freshSession?.user?.id) {
+        toast.error("Tu sesión expiró. Por favor inicia sesión de nuevo.");
+        setSubmitting(false);
+        return;
+      }
+      const authenticatedUserId = freshSession.user.id;
+
+      const jobInsertData = {
+        client_id: authenticatedUserId,
+        provider_id: job.provider_id,
+        title: job.title,
+        description: specialInstructions || job.description,
+        category: job.category,
+        scheduled_at: bookingDate.toISOString(),
+        duration_hours: duration,
+        total_amount: totalAmount,
+        location: address,
+        rate: job.rate,
+        status: 'pending' as const
+      };
+
       const { data: booking, error: bookingError } = await supabase
         .from('jobs')
-        .insert({
-          client_id: user.id,
-          provider_id: job.provider_id,
-          title: job.title,
-          description: specialInstructions || job.description,
-          category: job.category,
-          scheduled_at: bookingDate.toISOString(),
-          duration_hours: duration,
-          total_amount: totalAmount,
-          location: address,
-          rate: job.rate,
-          status: 'pending'
-        })
+        .insert(jobInsertData)
         .select()
         .single();
 
-      if (bookingError) throw bookingError;
+      if (bookingError) {
+        if (bookingError.message?.includes('row-level security')) {
+          const { data: { session: refreshed } } = await supabase.auth.refreshSession();
+          if (refreshed?.user?.id) {
+            const { data: retryBooking, error: retryError } = await supabase
+              .from('jobs')
+              .insert({ ...jobInsertData, client_id: refreshed.user.id })
+              .select()
+              .single();
+            if (!retryError && retryBooking) {
+              toast.success('¡Solicitud enviada! El proveedor será notificado.');
+              navigate(`/booking-summary/${retryBooking.id}`);
+              return;
+            }
+          }
+          toast.error("Error de sesión. Por favor cierra sesión, vuelve a entrar, e intenta de nuevo.");
+          return;
+        }
+        throw bookingError;
+      }
 
       toast.success('¡Solicitud enviada! El proveedor será notificado.');
       navigate(`/booking-summary/${booking.id}`);

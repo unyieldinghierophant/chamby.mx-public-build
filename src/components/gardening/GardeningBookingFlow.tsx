@@ -281,30 +281,57 @@ export const GardeningBookingFlow = ({ intentText = "" }: { intentText?: string 
       const richDescription = parts.join('\n');
       const scheduledDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-      const { data: newJob, error } = await supabase
+      // Ensure auth session is fresh before DB insert
+      const { data: { session: freshSession } } = await supabase.auth.getSession();
+      if (!freshSession?.user?.id) {
+        toast({ title: "Tu sesión expiró", description: "Por favor inicia sesión de nuevo.", variant: "destructive" });
+        setIsSubmitting(false);
+        return;
+      }
+      const authenticatedUserId = freshSession.user.id;
+
+      const jobInsertData = {
+        client_id: authenticatedUserId,
+        provider_id: null,
+        title: `Jardinería: ${servicesText.substring(0, 80)}`,
+        description: richDescription,
+        category: 'Jardinería',
+        service_type: formData.services[0] || 'general',
+        problem: richDescription,
+        location: '',
+        photos: formData.photos.filter(f => f.uploaded).map(f => f.url),
+        rate: VISIT_BASE_FEE,
+        status: 'pending' as const,
+        scheduled_at: scheduledDate.toISOString(),
+        time_preference: '',
+        exact_time: '',
+        budget: '',
+        photo_count: formData.photos.filter(f => f.uploaded).length,
+      };
+
+      let newJob: { id: string } | null = null;
+      const { data: insertedJob, error } = await supabase
         .from('jobs')
-        .insert({
-          client_id: user.id,
-          provider_id: null,
-          title: `Jardinería: ${servicesText.substring(0, 80)}`,
-          description: richDescription,
-          category: 'Jardinería',
-          service_type: formData.services[0] || 'general',
-          problem: richDescription,
-          location: '',
-          photos: formData.photos.filter(f => f.uploaded).map(f => f.url),
-          rate: VISIT_BASE_FEE,
-          status: 'pending',
-          scheduled_at: scheduledDate.toISOString(),
-          time_preference: '',
-          exact_time: '',
-          budget: '',
-          photo_count: formData.photos.filter(f => f.uploaded).length,
-        })
+        .insert(jobInsertData)
         .select('id')
         .single();
 
-      if (error) throw error;
+      if (error) {
+        if (error.message?.includes('row-level security')) {
+          const { data: { session: refreshed } } = await supabase.auth.refreshSession();
+          if (refreshed?.user?.id) {
+            const { data: retryJob, error: retryError } = await supabase
+              .from('jobs')
+              .insert({ ...jobInsertData, client_id: refreshed.user.id })
+              .select('id')
+              .single();
+            if (!retryError && retryJob) { newJob = retryJob; }
+            else { toast({ title: "Error de sesión", description: "Por favor cierra sesión, vuelve a entrar, e intenta de nuevo.", variant: "destructive" }); setIsSubmitting(false); return; }
+          } else { toast({ title: "Error de sesión", description: "Por favor cierra sesión, vuelve a entrar, e intenta de nuevo.", variant: "destructive" }); setIsSubmitting(false); return; }
+        } else { throw error; }
+      } else { newJob = insertedJob; }
+
+      if (!newJob) throw new Error('No se pudo crear el trabajo');
 
       clearFormData();
       setCreatedJobId(newJob.id);
@@ -318,6 +345,7 @@ export const GardeningBookingFlow = ({ intentText = "" }: { intentText?: string 
   };
 
   const handleAuthLogin = () => {
+    localStorage.setItem('login_context', 'client');
     saveFormData({ gardeningFormData: { ...formData, photos: [] }, currentStep });
     const returnPath = '/book-job?category=Jardinería';
     sessionStorage.setItem('auth_return_to', returnPath);
