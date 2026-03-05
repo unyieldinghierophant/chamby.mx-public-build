@@ -64,6 +64,19 @@ serve(async (req) => {
       throw new Error(`Invoice status must be 'accepted', got '${invoice.status}'`);
     }
 
+    // Verify job is in quote_accepted status
+    const { data: job, error: jobError } = await supabaseClient
+      .from("jobs")
+      .select("status")
+      .eq("id", invoice.job_id)
+      .single();
+
+    if (jobError || !job) throw new Error("Job not found");
+    if (job.status !== "quote_accepted") {
+      throw new Error(`Job status must be 'quote_accepted', got '${job.status}'`);
+    }
+    logStep("Job status validated", { jobStatus: job.status });
+
     // Calculate amount in centavos for Stripe (total_customer_amount is in pesos)
     const amountCentavos = Math.round(invoice.total_customer_amount * 100);
     const baseCentavos = Math.round((invoice.subtotal_provider ?? invoice.total_customer_amount) * 100);
@@ -109,16 +122,16 @@ serve(async (req) => {
             currency: "mxn",
             unit_amount: amountCentavos,
             product_data: {
-              name: `Factura del trabajo`,
-              description: `Pago de factura #${invoice.id.slice(0, 8)}`,
+              name: "Servicio a domicilio — Chamby",
+              description: `Pago de servicio #${invoice.id.slice(0, 8)}`,
             },
           },
           quantity: 1,
         },
       ],
       mode: "payment",
-      success_url: `${origin}/active-jobs?invoice_paid=true`,
-      cancel_url: `${origin}/active-jobs?invoice_cancelled=true`,
+      success_url: `${origin}/active-jobs?job_paid=true&job_id=${invoice.job_id}`,
+      cancel_url: `${origin}/active-jobs?payment_cancelled=true`,
       metadata: {
         type: "invoice_payment",
         invoiceId: invoice.id,
@@ -127,7 +140,7 @@ serve(async (req) => {
         userId: user.id,
         base_amount_cents: String(baseCentavos),
         vat_amount_cents: String(vatCentavos),
-        pricing_version: "invoice_v2_iva16",
+        pricing_version: "job_v1_10pct_split",
       },
     });
 
@@ -160,7 +173,7 @@ serve(async (req) => {
         base_amount_cents: baseCentavos,
         vat_amount_cents: vatCentavos,
         total_amount_cents: amountCentavos,
-        pricing_version: "invoice_v2_iva16",
+        pricing_version: "job_v1_10pct_split",
       });
 
     logStep("Payment ledger entry created");

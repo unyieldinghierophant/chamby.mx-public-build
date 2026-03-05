@@ -8,6 +8,7 @@ import { ArrowLeft, Calendar, XCircle, Plus, MessageCircle, MapPin, Clock, Alert
 import { InvoiceCard } from "@/components/provider-portal/InvoiceCard";
 import { JobInvoiceSection } from "@/components/JobInvoiceSection";
 import { ClientQuoteReview } from "@/components/quotes/ClientQuoteReview";
+import { QuotePaymentCard } from "@/components/payments/QuotePaymentCard";
 import { DisputeModal } from "@/components/DisputeModal";
 import { JobTrackingMap } from "@/components/JobTrackingMap";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -92,9 +93,16 @@ const ActiveJobs = () => {
       searchParams.delete("invoice_paid");
       setSearchParams(searchParams, { replace: true });
     }
-    if (searchParams.get("invoice_cancelled") === "true") {
+    if (searchParams.get("job_paid") === "true") {
+      toast.success("¡Pago procesado! El proveedor comenzará pronto.", { duration: 5000 });
+      searchParams.delete("job_paid");
+      searchParams.delete("job_id");
+      setSearchParams(searchParams, { replace: true });
+    }
+    if (searchParams.get("invoice_cancelled") === "true" || searchParams.get("payment_cancelled") === "true") {
       toast.error("Pago cancelado. Puedes pagar desde el detalle del trabajo.", { duration: 5000 });
       searchParams.delete("invoice_cancelled");
+      searchParams.delete("payment_cancelled");
       setSearchParams(searchParams, { replace: true });
     }
   }, []);
@@ -600,6 +608,14 @@ const ActiveJobs = () => {
                   jobId={selectedJob.id}
                   invoice={selectedJob.invoice}
                   onResponse={fetchActiveJobs}
+                />
+              )}
+
+              {/* Quote Payment — shown when job is 'quote_accepted' and invoice is 'accepted' */}
+              {selectedJob.status === "quote_accepted" && selectedJob.invoice && selectedJob.invoice.status === "accepted" && (
+                <QuotePaymentCard
+                  jobId={selectedJob.id}
+                  invoice={selectedJob.invoice}
                 />
               )}
 
