@@ -125,3 +125,9 @@ verify_jwt = false
 
 [functions.schedule-followup]
 verify_jwt = true
+
+[functions.submit-quote]
+verify_jwt = false
+
+[functions.respond-to-quote]
+verify_jwt = false

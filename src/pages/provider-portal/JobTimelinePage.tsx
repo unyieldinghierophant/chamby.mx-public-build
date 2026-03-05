@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Receipt, CheckCircle as CheckCircleInvoice, XCircle as XCircleInvoice, RefreshCw, Clock as ClockInvoice } from "lucide-react";
+import { ProviderQuoteForm } from "@/components/quotes/ProviderQuoteForm";
 import { supabase } from "@/integrations/supabase/client";
 import { DisputeModal } from "@/components/DisputeModal";
 import { useAuth } from "@/contexts/AuthContext";
@@ -716,8 +717,13 @@ const JobTimelinePage = () => {
               <CardContent className="p-4 space-y-3">
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Acciones</h3>
 
-                {/* Invoice creation area */}
-                {(currentStatus === 'on_site' || currentStatus === 'quoted' || currentStatus === 'in_progress') && (
+                {/* Quote form when on_site — replaces old InvoiceCard for quote stage */}
+                {currentStatus === 'on_site' && !invoice && (
+                  <ProviderQuoteForm jobId={job.id} onQuoteSubmitted={fetchAll} />
+                )}
+
+                {/* Legacy InvoiceCard for later statuses */}
+                {(currentStatus === 'quoted' || currentStatus === 'in_progress') && (
                   <InvoiceCard
                     jobId={job.id}
                     clientId={job.client_id}
