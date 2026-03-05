@@ -586,9 +586,11 @@ export type Database = {
           amount: number
           created_at: string
           id: string
-          invoice_id: string
+          invoice_id: string | null
+          job_id: string | null
           notes: string | null
           paid_at: string | null
+          payout_type: string | null
           provider_id: string
           status: string
           stripe_transfer_id: string | null
@@ -598,9 +600,11 @@ export type Database = {
           amount?: number
           created_at?: string
           id?: string
-          invoice_id: string
+          invoice_id?: string | null
+          job_id?: string | null
           notes?: string | null
           paid_at?: string | null
+          payout_type?: string | null
           provider_id: string
           status?: string
           stripe_transfer_id?: string | null
@@ -610,9 +614,11 @@ export type Database = {
           amount?: number
           created_at?: string
           id?: string
-          invoice_id?: string
+          invoice_id?: string | null
+          job_id?: string | null
           notes?: string | null
           paid_at?: string | null
+          payout_type?: string | null
           provider_id?: string
           status?: string
           stripe_transfer_id?: string | null
@@ -624,6 +630,13 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payouts_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
             referencedColumns: ["id"]
           },
           {
