@@ -261,6 +261,36 @@ serve(async (req) => {
             .update({ status: "succeeded" })
             .eq("stripe_checkout_session_id", session.id);
 
+          // Transition job to in_progress (idempotent — only if quote_accepted)
+          if (metadata.jobId) {
+            const { data: currentJob } = await supabaseClient
+              .from("jobs")
+              .select("status")
+              .eq("id", metadata.jobId)
+              .single();
+
+            if (currentJob?.status === "quote_accepted") {
+              const { error: jobUpdateErr } = await supabaseClient
+                .from("jobs")
+                .update({
+                  status: "in_progress",
+                  updated_at: new Date().toISOString(),
+                })
+                .eq("id", metadata.jobId);
+
+              if (jobUpdateErr) {
+                logStep("Failed to transition job to in_progress", { error: jobUpdateErr.message });
+              } else {
+                logStep("Job transitioned to in_progress", { jobId: metadata.jobId });
+              }
+            } else {
+              logStep("Skipping job transition — not in quote_accepted", {
+                jobId: metadata.jobId,
+                currentStatus: currentJob?.status,
+              });
+            }
+          }
+
           // Notify provider
           if (metadata.providerId) {
             await supabaseClient
@@ -268,8 +298,8 @@ serve(async (req) => {
               .insert({
                 user_id: metadata.providerId,
                 type: "payment_received",
-                title: "Pago de factura recibido",
-                message: "El cliente ha pagado la factura del trabajo",
+                title: "El cliente pagó — comienza el trabajo",
+                message: "El cliente pagó. Ya puedes comenzar el trabajo.",
                 link: `/provider-portal/jobs`,
                 data: { invoiceId, jobId: metadata.jobId },
               });
@@ -282,8 +312,8 @@ serve(async (req) => {
               .insert({
                 user_id: metadata.userId,
                 type: "payment_confirmed",
-                title: "Pago de factura confirmado",
-                message: "Tu pago ha sido procesado exitosamente",
+                title: "Pago procesado",
+                message: "Tu pago fue procesado. El proveedor comenzará pronto.",
                 link: `/active-jobs`,
                 data: { invoiceId, type: "invoice_payment" },
               });
