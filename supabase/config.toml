@@ -131,3 +131,6 @@ verify_jwt = false
 
 [functions.respond-to-quote]
 verify_jwt = false
+
+[functions.transition-job-status]
+verify_jwt = false

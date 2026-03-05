@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Receipt, CheckCircle as CheckCircleInvoice, XCircle as XCircleInvoice, RefreshCw, Clock as ClockInvoice } from "lucide-react";
 import { ProviderQuoteForm } from "@/components/quotes/ProviderQuoteForm";
+import { ProviderStatusSections } from "@/components/provider-portal/ProviderStatusSections";
 import { supabase } from "@/integrations/supabase/client";
 import { DisputeModal } from "@/components/DisputeModal";
 import { useAuth } from "@/contexts/AuthContext";
@@ -269,42 +270,26 @@ const JobTimelinePage = () => {
     };
   }, [jobId, user]);
 
-  const handleTransition = async (nextStatus: JobStatus) => {
+  const handleTransition = async (nextStatus: string) => {
     if (!job || !user) return;
 
-    // No client-only actions in new flow
-
-    // Completion via edge function
-    if (nextStatus === 'completed') {
-      setMarkingDone(true);
-      try {
-        const { data, error: fnError } = await supabase.functions.invoke('complete-job', {
-          body: { job_id: job.id, action: 'provider_mark_done' },
-        });
-        if (fnError || data?.error) {
-          toast.error(data?.error || fnError?.message || 'Error al marcar como terminado');
-          setMarkingDone(false);
-          return;
-        }
-        toast.success('Trabajo marcado como terminado. Esperando confirmación del cliente.');
-        setMarkingDone(false);
-        await fetchAll();
-      } catch (err) {
-        toast.error('Error inesperado');
-        setMarkingDone(false);
-      }
-      return;
-    }
-
     setTransitioning(true);
-    const result = await transitionStatus(job.id, nextStatus, job.client_id);
-    setTransitioning(false);
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke('transition-job-status', {
+        body: { job_id: job.id, new_status: nextStatus },
+      });
 
-    if (result.success) {
+      if (fnError || data?.error) {
+        toast.error(data?.error || fnError?.message || 'Error al actualizar estado');
+        return;
+      }
+
       toast.success(`Estado actualizado: ${getStatusLabel(nextStatus)}`);
       await fetchAll();
-    } else {
-      toast.error(result.error || 'Error al actualizar estado');
+    } catch (err: any) {
+      toast.error(err.message || 'Error inesperado');
+    } finally {
+      setTransitioning(false);
     }
   };
 
@@ -711,60 +696,15 @@ const JobTimelinePage = () => {
             </CardContent>
           </Card>
 
-          {/* ── 6. Contextual Actions Section ── */}
-          {!isTerminal && (
-            <Card className="border-primary/20 bg-primary/5">
-              <CardContent className="p-4 space-y-3">
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Acciones</h3>
-
-                {/* Quote form when on_site — replaces old InvoiceCard for quote stage */}
-                {currentStatus === 'on_site' && !invoice && (
-                  <ProviderQuoteForm jobId={job.id} onQuoteSubmitted={fetchAll} />
-                )}
-
-                {/* Legacy InvoiceCard for later statuses */}
-                {(currentStatus === 'quoted' || currentStatus === 'in_progress') && (
-                  <InvoiceCard
-                    jobId={job.id}
-                    clientId={job.client_id}
-                    jobStatus={currentStatus}
-                    invoice={invoice}
-                    onInvoiceCreated={fetchAll}
-                    isProvider={true}
-                  />
-                )}
-
-                {/* Status transition actions */}
-                {actions.map((action) => {
-                  const Icon = action.icon;
-                  const isClientAction = false; // no client-only actions in new flow
-                  if (action.nextStatus === 'provider_done' || action.nextStatus === 'completed') {
-                    if (!invoice || invoice.status !== 'paid') return null;
-                  }
-                  return (
-                    <Button
-                      key={action.nextStatus}
-                      onClick={() => handleTransition(action.nextStatus)}
-                      disabled={transitioning || markingDone || isClientAction}
-                      className={cn("w-full gap-2", isClientAction && "opacity-60")}
-                      variant={isClientAction ? "outline" : "default"}
-                    >
-                      {(transitioning || markingDone) ? <Loader2 className="w-4 h-4 animate-spin" /> : <Icon className="w-4 h-4" />}
-                      {action.label}
-                    </Button>
-                  );
-                })}
-
-                {/* Quoted waiting state */}
-                {currentStatus === 'quoted' && invoice?.status === 'sent' && (
-                  <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-                    <Clock className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">Esperando aprobación del cliente</span>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
+          {/* ── 6. State-Dependent Actions ── */}
+          <ProviderStatusSections
+            status={currentStatus}
+            jobId={job.id}
+            invoice={invoice}
+            transitioning={transitioning}
+            onTransition={handleTransition}
+            onQuoteSubmitted={fetchAll}
+          />
 
           {/* Invoice Section */}
           <JobInvoiceSection

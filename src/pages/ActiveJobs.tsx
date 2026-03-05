@@ -5,10 +5,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, XCircle, Plus, MessageCircle, MapPin, Clock, AlertTriangle } from "lucide-react";
+import { getStatusLabel, getStatusColor, JOB_STATUS_CONFIG } from "@/utils/jobStateMachine";
 import { InvoiceCard } from "@/components/provider-portal/InvoiceCard";
 import { JobInvoiceSection } from "@/components/JobInvoiceSection";
 import { ClientQuoteReview } from "@/components/quotes/ClientQuoteReview";
 import { QuotePaymentCard } from "@/components/payments/QuotePaymentCard";
+import { ClientStatusSections } from "@/components/client/ClientStatusSections";
 import { DisputeModal } from "@/components/DisputeModal";
 import { JobTrackingMap } from "@/components/JobTrackingMap";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -81,6 +83,7 @@ const ActiveJobs = () => {
   const [loading, setLoading] = useState(true);
   const [selectedJob, setSelectedJob] = useState<ActiveJob | null>(null);
   const [confirmingCompletion, setConfirmingCompletion] = useState(false);
+  const [clientTransitioning, setClientTransitioning] = useState(false);
   const [disputeModalOpen, setDisputeModalOpen] = useState(false);
   const [rescheduleDialogOpen, setRescheduleDialogOpen] = useState(false);
   const [ratingJob, setRatingJob] = useState<ActiveJob | null>(null);
@@ -245,6 +248,27 @@ const ActiveJobs = () => {
       toast.error('Error inesperado');
     } finally {
       setConfirmingCompletion(false);
+    }
+  };
+
+  const handleClientTransition = async (newStatus: string) => {
+    if (!selectedJob || !user) return;
+    setClientTransitioning(true);
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke('transition-job-status', {
+        body: { job_id: selectedJob.id, new_status: newStatus },
+      });
+      if (fnError || data?.error) {
+        toast.error(data?.error || fnError?.message || 'Error al actualizar');
+        return;
+      }
+      toast.success('¡Trabajo confirmado! El pago será liberado al proveedor.');
+      fetchActiveJobs();
+      checkForRatingJob();
+    } catch (err) {
+      toast.error('Error inesperado');
+    } finally {
+      setClientTransitioning(false);
     }
   };
 
@@ -425,7 +449,7 @@ const ActiveJobs = () => {
                           </Badge>
                         )}
                         <Badge variant={job.provider_id ? "default" : "secondary"}>
-                          {job.status}
+                          {getStatusLabel(job.status)}
                         </Badge>
                       </div>
                     </div>
@@ -472,8 +496,8 @@ const ActiveJobs = () => {
                 />
               )}
 
-              {/* Completion Confirmation Banner */}
-              {needsCompletionConfirmation(selectedJob) && !selectedJob.has_open_dispute && (
+              {/* Completion Confirmation Banner — legacy fallback */}
+              {needsCompletionConfirmation(selectedJob) && !selectedJob.has_open_dispute && selectedJob.status !== 'provider_done' && (
                 <Card className="border-primary/50 bg-primary/5">
                   <CardContent className="p-4 space-y-3">
                     <h3 className="font-semibold text-foreground">
@@ -522,8 +546,22 @@ const ActiveJobs = () => {
                 </Card>
               )}
 
+              {/* State-dependent UI */}
+              <ClientStatusSections
+                job={{
+                  id: selectedJob.id,
+                  status: selectedJob.status,
+                  provider_id: selectedJob.provider_id,
+                  invoice: selectedJob.invoice,
+                  provider: selectedJob.provider,
+                }}
+                transitioning={clientTransitioning}
+                onTransition={handleClientTransition}
+                onRefresh={fetchActiveJobs}
+              />
+
               {/* Provider Info */}
-              {selectedJob.provider && (
+              {selectedJob.provider && selectedJob.status !== 'assigned' && (
                 <Card>
                   <CardContent className="p-6">
                     <h3 className="font-semibold mb-4">Tu Chambynauta</h3>
@@ -601,23 +639,6 @@ const ActiveJobs = () => {
                   </div>
                 </CardContent>
               </Card>
-
-              {/* Quote Review — shown when job is 'quoted' and invoice is 'sent' */}
-              {selectedJob.status === "quoted" && selectedJob.invoice && selectedJob.invoice.status === "sent" && (
-                <ClientQuoteReview
-                  jobId={selectedJob.id}
-                  invoice={selectedJob.invoice}
-                  onResponse={fetchActiveJobs}
-                />
-              )}
-
-              {/* Quote Payment — shown when job is 'quote_accepted' and invoice is 'accepted' */}
-              {selectedJob.status === "quote_accepted" && selectedJob.invoice && selectedJob.invoice.status === "accepted" && (
-                <QuotePaymentCard
-                  jobId={selectedJob.id}
-                  invoice={selectedJob.invoice}
-                />
-              )}
 
               {/* Invoice Section - client side */}
               <JobInvoiceSection
