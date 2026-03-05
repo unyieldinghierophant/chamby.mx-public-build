@@ -499,33 +499,74 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
 
       // Create job entry in jobs table
       const scheduledDate = specificDate || new Date(Date.now() + 24 * 60 * 60 * 1000);
-      
-      const { data: newJob, error: jobError } = await supabase
+
+      // Ensure auth session is fresh before DB insert
+      const { data: { session: freshSession } } = await supabase.auth.getSession();
+      if (!freshSession?.user?.id) {
+        toast({ title: "Tu sesión expiró", description: "Por favor inicia sesión de nuevo.", variant: "destructive" });
+        setIsSubmitting(false);
+        return;
+      }
+      const authenticatedUserId = freshSession.user.id;
+
+      const jobInsertData = {
+        client_id: authenticatedUserId,
+        provider_id: null,
+        title: taskDescription,
+        description: details,
+        category: category || 'General',
+        service_type: taskDescription,
+        problem: details,
+        location: location,
+        photos: uploadedFiles.filter(f => f.uploaded).map(f => f.url),
+        rate: VISIT_BASE_FEE,
+        status: 'pending' as const,
+        scheduled_at: scheduledDate.toISOString(),
+        time_preference: selectedTimeSlots.join(', '),
+        exact_time: needsSpecificTime ? selectedTimeSlots.join(', ') : '',
+        budget: '',
+        photo_count: uploadedFiles.filter(f => f.uploaded).length
+      };
+
+      let newJob: { id: string } | null = null;
+      const { data: insertedJob, error: jobError } = await supabase
         .from('jobs')
-        .insert({
-          client_id: user.id,
-          provider_id: null,
-          title: taskDescription,
-          description: details,
-          category: category || 'General',
-          service_type: taskDescription,
-          problem: details,
-          location: location,
-          photos: uploadedFiles.filter(f => f.uploaded).map(f => f.url),
-          rate: VISIT_BASE_FEE,
-          status: 'pending',
-          scheduled_at: scheduledDate.toISOString(),
-          time_preference: selectedTimeSlots.join(', '),
-          exact_time: needsSpecificTime ? selectedTimeSlots.join(', ') : '',
-          budget: '',
-          photo_count: uploadedFiles.filter(f => f.uploaded).length
-        })
+        .insert(jobInsertData)
         .select('id')
         .single();
 
       if (jobError) {
         console.error('Error creating job:', jobError);
-        throw jobError;
+        if (jobError.message?.includes('row-level security')) {
+          // Session mismatch — try refreshing and retrying once
+          const { data: { session: refreshed } } = await supabase.auth.refreshSession();
+          if (refreshed?.user?.id) {
+            const { data: retryJob, error: retryError } = await supabase
+              .from('jobs')
+              .insert({ ...jobInsertData, client_id: refreshed.user.id })
+              .select('id')
+              .single();
+            if (!retryError && retryJob) {
+              newJob = retryJob;
+            } else {
+              toast({ title: "Error de sesión", description: "Por favor cierra sesión, vuelve a entrar, e intenta de nuevo.", variant: "destructive" });
+              setIsSubmitting(false);
+              return;
+            }
+          } else {
+            toast({ title: "Error de sesión", description: "Por favor cierra sesión, vuelve a entrar, e intenta de nuevo.", variant: "destructive" });
+            setIsSubmitting(false);
+            return;
+          }
+        } else {
+          throw jobError;
+        }
+      } else {
+        newJob = insertedJob;
+      }
+
+      if (!newJob) {
+        throw new Error('No se pudo crear el trabajo');
       }
 
       console.log('✅ Job created successfully:', newJob.id);
@@ -563,6 +604,9 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
   };
 
   const handleAuthModalLogin = () => {
+    // Force client login context for booking flow
+    localStorage.setItem('login_context', 'client');
+    
     // Save form data before redirect - DON'T auto-submit, let user continue
     const formData = {
       taskDescription,

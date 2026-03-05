@@ -43,6 +43,15 @@ const JobListingForm = ({ onClose, onSuccess }: JobListingFormProps) => {
 
     setIsLoading(true);
     try {
+      // Ensure auth session is fresh before DB insert
+      const { data: { session: freshSession } } = await supabase.auth.getSession();
+      if (!freshSession?.user?.id) {
+        toast({ title: "Tu sesión expiró", description: "Por favor inicia sesión de nuevo.", variant: "destructive" });
+        setIsLoading(false);
+        return;
+      }
+      const authenticatedUserId = freshSession.user.id;
+
       const { error } = await supabase
         .from('jobs')
         .insert({
@@ -50,8 +59,8 @@ const JobListingForm = ({ onClose, onSuccess }: JobListingFormProps) => {
           description: formData.description,
           category: formData.category,
           rate: parseFloat(formData.rate),
-          client_id: user.id,
-          provider_id: user.id,
+          client_id: authenticatedUserId,
+          provider_id: authenticatedUserId,
           status: 'pending'
         });
 
