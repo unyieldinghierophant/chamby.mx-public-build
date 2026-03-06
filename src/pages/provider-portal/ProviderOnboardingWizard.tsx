@@ -1406,18 +1406,42 @@ export default function ProviderOnboardingWizard() {
   }
 
   function renderProfileStep() {
-    const handleProfilePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file || !user) return;
+    const [uploadingPhoto, setUploadingPhoto] = useState(false);
+    const [cropFile, setCropFile] = useState<File | null>(null);
+    const [showCropDialog, setShowCropDialog] = useState(false);
+    const photoInputRef = useRef<HTMLInputElement>(null);
 
-      setSaving(true);
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      // Validate file
+      if (!file.type.startsWith('image/')) {
+        toast.error('Por favor selecciona una imagen válida');
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('La imagen no debe superar los 10MB');
+        return;
+      }
+
+      setCropFile(file);
+      setShowCropDialog(true);
+      // Reset input so same file can be selected again
+      if (photoInputRef.current) photoInputRef.current.value = '';
+    };
+
+    const handleCropComplete = async (croppedBlob: Blob) => {
+      if (!user) return;
+      setShowCropDialog(false);
+      setUploadingPhoto(true);
+
       try {
-        const fileExt = file.name.split('.').pop();
-        const filePath = `${user.id}/avatar.${fileExt}`;
+        const filePath = `${user.id}/avatar.jpg`;
 
         const { error: uploadError } = await supabase.storage
           .from('avatars')
-          .upload(filePath, file, { upsert: true });
+          .upload(filePath, croppedBlob, { upsert: true, contentType: 'image/jpeg' });
 
         if (uploadError) throw uploadError;
 
@@ -1425,17 +1449,19 @@ export default function ProviderOnboardingWizard() {
           .from('avatars')
           .getPublicUrl(filePath);
 
-        // Update both tables
-        await supabase.from('users').update({ avatar_url: publicUrl }).eq('id', user.id);
-        await supabase.from('providers').update({ avatar_url: publicUrl }).eq('user_id', user.id);
+        const avatarUrlWithCache = `${publicUrl}?t=${Date.now()}`;
 
-        setProfileData(prev => ({ ...prev, avatarUrl: publicUrl }));
+        // Update both tables
+        await supabase.from('users').update({ avatar_url: avatarUrlWithCache }).eq('id', user.id);
+        await supabase.from('providers').update({ avatar_url: avatarUrlWithCache }).eq('user_id', user.id);
+
+        setProfileData(prev => ({ ...prev, avatarUrl: avatarUrlWithCache }));
         toast.success('¡Foto actualizada!');
       } catch (err: any) {
         console.error('Error uploading photo:', err);
-        toast.error('Error al subir la foto');
+        toast.error('Error al subir la foto', { description: err.message });
       } finally {
-        setSaving(false);
+        setUploadingPhoto(false);
       }
     };
 
@@ -1452,15 +1478,20 @@ export default function ProviderOnboardingWizard() {
 
         {/* Profile Photo Upload - Mandatory */}
         <div className="flex flex-col items-center gap-3">
-          <label htmlFor="profile-photo-upload" className="cursor-pointer group">
+          <label htmlFor="profile-photo-upload" className={cn("cursor-pointer group", uploadingPhoto && "pointer-events-none")}>
             <div className={cn(
-              "w-28 h-28 rounded-full border-4 border-dashed flex items-center justify-center overflow-hidden transition-all",
+              "w-28 h-28 rounded-full border-4 border-dashed flex items-center justify-center overflow-hidden transition-all relative",
               profileData.avatarUrl 
                 ? "border-primary" 
                 : "border-muted-foreground/30 group-hover:border-primary/50"
             )}>
-              {profileData.avatarUrl ? (
+              {profileData.avatarUrl && !uploadingPhoto ? (
                 <img src={profileData.avatarUrl} alt="Foto de perfil" className="w-full h-full object-cover" />
+              ) : uploadingPhoto ? (
+                <div className="flex flex-col items-center justify-center gap-1">
+                  <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                  <span className="text-[10px] text-muted-foreground">Subiendo...</span>
+                </div>
               ) : (
                 <div className="text-center p-2">
                   <User className="w-8 h-8 mx-auto text-muted-foreground/50 mb-1" />
@@ -1471,16 +1502,25 @@ export default function ProviderOnboardingWizard() {
           </label>
           <input
             id="profile-photo-upload"
+            ref={photoInputRef}
             type="file"
             accept="image/*"
-            capture="user"
             className="hidden"
-            onChange={handleProfilePhotoUpload}
+            onChange={handleFileSelect}
+            disabled={uploadingPhoto}
           />
           <p className="text-xs text-muted-foreground">
             Foto de perfil <span className="text-destructive">*</span> obligatoria
           </p>
         </div>
+
+        {/* Crop Dialog */}
+        <AvatarCropDialog
+          open={showCropDialog}
+          onOpenChange={setShowCropDialog}
+          imageFile={cropFile}
+          onCropComplete={handleCropComplete}
+        />
 
         {/* Work Experience Description */}
         <div className="space-y-2">
