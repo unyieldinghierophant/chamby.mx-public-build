@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
-import { Menu, X, LogOut, User, Settings, CreditCard, Users } from "lucide-react";
+import { Menu, X, LogOut, User, Settings, CreditCard, Users, ShieldCheck } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import ChambyLogoText from "@/components/ChambyLogoText";
 import {
@@ -21,7 +21,7 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [categoriesDialogOpen, setCategoriesDialogOpen] = useState(false);
   const { user, signOut } = useAuth();
-  const { role } = useUserRole();
+  const { role, isAdmin } = useUserRole();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -130,6 +130,12 @@ const Header = () => {
                         <span>Portal Proveedor</span>
                       </DropdownMenuItem>
                     )}
+                    {isAdmin && (
+                      <DropdownMenuItem onClick={() => navigate('/admin')}>
+                        <ShieldCheck className="mr-2 h-4 w-4" />
+                        <span>Panel Admin</span>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut} disabled={isLoggingOut}>
                       <LogOut className="mr-2 h-4 w-4" />
@@ -193,6 +199,15 @@ const Header = () => {
                   >
                     Perfil
                   </Link>
+                  {isAdmin && (
+                    <Link 
+                      to="/admin"
+                      className="block py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Panel Admin
+                    </Link>
+                  )}
                   <button
                     onClick={() => { handleSignOut(); setIsMenuOpen(false); }}
                     className="block w-full text-left py-3 text-lg font-medium text-destructive hover:text-destructive/80 transition-colors"
