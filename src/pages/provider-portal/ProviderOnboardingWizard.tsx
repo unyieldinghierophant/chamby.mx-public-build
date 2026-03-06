@@ -73,18 +73,18 @@ import { CURATED_SKILL_CATEGORIES, ALL_CURATED_SKILLS, MAX_SKILLS, MIN_SKILLS } 
 
 // Step labels for progress track (mobile-optimized)
 const PROGRESS_STEPS = [
-  { id: 2, label: 'CUENTA' },
-  { id: 3, label: 'PERFIL' },
-  { id: 4, label: 'HABILIDADES' },
-  { id: 5, label: 'ZONA' },
-  { id: 6, label: 'DOCS' },
+  { id: 1, label: 'CUENTA' },
+  { id: 2, label: 'PERFIL' },
+  { id: 3, label: 'HABILIDADES' },
+  { id: 4, label: 'ZONA' },
+  { id: 5, label: 'DOCS' },
 ];
 
 export default function ProviderOnboardingWizard() {
   const { user, signUp, signIn, signInWithGoogle, resetPassword } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [currentStep, setCurrentStep] = useState(2);
+  const [currentStep, setCurrentStep] = useState(1);
   const [slideDirection, setSlideDirection] = useState<'forward' | 'backward'>('forward');
   const [saving, setSaving] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -146,7 +146,7 @@ export default function ProviderOnboardingWizard() {
     
     const savedData = loadFormData();
     if (savedData) {
-      if (savedData.currentStep && savedData.currentStep > 2) {
+      if (savedData.currentStep && savedData.currentStep > 1) {
         setCurrentStep(savedData.currentStep);
       }
       if (savedData.profileData) setProfileData(savedData.profileData);
@@ -160,7 +160,7 @@ export default function ProviderOnboardingWizard() {
 
   // Auto-save form data on step change
   useEffect(() => {
-    if (currentStep > 2) {
+    if (currentStep > 1) {
       saveFormData({
         currentStep,
         profileData,
@@ -208,10 +208,10 @@ export default function ProviderOnboardingWizard() {
 
   // Map step numbers to DB step names
   const STEP_NAME_MAP: Record<number, string> = {
-    2: 'auth', 3: 'profile', 4: 'skills', 5: 'zone', 6: 'documents', 7: 'review', 8: 'complete'
+    1: 'auth', 2: 'profile', 3: 'skills', 4: 'zone', 5: 'documents', 6: 'review', 7: 'complete'
   };
   const STEP_NUMBER_MAP: Record<string, number> = {
-    'auth': 2, 'profile': 3, 'skills': 4, 'zone': 5, 'documents': 6, 'review': 7, 'complete': 8, 'completed': 8
+    'auth': 1, 'profile': 2, 'skills': 3, 'zone': 4, 'documents': 5, 'review': 6, 'complete': 7, 'completed': 7
   };
 
   // Debug state for dev mode
@@ -260,9 +260,9 @@ export default function ProviderOnboardingWizard() {
         hasCheckedOnboarding.current = true;
         
         // Resume from saved DB step (if past auth)
-        const resumeStep = dbStep ? (STEP_NUMBER_MAP[dbStep] || 3) : 3;
-        if (currentStep <= 2) {
-          const targetStep = Math.max(3, resumeStep);
+        const resumeStep = dbStep ? (STEP_NUMBER_MAP[dbStep] || 2) : 2;
+        if (currentStep <= 1) {
+          const targetStep = Math.max(2, resumeStep);
           console.log('[Onboarding] Resuming from step:', targetStep, '(db:', dbStep, ')');
           setCurrentStep(targetStep);
         }
@@ -313,8 +313,8 @@ export default function ProviderOnboardingWizard() {
     }
   }, [user, authMode, navigate]);
 
-  const totalSteps = 8;
-  const progress = Math.max(0, ((currentStep - 1) / (totalSteps - 2)) * 100);
+  const totalSteps = 7;
+  const progress = Math.max(0, ((currentStep) / (totalSteps - 1)) * 100);
 
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [showVerificationPending, setShowVerificationPending] = useState(false);
@@ -688,14 +688,14 @@ export default function ProviderOnboardingWizard() {
       const providerUpdate: Record<string, any> = { onboarding_step: stepName };
 
       // Attach step-specific data based on the step we're LEAVING
-      if (stepNum === 4) {
+      if (stepNum === 3) {
         providerUpdate.display_name = profileData.displayName;
         providerUpdate.avatar_url = profileData.avatarUrl;
       }
-      if (stepNum === 5) {
+      if (stepNum === 4) {
         providerUpdate.skills = selectedSkills;
       }
-      if (stepNum === 6) {
+      if (stepNum === 5) {
         providerUpdate.zone_served = workZone || `${workZoneRadius}km radius`;
         providerUpdate.current_latitude = workZoneCoords?.lat || null;
         providerUpdate.current_longitude = workZoneCoords?.lng || null;
@@ -718,7 +718,7 @@ export default function ProviderOnboardingWizard() {
       }
 
       // Also persist users table data after profile step
-      if (stepNum === 4) {
+      if (stepNum === 3) {
         const { error: userError } = await supabase
           .from('users')
           .update({ full_name: profileData.displayName, phone: profileData.phone, bio: profileData.bio })
@@ -745,8 +745,8 @@ export default function ProviderOnboardingWizard() {
   const goToPrevious = () => {
     if (currentStep > 1) {
       setSlideDirection('backward');
-      if (currentStep === 3 && !user) {
-        setCurrentStep(2);
+      if (currentStep === 2 && !user) {
+        setCurrentStep(1);
         return;
       }
       setCurrentStep(currentStep - 1);
@@ -911,7 +911,7 @@ export default function ProviderOnboardingWizard() {
 
   const canGoNext = () => {
     switch (currentStep) {
-      case 2:
+      case 1:
         if (!user) {
           if (authMode === 'signup') {
             return signupData.fullName.trim().length > 0 &&
@@ -925,14 +925,14 @@ export default function ProviderOnboardingWizard() {
           }
         }
         return true;
-      case 3:
+      case 2:
         return (profileData.avatarUrl || '').length > 0 && (profileData.bio || '').trim().length > 0;
-      case 4:
+      case 3:
         return selectedSkills.length >= MIN_SKILLS && selectedSkills.length <= MAX_SKILLS;
-      case 5:
+      case 4:
         // Allow advancing if we have valid coordinates (zone name is optional - geocoding may fail)
         return workZoneCoords !== null && (workZoneCoords.lat !== 0 || workZoneCoords.lng !== 0);
-      case 6:
+      case 5:
         // Documents step is optional, always allow to proceed
         return true;
       default:
@@ -1003,7 +1003,7 @@ export default function ProviderOnboardingWizard() {
         </div>
 
         {/* Progress Track */}
-        {currentStep >= 2 && currentStep <= 7 && (
+        {currentStep >= 1 && currentStep <= 6 && (
           <div className="px-4 pb-4">
             <div className="flex items-center justify-between text-[10px] font-semibold tracking-wider mb-2">
               {PROGRESS_STEPS.map((step) => (
@@ -1027,19 +1027,19 @@ export default function ProviderOnboardingWizard() {
               <div className="absolute top-1/2 -translate-y-1/2 left-0 w-2 h-2 rounded-full bg-primary" />
               <div className={cn(
                 "absolute top-1/2 -translate-y-1/2 left-1/4 w-2 h-2 rounded-full transition-colors",
-                currentStep >= 3 ? "bg-primary" : "bg-muted-foreground/30"
+                currentStep >= 2 ? "bg-primary" : "bg-muted-foreground/30"
               )} />
               <div className={cn(
                 "absolute top-1/2 -translate-y-1/2 left-1/2 w-2 h-2 rounded-full transition-colors",
-                currentStep >= 4 ? "bg-primary" : "bg-muted-foreground/30"
+                currentStep >= 3 ? "bg-primary" : "bg-muted-foreground/30"
               )} />
               <div className={cn(
                 "absolute top-1/2 -translate-y-1/2 left-3/4 w-2 h-2 rounded-full transition-colors",
-                currentStep >= 5 ? "bg-primary" : "bg-muted-foreground/30"
+                currentStep >= 4 ? "bg-primary" : "bg-muted-foreground/30"
               )} />
               <div className={cn(
                 "absolute top-1/2 -translate-y-1/2 right-0 w-2 h-2 rounded-full transition-colors",
-                currentStep >= 6 ? "bg-primary" : "bg-muted-foreground/30"
+                currentStep >= 5 ? "bg-primary" : "bg-muted-foreground/30"
               )} />
             </div>
           </div>
@@ -1106,7 +1106,7 @@ export default function ProviderOnboardingWizard() {
           <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t safe-area-pb">
             <div className="flex flex-col items-center gap-3 max-w-sm mx-auto">
               {renderNextButton(true)}
-              {currentStep > 2 && (
+              {currentStep > 1 && (
                 <button 
                   onClick={goToPrevious}
                   disabled={saving}
@@ -1127,19 +1127,19 @@ export default function ProviderOnboardingWizard() {
 
   function renderStepContent() {
     switch (currentStep) {
-      case 2:
+      case 1:
         return renderAuthStep();
-      case 3:
+      case 2:
         return renderProfileStep();
-      case 4:
+      case 3:
         return renderSkillsStep();
-      case 5:
+      case 4:
         return renderZoneStep();
-      case 6:
+      case 5:
         return renderDocumentsStep();
-      case 7:
+      case 6:
         return renderAvailabilityStep();
-      case 8:
+      case 7:
         return renderCompletionStep();
       default:
         return null;
@@ -1512,6 +1512,17 @@ export default function ProviderOnboardingWizard() {
           <p className="text-xs text-muted-foreground">
             Foto de perfil <span className="text-destructive">*</span> obligatoria
           </p>
+          <div className="bg-muted/50 border border-border rounded-lg p-3 max-w-xs text-left">
+            <p className="text-xs font-medium text-foreground mb-1">📸 Requisitos de la foto:</p>
+            <ul className="text-[11px] text-muted-foreground space-y-0.5 list-disc list-inside">
+              <li>Debe ser de tu <strong>cara</strong>, clara y bien iluminada</li>
+              <li>Fondo <strong>blanco o liso</strong> (sin objetos)</li>
+              <li>Sin lentes de sol, gorras ni filtros</li>
+            </ul>
+            <p className="text-[11px] text-muted-foreground mt-1.5 italic">
+              ⚠️ Esta foto será sujeta a revisión por nuestro equipo
+            </p>
+          </div>
         </div>
 
         {/* Crop Dialog */}
@@ -1791,7 +1802,7 @@ export default function ProviderOnboardingWizard() {
   function renderNextButton(isMobile = false) {
     if (currentStep < totalSteps) {
       const handleClick = () => {
-        if (currentStep === 2 && !user) {
+        if (currentStep === 1 && !user) {
           if (authMode === 'signup') {
             handleSignup();
           } else {
@@ -1804,9 +1815,9 @@ export default function ProviderOnboardingWizard() {
 
       const buttonText = saving 
         ? 'Procesando...' 
-        : currentStep === 2 && !user 
+        : currentStep === 1 && !user 
           ? (authMode === 'signup' ? 'Crear Cuenta' : 'Iniciar Sesión')
-          : currentStep === 6
+          : currentStep === 5
             ? 'Continuar'
             : 'Siguiente';
 
@@ -1821,13 +1832,13 @@ export default function ProviderOnboardingWizard() {
             )}
           >
             {buttonText}
-            {currentStep === 2 && authMode === 'login' && !user ? (
+            {currentStep === 1 && authMode === 'login' && !user ? (
               <LogIn className="w-4 h-4 ml-2" />
             ) : (
               <ArrowRight className="w-4 h-4 ml-2" />
             )}
           </Button>
-          {currentStep === 6 && isMobile && (
+          {currentStep === 5 && isMobile && (
             <p className="text-xs text-center text-muted-foreground">
               Puedes completar la verificación después
             </p>
