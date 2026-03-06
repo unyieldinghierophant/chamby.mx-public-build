@@ -84,7 +84,7 @@ export default function ProviderOnboardingWizard() {
   const { user, signUp, signIn, signInWithGoogle, resetPassword } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [currentStep, setCurrentStep] = useState(2);
+  const [currentStep, setCurrentStep] = useState(1);
   const [slideDirection, setSlideDirection] = useState<'forward' | 'backward'>('forward');
   const [saving, setSaving] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -208,10 +208,10 @@ export default function ProviderOnboardingWizard() {
 
   // Map step numbers to DB step names
   const STEP_NAME_MAP: Record<number, string> = {
-    2: 'auth', 3: 'profile', 4: 'skills', 5: 'zone', 6: 'documents', 7: 'review', 8: 'complete'
+    1: 'auth', 2: 'profile', 3: 'skills', 4: 'zone', 5: 'documents', 6: 'review', 7: 'complete'
   };
   const STEP_NUMBER_MAP: Record<string, number> = {
-    'auth': 2, 'profile': 3, 'skills': 4, 'zone': 5, 'documents': 6, 'review': 7, 'complete': 8, 'completed': 8
+    'auth': 1, 'profile': 2, 'skills': 3, 'zone': 4, 'documents': 5, 'review': 6, 'complete': 7, 'completed': 7
   };
 
   // Debug state for dev mode
@@ -313,8 +313,8 @@ export default function ProviderOnboardingWizard() {
     }
   }, [user, authMode, navigate]);
 
-  const totalSteps = 8;
-  const progress = Math.max(0, ((currentStep - 1) / (totalSteps - 2)) * 100);
+  const totalSteps = 7;
+  const progress = Math.max(0, ((currentStep) / (totalSteps - 1)) * 100);
 
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [showVerificationPending, setShowVerificationPending] = useState(false);
