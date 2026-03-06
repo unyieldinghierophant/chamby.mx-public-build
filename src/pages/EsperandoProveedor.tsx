@@ -79,7 +79,7 @@ const EsperandoProveedor = () => {
 
   /* ---------- fetch ---------- */
   const fetchJob = useCallback(async () => {
-    if (!jobId) return;
+    if (!jobId) { setVerifying(false); return; }
     const { data, error } = await supabase
       .from("jobs")
       .select("*")
