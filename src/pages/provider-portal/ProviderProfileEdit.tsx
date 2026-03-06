@@ -273,6 +273,19 @@ const ProviderProfileEdit = () => {
               />
             </div>
 
+            <div className="space-y-2 animate-fade-in delay-50">
+              <Label htmlFor="email" className="text-sm font-medium">
+                Correo electrónico
+              </Label>
+              <Input
+                id="email"
+                value={user?.email || ""}
+                readOnly
+                disabled
+                className="bg-muted text-muted-foreground cursor-not-allowed"
+              />
+            </div>
+
             <div className="space-y-2 animate-fade-in delay-75">
               <Label htmlFor="phone" className="text-sm font-medium">
                 Teléfono
