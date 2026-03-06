@@ -260,9 +260,9 @@ export default function ProviderOnboardingWizard() {
         hasCheckedOnboarding.current = true;
         
         // Resume from saved DB step (if past auth)
-        const resumeStep = dbStep ? (STEP_NUMBER_MAP[dbStep] || 2) : 2;
+        const resumeStep = dbStep ? (STEP_NUMBER_MAP[dbStep] || 1) : 1;
         if (currentStep <= 1) {
-          const targetStep = Math.max(2, resumeStep);
+          const targetStep = Math.max(1, resumeStep);
           console.log('[Onboarding] Resuming from step:', targetStep, '(db:', dbStep, ')');
           setCurrentStep(targetStep);
         }
