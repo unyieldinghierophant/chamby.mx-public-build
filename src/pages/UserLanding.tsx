@@ -241,7 +241,7 @@ const UserLanding = () => {
       </header>
 
       {/* Active Job Banner - in flow, below header */}
-      <div className="pt-16 px-4 space-y-2">
+      <div className="pt-16 md:pt-20 px-4 space-y-2 relative z-40">
         <ClientActiveJobBanner />
         <SearchingJobBanner />
       </div>
