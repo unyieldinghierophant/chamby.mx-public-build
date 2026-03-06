@@ -1512,6 +1512,17 @@ export default function ProviderOnboardingWizard() {
           <p className="text-xs text-muted-foreground">
             Foto de perfil <span className="text-destructive">*</span> obligatoria
           </p>
+          <div className="bg-muted/50 border border-border rounded-lg p-3 max-w-xs text-left">
+            <p className="text-xs font-medium text-foreground mb-1">📸 Requisitos de la foto:</p>
+            <ul className="text-[11px] text-muted-foreground space-y-0.5 list-disc list-inside">
+              <li>Debe ser de tu <strong>cara</strong>, clara y bien iluminada</li>
+              <li>Fondo <strong>blanco o liso</strong> (sin objetos)</li>
+              <li>Sin lentes de sol, gorras ni filtros</li>
+            </ul>
+            <p className="text-[11px] text-muted-foreground mt-1.5 italic">
+              ⚠️ Esta foto será sujeta a revisión por nuestro equipo
+            </p>
+          </div>
         </div>
 
         {/* Crop Dialog */}
