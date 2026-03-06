@@ -138,7 +138,7 @@ export const HandymanSummary = ({ formData, onConfirm, onGoBack, isSubmitting }:
               <CreditCard className="w-4 h-4 text-primary" />
               <span className="font-semibold text-sm">Cuota de visita técnica</span>
             </div>
-            <p className="text-lg font-bold text-foreground">{VISIT_DISPLAY} MXN <span className="text-xs font-normal text-muted-foreground">(incluye IVA)</span></p>
+            <p className="text-lg font-bold text-foreground">{VISIT_DISPLAY.total} <span className="text-xs font-normal text-muted-foreground">(incluye IVA)</span></p>
             <p className="text-xs text-muted-foreground mt-1">Este monto se reembolsa si el trabajo se completa</p>
           </div>
 
