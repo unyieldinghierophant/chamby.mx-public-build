@@ -1410,10 +1410,6 @@ export default function ProviderOnboardingWizard() {
   }
 
   function renderProfileStep() {
-    const [uploadingPhoto, setUploadingPhoto] = useState(false);
-    const [cropFile, setCropFile] = useState<File | null>(null);
-    const [showCropDialog, setShowCropDialog] = useState(false);
-    const photoInputRef = useRef<HTMLInputElement>(null);
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
