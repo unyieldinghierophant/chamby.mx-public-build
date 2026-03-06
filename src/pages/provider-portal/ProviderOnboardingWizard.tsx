@@ -44,6 +44,8 @@ import { WorkZonePicker } from '@/components/WorkZonePicker';
 import { PasswordStrengthBar } from '@/components/PasswordStrengthBar';
 import { DocumentsStep } from '@/components/provider-portal/DocumentsStep';
 import { useFormPersistence } from '@/hooks/useFormPersistence';
+import { AvatarCropDialog } from '@/components/provider-portal/AvatarCropDialog';
+import { Loader2 } from 'lucide-react';
 
 const FORM_STORAGE_KEY = 'provider_onboarding';
 
