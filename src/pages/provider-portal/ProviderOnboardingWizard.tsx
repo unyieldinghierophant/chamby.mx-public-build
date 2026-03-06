@@ -89,6 +89,10 @@ export default function ProviderOnboardingWizard() {
   const [saving, setSaving] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [cropFile, setCropFile] = useState<File | null>(null);
+  const [showCropDialog, setShowCropDialog] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement>(null);
   const hasRestoredForm = useRef(false);
   const hasCheckedOnboarding = useRef(false); // Track if we've already checked onboarding status
 
