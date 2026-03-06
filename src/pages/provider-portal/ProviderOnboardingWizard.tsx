@@ -146,7 +146,7 @@ export default function ProviderOnboardingWizard() {
     
     const savedData = loadFormData();
     if (savedData) {
-      if (savedData.currentStep && savedData.currentStep > 2) {
+      if (savedData.currentStep && savedData.currentStep > 1) {
         setCurrentStep(savedData.currentStep);
       }
       if (savedData.profileData) setProfileData(savedData.profileData);
@@ -160,7 +160,7 @@ export default function ProviderOnboardingWizard() {
 
   // Auto-save form data on step change
   useEffect(() => {
-    if (currentStep > 2) {
+    if (currentStep > 1) {
       saveFormData({
         currentStep,
         profileData,
@@ -260,9 +260,9 @@ export default function ProviderOnboardingWizard() {
         hasCheckedOnboarding.current = true;
         
         // Resume from saved DB step (if past auth)
-        const resumeStep = dbStep ? (STEP_NUMBER_MAP[dbStep] || 3) : 3;
-        if (currentStep <= 2) {
-          const targetStep = Math.max(3, resumeStep);
+        const resumeStep = dbStep ? (STEP_NUMBER_MAP[dbStep] || 2) : 2;
+        if (currentStep <= 1) {
+          const targetStep = Math.max(2, resumeStep);
           console.log('[Onboarding] Resuming from step:', targetStep, '(db:', dbStep, ')');
           setCurrentStep(targetStep);
         }
@@ -745,8 +745,8 @@ export default function ProviderOnboardingWizard() {
   const goToPrevious = () => {
     if (currentStep > 1) {
       setSlideDirection('backward');
-      if (currentStep === 3 && !user) {
-        setCurrentStep(2);
+      if (currentStep === 2 && !user) {
+        setCurrentStep(1);
         return;
       }
       setCurrentStep(currentStep - 1);
