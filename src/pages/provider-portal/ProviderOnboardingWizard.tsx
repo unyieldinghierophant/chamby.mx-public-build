@@ -1791,7 +1791,7 @@ export default function ProviderOnboardingWizard() {
   function renderNextButton(isMobile = false) {
     if (currentStep < totalSteps) {
       const handleClick = () => {
-        if (currentStep === 2 && !user) {
+        if (currentStep === 1 && !user) {
           if (authMode === 'signup') {
             handleSignup();
           } else {
@@ -1804,9 +1804,9 @@ export default function ProviderOnboardingWizard() {
 
       const buttonText = saving 
         ? 'Procesando...' 
-        : currentStep === 2 && !user 
+        : currentStep === 1 && !user 
           ? (authMode === 'signup' ? 'Crear Cuenta' : 'Iniciar Sesión')
-          : currentStep === 6
+          : currentStep === 5
             ? 'Continuar'
             : 'Siguiente';
 
