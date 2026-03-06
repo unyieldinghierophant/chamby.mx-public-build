@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, XCircle, Plus, MessageCircle, MapPin, Clock, AlertTriangle } from "lucide-react";
-import { getStatusLabel, getStatusColor, JOB_STATUS_CONFIG } from "@/utils/jobStateMachine";
+import { getStatusLabel, getStatusColor, JOB_STATUS_CONFIG, CLIENT_ACTIVE_STATES } from "@/utils/jobStateMachine";
 import { InvoiceCard } from "@/components/provider-portal/InvoiceCard";
 import { JobInvoiceSection } from "@/components/JobInvoiceSection";
 import { ClientQuoteReview } from "@/components/quotes/ClientQuoteReview";
@@ -129,7 +129,7 @@ const ActiveJobs = () => {
         .from("jobs")
         .select("*, invoices(id, status, total_customer_amount, subtotal_provider, chamby_commission_amount, client_surcharge_amount, vat_amount, provider_payout_amount, provider_notes, created_at)")
         .eq("client_id", user.id)
-        .in("status", ["pending", "searching", "assigned", "on_site", "quoted", "quote_accepted", "quote_rejected", "job_paid", "in_progress", "provider_done"])
+        .in("status", CLIENT_ACTIVE_STATES as string[])
         .order("created_at", { ascending: false });
 
       if (jobsError) {

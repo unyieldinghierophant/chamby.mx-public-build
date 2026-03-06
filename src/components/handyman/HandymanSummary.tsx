@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { Check, Wrench, Ruler, PackageOpen, Camera, Home, FileText, ArrowLeft } from "lucide-react";
+import { Check, Wrench, Ruler, PackageOpen, Camera, Home, FileText, ArrowLeft, MapPin, CalendarIcon, CreditCard } from "lucide-react";
 import toolsPatternBg from "@/assets/tools-pattern-bg.png";
 import { useEffect, useState } from "react";
+import { VISIT_DISPLAY } from "@/utils/pricingConfig";
 
 const workTypeLabels: Record<string, string> = {
   reparacion: "Reparación", instalacion: "Instalación", armado: "Armado", ajuste: "Ajuste / Mantenimiento"
@@ -35,6 +36,10 @@ interface Props {
     photos: { url: string; uploaded: boolean }[];
     accessTypes: string[];
     additionalNotes: string;
+    serviceAddress?: string;
+    scheduleMode?: string | null;
+    scheduledDate?: Date | string | null;
+    timeWindow?: string | null;
   };
   onConfirm: () => void;
   onGoBack: () => void;
@@ -89,6 +94,22 @@ export const HandymanSummary = ({ formData, onConfirm, onGoBack, isSubmitting }:
               </div>
             </div>
 
+            {formData.serviceAddress && <Row icon={MapPin} label="Ubicación" value={formData.serviceAddress} />}
+            {formData.scheduledDate ? (
+              <Row icon={CalendarIcon} label="Fecha" value={
+                (() => {
+                  const d = formData.scheduledDate instanceof Date ? formData.scheduledDate : new Date(formData.scheduledDate as string);
+                  return !isNaN(d.getTime()) ? d.toLocaleDateString("es-MX", { weekday: "short", day: "numeric", month: "short" }) : "Lo antes posible";
+                })()
+              } />
+            ) : formData.scheduleMode === 'asap' ? (
+              <Row icon={CalendarIcon} label="Fecha" value="Lo antes posible" />
+            ) : formData.scheduleMode === 'today' ? (
+              <Row icon={CalendarIcon} label="Fecha" value="Hoy" />
+            ) : null}
+            {formData.timeWindow && <Row icon={CalendarIcon} label="Horario" value={
+              ({ morning: "Mañana (8–12)", midday: "Mediodía (12–15)", afternoon: "Tarde (15–19)", night: "Noche (19–21)" } as Record<string, string>)[formData.timeWindow] || formData.timeWindow
+            } />}
             {formData.workType && <Row icon={Wrench} label="Tipo de trabajo" value={workTypeLabels[formData.workType] || formData.workType} />}
             {formData.jobSize && <Row icon={Ruler} label="Tamaño estimado" value={jobSizeLabels[formData.jobSize] || formData.jobSize} />}
             {formData.materialsProvider && <Row icon={PackageOpen} label="Materiales" value={materialsLabels[formData.materialsProvider] || ""} />}
@@ -109,6 +130,16 @@ export const HandymanSummary = ({ formData, onConfirm, onGoBack, isSubmitting }:
             {formData.additionalNotes.trim() && (
               <Row icon={FileText} label="Notas adicionales" value={formData.additionalNotes} />
             )}
+          </div>
+
+          {/* Payment info */}
+          <div className="mx-4 mt-3 p-4 rounded-xl bg-primary/5 border border-primary/20">
+            <div className="flex items-center gap-2 mb-1">
+              <CreditCard className="w-4 h-4 text-primary" />
+              <span className="font-semibold text-sm">Cuota de visita técnica</span>
+            </div>
+            <p className="text-lg font-bold text-foreground">{VISIT_DISPLAY} MXN <span className="text-xs font-normal text-muted-foreground">(incluye IVA)</span></p>
+            <p className="text-xs text-muted-foreground mt-1">Este monto se reembolsa si el trabajo se completa</p>
           </div>
 
           <div className="px-6 pb-6 space-y-3 pt-4">
