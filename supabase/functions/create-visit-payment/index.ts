@@ -24,11 +24,12 @@ serve(async (req) => {
     if (!stripeKey) {
       throw new Error("STRIPE_SECRET_KEY not configured");
     }
-    logStep("🔴 Using Stripe LIVE mode");
+    const isTestMode = stripeKey.startsWith('sk_test_');
+    logStep(isTestMode ? "🟢 Using Stripe TEST mode" : "🔴 Using Stripe LIVE mode");
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
     const authHeader = req.headers.get("Authorization");
