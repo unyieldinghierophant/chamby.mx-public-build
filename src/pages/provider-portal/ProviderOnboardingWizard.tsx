@@ -73,11 +73,11 @@ import { CURATED_SKILL_CATEGORIES, ALL_CURATED_SKILLS, MAX_SKILLS, MIN_SKILLS } 
 
 // Step labels for progress track (mobile-optimized)
 const PROGRESS_STEPS = [
-  { id: 2, label: 'CUENTA' },
-  { id: 3, label: 'PERFIL' },
-  { id: 4, label: 'HABILIDADES' },
-  { id: 5, label: 'ZONA' },
-  { id: 6, label: 'DOCS' },
+  { id: 1, label: 'CUENTA' },
+  { id: 2, label: 'PERFIL' },
+  { id: 3, label: 'HABILIDADES' },
+  { id: 4, label: 'ZONA' },
+  { id: 5, label: 'DOCS' },
 ];
 
 export default function ProviderOnboardingWizard() {
