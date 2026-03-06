@@ -1003,7 +1003,7 @@ export default function ProviderOnboardingWizard() {
         </div>
 
         {/* Progress Track */}
-        {currentStep >= 2 && currentStep <= 7 && (
+        {currentStep >= 1 && currentStep <= 6 && (
           <div className="px-4 pb-4">
             <div className="flex items-center justify-between text-[10px] font-semibold tracking-wider mb-2">
               {PROGRESS_STEPS.map((step) => (
@@ -1027,19 +1027,19 @@ export default function ProviderOnboardingWizard() {
               <div className="absolute top-1/2 -translate-y-1/2 left-0 w-2 h-2 rounded-full bg-primary" />
               <div className={cn(
                 "absolute top-1/2 -translate-y-1/2 left-1/4 w-2 h-2 rounded-full transition-colors",
-                currentStep >= 3 ? "bg-primary" : "bg-muted-foreground/30"
+                currentStep >= 2 ? "bg-primary" : "bg-muted-foreground/30"
               )} />
               <div className={cn(
                 "absolute top-1/2 -translate-y-1/2 left-1/2 w-2 h-2 rounded-full transition-colors",
-                currentStep >= 4 ? "bg-primary" : "bg-muted-foreground/30"
+                currentStep >= 3 ? "bg-primary" : "bg-muted-foreground/30"
               )} />
               <div className={cn(
                 "absolute top-1/2 -translate-y-1/2 left-3/4 w-2 h-2 rounded-full transition-colors",
-                currentStep >= 5 ? "bg-primary" : "bg-muted-foreground/30"
+                currentStep >= 4 ? "bg-primary" : "bg-muted-foreground/30"
               )} />
               <div className={cn(
                 "absolute top-1/2 -translate-y-1/2 right-0 w-2 h-2 rounded-full transition-colors",
-                currentStep >= 6 ? "bg-primary" : "bg-muted-foreground/30"
+                currentStep >= 5 ? "bg-primary" : "bg-muted-foreground/30"
               )} />
             </div>
           </div>
@@ -1106,7 +1106,7 @@ export default function ProviderOnboardingWizard() {
           <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t safe-area-pb">
             <div className="flex flex-col items-center gap-3 max-w-sm mx-auto">
               {renderNextButton(true)}
-              {currentStep > 2 && (
+              {currentStep > 1 && (
                 <button 
                   onClick={goToPrevious}
                   disabled={saving}
@@ -1127,19 +1127,19 @@ export default function ProviderOnboardingWizard() {
 
   function renderStepContent() {
     switch (currentStep) {
-      case 2:
+      case 1:
         return renderAuthStep();
-      case 3:
+      case 2:
         return renderProfileStep();
-      case 4:
+      case 3:
         return renderSkillsStep();
-      case 5:
+      case 4:
         return renderZoneStep();
-      case 6:
+      case 5:
         return renderDocumentsStep();
-      case 7:
+      case 6:
         return renderAvailabilityStep();
-      case 8:
+      case 7:
         return renderCompletionStep();
       default:
         return null;
