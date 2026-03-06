@@ -11,36 +11,55 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import ChambyLogoText from "@/components/ChambyLogoText";
 import { ROUTES } from "@/constants/routes";
 import { WizardIntentStep } from "@/components/booking/WizardIntentStep";
+import { useAuth } from "@/contexts/AuthContext";
 
 const INTENT_CONFIRMED_KEY = 'booking_intent_confirmed';
 const INTENT_TEXT_KEY = 'booking_confirmed_intent_text';
+const STORAGE_KEY_PREFIX = 'chamby_form_';
 
 const BookJob = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { user } = useAuth();
 
   // Read canonical payload from query params
   const intentParam = searchParams.get("intent") || "";
   const categoryParam = searchParams.get("category") || "";
+  const newParam = searchParams.get("new") || "";
 
   // Step 1 gate: WizardIntentStep — user confirms/edits intent before entering wizard
   const [intentConfirmed, setIntentConfirmed] = useState(false);
   const [confirmedIntent, setConfirmedIntent] = useState("");
 
-  // On mount, check if intent was already confirmed (returning from OAuth redirect)
+  // Clear stale form data when a NEW booking starts (detect via ?new= param)
   useEffect(() => {
+    if (newParam) {
+      // Clear all booking form persistence keys
+      const keysToRemove = Object.keys(localStorage).filter(k => k.startsWith(STORAGE_KEY_PREFIX));
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+    }
+  }, [newParam]);
+
+  // On mount, check if intent was already confirmed (returning from OAuth redirect)
+  // OR if user is authenticated with intent+category, skip the intent step entirely
+  useEffect(() => {
+    if (user && intentParam && categoryParam) {
+      // Authenticated user with full params — skip intent step
+      setConfirmedIntent(intentParam);
+      setIntentConfirmed(true);
+      return;
+    }
     const wasConfirmed = localStorage.getItem(INTENT_CONFIRMED_KEY);
     const savedIntentText = localStorage.getItem(INTENT_TEXT_KEY);
     if (wasConfirmed === 'true' && (intentParam || savedIntentText)) {
       setConfirmedIntent(savedIntentText || intentParam);
       setIntentConfirmed(true);
     }
-  }, []);
+  }, [user]);
 
   // Clear intent confirmation when navigating away from booking
   useEffect(() => {
     return () => {
-      // Only clear if navigating away (not on re-render)
       const currentPath = window.location.pathname;
       if (!currentPath.startsWith('/book-job')) {
         localStorage.removeItem(INTENT_CONFIRMED_KEY);

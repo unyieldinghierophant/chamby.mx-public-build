@@ -79,7 +79,7 @@ const EsperandoProveedor = () => {
 
   /* ---------- fetch ---------- */
   const fetchJob = useCallback(async () => {
-    if (!jobId) return;
+    if (!jobId) { setVerifying(false); return; }
     const { data, error } = await supabase
       .from("jobs")
       .select("*")
@@ -92,7 +92,7 @@ const EsperandoProveedor = () => {
       return;
     }
 
-    if (data.status === "accepted" || data.status === "confirmed") {
+    if (data.status === "accepted" || data.status === "confirmed" || data.status === "assigned") {
       toast.success("¡Tu proveedor ha sido asignado!");
       navigate("/active-jobs");
       return;
@@ -117,6 +117,7 @@ const EsperandoProveedor = () => {
 
     setJob(data);
     if (data.has_open_dispute) setRefundRequested(true);
+    setVerifying(false);
   }, [jobId, navigate]);
 
   /* ---------- realtime ---------- */
