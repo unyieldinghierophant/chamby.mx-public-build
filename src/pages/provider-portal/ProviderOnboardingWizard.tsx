@@ -911,7 +911,7 @@ export default function ProviderOnboardingWizard() {
 
   const canGoNext = () => {
     switch (currentStep) {
-      case 2:
+      case 1:
         if (!user) {
           if (authMode === 'signup') {
             return signupData.fullName.trim().length > 0 &&
@@ -925,14 +925,14 @@ export default function ProviderOnboardingWizard() {
           }
         }
         return true;
-      case 3:
+      case 2:
         return (profileData.avatarUrl || '').length > 0 && (profileData.bio || '').trim().length > 0;
-      case 4:
+      case 3:
         return selectedSkills.length >= MIN_SKILLS && selectedSkills.length <= MAX_SKILLS;
-      case 5:
+      case 4:
         // Allow advancing if we have valid coordinates (zone name is optional - geocoding may fail)
         return workZoneCoords !== null && (workZoneCoords.lat !== 0 || workZoneCoords.lng !== 0);
-      case 6:
+      case 5:
         // Documents step is optional, always allow to proceed
         return true;
       default:
