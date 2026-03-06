@@ -260,9 +260,9 @@ export default function ProviderOnboardingWizard() {
         hasCheckedOnboarding.current = true;
         
         // Resume from saved DB step (if past auth)
-        const resumeStep = dbStep ? (STEP_NUMBER_MAP[dbStep] || 2) : 2;
+        const resumeStep = dbStep ? (STEP_NUMBER_MAP[dbStep] || 1) : 1;
         if (currentStep <= 1) {
-          const targetStep = Math.max(2, resumeStep);
+          const targetStep = Math.max(1, resumeStep);
           console.log('[Onboarding] Resuming from step:', targetStep, '(db:', dbStep, ')');
           setCurrentStep(targetStep);
         }
@@ -1149,8 +1149,22 @@ export default function ProviderOnboardingWizard() {
   function renderAuthStep() {
     if (user) {
       return (
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        <div className="space-y-6">
+          <div className="mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+              ¡Hola{user.user_metadata?.full_name ? `, ${user.user_metadata.full_name.split(' ')[0]}` : ''}! 👋
+            </h2>
+            <p className="text-muted-foreground text-lg">
+              Ya tienes una cuenta activa. Vamos a configurar tu perfil de proveedor de servicios.
+            </p>
+          </div>
+          <div className="bg-muted/50 rounded-xl p-4 space-y-2">
+            <p className="text-sm text-muted-foreground">Conectado como:</p>
+            <p className="font-medium text-foreground">{user.email}</p>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Presiona <span className="font-semibold text-foreground">Siguiente</span> para continuar con la configuración de tu perfil profesional.
+          </p>
         </div>
       );
     }
