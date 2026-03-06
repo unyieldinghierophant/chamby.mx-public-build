@@ -688,14 +688,14 @@ export default function ProviderOnboardingWizard() {
       const providerUpdate: Record<string, any> = { onboarding_step: stepName };
 
       // Attach step-specific data based on the step we're LEAVING
-      if (stepNum === 4) {
+      if (stepNum === 3) {
         providerUpdate.display_name = profileData.displayName;
         providerUpdate.avatar_url = profileData.avatarUrl;
       }
-      if (stepNum === 5) {
+      if (stepNum === 4) {
         providerUpdate.skills = selectedSkills;
       }
-      if (stepNum === 6) {
+      if (stepNum === 5) {
         providerUpdate.zone_served = workZone || `${workZoneRadius}km radius`;
         providerUpdate.current_latitude = workZoneCoords?.lat || null;
         providerUpdate.current_longitude = workZoneCoords?.lng || null;
@@ -718,7 +718,7 @@ export default function ProviderOnboardingWizard() {
       }
 
       // Also persist users table data after profile step
-      if (stepNum === 4) {
+      if (stepNum === 3) {
         const { error: userError } = await supabase
           .from('users')
           .update({ full_name: profileData.displayName, phone: profileData.phone, bio: profileData.bio })
