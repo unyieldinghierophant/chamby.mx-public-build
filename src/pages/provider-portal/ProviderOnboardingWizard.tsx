@@ -1821,13 +1821,13 @@ export default function ProviderOnboardingWizard() {
             )}
           >
             {buttonText}
-            {currentStep === 2 && authMode === 'login' && !user ? (
+            {currentStep === 1 && authMode === 'login' && !user ? (
               <LogIn className="w-4 h-4 ml-2" />
             ) : (
               <ArrowRight className="w-4 h-4 ml-2" />
             )}
           </Button>
-          {currentStep === 6 && isMobile && (
+          {currentStep === 5 && isMobile && (
             <p className="text-xs text-center text-muted-foreground">
               Puedes completar la verificación después
             </p>
