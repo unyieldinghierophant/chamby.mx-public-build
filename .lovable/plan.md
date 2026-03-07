@@ -1,21 +1,24 @@
 
 
-## Problem
+## Move ChambyLogoText 10px Left
 
-The user `asaga2003@gmail.com` does not have an `admin` role in the `user_roles` table. They only have `client`. The Header code correctly checks `isAdmin` from `useUserRole()`, which queries `user_roles` — but since no admin row exists, the "Panel Admin" menu item is hidden.
+Update the logo wrapper's translate class in all 4 files from `-translate-x-1/2` to `-translate-x-[calc(50%+10px)]`.
 
-## Plan
+### Files to change
 
-**Insert the admin role** for user `asaga2003@gmail.com` into the `user_roles` table:
+| File | Line |
+|------|------|
+| `src/pages/Index.tsx` | 68 |
+| `src/components/Header.tsx` | 66 |
+| `src/pages/UserLanding.tsx` | 109 |
+| `src/pages/ProviderLanding.tsx` | 180 |
 
-```sql
-INSERT INTO user_roles (user_id, role)
-SELECT id, 'admin' FROM auth.users WHERE email = 'asaga2003@gmail.com';
+Each change is identical — replace:
 ```
-
-No code changes needed — the Header already has the conditional rendering for `isAdmin`. Once the role is inserted, the "Panel Admin" link will appear in both the desktop dropdown and the mobile hamburger menu.
-
-## Technical Note
-
-The published site at `chamby.mx` may also be running an older deploy (the dropdown shows "Pagos" and "Seguridad" instead of "Facturas" and "Configuración"). You may want to re-publish after confirming the admin link works in the preview.
+absolute left-1/2 -translate-x-1/2
+```
+with:
+```
+absolute left-1/2 -translate-x-[calc(50%+10px)]
+```
 
