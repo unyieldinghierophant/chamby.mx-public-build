@@ -132,6 +132,8 @@ const ActiveJobs = () => {
         .in("status", CLIENT_ACTIVE_STATES as string[])
         .order("created_at", { ascending: false });
 
+      console.log('[ActiveJobs DEBUG]', { data: jobsData, error: jobsError, userId: user?.id, CLIENT_ACTIVE_STATES });
+
       if (jobsError) {
         console.error("Error fetching active jobs query:", jobsError);
         setJobs([]);
