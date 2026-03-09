@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Check, Car, Droplets, MapPin, Package, Key, Camera, CalendarClock, ArrowLeft, AlertTriangle } from "lucide-react";
 import toolsPatternBg from "@/assets/tools-pattern-bg.png";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const serviceLabels: Record<string, string> = {
   exterior: "Lavado exterior", interior: "Lavado interior", completo: "Lavado completo",
