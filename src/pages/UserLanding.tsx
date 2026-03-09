@@ -247,7 +247,7 @@ const UserLanding = () => {
       </div>
       
       {/* Hero Section with Interactive Background - matching Provider Landing */}
-      <section className="relative min-h-[70vh] md:min-h-[80vh] lg:min-h-[90vh] flex items-center justify-center pt-8 pb-12 overflow-hidden">
+      <section className="relative min-h-[70vh] md:min-h-[80vh] lg:min-h-[90vh] flex items-center justify-center pt-16 md:pt-20 pb-12 overflow-hidden">
         {/* Interactive animated background with parallax */}
         <InteractiveHeroBackground 
           onJobCardVisible={handleJobCardVisible}
