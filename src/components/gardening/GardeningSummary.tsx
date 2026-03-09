@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Check, Leaf, Ruler, TreePine, Wrench, Recycle, CalendarClock, Camera, Home, FileText, ArrowLeft } from "lucide-react";
 import toolsPatternBg from "@/assets/tools-pattern-bg.png";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const serviceLabels: Record<string, string> = {
   corte_pasto: "Corte de pasto", poda_plantas: "Poda de plantas / arbustos",
