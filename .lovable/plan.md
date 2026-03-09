@@ -1,24 +1,8 @@
 
 
-## Move ChambyLogoText 10px Left
+## Add spacing between header and floating banners
 
-Update the logo wrapper's translate class in all 4 files from `-translate-x-1/2` to `-translate-x-[calc(50%+10px)]`.
+**File**: `src/pages/UserLanding.tsx`
 
-### Files to change
-
-| File | Line |
-|------|------|
-| `src/pages/Index.tsx` | 68 |
-| `src/components/Header.tsx` | 66 |
-| `src/pages/UserLanding.tsx` | 109 |
-| `src/pages/ProviderLanding.tsx` | 180 |
-
-Each change is identical — replace:
-```
-absolute left-1/2 -translate-x-1/2
-```
-with:
-```
-absolute left-1/2 -translate-x-[calc(50%+10px)]
-```
+Change the banner container's top position from `top-16 md:top-20` to `top-[4.5rem] md:top-[5.5rem]` — adding ~0.5rem of breathing room below the header.
 
