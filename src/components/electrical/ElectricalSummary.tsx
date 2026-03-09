@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Check, Zap, MapPin, AlertTriangle, Building, Wrench, KeyRound, Clock, Camera, CalendarClock, ArrowLeft } from "lucide-react";
 import toolsPatternBg from "@/assets/tools-pattern-bg.png";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const serviceLabels: Record<string, string> = {
   apagon: "Apagón / falla", corto: "Corto / breaker se baja",
