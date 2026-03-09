@@ -241,13 +241,13 @@ const UserLanding = () => {
       </header>
 
       {/* Active Job Banner - in flow, below header */}
-      <div className="pt-16 md:pt-20 px-4 space-y-2 relative z-40">
+      <div className="fixed top-16 md:top-20 left-0 right-0 px-4 space-y-2 z-40 pointer-events-none [&>*]:pointer-events-auto">
         <ClientActiveJobBanner />
         <SearchingJobBanner />
       </div>
       
       {/* Hero Section with Interactive Background - matching Provider Landing */}
-      <section className="relative min-h-[70vh] md:min-h-[80vh] lg:min-h-[90vh] flex items-center justify-center pt-8 pb-12 overflow-hidden">
+      <section className="relative min-h-[70vh] md:min-h-[80vh] lg:min-h-[90vh] flex items-center justify-center pt-16 md:pt-20 pb-12 overflow-hidden">
         {/* Interactive animated background with parallax */}
         <InteractiveHeroBackground 
           onJobCardVisible={handleJobCardVisible}
