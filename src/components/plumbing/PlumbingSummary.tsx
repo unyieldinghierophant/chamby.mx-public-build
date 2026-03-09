@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Check, Droplets, MapPin, AlertTriangle, Gauge, Building, KeyRound, Wrench, Clock, Camera, CalendarClock, ArrowLeft } from "lucide-react";
 import toolsPatternBg from "@/assets/tools-pattern-bg.png";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const problemLabels: Record<string, string> = {
   fuga: "Fuga de agua", tapada: "Tubería tapada",
