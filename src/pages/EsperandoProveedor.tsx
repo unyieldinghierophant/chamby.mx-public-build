@@ -234,7 +234,7 @@ const EsperandoProveedor = () => {
 
   /* ---------- render ---------- */
   return (
-    <div ref={scrollRef} className="min-h-screen bg-background overflow-y-auto overscroll-none">
+    <div ref={scrollRef} className="min-h-screen bg-background">
       <div className="container mx-auto px-4 max-w-2xl py-6 pb-32">
         {/* Back */}
         <Button variant="ghost" size="sm" onClick={() => navigate("/user-landing")} className="mb-4">
