@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Check, MapPin, Calendar, FileText, Image, Clock } from "lucide-react";
 import toolsPatternBg from "@/assets/tools-pattern-bg.png";
