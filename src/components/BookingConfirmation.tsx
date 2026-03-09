@@ -32,9 +32,10 @@ export const BookingConfirmation = ({
 }: BookingConfirmationProps) => {
   const [countdown, setCountdown] = useState(15);
   const [progressValue, setProgressValue] = useState(0);
+  const hasSubmittedRef = useRef(false);
 
   useEffect(() => {
-    if (isSubmitting) return;
+    if (isSubmitting || hasSubmittedRef.current) return;
 
     const progressInterval = setInterval(() => {
       setProgressValue((prev) => {
@@ -49,6 +50,7 @@ export const BookingConfirmation = ({
         if (prev <= 1) {
           clearInterval(countdownInterval);
           clearInterval(progressInterval);
+          hasSubmittedRef.current = true;
           onConfirm();
           return 0;
         }

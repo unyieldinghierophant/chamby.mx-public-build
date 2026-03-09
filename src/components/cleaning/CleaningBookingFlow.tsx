@@ -328,10 +328,10 @@ export const CleaningBookingFlow = ({ intentText = "" }: { intentText?: string }
 
       if (!newJob) throw new Error('No se pudo crear el trabajo');
 
-      clearFormData();
       setCreatedJobId(newJob.id);
-      setShowSummary(false);
       await redirectToCheckout(newJob.id);
+      clearFormData();
+      setShowSummary(false);
     } catch (err: any) {
       toast({ title: "Error al enviar solicitud", description: err?.message, variant: "destructive" });
     } finally {
