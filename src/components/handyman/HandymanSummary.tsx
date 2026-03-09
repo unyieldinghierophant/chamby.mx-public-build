@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Check, Wrench, Ruler, PackageOpen, Camera, Home, FileText, ArrowLeft, MapPin, CalendarIcon, CreditCard } from "lucide-react";
 import toolsPatternBg from "@/assets/tools-pattern-bg.png";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { VISIT_DISPLAY } from "@/utils/pricingConfig";
 
 const workTypeLabels: Record<string, string> = {
@@ -48,12 +48,13 @@ interface Props {
 
 export const HandymanSummary = ({ formData, onConfirm, onGoBack, isSubmitting }: Props) => {
   const [countdown, setCountdown] = useState(15);
+  const hasSubmittedRef = useRef(false);
 
   useEffect(() => {
-    if (isSubmitting) return;
+    if (isSubmitting || hasSubmittedRef.current) return;
     const interval = setInterval(() => {
       setCountdown(prev => {
-        if (prev <= 1) { clearInterval(interval); onConfirm(); return 0; }
+        if (prev <= 1) { clearInterval(interval); hasSubmittedRef.current = true; onConfirm(); return 0; }
         return prev - 1;
       });
     }, 1000);

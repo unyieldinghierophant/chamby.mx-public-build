@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Check, Zap, MapPin, AlertTriangle, Building, Wrench, KeyRound, Clock, Camera, CalendarClock, ArrowLeft } from "lucide-react";
 import toolsPatternBg from "@/assets/tools-pattern-bg.png";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const serviceLabels: Record<string, string> = {
   apagon: "Apagón / falla", corto: "Corto / breaker se baja",
@@ -50,12 +50,13 @@ interface Props {
 
 export const ElectricalSummary = ({ formData, onConfirm, onGoBack, isSubmitting }: Props) => {
   const [countdown, setCountdown] = useState(15);
+  const hasSubmittedRef = useRef(false);
 
   useEffect(() => {
-    if (isSubmitting) return;
+    if (isSubmitting || hasSubmittedRef.current) return;
     const interval = setInterval(() => {
       setCountdown(prev => {
-        if (prev <= 1) { clearInterval(interval); onConfirm(); return 0; }
+        if (prev <= 1) { clearInterval(interval); hasSubmittedRef.current = true; onConfirm(); return 0; }
         return prev - 1;
       });
     }, 1000);

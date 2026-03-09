@@ -441,11 +441,14 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
 
       if (!newJob) throw new Error('No se pudo crear el trabajo');
 
-      clearFormData();
       setCreatedJobId(newJob.id);
-      setShowSummary(false);
+      // Keep summary visible while redirect loads — only clear after redirect succeeds
       await redirectToCheckout(newJob.id);
+      // If we reach here, window.location.href didn't fire (redirect failed silently)
+      clearFormData();
+      setShowSummary(false);
     } catch (err: any) {
+      // Don't clear form data or hide summary on failure — user can retry
       toast({ title: "Error al enviar solicitud", description: err?.message, variant: "destructive" });
     } finally {
       setIsSubmitting(false);
