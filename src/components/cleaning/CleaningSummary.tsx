@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Check, Sparkles, Home, BedDouble, Bath, MapPin, Layers, Package, AlertTriangle, Camera, CalendarClock, ArrowLeft } from "lucide-react";
 import toolsPatternBg from "@/assets/tools-pattern-bg.png";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const cleaningTypeLabels: Record<string, string> = {
   general: "General", profunda: "Profunda", mudanza: "Mudanza (entrada/salida)",
