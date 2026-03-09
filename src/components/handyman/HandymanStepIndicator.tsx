@@ -20,7 +20,7 @@ interface Props {
 
 export const HandymanStepIndicator = ({ currentStep, totalSteps }: Props) => {
   return (
-    <div className="hidden lg:flex items-center gap-2 mb-2">
+    <div className="hidden lg:flex items-center gap-2 mb-2 flex-wrap">
       {stepLabels.map((label, i) => {
         const stepNum = i + 1;
         const isActive = currentStep === stepNum;
