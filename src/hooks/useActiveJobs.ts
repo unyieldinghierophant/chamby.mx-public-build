@@ -56,7 +56,7 @@ export const useActiveJobs = (): UseActiveJobsResult => {
 
       const { data: jobsData, error: fetchError } = await supabase
         .from('jobs')
-        .select('*, invoices(status)')
+        .select('*, invoices!invoices_job_id_fkey(status)')
         .eq('provider_id', user.id)
         .in('status', PROVIDER_ACTIVE_STATES as string[])
         .order('scheduled_at', { ascending: true });

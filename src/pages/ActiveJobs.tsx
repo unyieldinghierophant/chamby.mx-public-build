@@ -127,7 +127,7 @@ const ActiveJobs = () => {
 
       const { data: jobsData, error: jobsError } = await supabase
         .from("jobs")
-        .select("*, invoices(id, status, total_customer_amount, subtotal_provider, chamby_commission_amount, client_surcharge_amount, vat_amount, provider_payout_amount, provider_notes, created_at)")
+        .select("*, invoices!invoices_job_id_fkey(id, status, total_customer_amount, subtotal_provider, chamby_commission_amount, client_surcharge_amount, vat_amount, provider_payout_amount, provider_notes, created_at)")
         .eq("client_id", user.id)
         .in("status", CLIENT_ACTIVE_STATES as string[])
         .order("created_at", { ascending: false });

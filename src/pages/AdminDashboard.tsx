@@ -114,7 +114,7 @@ const AdminDashboard = () => {
       // Fetch all jobs
       const { data: jobsData, error: jobsError } = await supabase
         .from('jobs')
-        .select('*, invoices(status)')
+        .select('*, invoices!invoices_job_id_fkey(status)')
         .order('created_at', { ascending: false });
 
       if (jobsError) throw jobsError;
