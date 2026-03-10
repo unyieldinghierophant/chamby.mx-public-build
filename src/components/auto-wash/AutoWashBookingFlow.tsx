@@ -88,6 +88,21 @@ export const AutoWashBookingFlow = ({ intentText = "" }: { intentText?: string }
 
   useEffect(() => {
     const saved = loadFormData();
+    const shouldShowSummary = localStorage.getItem('booking_show_summary') === 'true';
+
+    if (shouldShowSummary && saved?.autoWashFormData) {
+      const restored = { ...saved.autoWashFormData };
+      if (restored.photos && Array.isArray(restored.photos)) {
+        restored.photos = restored.photos.filter((p: any) => p?.uploaded && p?.url && !p.url.startsWith('blob:'));
+      } else {
+        restored.photos = [];
+      }
+      setFormData(prev => ({ ...prev, ...restored }));
+      setShowSummary(true);
+      setIsLoading(false);
+      return;
+    }
+
     if (saved?.autoWashFormData) {
       const restored = { ...saved.autoWashFormData };
       if (restored.scheduledDate) {
