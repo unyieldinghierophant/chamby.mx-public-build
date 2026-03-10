@@ -96,6 +96,21 @@ export const PlumbingBookingFlow = ({ intentText = "" }: { intentText?: string }
   // Load saved data or auto-match intent
   useEffect(() => {
     const saved = loadFormData();
+    const shouldShowSummary = localStorage.getItem('booking_show_summary') === 'true';
+
+    if (shouldShowSummary && saved?.plumbingFormData) {
+      const restored = { ...saved.plumbingFormData };
+      if (restored.photos && Array.isArray(restored.photos)) {
+        restored.photos = restored.photos.filter((p: any) => p?.uploaded && p?.url && !p.url.startsWith('blob:'));
+      } else {
+        restored.photos = [];
+      }
+      setFormData(prev => ({ ...prev, ...restored }));
+      setShowSummary(true);
+      setIsLoading(false);
+      return;
+    }
+
     if (saved?.plumbingFormData) {
       const restored = { ...saved.plumbingFormData };
       if (restored.scheduledDate) {
@@ -110,7 +125,6 @@ export const PlumbingBookingFlow = ({ intentText = "" }: { intentText?: string }
       setFormData(prev => ({ ...prev, ...restored }));
       setCurrentStep(saved.currentStep || 1);
     } else if (intentText) {
-      // Auto-match intent to a problem type
       const norm = intentText.toLowerCase();
       let matched: PlumbingFormData["problem"] = null;
       if (norm.includes("fuga") || norm.includes("goteo")) matched = "fuga";
@@ -190,12 +204,13 @@ export const PlumbingBookingFlow = ({ intentText = "" }: { intentText?: string }
   };
 
   const handleBack = () => {
-    if (showSummary) { setShowSummary(false); return; }
+    if (showSummary) { setShowSummary(false); localStorage.removeItem('booking_show_summary'); return; }
     if (currentStep > 1) setCurrentStep(currentStep - 1);
   };
 
   const handleShowSummary = () => {
     if (!user) { setShowAuthModal(true); return; }
+    localStorage.setItem('booking_show_summary', 'true');
     setShowSummary(true);
   };
 
@@ -352,6 +367,7 @@ export const PlumbingBookingFlow = ({ intentText = "" }: { intentText?: string }
 
       setCreatedJobId(newJob.id);
       await redirectToCheckout(newJob.id);
+      localStorage.removeItem('booking_show_summary');
       clearFormData();
       setShowSummary(false);
     } catch (err: any) {

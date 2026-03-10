@@ -161,14 +161,31 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
   // Load saved data
   useEffect(() => {
     const saved = loadFormData();
-    if (saved?.handymanFormData) {
+    const shouldShowSummary = localStorage.getItem('booking_show_summary') === 'true';
+
+    if (shouldShowSummary && saved?.handymanFormData) {
       const restored = { ...saved.handymanFormData };
-      // Validate scheduledDate from localStorage
       if (restored.scheduledDate) {
         const parsed = new Date(restored.scheduledDate);
         restored.scheduledDate = !isNaN(parsed.getTime()) ? parsed : null;
       }
-      // Restore only valid uploaded photo URLs
+      if (restored.photos && Array.isArray(restored.photos)) {
+        restored.photos = restored.photos.filter((p: any) => p?.uploaded && p?.url && !p.url.startsWith('blob:'));
+      } else {
+        restored.photos = [];
+      }
+      setFormData(prev => ({ ...prev, ...restored }));
+      setShowSummary(true);
+      setIsLoading(false);
+      return;
+    }
+
+    if (saved?.handymanFormData) {
+      const restored = { ...saved.handymanFormData };
+      if (restored.scheduledDate) {
+        const parsed = new Date(restored.scheduledDate);
+        restored.scheduledDate = !isNaN(parsed.getTime()) ? parsed : null;
+      }
       if (restored.photos && Array.isArray(restored.photos)) {
         restored.photos = restored.photos.filter((p: any) => p?.uploaded && p?.url && !p.url.startsWith('blob:'));
       } else {
@@ -273,12 +290,13 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
   };
 
   const handleBack = () => {
-    if (showSummary) { setShowSummary(false); return; }
+    if (showSummary) { setShowSummary(false); localStorage.removeItem('booking_show_summary'); return; }
     if (currentStep > 1) setCurrentStep(currentStep - 1);
   };
 
   const handleShowSummary = () => {
     if (!user) { setShowAuthModal(true); return; }
+    localStorage.setItem('booking_show_summary', 'true');
     setShowSummary(true);
   };
 
@@ -445,6 +463,7 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
       // Keep summary visible while redirect loads — only clear after redirect succeeds
       await redirectToCheckout(newJob.id);
       // If we reach here, window.location.href didn't fire (redirect failed silently)
+      localStorage.removeItem('booking_show_summary');
       clearFormData();
       setShowSummary(false);
     } catch (err: any) {

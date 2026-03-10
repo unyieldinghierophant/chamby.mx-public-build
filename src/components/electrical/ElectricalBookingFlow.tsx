@@ -128,6 +128,21 @@ export const ElectricalBookingFlow = ({ intentText = "" }: ElectricalBookingFlow
 
   useEffect(() => {
     const saved = loadFormData();
+    const shouldShowSummary = localStorage.getItem('booking_show_summary') === 'true';
+
+    if (shouldShowSummary && saved?.electricalFormData) {
+      const restored = { ...saved.electricalFormData };
+      if (restored.photos && Array.isArray(restored.photos)) {
+        restored.photos = restored.photos.filter((p: any) => p?.uploaded && p?.url && !p.url.startsWith('blob:'));
+      } else {
+        restored.photos = [];
+      }
+      setFormData(prev => ({ ...prev, ...restored }));
+      setShowSummary(true);
+      setIsLoading(false);
+      return;
+    }
+
     if (saved?.electricalFormData) {
       const restored = { ...saved.electricalFormData };
       if (restored.scheduledDate) {
@@ -142,7 +157,6 @@ export const ElectricalBookingFlow = ({ intentText = "" }: ElectricalBookingFlow
       setFormData(prev => ({ ...prev, ...restored }));
       setCurrentStep(saved.currentStep || 1);
     } else if (intentText) {
-      // Auto-match search intent to a service pill and skip to step 2
       const { service, additionalNotes } = matchIntentToService(intentText);
       setFormData(prev => ({
         ...prev,
@@ -220,12 +234,13 @@ export const ElectricalBookingFlow = ({ intentText = "" }: ElectricalBookingFlow
   };
 
   const handleBack = () => {
-    if (showSummary) { setShowSummary(false); return; }
+    if (showSummary) { setShowSummary(false); localStorage.removeItem('booking_show_summary'); return; }
     if (currentStep > 1) setCurrentStep(currentStep - 1);
   };
 
   const handleShowSummary = () => {
     if (!user) { setShowAuthModal(true); return; }
+    localStorage.setItem('booking_show_summary', 'true');
     setShowSummary(true);
   };
 
@@ -382,6 +397,7 @@ export const ElectricalBookingFlow = ({ intentText = "" }: ElectricalBookingFlow
 
       setCreatedJobId(newJob.id);
       await redirectToCheckout(newJob.id);
+      localStorage.removeItem('booking_show_summary');
       clearFormData();
       setShowSummary(false);
     } catch (err: any) {
