@@ -37,6 +37,7 @@ const BookJob = () => {
       // Clear all booking form persistence keys
       const keysToRemove = Object.keys(localStorage).filter(k => k.startsWith(STORAGE_KEY_PREFIX));
       keysToRemove.forEach(k => localStorage.removeItem(k));
+      localStorage.removeItem('booking_show_summary');
     }
   }, [newParam]);
 
