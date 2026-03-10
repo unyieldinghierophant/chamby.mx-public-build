@@ -161,14 +161,31 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
   // Load saved data
   useEffect(() => {
     const saved = loadFormData();
-    if (saved?.handymanFormData) {
+    const shouldShowSummary = localStorage.getItem('booking_show_summary') === 'true';
+
+    if (shouldShowSummary && saved?.handymanFormData) {
       const restored = { ...saved.handymanFormData };
-      // Validate scheduledDate from localStorage
       if (restored.scheduledDate) {
         const parsed = new Date(restored.scheduledDate);
         restored.scheduledDate = !isNaN(parsed.getTime()) ? parsed : null;
       }
-      // Restore only valid uploaded photo URLs
+      if (restored.photos && Array.isArray(restored.photos)) {
+        restored.photos = restored.photos.filter((p: any) => p?.uploaded && p?.url && !p.url.startsWith('blob:'));
+      } else {
+        restored.photos = [];
+      }
+      setFormData(prev => ({ ...prev, ...restored }));
+      setShowSummary(true);
+      setIsLoading(false);
+      return;
+    }
+
+    if (saved?.handymanFormData) {
+      const restored = { ...saved.handymanFormData };
+      if (restored.scheduledDate) {
+        const parsed = new Date(restored.scheduledDate);
+        restored.scheduledDate = !isNaN(parsed.getTime()) ? parsed : null;
+      }
       if (restored.photos && Array.isArray(restored.photos)) {
         restored.photos = restored.photos.filter((p: any) => p?.uploaded && p?.url && !p.url.startsWith('blob:'));
       } else {
