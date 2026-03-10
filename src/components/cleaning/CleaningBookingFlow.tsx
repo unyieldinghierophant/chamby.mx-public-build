@@ -95,6 +95,21 @@ export const CleaningBookingFlow = ({ intentText = "" }: { intentText?: string }
 
   useEffect(() => {
     const saved = loadFormData();
+    const shouldShowSummary = localStorage.getItem('booking_show_summary') === 'true';
+
+    if (shouldShowSummary && saved?.cleaningFormData) {
+      const restored = { ...saved.cleaningFormData };
+      if (restored.photos && Array.isArray(restored.photos)) {
+        restored.photos = restored.photos.filter((p: any) => p?.uploaded && p?.url && !p.url.startsWith('blob:'));
+      } else {
+        restored.photos = [];
+      }
+      setFormData(prev => ({ ...prev, ...restored }));
+      setShowSummary(true);
+      setIsLoading(false);
+      return;
+    }
+
     if (saved?.cleaningFormData) {
       const restored = { ...saved.cleaningFormData };
       if (restored.scheduledDate) {
