@@ -172,12 +172,13 @@ export const AutoWashBookingFlow = ({ intentText = "" }: { intentText?: string }
   };
 
   const handleBack = () => {
-    if (showSummary) { setShowSummary(false); return; }
+    if (showSummary) { setShowSummary(false); localStorage.removeItem('booking_show_summary'); return; }
     if (currentStep > 1) setCurrentStep(currentStep - 1);
   };
 
   const handleShowSummary = () => {
     if (!user) { setShowAuthModal(true); return; }
+    localStorage.setItem('booking_show_summary', 'true');
     setShowSummary(true);
   };
 
