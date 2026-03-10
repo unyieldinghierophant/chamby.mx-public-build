@@ -363,6 +363,7 @@ export const GardeningBookingFlow = ({ intentText = "" }: { intentText?: string 
 
       setCreatedJobId(newJob.id);
       await redirectToCheckout(newJob.id);
+      localStorage.removeItem('booking_show_summary');
       clearFormData();
       setShowSummary(false);
     } catch (err: any) {

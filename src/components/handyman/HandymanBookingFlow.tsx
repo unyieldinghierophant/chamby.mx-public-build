@@ -463,6 +463,7 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
       // Keep summary visible while redirect loads — only clear after redirect succeeds
       await redirectToCheckout(newJob.id);
       // If we reach here, window.location.href didn't fire (redirect failed silently)
+      localStorage.removeItem('booking_show_summary');
       clearFormData();
       setShowSummary(false);
     } catch (err: any) {
