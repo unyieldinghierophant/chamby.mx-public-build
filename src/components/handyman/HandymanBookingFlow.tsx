@@ -838,57 +838,8 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
           </div>
         )}
 
-        {/* ---- STEP 6: Materials & Tools ---- */}
+        {/* ---- STEP 6: Photos ---- */}
         {currentStep === 6 && (
-          <div className="space-y-8">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-jakarta font-medium text-foreground">Materiales y herramientas</h1>
-            </div>
-
-            <div className="space-y-4">
-              <Label className="text-lg font-semibold text-foreground">¿Quién provee los materiales?</Label>
-              <div className="flex flex-wrap gap-3">
-                <Chip selected={formData.materialsProvider === 'client'} onClick={() => update("materialsProvider", "client")}>Yo ya tengo todo</Chip>
-                <Chip selected={formData.materialsProvider === 'provider'} onClick={() => update("materialsProvider", "provider")}>Necesito que el proveedor los traiga</Chip>
-                <Chip selected={formData.materialsProvider === 'unsure'} onClick={() => update("materialsProvider", "unsure")} icon={HelpCircle}>No estoy seguro</Chip>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <Label className="text-lg font-semibold text-foreground">¿Cuentas con herramientas básicas?</Label>
-              <div className="flex flex-wrap gap-3">
-                <Chip selected={formData.toolsAvailable === 'yes'} onClick={() => update("toolsAvailable", "yes")}>Sí</Chip>
-                <Chip selected={formData.toolsAvailable === 'no'} onClick={() => update("toolsAvailable", "no")}>No</Chip>
-                <Chip selected={formData.toolsAvailable === 'unsure'} onClick={() => update("toolsAvailable", "unsure")} icon={HelpCircle}>No sé cuáles se necesitan</Chip>
-              </div>
-              {(formData.toolsAvailable === 'no' || formData.toolsAvailable === 'unsure') && (
-                <p className="text-sm text-primary bg-primary/5 px-4 py-3 rounded-xl border border-primary/20">
-                  🛠️ El proveedor llevará lo necesario.
-                </p>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* ---- STEP 7: Important Details ---- */}
-        {currentStep === 7 && (
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-jakarta font-medium text-foreground">Detalles importantes</h1>
-              <p className="text-muted-foreground mt-2">Selecciona todo lo que aplique (opcional)</p>
-            </div>
-            <div className="space-y-3">
-              <CheckChip selected={formData.importantDetails.includes('perforate')} onClick={() => toggleDetail('perforate')}>Requiere perforar pared</CheckChip>
-              <CheckChip selected={formData.importantDetails.includes('measure')} onClick={() => toggleDetail('measure')}>Requiere medir / nivelar</CheckChip>
-              <CheckChip selected={formData.importantDetails.includes('height')} onClick={() => toggleDetail('height')}>Trabajo en altura</CheckChip>
-              <CheckChip selected={formData.importantDetails.includes('tight_space')} onClick={() => toggleDetail('tight_space')}>Espacio reducido</CheckChip>
-              <CheckChip selected={formData.importantDetails.includes('move_furniture')} onClick={() => toggleDetail('move_furniture')}>Requiere mover muebles</CheckChip>
-            </div>
-          </div>
-        )}
-
-        {/* ---- STEP 8: Photos ---- */}
-        {currentStep === 8 && (
           <div className="space-y-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-jakarta font-medium text-foreground">Fotos</h1>
