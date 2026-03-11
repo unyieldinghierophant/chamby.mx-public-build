@@ -73,11 +73,12 @@ export function LocationStep({
 
     L.control.zoom({ position: "bottomright" }).addTo(map);
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
       maxZoom: 19,
+      attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
     }).addTo(map);
 
-    const marker = L.marker([initLat, initLng], { draggable: true }).addTo(map);
+    const marker = L.marker([initLat, initLng], { draggable: true, icon: brandPinIcon }).addTo(map);
 
     marker.on("dragend", () => {
       const pos = marker.getLatLng();
