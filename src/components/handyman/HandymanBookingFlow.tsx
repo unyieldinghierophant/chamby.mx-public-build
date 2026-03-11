@@ -213,6 +213,22 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
     }
   }, [intentText]);
 
+  // Pre-fill selected sub-service from ?service= param
+  useEffect(() => {
+    if (serviceParam && generalSubs.length > 0 && !selectedSubService) {
+      const match = generalSubs.find(s =>
+        s.name.toLowerCase() === serviceParam.toLowerCase() ||
+        s.slug === serviceParam.toLowerCase()
+      );
+      if (match) {
+        setSelectedSubService(match.slug);
+        if (!formData.description) {
+          setFormData(prev => ({ ...prev, description: match.name }));
+        }
+      }
+    }
+  }, [serviceParam, generalSubs]);
+
   // Pre-fill location from global location chip — never overwrite user edits
   useEffect(() => {
     if (globalLocation && !formData.serviceAddress) {
