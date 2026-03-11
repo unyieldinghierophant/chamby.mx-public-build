@@ -10,7 +10,6 @@ import { X } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import ChambyLogoText from "@/components/ChambyLogoText";
 import { ROUTES } from "@/constants/routes";
-import { WizardIntentStep } from "@/components/booking/WizardIntentStep";
 import { useAuth } from "@/contexts/AuthContext";
 
 const INTENT_CONFIRMED_KEY = 'booking_intent_confirmed';
