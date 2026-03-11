@@ -24,10 +24,6 @@ const BookJob = () => {
   const categoryParam = searchParams.get("category") || "";
   const newParam = searchParams.get("new") || "";
 
-  // Step 1 gate: WizardIntentStep — user confirms/edits intent before entering wizard
-  const [intentConfirmed, setIntentConfirmed] = useState(false);
-  const [confirmedIntent, setConfirmedIntent] = useState("");
-
   // Clear stale form data when a NEW booking starts (detect via ?new= param)
   useEffect(() => {
     if (newParam) {
