@@ -65,19 +65,22 @@ serve(async (req) => {
 
     if (!job) throw new Error("Job not found");
 
-    // Fetch invoice
-    const { data: invoice } = await supabase
-      .from("invoices")
-      .select("id, subtotal_provider, status, stripe_payment_intent_id")
-      .eq("id", dispute.invoice_id)
-      .single();
-
-    if (!invoice) throw new Error("Invoice not found");
+    // Fetch invoice only if dispute has one
+    let invoice: { id: string; subtotal_provider: number; status: string; stripe_payment_intent_id: string | null } | null = null;
+    if (dispute.invoice_id) {
+      const { data: inv } = await supabase
+        .from("invoices")
+        .select("id, subtotal_provider, status, stripe_payment_intent_id")
+        .eq("id", dispute.invoice_id)
+        .single();
+      invoice = inv;
+    }
 
     const now = new Date().toISOString();
     let disputeStatus: string;
 
     if (resolution_action === "release") {
+      if (!invoice) throw new Error("Cannot release: no invoice associated with this dispute");
       disputeStatus = "resolved_release";
 
       // Perform escrow release (same logic as complete-job)
