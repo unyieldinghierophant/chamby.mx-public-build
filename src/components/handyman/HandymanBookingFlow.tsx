@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { AuthModal } from "@/components/AuthModal";
 import { useFormPersistence } from "@/hooks/useFormPersistence";
 import { JobSuccessScreen } from "@/components/JobSuccessScreen";
@@ -27,6 +27,7 @@ import { useVisitFeeCheckout } from "@/hooks/useVisitFeeCheckout";
 import { HandymanSummary } from "./HandymanSummary";
 import { HandymanStepIndicator } from "./HandymanStepIndicator";
 import { useGlobalLocation } from "@/hooks/useGlobalLocation";
+import { useServiceCatalog, getSubcategoriesForCategory } from "@/hooks/useServiceCatalog";
 
 // ---- Types ----
 type WorkType = "reparacion" | "instalacion" | "armado" | "ajuste";
