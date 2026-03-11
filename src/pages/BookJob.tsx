@@ -51,12 +51,7 @@ const BookJob = () => {
             <ChambyLogoText onClick={() => navigate(ROUTES.USER_LANDING)} size="lg" />
           </div>
           <button
-            onClick={() => {
-              // Clear intent persistence when user explicitly closes
-              localStorage.removeItem(INTENT_CONFIRMED_KEY);
-              localStorage.removeItem(INTENT_TEXT_KEY);
-              navigate(ROUTES.USER_LANDING);
-            }}
+            onClick={() => navigate(ROUTES.USER_LANDING)}
             className="ml-auto p-2 hover:bg-accent rounded-lg transition-colors"
             aria-label="Close"
           >
