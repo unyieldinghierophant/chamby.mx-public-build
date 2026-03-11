@@ -114,9 +114,14 @@ interface HandymanBookingFlowProps {
 export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { saveFormData, loadFormData, clearFormData } = useFormPersistence('handyman-booking');
   const { location: globalLocation } = useGlobalLocation();
+  const { categories, subcategories, loading: catalogLoading } = useServiceCatalog();
+  const generalSubs = getSubcategoriesForCategory('general', subcategories, categories);
+  const serviceParam = searchParams.get('service') || '';
+  const [selectedSubService, setSelectedSubService] = useState<string | null>(null);
 
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<HandymanFormData>({
