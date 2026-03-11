@@ -7,16 +7,14 @@ import { toast } from "sonner";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-// Fix default marker icon for Leaflet + bundlers
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
+// Custom brand pin icon (SVG data URI)
+const BRAND_PIN_SVG = encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36" width="24" height="36"><path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="hsl(221.2, 83.2%, 53.3%)"/><circle cx="12" cy="12" r="5" fill="white"/></svg>`);
 
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
+const brandPinIcon = L.icon({
+  iconUrl: `data:image/svg+xml,${BRAND_PIN_SVG}`,
+  iconSize: [28, 42],
+  iconAnchor: [14, 42],
+  popupAnchor: [0, -42],
 });
 
 const GDL_CENTER: [number, number] = [20.6597, -103.3496];
@@ -75,11 +73,12 @@ export function LocationStep({
 
     L.control.zoom({ position: "bottomright" }).addTo(map);
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
       maxZoom: 19,
+      attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
     }).addTo(map);
 
-    const marker = L.marker([initLat, initLng], { draggable: true }).addTo(map);
+    const marker = L.marker([initLat, initLng], { draggable: true, icon: brandPinIcon }).addTo(map);
 
     marker.on("dragend", () => {
       const pos = marker.getLatLng();
@@ -291,7 +290,7 @@ export function LocationStep({
         </p>
 
         {/* Leaflet map */}
-        <div className="rounded-2xl overflow-hidden border border-border shadow-sm">
+        <div className="rounded-2xl overflow-hidden border border-border/60 shadow-md ring-1 ring-border/20">
           <div
             ref={mapContainerRef}
             className="w-full h-[250px] md:h-[300px]"
