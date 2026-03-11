@@ -3,14 +3,12 @@ import { Check } from "lucide-react";
 
 const stepLabels = [
   "Servicio",
-  "Vehículo",
-  "Suciedad",
-  "Manchas",
   "Ubicación",
-  "Equipo",
+  "Tamaño",
   "Acceso",
-  "Fotos",
   "Horario",
+  "Fotos",
+  "Pago",
 ];
 
 interface Props {

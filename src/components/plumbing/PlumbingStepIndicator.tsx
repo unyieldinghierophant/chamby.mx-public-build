@@ -2,16 +2,13 @@ import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
 
 const stepLabels = [
-  "Problema",
+  "Servicio",
   "Ubicación",
-  "Gravedad",
-  "Agua",
-  "Instalación",
-  "Accesos",
-  "Materiales",
-  "Antigüedad",
-  "Fotos",
+  "Tamaño",
+  "Acceso",
   "Horario",
+  "Fotos",
+  "Pago",
 ];
 
 interface Props {
