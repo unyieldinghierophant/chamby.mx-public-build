@@ -1032,6 +1032,7 @@ export type Database = {
       service_subcategories: {
         Row: {
           category_id: string | null
+          description: string | null
           id: string
           is_active: boolean | null
           name: string
@@ -1040,6 +1041,7 @@ export type Database = {
         }
         Insert: {
           category_id?: string | null
+          description?: string | null
           id?: string
           is_active?: boolean | null
           name: string
@@ -1048,6 +1050,7 @@ export type Database = {
         }
         Update: {
           category_id?: string | null
+          description?: string | null
           id?: string
           is_active?: boolean | null
           name?: string
