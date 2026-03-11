@@ -12,8 +12,6 @@ import ChambyLogoText from "@/components/ChambyLogoText";
 import { ROUTES } from "@/constants/routes";
 import { useAuth } from "@/contexts/AuthContext";
 
-const INTENT_CONFIRMED_KEY = 'booking_intent_confirmed';
-const INTENT_TEXT_KEY = 'booking_confirmed_intent_text';
 const STORAGE_KEY_PREFIX = 'chamby_form_';
 
 const BookJob = () => {
