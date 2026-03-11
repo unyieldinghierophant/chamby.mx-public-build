@@ -60,30 +60,20 @@ const BookJob = () => {
         </div>
       </header>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-background to-blue-50/30 dark:from-blue-950/20 dark:via-background dark:to-blue-950/10 pt-24 pb-12 px-4 md:px-8">
-        {!intentConfirmed ? (
-          <WizardIntentStep
-            intentText={intentParam}
-            category={categoryParam}
-            onConfirm={handleIntentConfirm}
-            onBack={() => navigate(-1)}
-          />
-        ) : isHandyman ? (
-          <HandymanBookingFlow intentText={confirmedIntent} />
+        {isHandyman ? (
+          <HandymanBookingFlow intentText={intentParam} />
         ) : isGardening ? (
-          <GardeningBookingFlow intentText={confirmedIntent} />
+          <GardeningBookingFlow intentText={intentParam} />
         ) : isPlumbing ? (
-          <PlumbingBookingFlow intentText={confirmedIntent} />
+          <PlumbingBookingFlow intentText={intentParam} />
         ) : isElectrical ? (
-          <ElectricalBookingFlow intentText={confirmedIntent} />
+          <ElectricalBookingFlow intentText={intentParam} />
         ) : isCleaning ? (
-          <CleaningBookingFlow intentText={confirmedIntent} />
+          <CleaningBookingFlow intentText={intentParam} />
         ) : isAutoWash ? (
-          <AutoWashBookingFlow intentText={confirmedIntent} />
+          <AutoWashBookingFlow intentText={intentParam} />
         ) : (
-          <JobBookingForm
-            initialService={confirmedIntent}
-            initialDescription={confirmedIntent}
-          />
+          <HandymanBookingFlow intentText={intentParam} />
         )}
       </div>
     </>
