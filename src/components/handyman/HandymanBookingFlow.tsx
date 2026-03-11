@@ -879,8 +879,8 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
           </div>
         )}
 
-        {/* ---- STEP 9: Access & Considerations ---- */}
-        {currentStep === 9 && (
+        {/* ---- STEP 7: Access & Considerations ---- */}
+        {currentStep === 7 && (
           <div className="space-y-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-jakarta font-medium text-foreground">Acceso y consideraciones</h1>
