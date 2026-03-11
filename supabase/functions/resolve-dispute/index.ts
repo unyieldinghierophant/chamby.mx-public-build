@@ -92,22 +92,23 @@ serve(async (req) => {
       disputeStatus = "resolved_refund";
 
       // Find the payment intent to refund
-      let paymentIntentId = invoice.stripe_payment_intent_id;
+      let paymentIntentId = invoice?.stripe_payment_intent_id || null;
 
       if (!paymentIntentId) {
-        // Look in payments ledger
+        // Look in payments ledger for any succeeded payment on this job
         const { data: payment } = await supabase
           .from("payments")
           .select("stripe_payment_intent_id, stripe_checkout_session_id")
           .eq("job_id", job.id)
-          .eq("type", "job_invoice")
+          .in("type", ["job_invoice", "visit_fee", "visit_fee_authorization"])
           .eq("status", "succeeded")
+          .order("created_at", { ascending: false })
+          .limit(1)
           .maybeSingle();
 
         if (payment?.stripe_payment_intent_id) {
           paymentIntentId = payment.stripe_payment_intent_id;
         } else if (payment?.stripe_checkout_session_id) {
-          // Get PI from checkout session
           const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
           if (stripeKey) {
             const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
@@ -118,31 +119,35 @@ serve(async (req) => {
       }
 
       if (!paymentIntentId) {
-        throw new Error("Cannot find payment intent to refund");
+        // No payments found — just close the dispute without refunding
+        log("No payments found to refund, closing dispute as cancelled instead");
+        disputeStatus = "resolved_cancelled";
+      } else {
+        // Create Stripe refund
+        const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+        if (!stripeKey) throw new Error("STRIPE_SECRET_KEY not configured");
+
+        const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+        const refund = await stripe.refunds.create({
+          payment_intent: paymentIntentId,
+        });
+
+        log("Stripe refund created", { refundId: refund.id });
+
+        // Update invoice if exists
+        if (invoice) {
+          await supabase
+            .from("invoices")
+            .update({ status: "refunded", updated_at: now })
+            .eq("id", invoice.id);
+        }
+
+        // Update payments ledger
+        await supabase
+          .from("payments")
+          .update({ status: "refunded" })
+          .eq("stripe_payment_intent_id", paymentIntentId);
       }
-
-      // Create Stripe refund
-      const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-      if (!stripeKey) throw new Error("STRIPE_SECRET_KEY not configured");
-
-      const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
-      const refund = await stripe.refunds.create({
-        payment_intent: paymentIntentId,
-      });
-
-      log("Stripe refund created", { refundId: refund.id });
-
-      // Update invoice
-      await supabase
-        .from("invoices")
-        .update({ status: "refunded", updated_at: now })
-        .eq("id", invoice.id);
-
-      // Update payments ledger
-      await supabase
-        .from("payments")
-        .update({ status: "refunded" })
-        .eq("stripe_payment_intent_id", paymentIntentId);
 
     } else {
       // cancel — close dispute, allow normal flow
