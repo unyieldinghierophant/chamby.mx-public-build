@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { JobBookingForm } from "@/components/JobBookingForm";
+import { useEffect } from "react";
+import { HandymanBookingFlow } from "@/components/handyman/HandymanBookingFlow";
 import { HandymanBookingFlow } from "@/components/handyman/HandymanBookingFlow";
 import { GardeningBookingFlow } from "@/components/gardening/GardeningBookingFlow";
 import { PlumbingBookingFlow } from "@/components/plumbing/PlumbingBookingFlow";
