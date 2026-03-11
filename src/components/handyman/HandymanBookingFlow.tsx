@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { AuthModal } from "@/components/AuthModal";
 import { useFormPersistence } from "@/hooks/useFormPersistence";
 import { JobSuccessScreen } from "@/components/JobSuccessScreen";
@@ -27,6 +27,7 @@ import { useVisitFeeCheckout } from "@/hooks/useVisitFeeCheckout";
 import { HandymanSummary } from "./HandymanSummary";
 import { HandymanStepIndicator } from "./HandymanStepIndicator";
 import { useGlobalLocation } from "@/hooks/useGlobalLocation";
+import { useServiceCatalog, getSubcategoriesForCategory } from "@/hooks/useServiceCatalog";
 
 // ---- Types ----
 type WorkType = "reparacion" | "instalacion" | "armado" | "ajuste";
@@ -113,9 +114,14 @@ interface HandymanBookingFlowProps {
 export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { saveFormData, loadFormData, clearFormData } = useFormPersistence('handyman-booking');
   const { location: globalLocation } = useGlobalLocation();
+  const { categories, subcategories, loading: catalogLoading } = useServiceCatalog();
+  const generalSubs = getSubcategoriesForCategory('general', subcategories, categories);
+  const serviceParam = searchParams.get('service') || '';
+  const [selectedSubService, setSelectedSubService] = useState<string | null>(null);
 
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<HandymanFormData>({
@@ -206,6 +212,22 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
       }));
     }
   }, [intentText]);
+
+  // Pre-fill selected sub-service from ?service= param
+  useEffect(() => {
+    if (serviceParam && generalSubs.length > 0 && !selectedSubService) {
+      const match = generalSubs.find(s =>
+        s.name.toLowerCase() === serviceParam.toLowerCase() ||
+        s.slug === serviceParam.toLowerCase()
+      );
+      if (match) {
+        setSelectedSubService(match.slug);
+        if (!formData.description) {
+          setFormData(prev => ({ ...prev, description: match.name }));
+        }
+      }
+    }
+  }, [serviceParam, generalSubs]);
 
   // Pre-fill location from global location chip — never overwrite user edits
   useEffect(() => {
@@ -574,40 +596,65 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
         {currentStep === 1 && (
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl md:text-4xl font-jakarta font-medium text-foreground">Describe brevemente lo que necesitas</h1>
-              <p className="text-muted-foreground mt-2">Sé específico para recibir mejores propuestas</p>
+              <h1 className="text-3xl md:text-4xl font-jakarta font-medium text-foreground">¿Qué necesitas?</h1>
+              <p className="text-muted-foreground mt-2">Elige un servicio y describe brevemente tu problema</p>
             </div>
-            <div className="relative">
-              <Input
-                value={formData.description}
-                onChange={(e) => update("description", e.target.value)}
-                onFocus={() => setShowSuggestions(true)}
-                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                placeholder={placeholders[placeholderIndex]}
-                className="h-14 text-base"
-                maxLength={200}
-              />
-              <p className={cn("text-xs mt-1", formData.description.length < 15 ? "text-muted-foreground" : "text-primary")}>
-                {formData.description.length}/200 — mínimo 15 caracteres
-              </p>
 
-              {showSuggestions && filteredSuggestions.length > 0 && (
-                <div className="absolute z-[100] w-full mt-1 bg-popover border-2 border-primary/20 rounded-xl shadow-xl max-h-64 overflow-y-auto">
-                  <div className="p-2 bg-primary/5 border-b border-border">
-                    <p className="text-xs text-muted-foreground font-medium">Sugerencias para Handyman</p>
-                  </div>
-                  {filteredSuggestions.map((s, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => { update("description", s); setShowSuggestions(false); }}
-                      className="w-full text-left px-4 py-3 hover:bg-accent/80 active:bg-accent transition-colors border-b last:border-b-0 border-border/30 text-sm"
-                    >
-                      {s}
-                    </button>
-                  ))}
+            {/* Sub-service chips from catalog */}
+            {catalogLoading ? (
+              <div className="flex flex-wrap gap-3">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <Skeleton key={i} className="h-11 w-32 rounded-full" />
+                ))}
+              </div>
+            ) : generalSubs.length > 0 ? (
+              <div className="space-y-3">
+                <Label className="text-base font-medium text-foreground">Tipo de servicio</Label>
+                <div className="flex flex-wrap gap-3">
+                  {generalSubs.map((sub) => {
+                    const isSelected = selectedSubService === sub.slug;
+                    return (
+                      <button
+                        key={sub.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedSubService(isSelected ? null : sub.slug);
+                          if (!isSelected && !formData.description) {
+                            update("description", sub.name);
+                          }
+                        }}
+                        className={cn(
+                          "flex items-center gap-2 px-5 py-3 rounded-full border-2 text-sm font-medium transition-all active:scale-95",
+                          isSelected
+                            ? "border-primary bg-primary/10 text-primary ring-2 ring-primary/20 shadow-md"
+                            : "border-border bg-card text-foreground hover:border-primary/40 hover:bg-accent/50"
+                        )}
+                      >
+                        {isSelected && <Check className="w-4 h-4" />}
+                        {sub.name}
+                      </button>
+                    );
+                  })}
                 </div>
-              )}
+              </div>
+            ) : null}
+
+            {/* Description textarea */}
+            <div className="space-y-2">
+              <Label htmlFor="handyman-description" className="text-base font-medium text-foreground">
+                Describe brevemente tu problema
+              </Label>
+              <Textarea
+                id="handyman-description"
+                value={formData.description}
+                onChange={(e) => update("description", e.target.value.slice(0, 300))}
+                placeholder="Ej: Necesito colgar una TV de 55 pulgadas en pared de concreto..."
+                className="min-h-[100px] text-base resize-none"
+                maxLength={300}
+              />
+              <p className={cn("text-xs", formData.description.trim().length < 15 ? "text-muted-foreground" : "text-primary")}>
+                {formData.description.length}/300 — mínimo 15 caracteres
+              </p>
             </div>
           </div>
         )}
