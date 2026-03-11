@@ -365,7 +365,7 @@ const EsperandoProveedor = () => {
                           job_id: jobId,
                           opened_by_user_id: user.id,
                           opened_by_role: "client",
-                          reason_code: "no_match_refund",
+                          reason_code: "other",
                           reason_text: "Solicitud de reembolso: No se encontró proveedor disponible",
                           status: "open",
                         });
