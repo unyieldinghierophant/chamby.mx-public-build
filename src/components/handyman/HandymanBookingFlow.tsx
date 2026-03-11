@@ -297,10 +297,8 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
         return true;
       }
       case 5: return formData.jobSize !== null;
-      case 6: return formData.materialsProvider !== null && formData.toolsAvailable !== null;
-      case 7: return true; // optional details
-      case 8: return true; // optional photos
-      case 9: return true; // optional access
+      case 6: return true; // optional photos
+      case 7: return true; // optional access
       default: return false;
     }
   };
