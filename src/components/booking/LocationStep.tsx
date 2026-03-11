@@ -290,7 +290,7 @@ export function LocationStep({
         </p>
 
         {/* Leaflet map */}
-        <div className="rounded-2xl overflow-hidden border border-border shadow-sm">
+        <div className="rounded-2xl overflow-hidden border border-border/60 shadow-md ring-1 ring-border/20">
           <div
             ref={mapContainerRef}
             className="w-full h-[250px] md:h-[300px]"
