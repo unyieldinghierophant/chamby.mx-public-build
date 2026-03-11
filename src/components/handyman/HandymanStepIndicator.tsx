@@ -7,8 +7,6 @@ const stepLabels = [
   "Ubicación",
   "Horario",
   "Tamaño",
-  "Materiales",
-  "Detalles",
   "Fotos",
   "Acceso",
 ];
