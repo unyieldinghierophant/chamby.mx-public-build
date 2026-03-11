@@ -34,42 +34,6 @@ const BookJob = () => {
     }
   }, [newParam]);
 
-  // On mount, check if intent was already confirmed (returning from OAuth redirect)
-  // OR if user is authenticated with intent+category, skip the intent step entirely
-  useEffect(() => {
-    if (user && intentParam && categoryParam) {
-      // Authenticated user with full params — skip intent step
-      setConfirmedIntent(intentParam);
-      setIntentConfirmed(true);
-      return;
-    }
-    const wasConfirmed = localStorage.getItem(INTENT_CONFIRMED_KEY);
-    const savedIntentText = localStorage.getItem(INTENT_TEXT_KEY);
-    if (wasConfirmed === 'true' && (intentParam || savedIntentText)) {
-      setConfirmedIntent(savedIntentText || intentParam);
-      setIntentConfirmed(true);
-    }
-  }, [user]);
-
-  // Clear intent confirmation when navigating away from booking
-  useEffect(() => {
-    return () => {
-      const currentPath = window.location.pathname;
-      if (!currentPath.startsWith('/book-job')) {
-        localStorage.removeItem(INTENT_CONFIRMED_KEY);
-        localStorage.removeItem(INTENT_TEXT_KEY);
-      }
-    };
-  }, []);
-
-  const handleIntentConfirm = (text: string) => {
-    setConfirmedIntent(text);
-    setIntentConfirmed(true);
-    // Persist so it survives OAuth redirects
-    localStorage.setItem(INTENT_CONFIRMED_KEY, 'true');
-    localStorage.setItem(INTENT_TEXT_KEY, text);
-  };
-
   // Determine which specialized flow to render based on category
   const category = categoryParam?.toLowerCase();
   const isHandyman = category === "handyman";
