@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { HandymanBookingFlow } from "@/components/handyman/HandymanBookingFlow";
-import { HandymanBookingFlow } from "@/components/handyman/HandymanBookingFlow";
 import { GardeningBookingFlow } from "@/components/gardening/GardeningBookingFlow";
 import { PlumbingBookingFlow } from "@/components/plumbing/PlumbingBookingFlow";
 import { ElectricalBookingFlow } from "@/components/electrical/ElectricalBookingFlow";
