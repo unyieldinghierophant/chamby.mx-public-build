@@ -7,7 +7,7 @@ const IMAGES = [
   "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=1920&q=80&auto=format&fit=crop", // electrician at panel
   "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=1920&q=80&auto=format&fit=crop", // plumber under sink
   "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=1920&q=80&auto=format&fit=crop", // handyman with drill
-  "https://images.unsplash.com/photo-0pyOLyanlcs?w=1920&q=80&auto=format&fit=crop", // carpenter craftsmanship
+  "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=1920&q=80&auto=format&fit=crop", // worker using circular saw
   "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=1920&q=80&auto=format&fit=crop", // construction worker on site
   "https://images.unsplash.com/photo-1541123603104-512919d6a96c?w=1920&q=80&auto=format&fit=crop", // painter painting wall
   "https://images.unsplash.com/photo-1597484661643-2f5fef26f836?w=1920&q=80&auto=format&fit=crop", // carpenter woodworking
