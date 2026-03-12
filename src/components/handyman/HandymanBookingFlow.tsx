@@ -507,10 +507,10 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
       .filter(f => f.uploaded && f.url && !f.url.startsWith('blob:'))
       .map(f => ({ file: null, url: f.url, uploaded: true }));
     saveFormData({ handymanFormData: { ...formData, photos: persistablePhotos }, currentStep });
-    const returnPath = '/book-job?category=Handyman';
+    const returnPath = `/book-job?category=${categorySlug}`;
     sessionStorage.setItem('auth_return_to', returnPath);
     localStorage.setItem('auth_return_to', returnPath);
-    localStorage.setItem('booking_category', 'Handyman');
+    localStorage.setItem('booking_category', categorySlug);
     navigate('/login', { state: { returnTo: returnPath } });
   };
 
