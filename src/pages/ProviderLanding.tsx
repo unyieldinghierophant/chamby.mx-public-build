@@ -44,7 +44,7 @@ import { useProfile } from "@/hooks/useProfile";
 import ChambyLogoText from "@/components/ChambyLogoText";
 import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
-import providerHeroBg from "@/assets/provider-hero-bg.mov";
+import { ProviderHeroSlideshow } from "@/components/provider-portal/ProviderHeroSlideshow";
 import { useScrollParallax } from "@/hooks/useScrollParallax";
 import { useLandingSkeleton } from "@/hooks/useLandingSkeleton";
 import { ProviderLandingSkeleton } from "@/components/ProviderLandingSkeleton";
@@ -57,7 +57,7 @@ const ProviderLanding = () => {
   const { profile } = useProfile();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [ctaPulse, setCtaPulse] = useState(false);
-  const [videoReady, setVideoReady] = useState(false);
+  
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isSkeletonVisible, onHeroMediaReady } = useLandingSkeleton();
   
@@ -276,16 +276,7 @@ const ProviderLanding = () => {
       <section className="relative min-h-[70vh] md:min-h-[80vh] lg:min-h-[90vh] flex items-center justify-center pt-24 pb-12 overflow-hidden">
         {/* Video background */}
         <div className="absolute inset-0 z-0">
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            onCanPlay={() => { setVideoReady(true); onHeroMediaReady(); }}
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-out ${videoReady ? 'opacity-100' : 'opacity-0'}`}
-          >
-            <source src={providerHeroBg} type="video/mp4" />
-          </video>
+          <ProviderHeroSlideshow onReady={onHeroMediaReady} />
           {/* Green tinted overlay */}
           <div className="absolute inset-0 bg-[hsl(145_40%_20%/0.55)]" />
           {/* Dark gradient for text legibility */}
