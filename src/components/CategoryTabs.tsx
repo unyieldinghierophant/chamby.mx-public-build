@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 // Icon imports
 import categoryHandyman from '@/assets/category-handyman.png';
 import categoryElectrician from '@/assets/category-electrician.png';
-import categoryPlumbing from '@/assets/category-plumbing.png';
+import categoryPlumbing from '@/assets/category-plumbing-new.png';
 import categoryAuto from '@/assets/category-auto.png';
 import categoryCleaning from '@/assets/category-cleaning.png';
 import categoryGardening from '@/assets/category-gardening.png';
