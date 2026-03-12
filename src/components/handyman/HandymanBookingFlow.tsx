@@ -109,9 +109,10 @@ function detectWorkType(text: string): WorkType | null {
 
 interface HandymanBookingFlowProps {
   intentText?: string;
+  categorySlug?: string;
 }
 
-export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) => {
+export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: HandymanBookingFlowProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -119,7 +120,11 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
   const { saveFormData, loadFormData, clearFormData } = useFormPersistence('handyman-booking');
   const { location: globalLocation } = useGlobalLocation();
   const { categories, subcategories, loading: catalogLoading } = useServiceCatalog();
-  const generalSubs = getSubcategoriesForCategory('general', subcategories, categories);
+  const categorySubs = getSubcategoriesForCategory(categorySlug, subcategories, categories);
+  // Fallback to 'general' if the slug yields no subcategories
+  const activeSubs = categorySubs.length > 0 ? categorySubs : getSubcategoriesForCategory('general', subcategories, categories);
+  // Resolve the display name for the category
+  const resolvedCategory = categories.find(c => c.slug === categorySlug);
   const serviceParam = searchParams.get('service') || '';
   const [selectedSubService, setSelectedSubService] = useState<string | null>(null);
 
