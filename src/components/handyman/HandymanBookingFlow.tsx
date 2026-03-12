@@ -449,7 +449,7 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
         title: intentText || formData.description,
         description: richDescription,
         category: resolvedCategory?.name || categorySlug || 'General',
-        service_type: formData.workType || 'general',
+        service_type: selectedSubService || formData.workType || 'general',
         problem: richDescription,
         location: formData.serviceAddress || '',
         photos: formData.photos.filter(f => f.uploaded).map(f => f.url),
