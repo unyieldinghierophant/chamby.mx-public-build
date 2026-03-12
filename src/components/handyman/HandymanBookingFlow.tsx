@@ -612,11 +612,11 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
                   <Skeleton key={i} className="h-11 w-32 rounded-full" />
                 ))}
               </div>
-            ) : generalSubs.length > 0 ? (
+            ) : activeSubs.length > 0 ? (
               <div className="space-y-3">
                 <Label className="text-base font-medium text-foreground">Tipo de servicio</Label>
                 <div className="flex flex-wrap gap-3">
-                  {generalSubs.map((sub) => {
+                  {activeSubs.map((sub) => {
                     const isSelected = selectedSubService === sub.slug;
                     return (
                       <button
