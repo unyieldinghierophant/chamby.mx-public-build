@@ -448,7 +448,7 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
         provider_id: null,
         title: intentText || formData.description,
         description: richDescription,
-        category: 'Handyman',
+        category: resolvedCategory?.name || categorySlug || 'General',
         service_type: formData.workType || 'general',
         problem: richDescription,
         location: formData.serviceAddress || '',
