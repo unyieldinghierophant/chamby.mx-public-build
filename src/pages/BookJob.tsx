@@ -1,10 +1,5 @@
 import { useEffect } from "react";
 import { HandymanBookingFlow } from "@/components/handyman/HandymanBookingFlow";
-import { GardeningBookingFlow } from "@/components/gardening/GardeningBookingFlow";
-import { PlumbingBookingFlow } from "@/components/plumbing/PlumbingBookingFlow";
-import { ElectricalBookingFlow } from "@/components/electrical/ElectricalBookingFlow";
-import { CleaningBookingFlow } from "@/components/cleaning/CleaningBookingFlow";
-import { AutoWashBookingFlow } from "@/components/auto-wash/AutoWashBookingFlow";
 import { X } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import ChambyLogoText from "@/components/ChambyLogoText";
@@ -18,29 +13,18 @@ const BookJob = () => {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
 
-  // Read canonical payload from query params
   const intentParam = searchParams.get("intent") || "";
   const categoryParam = searchParams.get("category") || "";
   const newParam = searchParams.get("new") || "";
 
-  // Clear stale form data when a NEW booking starts (detect via ?new= param)
+  // Clear stale form data when a NEW booking starts
   useEffect(() => {
     if (newParam) {
-      // Clear all booking form persistence keys
       const keysToRemove = Object.keys(localStorage).filter(k => k.startsWith(STORAGE_KEY_PREFIX));
       keysToRemove.forEach(k => localStorage.removeItem(k));
       localStorage.removeItem('booking_show_summary');
     }
   }, [newParam]);
-
-  // Determine which specialized flow to render based on category
-  const category = categoryParam?.toLowerCase();
-  const isHandyman = category === "handyman";
-  const isGardening = category === "jardinería";
-  const isPlumbing = category === "fontanería";
-  const isElectrical = category === "electricidad";
-  const isCleaning = category === "limpieza";
-  const isAutoWash = category === "auto & lavado" || category === "auto y lavado";
 
   return (
     <>
@@ -59,21 +43,7 @@ const BookJob = () => {
         </div>
       </header>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-background to-blue-50/30 dark:from-blue-950/20 dark:via-background dark:to-blue-950/10 pt-24 pb-12 px-4 md:px-8">
-        {isHandyman ? (
-          <HandymanBookingFlow intentText={intentParam} />
-        ) : isGardening ? (
-          <GardeningBookingFlow intentText={intentParam} />
-        ) : isPlumbing ? (
-          <PlumbingBookingFlow intentText={intentParam} />
-        ) : isElectrical ? (
-          <ElectricalBookingFlow intentText={intentParam} />
-        ) : isCleaning ? (
-          <CleaningBookingFlow intentText={intentParam} />
-        ) : isAutoWash ? (
-          <AutoWashBookingFlow intentText={intentParam} />
-        ) : (
-          <HandymanBookingFlow intentText={intentParam} />
-        )}
+        <HandymanBookingFlow intentText={intentParam} categorySlug={categoryParam || 'general'} />
       </div>
     </>
   );
