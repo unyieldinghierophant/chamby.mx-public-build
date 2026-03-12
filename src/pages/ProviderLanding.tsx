@@ -44,7 +44,7 @@ import { useProfile } from "@/hooks/useProfile";
 import ChambyLogoText from "@/components/ChambyLogoText";
 import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
-import providerHeroBg from "@/assets/provider-hero-bg.mov";
+import { ProviderHeroSlideshow } from "@/components/provider-portal/ProviderHeroSlideshow";
 import { useScrollParallax } from "@/hooks/useScrollParallax";
 import { useLandingSkeleton } from "@/hooks/useLandingSkeleton";
 import { ProviderLandingSkeleton } from "@/components/ProviderLandingSkeleton";
