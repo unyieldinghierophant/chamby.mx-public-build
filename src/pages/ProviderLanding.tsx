@@ -57,7 +57,7 @@ const ProviderLanding = () => {
   const { profile } = useProfile();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [ctaPulse, setCtaPulse] = useState(false);
-  const [videoReady, setVideoReady] = useState(false);
+  
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isSkeletonVisible, onHeroMediaReady } = useLandingSkeleton();
   
