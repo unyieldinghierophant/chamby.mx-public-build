@@ -174,11 +174,11 @@ export function CatalogSearchBar({ className }: { className?: string }) {
               value={query}
               onChange={(e) => {
                 setQuery(e.target.value);
-                if (!e.target.value.trim()) setIsOpen(false);
+                setIsOpen(true);
               }}
               onFocus={() => {
                 setIsFocused(true);
-                if (query.trim().length >= 2) setIsOpen(true);
+                setIsOpen(true);
               }}
               onBlur={() => setIsFocused(false)}
               onKeyDown={(e) => {
