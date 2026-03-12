@@ -3,12 +3,11 @@ import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { startBooking } from '@/lib/booking';
 import { useServiceCatalog, getSubcategoriesForCategory, ServiceCategory } from '@/hooks/useServiceCatalog';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Icon imports — map slugs to existing images
+// Icon imports
 import categoryHandyman from '@/assets/category-handyman.png';
 import categoryElectrician from '@/assets/category-electrician.png';
 import categoryPlumbing from '@/assets/category-plumbing.png';
@@ -38,10 +37,11 @@ const SLUG_ICON_MAP: Record<string, string> = {
   electricidad: categoryElectrician,
   plomeria: categoryPlumbing,
   'aire-acondicionado': categoryAuto,
-  electrodomesticos: categoryCleaning,
+  limpieza: categoryCleaning,
   jardineria: categoryGardening,
   pintura: categoryHandyman,
   albanileria: categoryHandyman,
+  electrodomesticos: categoryCleaning,
 };
 
 const SLUG_HERO_MAP: Record<string, string> = {
@@ -49,23 +49,34 @@ const SLUG_HERO_MAP: Record<string, string> = {
   electricidad: electricianHero,
   plomeria: plumbingHero,
   'aire-acondicionado': autoHero,
-  electrodomesticos: cleaningHero,
+  limpieza: cleaningHero,
   jardineria: gardeningHero,
   pintura: handymanHero,
   albanileria: plumbingHero,
+  electrodomesticos: cleaningHero,
 };
 
-// Hardcoded fallback if DB fetch fails
-const FALLBACK_CATEGORIES = [
-  { slug: 'plomeria', name: 'Plomería' },
-  { slug: 'electricidad', name: 'Electricidad' },
-  { slug: 'pintura', name: 'Pintura' },
-  { slug: 'albanileria', name: 'Albañilería' },
-  { slug: 'aire-acondicionado', name: 'Aire Acondicionado' },
-  { slug: 'electrodomesticos', name: 'Electrodomésticos' },
-  { slug: 'jardineria', name: 'Jardinería' },
-  { slug: 'general', name: 'General / Handyman' },
+// The 7 categories to show, in order, with display label overrides
+const VISIBLE_SLUGS_ORDERED = [
+  { slug: 'plomeria', label: 'Fontanería' },
+  { slug: 'electricidad', label: null },
+  { slug: 'pintura', label: null },
+  { slug: 'albanileria', label: 'Albañilería y Construcción' },
+  { slug: 'aire-acondicionado', label: null },
+  { slug: 'limpieza', label: 'Limpieza' },
+  { slug: 'general', label: null },
 ];
+
+// Hardcoded fallback if DB fetch fails
+const FALLBACK_CATEGORIES: ServiceCategory[] = VISIBLE_SLUGS_ORDERED.map((v, i) => ({
+  id: v.slug,
+  slug: v.slug,
+  name: v.label || v.slug,
+  description: null,
+  icon: null,
+  sort_order: i,
+  is_active: true,
+}));
 
 export const CategoryTabs = () => {
   const { categories, subcategories, loading, error } = useServiceCatalog();
@@ -73,26 +84,21 @@ export const CategoryTabs = () => {
   const tabsListRef = useRef<HTMLDivElement>(null);
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 40 });
 
-  // Use DB categories or fallback
+  // Filter & order categories to the 7 we want
   const displayCategories = useMemo(() => {
-    if (categories.length > 0) return categories;
-    if (error) {
-      return FALLBACK_CATEGORIES.map((f, i) => ({
-        id: f.slug,
-        slug: f.slug,
-        name: f.name,
-        description: null,
-        icon: null,
-        sort_order: i,
-        is_active: true,
-      })) as ServiceCategory[];
-    }
-    return [];
+    const source = categories.length > 0 ? categories : error ? FALLBACK_CATEGORIES : [];
+    if (source.length === 0) return [];
+
+    return VISIBLE_SLUGS_ORDERED.map((v) => {
+      const cat = source.find((c) => c.slug === v.slug);
+      if (!cat) return null;
+      // Apply label override
+      return v.label ? { ...cat, name: v.label } : cat;
+    }).filter(Boolean) as ServiceCategory[];
   }, [categories, error]);
 
   const [selectedSlug, setSelectedSlug] = useState<string>('');
 
-  // Set initial selection when categories load
   useEffect(() => {
     if (displayCategories.length > 0 && !selectedSlug) {
       setSelectedSlug(displayCategories[0].slug);
@@ -123,11 +129,6 @@ export const CategoryTabs = () => {
     };
   }, [selectedSlug]);
 
-  const currentCat = displayCategories.find((c) => c.slug === selectedSlug);
-  const currentSubs = currentCat
-    ? getSubcategoriesForCategory(currentCat.slug, subcategories, displayCategories)
-    : [];
-
   const handleServiceClick = (serviceName: string, categorySlug: string, serviceSlug: string) => {
     localStorage.removeItem('chamby_form_job-booking');
     sessionStorage.removeItem('chamby_form_job-booking');
@@ -138,7 +139,7 @@ export const CategoryTabs = () => {
     return (
       <div className="w-full mx-auto">
         <div className="flex gap-6 md:gap-10 justify-start md:justify-center py-6 overflow-x-auto scrollbar-hide pl-4">
-          {Array.from({ length: 6 }).map((_, i) => (
+          {Array.from({ length: 7 }).map((_, i) => (
             <div key={i} className="flex flex-col items-center gap-2 min-w-[70px]">
               <Skeleton className="w-16 h-16 md:w-20 md:h-20 rounded-full" />
               <Skeleton className="w-14 h-3" />
@@ -157,7 +158,13 @@ export const CategoryTabs = () => {
         <div className="w-full relative z-30">
           <TabsList
             ref={tabsListRef}
-            className="w-full h-auto bg-transparent p-0 py-6 flex justify-start md:justify-center gap-6 md:gap-10 overflow-x-auto overflow-y-visible scrollbar-hide pl-4 relative z-30"
+            className="w-full h-auto bg-transparent p-0 py-6 flex justify-start md:justify-center gap-4 sm:gap-6 md:gap-8 overflow-x-auto overflow-y-visible pl-4 pr-4 relative z-30"
+            style={{
+              WebkitOverflowScrolling: 'touch',
+              scrollSnapType: 'x mandatory',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+            }}
           >
             {displayCategories.map((cat, index) => (
               <motion.div
@@ -166,6 +173,7 @@ export const CategoryTabs = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.08, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
                 className="flex-shrink-0 overflow-visible relative z-10"
+                style={{ scrollSnapAlign: 'start' }}
               >
                 <TabsTrigger
                   value={cat.slug}
@@ -173,7 +181,7 @@ export const CategoryTabs = () => {
                     'flex flex-col items-center gap-2 md:gap-3 p-2 md:p-3',
                     'data-[state=active]:bg-transparent data-[state=active]:text-primary',
                     'text-muted-foreground bg-transparent',
-                    'rounded-none h-auto min-w-[70px] md:min-w-[90px]',
+                    'rounded-none h-auto w-[72px] sm:w-[80px] md:w-[90px]',
                     'hover:text-primary transition-all duration-300',
                     'border-b-0 shadow-none overflow-visible cursor-pointer relative z-10'
                   )}
@@ -191,7 +199,7 @@ export const CategoryTabs = () => {
                       loading="eager"
                     />
                   </motion.div>
-                  <span className="text-xs md:text-sm font-bold text-center leading-tight whitespace-nowrap">
+                  <span className="text-[11px] sm:text-xs md:text-sm font-bold text-center leading-tight max-w-[72px] sm:max-w-[80px] md:max-w-[90px]">
                     {cat.name}
                   </span>
                 </TabsTrigger>
@@ -214,7 +222,7 @@ export const CategoryTabs = () => {
 
         {/* Subcategory pills + hero */}
         {displayCategories.map((cat) => {
-          const subs = getSubcategoriesForCategory(cat.slug, subcategories, displayCategories);
+          const subs = getSubcategoriesForCategory(cat.slug, subcategories, categories.length > 0 ? categories : displayCategories);
           const heroImg = SLUG_HERO_MAP[cat.slug] || handymanHero;
 
           return (
@@ -228,23 +236,27 @@ export const CategoryTabs = () => {
                   visible: { transition: { staggerChildren: 0.05 } },
                 }}
               >
-                {subs.slice(0, 6).map((sub) => (
-                  <motion.div
-                    key={sub.id}
-                    variants={{
-                      hidden: { opacity: 0, y: 10, scale: 0.95 },
-                      visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.3, ease: 'easeOut' } },
-                    }}
-                  >
-                    <Button
-                      onClick={() => handleServiceClick(sub.name, cat.slug, sub.slug)}
-                      variant="outline"
-                      className="rounded-full px-4 py-2 md:px-6 md:py-2.5 h-auto text-sm md:text-base font-medium bg-background border-border hover:bg-primary/5 hover:text-primary hover:border-primary transition-all duration-200"
+                {subs.length > 0 ? (
+                  subs.slice(0, 8).map((sub) => (
+                    <motion.div
+                      key={sub.id}
+                      variants={{
+                        hidden: { opacity: 0, y: 10, scale: 0.95 },
+                        visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.3, ease: 'easeOut' } },
+                      }}
                     >
-                      {sub.name}
-                    </Button>
-                  </motion.div>
-                ))}
+                      <Button
+                        onClick={() => handleServiceClick(sub.name, cat.slug, sub.slug)}
+                        variant="outline"
+                        className="rounded-full px-4 py-2 md:px-6 md:py-2.5 h-auto text-sm md:text-base font-medium bg-background border-border hover:bg-primary/5 hover:text-primary hover:border-primary transition-all duration-200"
+                      >
+                        {sub.name}
+                      </Button>
+                    </motion.div>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">Selecciona una categoría para ver servicios disponibles</p>
+                )}
               </motion.div>
 
               {/* Hero image */}
