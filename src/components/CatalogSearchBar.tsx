@@ -77,9 +77,23 @@ export function CatalogSearchBar({ className }: { className?: string }) {
     return () => clearTimeout(timeout);
   }, [isFocused, query, typingExamples]);
 
+  // Build popular suggestions (shown on focus with no query)
+  const popularSuggestions: SuggestionItem[] = (() => {
+    if (catalogLoading || categories.length === 0) return [];
+    const popular: SuggestionItem[] = [];
+    for (const cat of categories) {
+      const catSubs = subcategories.filter((s) => s.category_id === cat.id);
+      // Take first 2 subcategories per category for variety
+      catSubs.slice(0, 2).forEach((sub) => popular.push({ subcategory: sub, category: cat }));
+    }
+    return popular.slice(0, 8);
+  })();
+
   // Autocomplete from catalog
   useEffect(() => {
-    if (!query.trim() || query.length < 2 || catalogLoading) {
+    if (catalogLoading) return;
+
+    if (!query.trim() || query.length < 2) {
       setSuggestions([]);
       return;
     }
@@ -109,7 +123,6 @@ export function CatalogSearchBar({ className }: { className?: string }) {
     }
 
     setSuggestions(matches.slice(0, 8));
-    setIsOpen(matches.length > 0 || query.trim().length >= 2);
   }, [query, categories, subcategories, catalogLoading]);
 
   // Close on outside click
@@ -161,11 +174,11 @@ export function CatalogSearchBar({ className }: { className?: string }) {
               value={query}
               onChange={(e) => {
                 setQuery(e.target.value);
-                if (!e.target.value.trim()) setIsOpen(false);
+                setIsOpen(true);
               }}
               onFocus={() => {
                 setIsFocused(true);
-                if (query.trim().length >= 2) setIsOpen(true);
+                setIsOpen(true);
               }}
               onBlur={() => setIsFocused(false)}
               onKeyDown={(e) => {
@@ -189,37 +202,62 @@ export function CatalogSearchBar({ className }: { className?: string }) {
               style={{ backgroundColor: 'white' }}
             >
               <div className="p-2 sm:p-3">
-                {suggestions.length > 0 ? (
-                  <div className="space-y-0.5">
-                    {suggestions.map((s) => (
-                      <button
-                        key={`${s.category.id}-${s.subcategory.id}`}
-                        onClick={() => handleSuggestionClick(s)}
-                        className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-accent text-foreground transition-colors text-sm sm:text-base flex items-center gap-3"
-                      >
-                        <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                        <div className="min-w-0">
-                          <span className="text-foreground">{s.subcategory.name}</span>
-                          <span className="text-muted-foreground ml-2 text-xs">({s.category.name})</span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  query.trim().length >= 2 && (
-                    <div className="px-3 py-2 text-sm text-muted-foreground">
-                      No se encontraron servicios
+                {/* Show popular services on focus with no query */}
+                {(!query.trim() || query.length < 2) && popularSuggestions.length > 0 && (
+                  <>
+                    <p className="px-3 pt-1 pb-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Servicios populares
+                    </p>
+                    <div className="space-y-0.5">
+                      {popularSuggestions.map((s) => (
+                        <button
+                          key={`pop-${s.category.id}-${s.subcategory.id}`}
+                          onClick={() => handleSuggestionClick(s)}
+                          className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-accent text-foreground transition-colors text-sm sm:text-base flex items-center gap-3"
+                        >
+                          <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                          <div className="min-w-0">
+                            <span className="text-foreground">{s.subcategory.name}</span>
+                            <span className="text-muted-foreground ml-2 text-xs">({s.category.name})</span>
+                          </div>
+                        </button>
+                      ))}
                     </div>
-                  )
+                  </>
                 )}
+
+                {/* Show search results when typing */}
                 {query.trim().length >= 2 && (
-                  <button
-                    onClick={() => handleSubmit()}
-                    className="w-full mt-1 px-3 py-2.5 rounded-xl text-primary hover:bg-accent transition-colors text-sm font-medium flex items-center gap-3"
-                  >
-                    <Search className="w-4 h-4 flex-shrink-0" />
-                    Buscar "{query}" →
-                  </button>
+                  <>
+                    {suggestions.length > 0 ? (
+                      <div className="space-y-0.5">
+                        {suggestions.map((s) => (
+                          <button
+                            key={`${s.category.id}-${s.subcategory.id}`}
+                            onClick={() => handleSuggestionClick(s)}
+                            className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-accent text-foreground transition-colors text-sm sm:text-base flex items-center gap-3"
+                          >
+                            <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                            <div className="min-w-0">
+                              <span className="text-foreground">{s.subcategory.name}</span>
+                              <span className="text-muted-foreground ml-2 text-xs">({s.category.name})</span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="px-3 py-2 text-sm text-muted-foreground">
+                        No se encontraron servicios
+                      </div>
+                    )}
+                    <button
+                      onClick={() => handleSubmit()}
+                      className="w-full mt-1 px-3 py-2.5 rounded-xl text-primary hover:bg-accent transition-colors text-sm font-medium flex items-center gap-3"
+                    >
+                      <Search className="w-4 h-4 flex-shrink-0" />
+                      Buscar "{query}" →
+                    </button>
+                  </>
                 )}
               </div>
             </div>
