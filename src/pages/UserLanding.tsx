@@ -19,8 +19,7 @@ import {
 } from "@/components/ui/accordion";
 import { ROUTES } from "@/constants/routes";
 import { startBooking } from "@/lib/booking";
-import { AISearchBar } from "@/components/AISearchBar";
-import { LocationChip } from "@/components/LocationChip";
+import { CatalogSearchBar } from "@/components/CatalogSearchBar";
 import ChambyLogoText from "@/components/ChambyLogoText";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -283,11 +282,8 @@ const UserLanding = () => {
               Conectamos contigo a los mejores profesionales verificados
             </p>
             {/* Location Chip + Search Bar */}
-            <div className="w-full max-w-xl mx-auto px-4 relative z-20 space-y-3">
-              <div className="flex justify-center">
-                <LocationChip variant="dark" />
-              </div>
-              <AISearchBar className="w-full" />
+            <div className="w-full max-w-xl mx-auto px-4 relative z-20">
+              <CatalogSearchBar className="w-full" />
             </div>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 text-sm text-white/90">
               <div className="flex items-center space-x-2">
