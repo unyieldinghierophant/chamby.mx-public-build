@@ -220,10 +220,10 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
 
   // Pre-fill selected sub-service from ?service= or ?intent= param
   useEffect(() => {
-    if (generalSubs.length > 0 && !selectedSubService) {
+    if (activeSubs.length > 0 && !selectedSubService) {
       const paramValue = serviceParam || intentText || '';
       if (!paramValue) return;
-      const match = generalSubs.find(s =>
+      const match = activeSubs.find(s =>
         s.name.toLowerCase() === paramValue.toLowerCase() ||
         s.slug === paramValue.toLowerCase()
       );
@@ -234,7 +234,7 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
         }
       }
     }
-  }, [serviceParam, intentText, generalSubs]);
+  }, [serviceParam, intentText, activeSubs]);
 
   // Pre-fill location from global location chip — never overwrite user edits
   useEffect(() => {
