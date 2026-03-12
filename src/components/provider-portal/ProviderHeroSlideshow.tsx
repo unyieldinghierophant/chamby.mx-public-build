@@ -4,16 +4,16 @@ const SLIDE_INTERVAL_MS = 7000;
 const TRANSITION_MS = 1200;
 
 const IMAGES = [
-  "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=1920&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=1920&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1920&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=1920&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=1920&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1523413651479-597eb2da0ad6?w=1920&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1920&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1590479773265-7464e5d48118?w=1920&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=1920&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?w=1920&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=1920&q=80&auto=format&fit=crop", // electrician at panel
+  "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=1920&q=80&auto=format&fit=crop", // plumber under sink
+  "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=1920&q=80&auto=format&fit=crop", // handyman with drill
+  "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=1920&q=80&auto=format&fit=crop", // worker using circular saw
+  "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=1920&q=80&auto=format&fit=crop", // construction worker on site
+  "https://images.unsplash.com/photo-1541123603104-512919d6a96c?w=1920&q=80&auto=format&fit=crop", // painter painting wall
+  "https://images.unsplash.com/photo-1597484661643-2f5fef26f836?w=1920&q=80&auto=format&fit=crop", // carpenter woodworking
+  "https://images.unsplash.com/photo-1564182842519-8a3b2af3e228?w=1920&q=80&auto=format&fit=crop", // power tools work
+  "https://images.unsplash.com/photo-1595814433015-e6f5ce69614e?w=1920&q=80&auto=format&fit=crop", // repair work
+  "https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?w=1920&q=80&auto=format&fit=crop", // worker installing
 ];
 
 interface Props {
