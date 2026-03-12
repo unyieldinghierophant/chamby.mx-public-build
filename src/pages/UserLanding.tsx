@@ -19,8 +19,7 @@ import {
 } from "@/components/ui/accordion";
 import { ROUTES } from "@/constants/routes";
 import { startBooking } from "@/lib/booking";
-import { AISearchBar } from "@/components/AISearchBar";
-import { LocationChip } from "@/components/LocationChip";
+import { CatalogSearchBar } from "@/components/CatalogSearchBar";
 import ChambyLogoText from "@/components/ChambyLogoText";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
