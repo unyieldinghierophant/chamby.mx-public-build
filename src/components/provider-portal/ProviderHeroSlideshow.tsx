@@ -4,16 +4,16 @@ const SLIDE_INTERVAL_MS = 7000;
 const TRANSITION_MS = 1200;
 
 const IMAGES = [
-  "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=1920&q=80&auto=format&fit=crop", // electrician working on panel
+  "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=1920&q=80&auto=format&fit=crop", // electrician at panel
   "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=1920&q=80&auto=format&fit=crop", // plumber under sink
   "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=1920&q=80&auto=format&fit=crop", // handyman with drill
-  "https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?w=1920&q=80&auto=format&fit=crop", // worker installing/building
+  "https://images.unsplash.com/photo-0pyOLyanlcs?w=1920&q=80&auto=format&fit=crop", // carpenter craftsmanship
   "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=1920&q=80&auto=format&fit=crop", // construction worker on site
   "https://images.unsplash.com/photo-1541123603104-512919d6a96c?w=1920&q=80&auto=format&fit=crop", // painter painting wall
-  "https://images.unsplash.com/photo-1597484661643-2f5fef640dd1?w=1920&q=80&auto=format&fit=crop", // carpenter working with wood
-  "https://images.unsplash.com/photo-1622653902334-23c8e tried0a72b1?w=1920&q=80&auto=format&fit=crop", // worker with tools
-  "https://images.unsplash.com/photo-1564182842519-8a3b2af3e228?w=1920&q=80&auto=format&fit=crop", // tradesperson with power tools
-  "https://images.unsplash.com/photo-1595814433015-e6f5ce69614e?w=1920&q=80&auto=format&fit=crop", // worker fixing/repairing
+  "https://images.unsplash.com/photo-1597484661643-2f5fef26f836?w=1920&q=80&auto=format&fit=crop", // carpenter woodworking
+  "https://images.unsplash.com/photo-1564182842519-8a3b2af3e228?w=1920&q=80&auto=format&fit=crop", // power tools work
+  "https://images.unsplash.com/photo-1595814433015-e6f5ce69614e?w=1920&q=80&auto=format&fit=crop", // repair work
+  "https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?w=1920&q=80&auto=format&fit=crop", // worker installing
 ];
 
 interface Props {
