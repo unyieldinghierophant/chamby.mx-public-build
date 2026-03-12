@@ -199,7 +199,7 @@ export const CategoryTabs = () => {
                       loading="eager"
                     />
                   </motion.div>
-                  <span className="text-[11px] sm:text-xs md:text-sm font-bold text-center leading-tight whitespace-normal break-words w-full">
+                  <span className="text-[11px] sm:text-xs md:text-sm font-bold text-center leading-tight whitespace-normal w-full">
                     {cat.name}
                   </span>
                 </TabsTrigger>
