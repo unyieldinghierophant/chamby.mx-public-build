@@ -109,9 +109,10 @@ function detectWorkType(text: string): WorkType | null {
 
 interface HandymanBookingFlowProps {
   intentText?: string;
+  categorySlug?: string;
 }
 
-export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) => {
+export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: HandymanBookingFlowProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -119,7 +120,11 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
   const { saveFormData, loadFormData, clearFormData } = useFormPersistence('handyman-booking');
   const { location: globalLocation } = useGlobalLocation();
   const { categories, subcategories, loading: catalogLoading } = useServiceCatalog();
-  const generalSubs = getSubcategoriesForCategory('general', subcategories, categories);
+  const categorySubs = getSubcategoriesForCategory(categorySlug, subcategories, categories);
+  // Fallback to 'general' if the slug yields no subcategories
+  const activeSubs = categorySubs.length > 0 ? categorySubs : getSubcategoriesForCategory('general', subcategories, categories);
+  // Resolve the display name for the category
+  const resolvedCategory = categories.find(c => c.slug === categorySlug);
   const serviceParam = searchParams.get('service') || '';
   const [selectedSubService, setSelectedSubService] = useState<string | null>(null);
 
@@ -215,10 +220,10 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
 
   // Pre-fill selected sub-service from ?service= or ?intent= param
   useEffect(() => {
-    if (generalSubs.length > 0 && !selectedSubService) {
+    if (activeSubs.length > 0 && !selectedSubService) {
       const paramValue = serviceParam || intentText || '';
       if (!paramValue) return;
-      const match = generalSubs.find(s =>
+      const match = activeSubs.find(s =>
         s.name.toLowerCase() === paramValue.toLowerCase() ||
         s.slug === paramValue.toLowerCase()
       );
@@ -229,7 +234,7 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
         }
       }
     }
-  }, [serviceParam, intentText, generalSubs]);
+  }, [serviceParam, intentText, activeSubs]);
 
   // Pre-fill location from global location chip — never overwrite user edits
   useEffect(() => {
@@ -443,8 +448,8 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
         provider_id: null,
         title: intentText || formData.description,
         description: richDescription,
-        category: 'Handyman',
-        service_type: formData.workType || 'general',
+        category: resolvedCategory?.name || categorySlug || 'General',
+        service_type: selectedSubService || formData.workType || 'general',
         problem: richDescription,
         location: formData.serviceAddress || '',
         photos: formData.photos.filter(f => f.uploaded).map(f => f.url),
@@ -502,10 +507,10 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
       .filter(f => f.uploaded && f.url && !f.url.startsWith('blob:'))
       .map(f => ({ file: null, url: f.url, uploaded: true }));
     saveFormData({ handymanFormData: { ...formData, photos: persistablePhotos }, currentStep });
-    const returnPath = '/book-job?category=Handyman';
+    const returnPath = `/book-job?category=${categorySlug}`;
     sessionStorage.setItem('auth_return_to', returnPath);
     localStorage.setItem('auth_return_to', returnPath);
-    localStorage.setItem('booking_category', 'Handyman');
+    localStorage.setItem('booking_category', categorySlug);
     navigate('/login', { state: { returnTo: returnPath } });
   };
 
@@ -607,11 +612,11 @@ export const HandymanBookingFlow = ({ intentText }: HandymanBookingFlowProps) =>
                   <Skeleton key={i} className="h-11 w-32 rounded-full" />
                 ))}
               </div>
-            ) : generalSubs.length > 0 ? (
+            ) : activeSubs.length > 0 ? (
               <div className="space-y-3">
                 <Label className="text-base font-medium text-foreground">Tipo de servicio</Label>
                 <div className="flex flex-wrap gap-3">
-                  {generalSubs.map((sub) => {
+                  {activeSubs.map((sub) => {
                     const isSelected = selectedSubService === sub.slug;
                     return (
                       <button
