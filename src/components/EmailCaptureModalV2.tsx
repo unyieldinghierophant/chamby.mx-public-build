@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { AnimatePresence, motion } from "framer-motion";
 
 const STORAGE_KEY = "email_capture_seen_v2";
+const COOKIE_KEY = "chamby_cookie_consent";
 
 const CAROUSEL_IMAGES = [
   "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&h=500&fit=crop&q=80",
