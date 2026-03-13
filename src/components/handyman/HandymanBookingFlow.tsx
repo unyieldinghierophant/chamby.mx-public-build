@@ -866,35 +866,6 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
           </div>
         )}
 
-        {/* ---- STEP 7: Access & Considerations ---- */}
-        {currentStep === 7 && (
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-jakarta font-medium text-foreground">Acceso y consideraciones</h1>
-              <p className="text-muted-foreground mt-2">Selecciona todo lo que aplique (opcional)</p>
-            </div>
-
-            <div className="space-y-3">
-              <CheckChip selected={formData.accessTypes.includes('apartment')} onClick={() => toggleAccess('apartment')}>Departamento</CheckChip>
-              <CheckChip selected={formData.accessTypes.includes('house')} onClick={() => toggleAccess('house')}>Casa</CheckChip>
-              <CheckChip selected={formData.accessTypes.includes('ground_floor')} onClick={() => toggleAccess('ground_floor')}>Planta baja</CheckChip>
-              <CheckChip selected={formData.accessTypes.includes('stairs')} onClick={() => toggleAccess('stairs')}>Escaleras</CheckChip>
-              <CheckChip selected={formData.accessTypes.includes('elevator')} onClick={() => toggleAccess('elevator')}>Elevador</CheckChip>
-              <CheckChip selected={formData.accessTypes.includes('restricted_hours')} onClick={() => toggleAccess('restricted_hours')}>Horarios restringidos</CheckChip>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-base font-medium text-foreground">Algo más que el proveedor deba saber</Label>
-              <Textarea
-                value={formData.additionalNotes}
-                onChange={(e) => update("additionalNotes", e.target.value)}
-                placeholder="Instrucciones especiales, acceso al estacionamiento, etc."
-                className="min-h-[100px] resize-none"
-                maxLength={500}
-              />
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Navigation — unified full-width stacked buttons */}

@@ -5,8 +5,7 @@ const stepLabels = [
   "Servicio",
   "Ubicación",
   "Tamaño",
-  "Acceso",
-  "Horario",
+  "Fecha",
   "Fotos",
   "Pago",
 ];
