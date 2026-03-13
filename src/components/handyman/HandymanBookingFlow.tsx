@@ -86,7 +86,7 @@ const handymanSuggestions = [
   "Instalar repisas flotantes", "Reparar ventanas",
 ];
 
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 5;
 
 // ---- Keyword → WorkType mapping ----
 const WORK_TYPE_KEYWORDS: Record<WorkType, string[]> = {
