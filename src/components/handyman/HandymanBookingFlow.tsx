@@ -793,8 +793,8 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
           </div>
         )}
 
-        {/* ---- STEP 5: Job Size ---- */}
-        {currentStep === 5 && (
+        {/* ---- STEP 3: Job Size ---- */}
+        {currentStep === 3 && (
           <div className="space-y-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-jakarta font-medium text-foreground">¿Qué tan grande es el trabajo?</h1>
