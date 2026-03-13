@@ -825,8 +825,8 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
           </div>
         )}
 
-        {/* ---- STEP 6: Photos ---- */}
-        {currentStep === 6 && (
+        {/* ---- STEP 5: Photos ---- */}
+        {currentStep === 5 && (
           <div className="space-y-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-jakarta font-medium text-foreground">Fotos</h1>
