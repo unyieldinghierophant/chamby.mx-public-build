@@ -662,24 +662,8 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
           </div>
         )}
 
-        {/* ---- STEP 2: Work Type ---- */}
+        {/* ---- STEP 2: Ubicación ---- */}
         {currentStep === 2 && (
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-jakarta font-medium text-foreground">Tipo de trabajo</h1>
-              <p className="text-muted-foreground mt-2">¿Qué tipo de trabajo necesitas?</p>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Chip selected={formData.workType === 'reparacion'} onClick={() => update("workType", "reparacion")} icon={Wrench}>Reparación</Chip>
-              <Chip selected={formData.workType === 'instalacion'} onClick={() => update("workType", "instalacion")} icon={Hammer}>Instalación</Chip>
-              <Chip selected={formData.workType === 'armado'} onClick={() => update("workType", "armado")} icon={PackageOpen}>Armado</Chip>
-              <Chip selected={formData.workType === 'ajuste'} onClick={() => update("workType", "ajuste")} icon={Settings}>Ajuste / Mantenimiento</Chip>
-            </div>
-          </div>
-        )}
-
-        {/* ---- STEP 3: Ubicación ---- */}
-        {currentStep === 3 && (
           <LocationStep
             address={formData.serviceAddress}
             latitude={formData.serviceLatitude}
