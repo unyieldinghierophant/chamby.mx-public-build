@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -29,14 +29,54 @@ import autoHero from '@/assets/category-auto-hero.jpg';
 import cleaningHero from '@/assets/category-cleaning-hero.png';
 import gardeningHero from '@/assets/category-gardening-hero.png';
 
-// Preload images
+// Preload ALL images (icons + heroes) immediately at module load
 const allImages = [
   categoryHandyman, categoryElectrician, categoryPlumbing,
   categoryAuto, categoryCleaning, categoryGardening,
+  categoryAC, categoryAlbanileria, categoryPintura,
   handymanHero, electricianHero, plumbingHero,
   autoHero, cleaningHero, gardeningHero,
+  acHero, pinturaHero, albanileriaHero,
 ];
-allImages.forEach((src) => { const img = new window.Image(); img.src = src; });
+const imageCache = new Map<string, boolean>();
+allImages.forEach((src) => {
+  const img = new window.Image();
+  img.onload = () => imageCache.set(src, true);
+  img.src = src;
+  if (img.complete) imageCache.set(src, true);
+});
+
+/** Tiny hook: returns true once the image is decoded & ready to paint */
+function useImageReady(src: string) {
+  const [ready, setReady] = useState(() => imageCache.get(src) === true);
+  useEffect(() => {
+    if (ready) return;
+    if (imageCache.get(src)) { setReady(true); return; }
+    const img = new window.Image();
+    img.onload = () => { imageCache.set(src, true); setReady(true); };
+    img.src = src;
+    if (img.complete) { imageCache.set(src, true); setReady(true); }
+  }, [src, ready]);
+  return ready;
+}
+
+/** Preloaded image with skeleton fallback */
+const PreloadedImage = ({ src, alt, className, ...props }: React.ImgHTMLAttributes<HTMLImageElement>) => {
+  const isReady = useImageReady(src || '');
+  return (
+    <div className="relative w-full h-full">
+      {!isReady && (
+        <Skeleton className={cn("absolute inset-0", className)} />
+      )}
+      <img
+        src={src}
+        alt={alt}
+        className={cn(className, isReady ? 'opacity-100' : 'opacity-0', 'transition-opacity duration-300')}
+        {...props}
+      />
+    </div>
+  );
+};
 
 const SLUG_ICON_MAP: Record<string, string> = {
   general: categoryHandyman,
@@ -197,12 +237,11 @@ export const CategoryTabs = () => {
                     whileHover={{ scale: 1.1 }}
                     transition={{ type: 'spring', stiffness: 300 }}
                   >
-                    <img
+                    <PreloadedImage
                       src={SLUG_ICON_MAP[cat.slug] || categoryHandyman}
                       alt={cat.name}
                       className="w-16 h-16 md:w-20 md:h-20 object-contain transform scale-[2]"
                       style={{ imageRendering: 'auto' }}
-                      loading="eager"
                     />
                   </motion.div>
                   <span className="text-[11px] sm:text-xs md:text-sm font-bold text-center leading-tight whitespace-normal w-full">
@@ -273,11 +312,10 @@ export const CategoryTabs = () => {
                 transition={{ delay: 0.2, duration: 0.5 }}
               >
                 <div className="relative">
-                  <img
+                  <PreloadedImage
                     src={heroImg}
                     alt={cat.name}
                     className="w-full h-[220px] md:h-[400px] object-cover rounded-xl"
-                    loading="eager"
                   />
                   {/* Desktop overlay */}
                   <div className="hidden md:block absolute top-8 left-8 bg-white rounded-xl p-6 shadow-lg max-w-[350px]">
