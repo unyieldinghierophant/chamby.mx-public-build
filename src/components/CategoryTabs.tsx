@@ -39,11 +39,11 @@ const SLUG_ICON_MAP: Record<string, string> = {
   general: categoryHandyman,
   electricidad: categoryElectrician,
   plomeria: categoryPlumbing,
-  'aire-acondicionado': categoryAuto,
+  'aire-acondicionado': categoryAC,
   limpieza: categoryCleaning,
   jardineria: categoryGardening,
-  pintura: categoryHandyman,
-  albanileria: categoryHandyman,
+  pintura: categoryPintura,
+  albanileria: categoryAlbanileria,
   electrodomesticos: categoryCleaning,
 };
 
