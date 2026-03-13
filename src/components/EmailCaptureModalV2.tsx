@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import chambyLogo from "@/assets/chamby-logo-new.png";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -163,51 +164,49 @@ export function EmailCaptureModalV2() {
         <WaveDivider />
       </div>
 
-      {/* ── Bottom Content ── */}
-      <div className="px-6 pb-6 pt-2 sm:px-8 sm:pb-8 space-y-4">
+      {/* ── Bottom Content — clean card style ── */}
+      <div className="px-8 pb-8 pt-4 sm:px-10 sm:pb-10 space-y-5">
+        {/* Logo */}
+        <div className="flex justify-center">
+          <img src={chambyLogo} alt="Chamby" className="h-8 sm:h-9 object-contain" />
+        </div>
+
         <div className="text-center space-y-2">
-          <DialogTitle className="text-xl sm:text-2xl font-extrabold uppercase tracking-tight text-foreground leading-tight">
-            ¿Quieres $150 MXN de descuento en tu primer trabajo?
+          <DialogTitle className="text-[22px] sm:text-2xl font-extrabold text-foreground leading-snug tracking-tight">
+            Regístrate con tu email para recibir un código de descuento
           </DialogTitle>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            Ingresa tu correo y recibe tu crédito al instante. Se aplica automáticamente.
+          <p className="text-sm text-muted-foreground">
+            (prometemos no spamearte)
           </p>
         </div>
 
         <div className="space-y-3">
           <Input
             type="email"
-            placeholder="tu@email.com"
+            placeholder="Tu correo aquí"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-            className="h-12 text-base rounded-xl border-border bg-muted/40 focus-visible:ring-primary/30"
+            className="h-[52px] text-base rounded-lg border-border bg-background"
             autoFocus
           />
           <Button
             onClick={handleSubmit}
             disabled={loading || !email}
-            className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-base shadow-md hover:shadow-lg transition-all duration-200"
+            className="w-full h-[52px] rounded-lg bg-foreground hover:bg-foreground/90 text-background font-semibold text-base transition-all duration-200"
           >
-            {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Recibir mi descuento"}
+            {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Continuar"}
           </Button>
-          <button
-            onClick={() => setOpen(false)}
-            className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors py-1"
-          >
-            Continuar sin descuento
-          </button>
         </div>
-
-        <p className="text-[10px] text-center text-muted-foreground/60 leading-snug">
-          Al continuar aceptas recibir comunicaciones de Chamby. Sin spam. Puedes darte de baja en cualquier momento.
-        </p>
       </div>
     </div>
   );
 
   const successContent = (
-    <div className="p-6 sm:p-8 text-center space-y-4 py-8">
+    <div className="px-8 pb-8 pt-6 sm:px-10 sm:pb-10 text-center space-y-5">
+      <div className="flex justify-center">
+        <img src={chambyLogo} alt="Chamby" className="h-8 sm:h-9 object-contain" />
+      </div>
       <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
         <CheckCircle className="h-7 w-7 text-primary" />
       </div>
@@ -220,7 +219,7 @@ export function EmailCaptureModalV2() {
       </p>
       <Button
         onClick={() => setOpen(false)}
-        className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-md"
+        className="w-full h-[52px] rounded-lg bg-foreground hover:bg-foreground/90 text-background font-semibold"
       >
         ¡Entendido!
       </Button>
