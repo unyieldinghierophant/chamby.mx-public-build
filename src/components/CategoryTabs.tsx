@@ -58,7 +58,7 @@ const SLUG_HERO_MAP: Record<string, string> = {
   limpieza: cleaningHero,
   jardineria: gardeningHero,
   pintura: pinturaHero,
-  albanileria: albañileriaHero,
+  albanileria: albanileriaHero,
   electrodomesticos: cleaningHero,
 };
 
