@@ -18,6 +18,7 @@ import categoryAC from '@/assets/category-ac.png';
 import categoryAlbanileria from '@/assets/category-albanileria.png';
 import categoryPintura from '@/assets/category-pintura.png';
 import acHero from '@/assets/category-ac-hero.png';
+import pinturaHero from '@/assets/category-pintura-hero.png';
 
 // Hero images
 import handymanHero from '@/assets/category-handyman-hero.jpg';
