@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { AnimatePresence, motion } from "framer-motion";
 
 const STORAGE_KEY = "email_capture_seen_v2";
+const COOKIE_KEY = "chamby_cookie_consent";
 
 const CAROUSEL_IMAGES = [
   "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&h=500&fit=crop&q=80",
@@ -48,13 +49,38 @@ export function EmailCaptureModalV2() {
     if (sessionStorage.getItem(STORAGE_KEY)) return;
     if (localStorage.getItem(STORAGE_KEY)) return;
 
-    const timer = setTimeout(() => {
-      setOpen(true);
-      sessionStorage.setItem(STORAGE_KEY, "1");
-      localStorage.setItem(STORAGE_KEY, Date.now().toString());
-    }, 4000);
+    // Wait until cookie consent is resolved before showing
+    const waitForCookies = () => {
+      const consent = localStorage.getItem(COOKIE_KEY);
+      if (consent) {
+        // Cookie consent already handled — show after short delay
+        const timer = setTimeout(() => {
+          setOpen(true);
+          sessionStorage.setItem(STORAGE_KEY, "1");
+          localStorage.setItem(STORAGE_KEY, Date.now().toString());
+        }, 1500);
+        return () => clearTimeout(timer);
+      }
 
-    return () => clearTimeout(timer);
+      // Poll for cookie consent resolution
+      const interval = setInterval(() => {
+        if (localStorage.getItem(COOKIE_KEY)) {
+          clearInterval(interval);
+          setTimeout(() => {
+            if (!sessionStorage.getItem(STORAGE_KEY)) {
+              setOpen(true);
+              sessionStorage.setItem(STORAGE_KEY, "1");
+              localStorage.setItem(STORAGE_KEY, Date.now().toString());
+            }
+          }, 1500);
+        }
+      }, 500);
+
+      return () => clearInterval(interval);
+    };
+
+    const cleanup = waitForCookies();
+    return cleanup;
   }, [user]);
 
   useEffect(() => {
