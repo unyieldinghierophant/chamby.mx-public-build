@@ -52,7 +52,7 @@ const SLUG_HERO_MAP: Record<string, string> = {
   general: handymanHero,
   electricidad: electricianHero,
   plomeria: plumbingHero,
-  'aire-acondicionado': autoHero,
+  'aire-acondicionado': acHero,
   limpieza: cleaningHero,
   jardineria: gardeningHero,
   pintura: handymanHero,
