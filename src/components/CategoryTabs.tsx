@@ -17,6 +17,7 @@ import categoryGardening from '@/assets/category-gardening.png';
 import categoryAC from '@/assets/category-ac.png';
 import categoryAlbanileria from '@/assets/category-albanileria.png';
 import categoryPintura from '@/assets/category-pintura.png';
+import acHero from '@/assets/category-ac-hero.png';
 
 // Hero images
 import handymanHero from '@/assets/category-handyman-hero.jpg';
@@ -51,7 +52,7 @@ const SLUG_HERO_MAP: Record<string, string> = {
   general: handymanHero,
   electricidad: electricianHero,
   plomeria: plumbingHero,
-  'aire-acondicionado': autoHero,
+  'aire-acondicionado': acHero,
   limpieza: cleaningHero,
   jardineria: gardeningHero,
   pintura: handymanHero,
