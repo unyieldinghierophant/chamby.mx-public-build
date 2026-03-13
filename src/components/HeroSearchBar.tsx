@@ -1,60 +1,22 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Search, Clock, ArrowRight } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Search, ArrowRight, Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { startBooking } from '@/lib/booking';
+import { useServiceCatalog, ServiceCategory, ServiceSubcategory } from '@/hooks/useServiceCatalog';
+import { createPortal } from 'react-dom';
 
-interface TaxonomySuggestion {
-  serviceType: string;
-  problem: string;
-}
+// 5 default suggestions shown on focus (before typing)
+const DEFAULT_SUGGESTION_SLUGS = [
+  'plomeria',
+  'electricidad',
+  'pintura',
+  'jardineria',
+  'general',
+];
 
-const SERVICE_TAXONOMY: Record<string, string[]> = {
-  "fontanería": [
-    "fuga de agua",
-    "arreglar regadera",
-    "destapar baño",
-    "instalar boiler",
-    "cambiar llave",
-    "revisar presión de agua"
-  ],
-  "electricidad": [
-    "cambiar enchufe",
-    "instalar lámpara",
-    "revisar cortocircuito",
-    "colocar ventilador",
-    "fallas eléctricas"
-  ],
-  "pintura": [
-    "pintar casa",
-    "pintar recámara",
-    "retocar paredes",
-    "pintar exterior"
-  ],
-  "trabajos generales": [
-    "mover muebles",
-    "colgar cuadros",
-    "limpieza profunda",
-    "armar muebles",
-    "reparaciones menores"
-  ],
-  "carpintería": [
-    "reparar puerta",
-    "fabricar mueble",
-    "ajustar clóset",
-    "cambiar bisagras"
-  ],
-  "jardinería": [
-    "cortar pasto",
-    "podar árbol",
-    "limpiar jardín",
-    "instalar sistema de riego"
-  ]
-};
-
-// Shorter examples for mobile to prevent text cutoff
 const TYPING_EXAMPLES_MOBILE = [
   'Pintar pared',
   'Armar cama',
@@ -71,191 +33,270 @@ const TYPING_EXAMPLES_DESKTOP = [
   'Lavar mi auto'
 ];
 
+interface SuggestionItem {
+  subcategory: ServiceSubcategory;
+  category: ServiceCategory;
+}
+
 export const HeroSearchBar: React.FC = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { categories, subcategories } = useServiceCatalog();
+
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
-  const [suggestions, setSuggestions] = useState<TaxonomySuggestion[]>([]);
+  const [suggestions, setSuggestions] = useState<SuggestionItem[]>([]);
   const [showPopular, setShowPopular] = useState(true);
   const [dynamicPlaceholder, setDynamicPlaceholder] = useState('');
   const [isFocused, setIsFocused] = useState(false);
-  
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
+
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  // Select appropriate examples based on screen size
   const typingExamples = isMobile ? TYPING_EXAMPLES_MOBILE : TYPING_EXAMPLES_DESKTOP;
 
-  // Typing animation effect
+  // Build default suggestions from catalog categories
+  const defaultSuggestions: ServiceCategory[] = DEFAULT_SUGGESTION_SLUGS
+    .map((slug) => categories.find((c) => c.slug === slug))
+    .filter(Boolean) as ServiceCategory[];
+
+  // Position the dropdown using a portal to escape overflow:hidden
+  const updateDropdownPosition = useCallback(() => {
+    if (!searchRef.current) return;
+    const rect = searchRef.current.getBoundingClientRect();
+    setDropdownStyle({
+      position: 'fixed',
+      top: rect.bottom + 8,
+      left: rect.left,
+      width: rect.width,
+      zIndex: 9999,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    updateDropdownPosition();
+    const onScroll = () => updateDropdownPosition();
+    window.addEventListener('scroll', onScroll, true);
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll, true);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, [isOpen, updateDropdownPosition]);
+
+  // Typing animation
   useEffect(() => {
     if (isFocused || query) return;
-
     let currentIndex = 0;
-    let currentText = '';
-    let isDeleting = false;
     let charIndex = 0;
-    
-    const typeSpeed = 100;
-    const deleteSpeed = 50;
-    const pauseDuration = 2000;
+    let isDeleting = false;
 
     const type = () => {
-      const currentExample = typingExamples[currentIndex];
-      
+      const current = typingExamples[currentIndex];
       if (!isDeleting) {
-        currentText = currentExample.substring(0, charIndex + 1);
         charIndex++;
-        
-        setDynamicPlaceholder(currentText);
-        
-        if (charIndex === currentExample.length) {
-          setTimeout(() => {
-            isDeleting = true;
-            setTimeout(type, deleteSpeed);
-          }, pauseDuration);
+        setDynamicPlaceholder(current.substring(0, charIndex));
+        if (charIndex === current.length) {
+          setTimeout(() => { isDeleting = true; setTimeout(type, 50); }, 2000);
           return;
         }
-        
-        setTimeout(type, typeSpeed);
+        setTimeout(type, 100);
       } else {
-        currentText = currentExample.substring(0, charIndex - 1);
         charIndex--;
-        
-        setDynamicPlaceholder(currentText);
-        
+        setDynamicPlaceholder(current.substring(0, charIndex));
         if (charIndex === 0) {
           isDeleting = false;
           currentIndex = (currentIndex + 1) % typingExamples.length;
           setTimeout(type, 500);
           return;
         }
-        
-        setTimeout(type, deleteSpeed);
+        setTimeout(type, 50);
       }
     };
 
     const timeout = setTimeout(type, 1000);
-    
     return () => clearTimeout(timeout);
   }, [isFocused, query, typingExamples]);
 
-  // Search function with taxonomy matching
-  const searchTaxonomy = (searchQuery: string) => {
-    if (!searchQuery.trim() || searchQuery.length < 2) {
+  // Autocomplete from catalog
+  useEffect(() => {
+    if (!query.trim() || query.length < 2) {
       setSuggestions([]);
       setShowPopular(true);
       return;
     }
-
     setShowPopular(false);
-    const normalizedQuery = searchQuery.toLowerCase().trim();
-    const matches: TaxonomySuggestion[] = [];
+    const q = query.toLowerCase().trim();
+    const matches: SuggestionItem[] = [];
 
-    Object.entries(SERVICE_TAXONOMY).forEach(([serviceType, problems]) => {
-      problems.forEach((problem) => {
-        if (problem.toLowerCase().includes(normalizedQuery)) {
-          matches.push({ serviceType, problem });
+    for (const sub of subcategories) {
+      if (
+        sub.name.toLowerCase().includes(q) ||
+        sub.slug.includes(q) ||
+        (sub.description && sub.description.toLowerCase().includes(q))
+      ) {
+        const cat = categories.find((c) => c.id === sub.category_id);
+        if (cat) matches.push({ subcategory: sub, category: cat });
+      }
+    }
+
+    if (matches.length === 0) {
+      for (const cat of categories) {
+        if (cat.name.toLowerCase().includes(q) || cat.slug.includes(q)) {
+          const subs = subcategories.filter((s) => s.category_id === cat.id).slice(0, 4);
+          subs.forEach((sub) => matches.push({ subcategory: sub, category: cat }));
         }
-      });
-    });
+      }
+    }
 
-    setSuggestions(matches);
-  };
+    setSuggestions(matches.slice(0, 8));
+  }, [query, categories, subcategories]);
 
+  // Click outside
   useEffect(() => {
-    searchTaxonomy(query);
-  }, [query]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        // Also check if click is inside the portal dropdown
+        const dropdown = document.getElementById('hero-search-dropdown');
+        if (dropdown && dropdown.contains(e.target as Node)) return;
         setIsOpen(false);
       }
     };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setQuery(value);
-    if (value.trim() && !isOpen) {
-      setIsOpen(true);
-    }
-  };
-
-  const handleInputFocus = () => {
-    setIsFocused(true);
-    setIsOpen(true);
-    setShowPopular(!query.trim());
-  };
-
-  const handleInputBlur = () => {
-    setIsFocused(false);
-  };
-
-  const handleCategoryClick = (serviceType: string) => {
-    setQuery(serviceType);
+  const handleCategoryClick = (cat: ServiceCategory) => {
+    setQuery(cat.name);
     setIsOpen(false);
-    startBooking(navigate, { intentText: serviceType, entrySource: 'hero_search' });
+    navigate(`/book-job?category=${cat.slug}&source=hero_search&new=${Date.now()}`);
   };
 
-  const handleSuggestionClick = (suggestion: TaxonomySuggestion) => {
-    setQuery(suggestion.problem);
+  const handleSuggestionClick = (item: SuggestionItem) => {
+    setQuery(item.subcategory.name);
     setIsOpen(false);
-    startBooking(navigate, { intentText: suggestion.problem, serviceCategory: suggestion.serviceType, entrySource: 'hero_search' });
+    navigate(`/book-job?category=${item.category.slug}&service=${item.subcategory.slug}&source=hero_search&new=${Date.now()}`);
   };
 
   const handleSearchSubmit = () => {
+    if (!query.trim()) {
+      startBooking(navigate, { entrySource: 'hero_search' });
+      return;
+    }
     setIsOpen(false);
-    startBooking(navigate, { intentText: query.trim(), entrySource: 'hero_search' });
+
+    const q = query.toLowerCase().trim();
+    const subMatch = subcategories.find(
+      (s) => s.name.toLowerCase().includes(q) || (s.description && s.description.toLowerCase().includes(q))
+    );
+    if (subMatch) {
+      const cat = categories.find((c) => c.id === subMatch.category_id);
+      if (cat) {
+        navigate(`/book-job?category=${cat.slug}&service=${subMatch.slug}&source=hero_search&new=${Date.now()}`);
+        return;
+      }
+    }
+    navigate(`/book-job?category=general&intent=${encodeURIComponent(query.trim())}&source=hero_search&new=${Date.now()}`);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearchSubmit();
-    } else if (e.key === 'Escape') {
-      setIsOpen(false);
-    }
+    if (e.key === 'Enter') handleSearchSubmit();
+    else if (e.key === 'Escape') setIsOpen(false);
   };
+
+  const dropdown = isOpen && createPortal(
+    <div
+      id="hero-search-dropdown"
+      style={dropdownStyle}
+      className="bg-background rounded-xl shadow-lg border border-border max-h-80 overflow-y-auto animate-fade-in"
+    >
+      {showPopular && defaultSuggestions.length > 0 && (
+        <div className="p-3">
+          <h3 className="font-medium text-muted-foreground text-xs uppercase tracking-wide mb-2 flex items-center gap-1.5">
+            <Sparkles className="w-3 h-3" />
+            Servicios populares
+          </h3>
+          <div className="space-y-0.5">
+            {defaultSuggestions.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => handleCategoryClick(cat)}
+                className="w-full text-left px-3 py-2 rounded-lg hover:bg-accent text-foreground text-sm transition-colors flex items-center gap-3"
+              >
+                {cat.icon && <span className="text-base">{cat.icon}</span>}
+                {cat.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {!showPopular && (
+        <div className="p-2">
+          {suggestions.length > 0 ? (
+            <div className="space-y-0.5">
+              {suggestions.map((s) => (
+                <button
+                  key={`${s.category.id}-${s.subcategory.id}`}
+                  onClick={() => handleSuggestionClick(s)}
+                  className="w-full text-left p-2.5 rounded-lg hover:bg-accent transition-colors"
+                >
+                  <div className="font-medium text-foreground text-sm">{s.subcategory.name}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{s.category.name}</div>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="p-3 text-center text-muted-foreground">
+              <div className="text-sm mb-2">No se encontraron coincidencias</div>
+              <button
+                onClick={handleSearchSubmit}
+                className="text-primary hover:text-primary/80 font-medium text-sm"
+              >
+                Buscar "{query}" →
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>,
+    document.body
+  );
 
   return (
     <div ref={searchRef} className="relative w-full">
       {/* Rotating gradient border wrapper */}
       <div className="relative p-[3px] rounded-2xl shadow-floating overflow-hidden">
-        {/* Rotating gradient border */}
         <div className="absolute inset-0 overflow-hidden rounded-2xl">
-          <div 
-            className="absolute inset-[-200%] animate-rotate-gradient" 
+          <div
+            className="absolute inset-[-200%] animate-rotate-gradient"
             style={{
               background: 'conic-gradient(from 0deg, hsl(214 80% 41%), hsl(210 20% 85%), hsl(214 80% 55%), hsl(214 80% 30%), hsl(210 20% 85%), hsl(214 80% 41%))'
             }}
           />
         </div>
-        
-        {/* Search bar container - white background */}
+
         <div className="relative flex items-center h-14 bg-white rounded-xl">
-          {/* Search icon */}
           <div className="absolute left-4 flex items-center pointer-events-none z-10">
             <Search className="h-5 w-5 text-primary" />
           </div>
 
-          {/* Input field */}
           <Input
             ref={inputRef}
             type="text"
             placeholder={dynamicPlaceholder || "Buscar Servicio..."}
             value={query}
-            onChange={handleInputChange}
-            onFocus={handleInputFocus}
-            onBlur={handleInputBlur}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              if (e.target.value.trim() && !isOpen) setIsOpen(true);
+            }}
+            onFocus={() => { setIsFocused(true); setIsOpen(true); setShowPopular(!query.trim()); }}
+            onBlur={() => setIsFocused(false)}
             onKeyDown={handleKeyPress}
             className="h-full w-full pl-12 pr-16 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base text-foreground rounded-xl placeholder:text-muted-foreground/70"
           />
 
-          {/* Search/Arrow button */}
           <button
             type="button"
             onClick={handleSearchSubmit}
@@ -266,61 +307,7 @@ export const HeroSearchBar: React.FC = () => {
         </div>
       </div>
 
-      {/* Dropdown */}
-      {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-border max-h-80 overflow-y-auto z-50">
-          {showPopular && (
-            <div className="p-4">
-              <h3 className="font-medium text-muted-foreground text-xs uppercase tracking-wide mb-3">
-                Categorías Populares
-              </h3>
-              <div className="space-y-1">
-                {Object.keys(SERVICE_TAXONOMY).map((category) => (
-                  <button
-                    key={category}
-                    onClick={() => handleCategoryClick(category)}
-                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-accent text-foreground text-sm transition-colors capitalize flex items-center gap-3"
-                  >
-                    <Clock className="w-4 h-4 text-muted-foreground" />
-                    {category}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {!showPopular && (
-            <div className="p-2">
-              {suggestions.length > 0 ? (
-                <div className="space-y-1">
-                  {suggestions.map((suggestion, index) => (
-                    <button
-                      key={`${suggestion.serviceType}-${suggestion.problem}-${index}`}
-                      onClick={() => handleSuggestionClick(suggestion)}
-                      className="w-full text-left p-3 rounded-lg hover:bg-accent transition-colors"
-                    >
-                      <div className="font-medium text-foreground text-sm capitalize">{suggestion.problem}</div>
-                      <div className="text-xs text-muted-foreground mt-1 capitalize">{suggestion.serviceType}</div>
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="p-4 text-center text-muted-foreground">
-                  <div className="text-sm mb-2">
-                    No se encontraron coincidencias
-                  </div>
-                  <button 
-                    onClick={handleSearchSubmit}
-                    className="text-primary hover:text-primary/80 font-medium text-sm"
-                  >
-                    Buscar "{query}" →
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+      {dropdown}
     </div>
   );
 };
