@@ -86,7 +86,7 @@ const handymanSuggestions = [
   "Instalar repisas flotantes", "Reparar ventanas",
 ];
 
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 5;
 
 // ---- Keyword → WorkType mapping ----
 const WORK_TYPE_KEYWORDS: Record<WorkType, string[]> = {
@@ -294,16 +294,14 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
   const canProceed = (): boolean => {
     switch (currentStep) {
       case 1: return formData.description.trim().length >= 15;
-      case 2: return formData.workType !== null;
-      case 3: return formData.serviceAddress.trim().length >= 5;
+      case 2: return formData.serviceAddress.trim().length >= 5;
+      case 3: return formData.jobSize !== null;
       case 4: {
         if (!formData.scheduleMode) return false;
         if (formData.scheduleMode === 'date' && !formData.scheduledDate) return false;
         return true;
       }
-      case 5: return formData.jobSize !== null;
-      case 6: return true; // optional photos
-      case 7: return true; // optional access
+      case 5: return true; // optional photos
       default: return false;
     }
   };
@@ -592,8 +590,8 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
     <div className="max-w-2xl mx-auto">
       <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} onLogin={handleAuthLogin} onGuest={() => {}} showGuestOption={false} />
 
-      {/* Step Indicator */}
-      <HandymanStepIndicator currentStep={currentStep} totalSteps={TOTAL_STEPS} />
+      {/* Step Indicator — 6 visual steps (5 interactive + Pago summary) */}
+      <HandymanStepIndicator currentStep={showSummary ? 6 : currentStep} totalSteps={6} />
 
       {/* Step Content */}
       <div className="mt-8 space-y-6 animate-fade-in" key={currentStep}>
@@ -664,24 +662,8 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
           </div>
         )}
 
-        {/* ---- STEP 2: Work Type ---- */}
+        {/* ---- STEP 2: Ubicación ---- */}
         {currentStep === 2 && (
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-jakarta font-medium text-foreground">Tipo de trabajo</h1>
-              <p className="text-muted-foreground mt-2">¿Qué tipo de trabajo necesitas?</p>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Chip selected={formData.workType === 'reparacion'} onClick={() => update("workType", "reparacion")} icon={Wrench}>Reparación</Chip>
-              <Chip selected={formData.workType === 'instalacion'} onClick={() => update("workType", "instalacion")} icon={Hammer}>Instalación</Chip>
-              <Chip selected={formData.workType === 'armado'} onClick={() => update("workType", "armado")} icon={PackageOpen}>Armado</Chip>
-              <Chip selected={formData.workType === 'ajuste'} onClick={() => update("workType", "ajuste")} icon={Settings}>Ajuste / Mantenimiento</Chip>
-            </div>
-          </div>
-        )}
-
-        {/* ---- STEP 3: Ubicación ---- */}
-        {currentStep === 3 && (
           <LocationStep
             address={formData.serviceAddress}
             latitude={formData.serviceLatitude}
@@ -695,7 +677,7 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
           />
         )}
 
-        {/* ---- STEP 4: Scheduling ---- */}
+        {/* ---- STEP 4: Fecha y hora ---- */}
         {currentStep === 4 && (
           <div className="space-y-6">
             <div>
@@ -811,8 +793,8 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
           </div>
         )}
 
-        {/* ---- STEP 5: Job Size ---- */}
-        {currentStep === 5 && (
+        {/* ---- STEP 3: Job Size ---- */}
+        {currentStep === 3 && (
           <div className="space-y-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-jakarta font-medium text-foreground">¿Qué tan grande es el trabajo?</h1>
@@ -843,8 +825,8 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
           </div>
         )}
 
-        {/* ---- STEP 6: Photos ---- */}
-        {currentStep === 6 && (
+        {/* ---- STEP 5: Photos ---- */}
+        {currentStep === 5 && (
           <div className="space-y-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-jakarta font-medium text-foreground">Fotos</h1>
@@ -884,35 +866,6 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
           </div>
         )}
 
-        {/* ---- STEP 7: Access & Considerations ---- */}
-        {currentStep === 7 && (
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-jakarta font-medium text-foreground">Acceso y consideraciones</h1>
-              <p className="text-muted-foreground mt-2">Selecciona todo lo que aplique (opcional)</p>
-            </div>
-
-            <div className="space-y-3">
-              <CheckChip selected={formData.accessTypes.includes('apartment')} onClick={() => toggleAccess('apartment')}>Departamento</CheckChip>
-              <CheckChip selected={formData.accessTypes.includes('house')} onClick={() => toggleAccess('house')}>Casa</CheckChip>
-              <CheckChip selected={formData.accessTypes.includes('ground_floor')} onClick={() => toggleAccess('ground_floor')}>Planta baja</CheckChip>
-              <CheckChip selected={formData.accessTypes.includes('stairs')} onClick={() => toggleAccess('stairs')}>Escaleras</CheckChip>
-              <CheckChip selected={formData.accessTypes.includes('elevator')} onClick={() => toggleAccess('elevator')}>Elevador</CheckChip>
-              <CheckChip selected={formData.accessTypes.includes('restricted_hours')} onClick={() => toggleAccess('restricted_hours')}>Horarios restringidos</CheckChip>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-base font-medium text-foreground">Algo más que el proveedor deba saber</Label>
-              <Textarea
-                value={formData.additionalNotes}
-                onChange={(e) => update("additionalNotes", e.target.value)}
-                placeholder="Instrucciones especiales, acceso al estacionamiento, etc."
-                className="min-h-[100px] resize-none"
-                maxLength={500}
-              />
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Navigation — unified full-width stacked buttons */}
