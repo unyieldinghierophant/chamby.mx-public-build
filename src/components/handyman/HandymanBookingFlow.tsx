@@ -294,16 +294,14 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
   const canProceed = (): boolean => {
     switch (currentStep) {
       case 1: return formData.description.trim().length >= 15;
-      case 2: return formData.workType !== null;
-      case 3: return formData.serviceAddress.trim().length >= 5;
+      case 2: return formData.serviceAddress.trim().length >= 5;
+      case 3: return formData.jobSize !== null;
       case 4: {
         if (!formData.scheduleMode) return false;
         if (formData.scheduleMode === 'date' && !formData.scheduledDate) return false;
         return true;
       }
-      case 5: return formData.jobSize !== null;
-      case 6: return true; // optional photos
-      case 7: return true; // optional access
+      case 5: return true; // optional photos
       default: return false;
     }
   };
