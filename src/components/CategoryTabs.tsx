@@ -14,6 +14,9 @@ import categoryPlumbing from '@/assets/category-plumbing.png';
 import categoryAuto from '@/assets/category-auto.png';
 import categoryCleaning from '@/assets/category-cleaning.png';
 import categoryGardening from '@/assets/category-gardening.png';
+import categoryAC from '@/assets/category-ac.png';
+import categoryAlbanileria from '@/assets/category-albanileria.png';
+import categoryPintura from '@/assets/category-pintura.png';
 
 // Hero images
 import handymanHero from '@/assets/category-handyman-hero.jpg';
@@ -36,11 +39,11 @@ const SLUG_ICON_MAP: Record<string, string> = {
   general: categoryHandyman,
   electricidad: categoryElectrician,
   plomeria: categoryPlumbing,
-  'aire-acondicionado': categoryAuto,
+  'aire-acondicionado': categoryAC,
   limpieza: categoryCleaning,
   jardineria: categoryGardening,
-  pintura: categoryHandyman,
-  albanileria: categoryHandyman,
+  pintura: categoryPintura,
+  albanileria: categoryAlbanileria,
   electrodomesticos: categoryCleaning,
 };
 
