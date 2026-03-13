@@ -237,12 +237,11 @@ export const CategoryTabs = () => {
                     whileHover={{ scale: 1.1 }}
                     transition={{ type: 'spring', stiffness: 300 }}
                   >
-                    <img
+                    <PreloadedImage
                       src={SLUG_ICON_MAP[cat.slug] || categoryHandyman}
                       alt={cat.name}
                       className="w-16 h-16 md:w-20 md:h-20 object-contain transform scale-[2]"
                       style={{ imageRendering: 'auto' }}
-                      loading="eager"
                     />
                   </motion.div>
                   <span className="text-[11px] sm:text-xs md:text-sm font-bold text-center leading-tight whitespace-normal w-full">
