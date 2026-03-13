@@ -312,11 +312,10 @@ export const CategoryTabs = () => {
                 transition={{ delay: 0.2, duration: 0.5 }}
               >
                 <div className="relative">
-                  <img
+                  <PreloadedImage
                     src={heroImg}
                     alt={cat.name}
                     className="w-full h-[220px] md:h-[400px] object-cover rounded-xl"
-                    loading="eager"
                   />
                   {/* Desktop overlay */}
                   <div className="hidden md:block absolute top-8 left-8 bg-white rounded-xl p-6 shadow-lg max-w-[350px]">
