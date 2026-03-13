@@ -677,7 +677,7 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
           />
         )}
 
-        {/* ---- STEP 4: Scheduling ---- */}
+        {/* ---- STEP 4: Fecha y hora ---- */}
         {currentStep === 4 && (
           <div className="space-y-6">
             <div>
