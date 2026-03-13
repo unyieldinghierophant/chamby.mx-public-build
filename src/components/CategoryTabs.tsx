@@ -19,6 +19,7 @@ import categoryAlbanileria from '@/assets/category-albanileria.png';
 import categoryPintura from '@/assets/category-pintura.png';
 import acHero from '@/assets/category-ac-hero.png';
 import pinturaHero from '@/assets/category-pintura-hero.png';
+import albanileriaHero from '@/assets/category-albanileria-hero.png';
 
 // Hero images
 import handymanHero from '@/assets/category-handyman-hero.jpg';
@@ -57,7 +58,7 @@ const SLUG_HERO_MAP: Record<string, string> = {
   limpieza: cleaningHero,
   jardineria: gardeningHero,
   pintura: pinturaHero,
-  albanileria: plumbingHero,
+  albanileria: albanileriaHero,
   electrodomesticos: cleaningHero,
 };
 
