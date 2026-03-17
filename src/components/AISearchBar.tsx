@@ -1,12 +1,14 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Loader2 } from "lucide-react";
+import { Search, Loader2, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getSearchSuggestions } from "@/utils/searchSuggestions";
 import { startBooking } from "@/lib/booking";
+import { useServiceCatalog } from "@/hooks/useServiceCatalog";
+import { createPortal } from "react-dom";
 
 const TYPING_EXAMPLES = [
   "Lavar mi carro",
