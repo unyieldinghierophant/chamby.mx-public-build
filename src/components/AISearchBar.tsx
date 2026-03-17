@@ -234,36 +234,69 @@ export const AISearchBar = ({ className }: { className?: string }) => {
             </Button>
           </div>
 
-          {/* Autosuggest dropdown — solid white, no transparency */}
-          {isOpen && !isLoading && (
-            <div className="absolute top-full left-0 right-0 mt-2 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-border max-h-80 overflow-y-auto z-[9999] animate-fade-in" style={{ backgroundColor: 'white' }}>
-              <div className="p-2 sm:p-3">
-                {suggestions.length > 0 && (
-                  <div className="space-y-0.5">
-                    {suggestions.map((s, i) => (
-                      <button
-                        key={`${s.text}-${i}`}
-                        onClick={() => handleSuggestionClick(s.text)}
-                        className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-accent text-foreground transition-colors text-sm sm:text-base flex items-center gap-3"
-                      >
-                        <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                        <span className="text-foreground">{s.text}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-                <button
-                  onClick={() => handleSearch()}
-                  className="w-full mt-1 px-3 py-2.5 rounded-xl text-primary hover:bg-accent transition-colors text-sm font-medium flex items-center gap-3"
-                >
-                  <Search className="w-4 h-4 flex-shrink-0" />
-                  Buscar "{query}" con IA →
-                </button>
+        </div>
+      </form>
+
+      {/* Portal-based dropdown to escape overflow-hidden */}
+      {(showDefaults || (isOpen && !isLoading)) && createPortal(
+        <div
+          id="ai-search-dropdown"
+          style={dropdownStyle}
+          className="rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-border max-h-80 overflow-y-auto animate-fade-in bg-background"
+        >
+          {showDefaults && !isOpen && defaultCategories.length > 0 && (
+            <div className="p-2 sm:p-3">
+              <h3 className="font-medium text-muted-foreground text-xs uppercase tracking-wide mb-2 px-3 flex items-center gap-1.5">
+                <Sparkles className="w-3 h-3" />
+                Servicios populares
+              </h3>
+              <div className="space-y-0.5">
+                {defaultCategories.map((cat) => cat && (
+                  <button
+                    key={cat.id}
+                    onClick={() => {
+                      setShowDefaults(false);
+                      setIsOpen(false);
+                      navigate(`/book-job?category=${cat.slug}&source=hero_search&new=${Date.now()}`);
+                    }}
+                    className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-accent text-foreground transition-colors text-sm sm:text-base flex items-center gap-3"
+                  >
+                    {cat.icon && <span className="text-base">{cat.icon}</span>}
+                    <span>{cat.name}</span>
+                  </button>
+                ))}
               </div>
             </div>
           )}
-        </div>
-      </form>
+
+          {isOpen && !isLoading && (
+            <div className="p-2 sm:p-3">
+              {suggestions.length > 0 && (
+                <div className="space-y-0.5">
+                  {suggestions.map((s, i) => (
+                    <button
+                      key={`${s.text}-${i}`}
+                      onClick={() => handleSuggestionClick(s.text)}
+                      className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-accent text-foreground transition-colors text-sm sm:text-base flex items-center gap-3"
+                    >
+                      <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                      <span className="text-foreground">{s.text}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              <button
+                onClick={() => handleSearch()}
+                className="w-full mt-1 px-3 py-2.5 rounded-xl text-primary hover:bg-accent transition-colors text-sm font-medium flex items-center gap-3"
+              >
+                <Search className="w-4 h-4 flex-shrink-0" />
+                Buscar "{query}" con IA →
+              </button>
+            </div>
+          )}
+        </div>,
+        document.body
+      )}
     </div>
   );
 };
