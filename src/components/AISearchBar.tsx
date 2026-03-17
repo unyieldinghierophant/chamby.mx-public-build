@@ -210,7 +210,10 @@ export const AISearchBar = ({ className }: { className?: string }) => {
                 setQuery(e.target.value);
                 if (!e.target.value.trim()) setIsOpen(false);
               }}
-              onFocus={() => setIsFocused(true)}
+              onFocus={() => {
+                setIsFocused(true);
+                if (!query.trim()) setShowDefaults(true);
+              }}
               onBlur={() => setIsFocused(false)}
               disabled={isLoading}
               className="h-full w-full pl-5 sm:pl-6 pr-16 sm:pr-20 text-base sm:text-lg border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 rounded-full placeholder:text-muted-foreground/60"
