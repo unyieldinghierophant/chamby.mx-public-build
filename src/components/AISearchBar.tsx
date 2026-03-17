@@ -1,12 +1,14 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Loader2 } from "lucide-react";
+import { Search, Loader2, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getSearchSuggestions } from "@/utils/searchSuggestions";
 import { startBooking } from "@/lib/booking";
+import { useServiceCatalog } from "@/hooks/useServiceCatalog";
+import { createPortal } from "react-dom";
 
 const TYPING_EXAMPLES = [
   "Lavar mi carro",
@@ -17,6 +19,8 @@ const TYPING_EXAMPLES = [
   "Armar muebles",
 ];
 
+const DEFAULT_CATEGORY_SLUGS = ['plomeria', 'electricidad', 'pintura', 'jardineria', 'general'];
+
 export const AISearchBar = ({ className }: { className?: string }) => {
   const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -24,8 +28,40 @@ export const AISearchBar = ({ className }: { className?: string }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<{ text: string; category: string }[]>([]);
+  const [showDefaults, setShowDefaults] = useState(false);
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
   const navigate = useNavigate();
   const searchRef = useRef<HTMLDivElement>(null);
+  const { categories } = useServiceCatalog();
+
+  const defaultCategories = DEFAULT_CATEGORY_SLUGS
+    .map((slug) => categories.find((c) => c.slug === slug))
+    .filter(Boolean);
+
+  // Position dropdown via portal
+  const updateDropdownPosition = useCallback(() => {
+    if (!searchRef.current) return;
+    const rect = searchRef.current.getBoundingClientRect();
+    setDropdownStyle({
+      position: 'fixed',
+      top: rect.bottom + 8,
+      left: rect.left,
+      width: rect.width,
+      zIndex: 9999,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen && !showDefaults) return;
+    updateDropdownPosition();
+    const onScroll = () => updateDropdownPosition();
+    window.addEventListener('scroll', onScroll, true);
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll, true);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, [isOpen, showDefaults, updateDropdownPosition]);
 
   // Typing animation for placeholder
   useEffect(() => {
@@ -69,20 +105,27 @@ export const AISearchBar = ({ className }: { className?: string }) => {
   useEffect(() => {
     if (!query.trim() || query.length < 2) {
       setSuggestions([]);
-      setIsOpen(false);
+      if (isFocused && !query.trim()) {
+        setShowDefaults(true);
+        setIsOpen(false);
+      }
       return;
     }
 
+    setShowDefaults(false);
     const matches = getSearchSuggestions(query, 8);
     setSuggestions(matches);
     setIsOpen(matches.length > 0);
-  }, [query]);
+  }, [query, isFocused]);
 
   // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        const dropdown = document.getElementById('ai-search-dropdown');
+        if (dropdown && dropdown.contains(event.target as Node)) return;
         setIsOpen(false);
+        setShowDefaults(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -167,7 +210,10 @@ export const AISearchBar = ({ className }: { className?: string }) => {
                 setQuery(e.target.value);
                 if (!e.target.value.trim()) setIsOpen(false);
               }}
-              onFocus={() => setIsFocused(true)}
+              onFocus={() => {
+                setIsFocused(true);
+                if (!query.trim()) setShowDefaults(true);
+              }}
               onBlur={() => setIsFocused(false)}
               disabled={isLoading}
               className="h-full w-full pl-5 sm:pl-6 pr-16 sm:pr-20 text-base sm:text-lg border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 rounded-full placeholder:text-muted-foreground/60"
@@ -188,36 +234,69 @@ export const AISearchBar = ({ className }: { className?: string }) => {
             </Button>
           </div>
 
-          {/* Autosuggest dropdown — solid white, no transparency */}
-          {isOpen && !isLoading && (
-            <div className="absolute top-full left-0 right-0 mt-2 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-border max-h-80 overflow-y-auto z-[9999] animate-fade-in" style={{ backgroundColor: 'white' }}>
-              <div className="p-2 sm:p-3">
-                {suggestions.length > 0 && (
-                  <div className="space-y-0.5">
-                    {suggestions.map((s, i) => (
-                      <button
-                        key={`${s.text}-${i}`}
-                        onClick={() => handleSuggestionClick(s.text)}
-                        className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-accent text-foreground transition-colors text-sm sm:text-base flex items-center gap-3"
-                      >
-                        <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                        <span className="text-foreground">{s.text}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-                <button
-                  onClick={() => handleSearch()}
-                  className="w-full mt-1 px-3 py-2.5 rounded-xl text-primary hover:bg-accent transition-colors text-sm font-medium flex items-center gap-3"
-                >
-                  <Search className="w-4 h-4 flex-shrink-0" />
-                  Buscar "{query}" con IA →
-                </button>
+        </div>
+      </form>
+
+      {/* Portal-based dropdown to escape overflow-hidden */}
+      {(showDefaults || (isOpen && !isLoading)) && createPortal(
+        <div
+          id="ai-search-dropdown"
+          style={dropdownStyle}
+          className="rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-border max-h-80 overflow-y-auto animate-fade-in bg-background"
+        >
+          {showDefaults && !isOpen && defaultCategories.length > 0 && (
+            <div className="p-2 sm:p-3">
+              <h3 className="font-medium text-muted-foreground text-xs uppercase tracking-wide mb-2 px-3 flex items-center gap-1.5">
+                <Sparkles className="w-3 h-3" />
+                Servicios populares
+              </h3>
+              <div className="space-y-0.5">
+                {defaultCategories.map((cat) => cat && (
+                  <button
+                    key={cat.id}
+                    onClick={() => {
+                      setShowDefaults(false);
+                      setIsOpen(false);
+                      navigate(`/book-job?category=${cat.slug}&source=hero_search&new=${Date.now()}`);
+                    }}
+                    className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-accent text-foreground transition-colors text-sm sm:text-base flex items-center gap-3"
+                  >
+                    {cat.icon && <span className="text-base">{cat.icon}</span>}
+                    <span>{cat.name}</span>
+                  </button>
+                ))}
               </div>
             </div>
           )}
-        </div>
-      </form>
+
+          {isOpen && !isLoading && (
+            <div className="p-2 sm:p-3">
+              {suggestions.length > 0 && (
+                <div className="space-y-0.5">
+                  {suggestions.map((s, i) => (
+                    <button
+                      key={`${s.text}-${i}`}
+                      onClick={() => handleSuggestionClick(s.text)}
+                      className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-accent text-foreground transition-colors text-sm sm:text-base flex items-center gap-3"
+                    >
+                      <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                      <span className="text-foreground">{s.text}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              <button
+                onClick={() => handleSearch()}
+                className="w-full mt-1 px-3 py-2.5 rounded-xl text-primary hover:bg-accent transition-colors text-sm font-medium flex items-center gap-3"
+              >
+                <Search className="w-4 h-4 flex-shrink-0" />
+                Buscar "{query}" con IA →
+              </button>
+            </div>
+          )}
+        </div>,
+        document.body
+      )}
     </div>
   );
 };
