@@ -19,6 +19,8 @@ const TYPING_EXAMPLES = [
   "Armar muebles",
 ];
 
+const DEFAULT_CATEGORY_SLUGS = ['plomeria', 'electricidad', 'pintura', 'jardineria', 'general'];
+
 export const AISearchBar = ({ className }: { className?: string }) => {
   const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -26,8 +28,40 @@ export const AISearchBar = ({ className }: { className?: string }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<{ text: string; category: string }[]>([]);
+  const [showDefaults, setShowDefaults] = useState(false);
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
   const navigate = useNavigate();
   const searchRef = useRef<HTMLDivElement>(null);
+  const { categories } = useServiceCatalog();
+
+  const defaultCategories = DEFAULT_CATEGORY_SLUGS
+    .map((slug) => categories.find((c) => c.slug === slug))
+    .filter(Boolean);
+
+  // Position dropdown via portal
+  const updateDropdownPosition = useCallback(() => {
+    if (!searchRef.current) return;
+    const rect = searchRef.current.getBoundingClientRect();
+    setDropdownStyle({
+      position: 'fixed',
+      top: rect.bottom + 8,
+      left: rect.left,
+      width: rect.width,
+      zIndex: 9999,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen && !showDefaults) return;
+    updateDropdownPosition();
+    const onScroll = () => updateDropdownPosition();
+    window.addEventListener('scroll', onScroll, true);
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll, true);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, [isOpen, showDefaults, updateDropdownPosition]);
 
   // Typing animation for placeholder
   useEffect(() => {
@@ -71,20 +105,27 @@ export const AISearchBar = ({ className }: { className?: string }) => {
   useEffect(() => {
     if (!query.trim() || query.length < 2) {
       setSuggestions([]);
-      setIsOpen(false);
+      if (isFocused && !query.trim()) {
+        setShowDefaults(true);
+        setIsOpen(false);
+      }
       return;
     }
 
+    setShowDefaults(false);
     const matches = getSearchSuggestions(query, 8);
     setSuggestions(matches);
     setIsOpen(matches.length > 0);
-  }, [query]);
+  }, [query, isFocused]);
 
   // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        const dropdown = document.getElementById('ai-search-dropdown');
+        if (dropdown && dropdown.contains(event.target as Node)) return;
         setIsOpen(false);
+        setShowDefaults(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
