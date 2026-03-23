@@ -12,6 +12,29 @@ serve(async (req) => {
 
   try {
     const { messages } = await req.json();
+
+    // Input validation
+    const MAX_MESSAGES = 20;
+    const MAX_CONTENT_LENGTH = 2000;
+    const ALLOWED_ROLES = ['user', 'assistant'];
+
+    if (!Array.isArray(messages) || messages.length === 0 || messages.length > MAX_MESSAGES) {
+      return new Response(
+        JSON.stringify({ error: "Solicitud inválida." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const sanitized = messages.map(m => {
+      if (!m || !ALLOWED_ROLES.includes(m.role) || typeof m.content !== 'string') {
+        throw new Error("Invalid message format");
+      }
+      return {
+        role: m.role,
+        content: m.content.slice(0, MAX_CONTENT_LENGTH).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, ''),
+      };
+    });
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
@@ -52,7 +75,7 @@ Sé amigable, conciso y usa emojis ocasionalmente. Habla siempre en español mex
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          ...messages,
+          ...sanitized,
         ],
         temperature: 0.7,
         max_tokens: 500,
