@@ -377,7 +377,7 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
       const file = files[i];
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
-      if (!user) { toast.error("Inicia sesión para subir fotos"); return; }
+      if (!user) { toast({ title: "Inicia sesión para subir fotos", variant: "destructive" }); return; }
       const filePath = `${user.id}/${fileName}`;
 
       try {

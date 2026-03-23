@@ -193,7 +193,7 @@ export const AutoWashBookingFlow = ({ intentText = "" }: { intentText?: string }
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const ext = file.name.split('.').pop();
-      if (!user) { toast.error("Inicia sesión para subir fotos"); return; }
+      if (!user) { toast({ title: "Inicia sesión para subir fotos", variant: "destructive" }); return; }
       const path = `${user.id}/${Math.random()}.${ext}`;
 
       try {
