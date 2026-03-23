@@ -43,9 +43,7 @@ export default function PhotoRedirect() {
 
         // Increment click count (fire and forget)
         supabase
-          .from('photo_short_links')
-          .update({ clicks: (data.clicks || 0) + 1 })
-          .eq('short_code', shortCode)
+          .rpc('increment_photo_link_clicks', { _short_code: shortCode })
           .then(() => console.log('Click tracked'));
 
         // Redirect to full URL

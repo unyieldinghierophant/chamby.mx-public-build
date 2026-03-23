@@ -1386,6 +1386,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_photo_link_clicks: {
+        Args: { _short_code: string }
+        Returns: undefined
+      }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_provider: { Args: { _user_id: string }; Returns: boolean }
     }
