@@ -1,56 +1,27 @@
 
 
-## Fix: Add Input Validation to Chatbot Edge Function
+## Re-add Jardineria Category to Landing Page
 
 ### Problem
-The chatbot edge function accepts the `messages` array from the request body with zero validation — no length limits, no role checking, no content sanitization. This enables prompt injection, token exhaustion, and malformed input attacks.
+The `jardineria` category was removed from the `VISIBLE_SLUGS_ORDERED` array in `CategoryTabs.tsx`. All its assets (icon, hero image) and slug mappings are still present -- it just needs to be added back to the visible list.
 
-### Solution
-Add server-side validation to `supabase/functions/chatbot/index.ts` before passing messages to the AI gateway. No client-side or other file changes needed.
+### Change
+**File: `src/components/CategoryTabs.tsx`** (line 106-114)
 
-### Changes (single file: `supabase/functions/chatbot/index.ts`)
-
-After parsing `const { messages } = await req.json();`, add validation:
-
-1. **Verify `messages` is a non-empty array** with max 20 entries (prevents token exhaustion)
-2. **Validate each message's `role`** — only allow `"user"` and `"assistant"` (blocks injected `"system"` roles)
-3. **Validate `content` is a string** and truncate to 2,000 characters (prevents oversized payloads)
-4. **Strip control characters** from content (prevents encoding-based attacks)
-5. Return `400 Bad Request` with a user-friendly Spanish error for invalid input
+Add `{ slug: 'jardineria', label: 'Jardineria' }` to the `VISIBLE_SLUGS_ORDERED` array, placing it after Limpieza (logical grouping). This brings the count to 8 visible categories.
 
 ```typescript
-// Validation constants
-const MAX_MESSAGES = 20;
-const MAX_CONTENT_LENGTH = 2000;
-const ALLOWED_ROLES = ['user', 'assistant'];
-
-// Validate messages array
-if (!Array.isArray(messages) || messages.length === 0 || messages.length > MAX_MESSAGES) {
-  return new Response(
-    JSON.stringify({ error: "Solicitud inválida." }),
-    { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-  );
-}
-
-// Sanitize each message
-const sanitized = messages.map(m => {
-  if (!m || !ALLOWED_ROLES.includes(m.role) || typeof m.content !== 'string') {
-    throw new Error("Invalid message format");
-  }
-  return {
-    role: m.role,
-    content: m.content.slice(0, MAX_CONTENT_LENGTH).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, ''),
-  };
-});
+const VISIBLE_SLUGS_ORDERED = [
+  { slug: 'plomeria', label: 'Fontanería' },
+  { slug: 'electricidad', label: null },
+  { slug: 'pintura', label: null },
+  { slug: 'albanileria', label: 'Albañilería' },
+  { slug: 'aire-acondicionado', label: null },
+  { slug: 'limpieza', label: 'Limpieza' },
+  { slug: 'jardineria', label: 'Jardinería' },
+  { slug: 'general', label: null },
+];
 ```
 
-Then pass `sanitized` instead of `messages` to the AI gateway call.
-
-### What Won't Change
-- Client-side `ChatBot.tsx` sends well-formed messages already — no changes needed there
-- The system prompt, model, and response handling remain identical
-- No database or migration changes
-
-### Risk Assessment
-- **Very low risk**: The client already sends properly formatted messages with `user`/`assistant` roles. This only rejects malformed or oversized requests that wouldn't come from the legitimate UI.
+No other files need changes -- the icon map (`SLUG_ICON_MAP`), hero map (`SLUG_HERO_MAP`), and asset imports are all already in place for `jardineria`.
 
