@@ -107,10 +107,10 @@ const VISIBLE_SLUGS_ORDERED = [
   { slug: 'plomeria', label: 'Fontanería' },
   { slug: 'electricidad', label: null },
   { slug: 'general', label: 'Arreglos Generales' },
+  { slug: 'jardineria', label: 'Jardinería' },
   { slug: 'pintura', label: null },
   { slug: 'aire-acondicionado', label: null },
   { slug: 'limpieza', label: 'Limpieza' },
-  { slug: 'jardineria', label: 'Jardinería' },
 ];
 
 // Hardcoded fallback if DB fetch fails
