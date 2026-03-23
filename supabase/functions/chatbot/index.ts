@@ -75,7 +75,7 @@ Sé amigable, conciso y usa emojis ocasionalmente. Habla siempre en español mex
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          ...messages,
+          ...sanitized,
         ],
         temperature: 0.7,
         max_tokens: 500,
