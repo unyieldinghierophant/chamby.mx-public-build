@@ -787,8 +787,7 @@ export default function ProviderOnboardingWizard() {
       if (!hasProviderRoleDB) {
         console.log('[handleFinish] Creating missing provider role...');
         const { error: roleError } = await supabase
-          .from('user_roles')
-          .insert({ user_id: user.id, role: 'provider' });
+          .rpc('assign_own_role', { _role: 'provider' });
         
         if (roleError && roleError.code !== '23505') {
           console.error('[handleFinish] Error creating provider role:', roleError);

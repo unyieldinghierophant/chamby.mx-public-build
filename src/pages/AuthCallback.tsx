@@ -146,13 +146,9 @@ const AuthCallback = () => {
               }
             }
             
-            // Insert provider role
+            // Insert provider role via secure RPC
             const { error: insertError } = await supabase
-              .from('user_roles')
-              .insert({
-                user_id: user.id,
-                role: 'provider'
-              });
+              .rpc('assign_own_role', { _role: 'provider' });
 
             if (insertError) {
               if (insertError.code === '23505') {
