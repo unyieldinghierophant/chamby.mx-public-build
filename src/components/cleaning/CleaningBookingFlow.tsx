@@ -205,7 +205,8 @@ export const CleaningBookingFlow = ({ intentText = "" }: { intentText?: string }
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const ext = file.name.split('.').pop();
-      const path = user ? `${user.id}/${Math.random()}.${ext}` : `temp-uploads/${Math.random()}.${ext}`;
+      if (!user) { toast({ title: "Inicia sesión para subir fotos", variant: "destructive" }); return; }
+      const path = `${user.id}/${Math.random()}.${ext}`;
 
       try {
         const { error } = await supabase.storage.from('job-photos').upload(path, file);

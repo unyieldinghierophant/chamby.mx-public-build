@@ -377,8 +377,8 @@ export const JobBookingForm = ({ initialService, initialDescription }: JobBookin
       const file = files[i];
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
-      // Use temp folder for guests, user folder for authenticated users
-      const filePath = user ? `${user.id}/${fileName}` : `temp-uploads/${fileName}`;
+      if (!user) { toast({ title: "Inicia sesión para subir fotos", variant: "destructive" }); return; }
+      const filePath = `${user.id}/${fileName}`;
 
       try {
         const { error } = await supabase.storage
