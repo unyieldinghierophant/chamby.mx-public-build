@@ -1300,6 +1300,10 @@ export type Database = {
       }
     }
     Functions: {
+      assign_own_role: {
+        Args: { _role: Database["public"]["Enums"]["app_role"] }
+        Returns: undefined
+      }
       can_view_admin_stats: { Args: never; Returns: boolean }
       check_otp_rate_limit: { Args: { phone: string }; Returns: boolean }
       check_rate_limit: {
