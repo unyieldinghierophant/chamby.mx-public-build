@@ -107,11 +107,10 @@ const VISIBLE_SLUGS_ORDERED = [
   { slug: 'plomeria', label: 'Fontanería' },
   { slug: 'electricidad', label: null },
   { slug: 'pintura', label: null },
-  { slug: 'albanileria', label: 'Albañilería' },
   { slug: 'aire-acondicionado', label: null },
   { slug: 'limpieza', label: 'Limpieza' },
   { slug: 'jardineria', label: 'Jardinería' },
-  { slug: 'general', label: null },
+  { slug: 'general', label: 'Arreglos Generales' },
 ];
 
 // Hardcoded fallback if DB fetch fails
@@ -268,7 +267,11 @@ export const CategoryTabs = () => {
 
         {/* Subcategory pills + hero */}
         {displayCategories.map((cat) => {
-          const subs = getSubcategoriesForCategory(cat.slug, subcategories, categories.length > 0 ? categories : displayCategories);
+          // For 'general' (Arreglos Generales), also include albañilería subcategories
+          const baseSubs = getSubcategoriesForCategory(cat.slug, subcategories, categories.length > 0 ? categories : displayCategories);
+          const subs = cat.slug === 'general'
+            ? [...baseSubs, ...getSubcategoriesForCategory('albanileria', subcategories, categories.length > 0 ? categories : displayCategories)]
+            : baseSubs;
           const heroImg = SLUG_HERO_MAP[cat.slug] || handymanHero;
 
           return (
