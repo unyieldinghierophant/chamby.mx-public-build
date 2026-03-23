@@ -110,6 +110,7 @@ const VISIBLE_SLUGS_ORDERED = [
   { slug: 'albanileria', label: 'Albañilería' },
   { slug: 'aire-acondicionado', label: null },
   { slug: 'limpieza', label: 'Limpieza' },
+  { slug: 'jardineria', label: 'Jardinería' },
   { slug: 'general', label: null },
 ];
 
