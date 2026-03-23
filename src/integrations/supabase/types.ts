@@ -579,6 +579,13 @@ export type Database = {
             referencedRelation: "providers"
             referencedColumns: ["user_id"]
           },
+          {
+            foreignKeyName: "payments_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers_public"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       payouts: {
@@ -644,6 +651,13 @@ export type Database = {
             columns: ["provider_id"]
             isOneToOne: false
             referencedRelation: "providers"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "payouts_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers_public"
             referencedColumns: ["user_id"]
           },
         ]
@@ -760,6 +774,13 @@ export type Database = {
             columns: ["provider_id"]
             isOneToOne: false
             referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "provider_details_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1224,7 +1245,59 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      providers_public: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          display_name: string | null
+          hourly_rate: number | null
+          id: string | null
+          rating: number | null
+          skills: string[] | null
+          specialty: string | null
+          total_reviews: number | null
+          user_id: string | null
+          verified: boolean | null
+          zone_served: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          hourly_rate?: number | null
+          id?: string | null
+          rating?: number | null
+          skills?: string[] | null
+          specialty?: string | null
+          total_reviews?: number | null
+          user_id?: string | null
+          verified?: boolean | null
+          zone_served?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          hourly_rate?: number | null
+          id?: string | null
+          rating?: number | null
+          skills?: string[] | null
+          specialty?: string | null
+          total_reviews?: number | null
+          user_id?: string | null
+          verified?: boolean | null
+          zone_served?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "providers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       can_view_admin_stats: { Args: never; Returns: boolean }
