@@ -18,7 +18,7 @@ import categoryGardening from '@/assets/category-gardening.png';
 import categoryAC from '@/assets/category-ac.png';
 import categoryAlbanileria from '@/assets/category-albanileria.png';
 import categoryPintura from '@/assets/category-pintura.png';
-import categoryElectrodomesticos from '@/assets/category-electrodomesticos.png';
+import categoryElectrodomesticos from '@/assets/category-electrodomesticos.png?v=2';
 import acHero from '@/assets/category-ac-hero.png';
 import pinturaHero from '@/assets/category-pintura-hero.png';
 import albanileriaHero from '@/assets/category-albanileria-hero.png';
