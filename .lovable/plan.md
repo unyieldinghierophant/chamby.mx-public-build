@@ -1,38 +1,43 @@
 
 
-## Fix: Re-add Standalone Selfie Requirement + Add to Onboarding
+## Add OTP Code Input Flow for Password Reset
 
 ### Problem
-The standalone "Selfie" was removed from the edge function's required documents list in the last change. The user wants it to remain mandatory. Additionally, the onboarding wizard (`DocumentsStep.tsx`) never included a standalone selfie — only "Selfie con INE" — so providers going through onboarding can't upload it there.
+The password reset email includes both a clickable link and a 6-digit OTP code. The link works (redirects to `/reset-password`), but there's no way to input the OTP code in the UI. Users who copy the code have nowhere to enter it.
 
-The admin dashboard already supports displaying and approving selfie documents (the `DOC_TYPE_LABELS` map and document query are correct). The issue is only that:
-1. The edge function no longer requires it (incorrectly removed)
-2. The onboarding wizard doesn't let providers upload it
+### Solution
+After the user submits their email in the "Recuperar Contraseña" form and the email is sent, show a two-step inline flow:
+
+1. **Step 1 — OTP Input**: Show a 6-digit code input field where the user enters the code from the email
+2. **Step 2 — New Password**: After successful OTP verification, show the new password form (password + confirm + strength bar)
+
+All within the existing `UserAuth.tsx` page — no new pages or routes needed.
 
 ### Changes
 
-**1. Re-add selfie to edge function (`supabase/functions/admin-verify-provider/index.ts`)**
+**Single file: `src/pages/UserAuth.tsx`**
 
-Add `{ key: 'selfie', label: 'Selfie', docTypes: ['selfie', 'face_photo', 'face'] }` back to `CANONICAL_DOCS`. This restores the 5-document requirement matching the DB trigger.
+1. Add new state variables:
+   - `resetStep`: `'email' | 'otp' | 'newPassword'` (tracks which step is showing)
+   - `otpCode`: string for the 6-digit input
+   - `newPassword` / `confirmPassword`: for the password form
+   
+2. After successful `resetPassword()` call, instead of closing the form, transition to `resetStep = 'otp'`
 
-**2. Add standalone selfie to onboarding (`src/components/provider-portal/DocumentsStep.tsx`)**
+3. **OTP step UI**: 6 individual digit inputs (using the existing `InputOTP` component), a "Verificar código" button that calls:
+   ```typescript
+   supabase.auth.verifyOtp({ email: resetEmail, token: otpCode, type: 'recovery' })
+   ```
 
-Add a new entry to `REQUIRED_DOCUMENTS`:
-```typescript
-{
-  type: 'selfie',
-  name: 'Selfie',
-  description: 'Foto clara de tu rostro para identificación',
-  icon: User,
-  required: true
-}
-```
+4. **New password step UI**: Two password fields + `PasswordStrengthBar` (already exists in project), a "Actualizar contraseña" button that calls:
+   ```typescript
+   supabase.auth.updateUser({ password: newPassword })
+   ```
 
-Also update `fetchUploadedDocuments` to check for `selfie_url` in `provider_details`.
+5. On success, show toast, sign out the recovery session, and return to login view.
 
-**3. No admin dashboard changes needed**
+### What Won't Change
+- The `/reset-password` page continues to work for users who click the email link
+- The email template stays the same
+- No database or edge function changes
 
-`AdminProvidersPage.tsx` already has `selfie: 'Selfie'` in `DOC_TYPE_LABELS` and fetches all documents from the `documents` table. If the selfie exists, it will display correctly with the approve/reject controls.
-
-### Risk Assessment
-- **Low risk**: Re-adding what was incorrectly removed, and adding the upload path that was missing from onboarding.
