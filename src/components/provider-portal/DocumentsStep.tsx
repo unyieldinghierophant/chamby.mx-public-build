@@ -41,6 +41,13 @@ const REQUIRED_DOCUMENTS: DocumentItem[] = [
     required: true
   },
   {
+    type: 'selfie',
+    name: 'Selfie',
+    description: 'Foto clara de tu rostro para identificación',
+    icon: User,
+    required: true
+  },
+  {
     type: 'selfie_with_id',
     name: 'Selfie con INE',
     description: 'Foto sosteniendo tu INE junto a tu rostro',

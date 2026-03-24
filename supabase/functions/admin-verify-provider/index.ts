@@ -80,6 +80,7 @@ Deno.serve(async (req) => {
       const CANONICAL_DOCS = [
         { key: 'ine_front', label: 'INE Frente', docTypes: ['ine_front', 'id_front', 'id_card'] },
         { key: 'ine_back', label: 'INE Reverso', docTypes: ['ine_back', 'id_back'] },
+        { key: 'selfie', label: 'Selfie', docTypes: ['selfie', 'face_photo', 'face'] },
         { key: 'selfie_with_id', label: 'Selfie con INE', docTypes: ['selfie_with_id', 'selfie_with_ine'] },
         { key: 'proof_of_address', label: 'Comprobante de Domicilio', docTypes: ['proof_of_address', 'comprobante_domicilio'] },
       ]
