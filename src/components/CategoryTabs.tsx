@@ -37,12 +37,6 @@ const iconImages = [
   categoryAuto, categoryCleaning, categoryGardening,
   categoryAC, categoryAlbanileria, categoryPintura, categoryElectrodomesticos,
 ];
-const heroImages = [
-  handymanHero, electricianHero, plumbingHero,
-  autoHero, cleaningHero, gardeningHero,
-  acHero, pinturaHero, albanileriaHero,
-];
-const allImages = [...iconImages, ...heroImages];
 const imageCache = new Map<string, boolean>();
 
 // Returns a promise that resolves when ALL icon images are loaded
@@ -61,8 +55,8 @@ export function preloadCategoryIcons(): Promise<void> {
   ).then(() => {});
 }
 
-// Kick off preload immediately
-allImages.forEach((src) => {
+// Kick off icon preload immediately at module load (heroes are lazy)
+iconImages.forEach((src) => {
   if (imageCache.get(src)) return;
   const img = new window.Image();
   img.onload = () => imageCache.set(src, true);
