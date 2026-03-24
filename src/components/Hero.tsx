@@ -140,12 +140,21 @@ const Hero = ({ onMediaReady }: { onMediaReady?: () => void }) => {
             </div>
           </motion.div>
 
-          {/* Gana dinero CTA - Between hero card and categories */}
+          {/* Categories Section with Staggered Animation */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.4 }}
+          >
+            <CategoryTabs />
+          </motion.div>
+
+          {/* Gana dinero CTA - Below categories */}
           <motion.div 
             className="mt-6 max-w-sm sm:max-w-md md:max-w-xl lg:max-w-2xl mx-auto px-2 sm:px-4"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.45, duration: 0.4 }}
+            transition={{ delay: 0.6, duration: 0.4 }}
           >
             <Link to="/provider-landing">
               <div className="group relative w-full rounded-2xl p-[2.5px] shadow-md hover:shadow-xl active:scale-[0.98] transition-all duration-200 cursor-pointer overflow-hidden">
@@ -169,15 +178,6 @@ const Hero = ({ onMediaReady }: { onMediaReady?: () => void }) => {
                 </div>
               </div>
             </Link>
-          </motion.div>
-
-          {/* Categories Section with Staggered Animation */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5, duration: 0.4 }}
-          >
-            <CategoryTabs />
           </motion.div>
         </div>
       </div>
