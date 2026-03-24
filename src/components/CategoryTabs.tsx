@@ -208,7 +208,7 @@ export const CategoryTabs = () => {
         <div className="w-full relative z-30">
           <TabsList
             ref={tabsListRef}
-            className="w-full h-auto bg-transparent p-0 py-4 pb-6 grid grid-cols-4 md:flex md:justify-center md:gap-8 overflow-visible px-2 sm:px-4 relative z-30"
+            className="w-full h-auto bg-transparent p-0 py-4 pb-6 flex justify-start md:justify-center gap-2 sm:gap-4 md:gap-8 overflow-x-auto scrollbar-hide px-4 sm:px-4 relative z-30"
           >
             {displayCategories.map((cat, index) => (
               <motion.div
@@ -224,20 +224,20 @@ export const CategoryTabs = () => {
                     'flex flex-col items-center gap-1.5 md:gap-3 p-1 md:p-3',
                     'data-[state=active]:bg-transparent data-[state=active]:text-primary',
                     'text-muted-foreground bg-transparent',
-                    'rounded-none h-auto w-full md:w-[110px]',
+                    'rounded-none h-auto w-[75px] min-w-[75px] sm:w-[85px] sm:min-w-[85px] md:w-[110px]',
                     'hover:text-primary transition-all duration-300',
                     'border-b-0 shadow-none overflow-visible cursor-pointer relative z-10'
                   )}
                 >
                   <motion.div
-                    className="w-12 h-12 md:w-20 md:h-20 flex items-center justify-center overflow-visible"
+                    className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center overflow-visible"
                     whileHover={{ scale: 1.1 }}
                     transition={{ type: 'spring', stiffness: 300 }}
                   >
                     <PreloadedImage
                       src={SLUG_ICON_MAP[cat.slug] || categoryHandyman}
                       alt={cat.name}
-                      className="w-12 h-12 md:w-20 md:h-20 object-contain transform scale-[2]"
+                      className="w-16 h-16 md:w-20 md:h-20 object-contain transform scale-[2]"
                       style={{ imageRendering: 'auto' }}
                     />
                   </motion.div>
