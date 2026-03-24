@@ -42,7 +42,7 @@ const HowItWorks = () => {
       icon: CheckCircle,
       step: "5",
       title: "Paga y listo",
-      description: "Paga de forma segura por la plataforma y califica al profesional",
+      description: "Paga de forma segura — tu dinero queda protegido hasta que ambas partes estén satisfechas",
       color: "bg-green-50 text-green-600"
     }
   ];
