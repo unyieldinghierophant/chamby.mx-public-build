@@ -17,6 +17,7 @@ import categoryGardening from '@/assets/category-gardening.png';
 import categoryAC from '@/assets/category-ac.png';
 import categoryAlbanileria from '@/assets/category-albanileria.png';
 import categoryPintura from '@/assets/category-pintura.png';
+import categoryElectrodomesticos from '@/assets/category-electrodomesticos.png';
 import acHero from '@/assets/category-ac-hero.png';
 import pinturaHero from '@/assets/category-pintura-hero.png';
 import albanileriaHero from '@/assets/category-albanileria-hero.png';
@@ -33,7 +34,7 @@ import gardeningHero from '@/assets/category-gardening-hero.png';
 const allImages = [
   categoryHandyman, categoryElectrician, categoryPlumbing,
   categoryAuto, categoryCleaning, categoryGardening,
-  categoryAC, categoryAlbanileria, categoryPintura,
+  categoryAC, categoryAlbanileria, categoryPintura, categoryElectrodomesticos,
   handymanHero, electricianHero, plumbingHero,
   autoHero, cleaningHero, gardeningHero,
   acHero, pinturaHero, albanileriaHero,
@@ -87,7 +88,7 @@ const SLUG_ICON_MAP: Record<string, string> = {
   jardineria: categoryGardening,
   pintura: categoryPintura,
   albanileria: categoryAlbanileria,
-  electrodomesticos: categoryCleaning,
+  electrodomesticos: categoryElectrodomesticos,
 };
 
 const SLUG_HERO_MAP: Record<string, string> = {
@@ -109,7 +110,7 @@ const VISIBLE_SLUGS_ORDERED = [
   { slug: 'general', label: 'Arreglos Generales' },
   { slug: 'jardineria', label: 'Jardinería' },
   { slug: 'pintura', label: null },
-  { slug: 'aire-acondicionado', label: null },
+  { slug: 'aire-acondicionado', label: 'Electrodomésticos' },
   { slug: 'limpieza', label: 'Limpieza' },
 ];
 
