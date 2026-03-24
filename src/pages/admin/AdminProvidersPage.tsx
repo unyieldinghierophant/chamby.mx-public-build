@@ -425,7 +425,7 @@ const AdminProvidersPage = () => {
                       <div key={doc.id} className="flex items-center justify-between p-2 border rounded text-sm">
                         <div className="flex items-center gap-2">
                           <span>{DOC_TYPE_LABELS[doc.doc_type || ''] || doc.doc_type || 'Desconocido'}</span>
-                          <Badge variant={doc.verification_status === 'verified' ? 'default' : doc.verification_status === 'rejected' ? 'destructive' : 'secondary'} className="text-xs">
+                          <Badge variant={doc.verification_status === 'approved' ? 'default' : doc.verification_status === 'rejected' ? 'destructive' : 'secondary'} className="text-xs">
                             {doc.verification_status || 'pending'}
                           </Badge>
                         </div>

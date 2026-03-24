@@ -985,7 +985,7 @@ const AdminDashboard = () => {
                                 >
                                   <Eye className="h-4 w-4" />
                                 </Button>
-                                {doc.verification_status !== 'verified' && (
+                                {doc.verification_status !== 'approved' && (
                                   <Button
                                     variant="ghost"
                                     size="sm"
