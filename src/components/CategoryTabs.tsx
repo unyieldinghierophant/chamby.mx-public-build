@@ -316,10 +316,10 @@ export const CategoryTabs = ({ onIconsReady }: { onIconsReady?: () => void } = {
               >
                 {subs.length > 0 ? (
                   <>
-                    {subs.slice(0, 8).filter((sub) => {
+                    {subs.filter((sub) => {
                       const lower = sub.name.toLowerCase();
                       return !lower.startsWith('otro') && !lower.startsWith('otra');
-                    }).map((sub) => (
+                    }).slice(0, 4).map((sub) => (
                       <motion.div
                         key={sub.id}
                         variants={{
