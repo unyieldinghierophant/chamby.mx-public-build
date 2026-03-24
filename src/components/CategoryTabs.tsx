@@ -88,7 +88,7 @@ const SLUG_ICON_MAP: Record<string, string> = {
   jardineria: categoryGardening,
   pintura: categoryPintura,
   albanileria: categoryAlbanileria,
-  electrodomesticos: categoryCleaning,
+  electrodomesticos: categoryElectrodomesticos,
 };
 
 const SLUG_HERO_MAP: Record<string, string> = {
