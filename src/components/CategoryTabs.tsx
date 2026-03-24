@@ -113,7 +113,7 @@ const VISIBLE_SLUGS_ORDERED = [
   { slug: 'general', label: 'Arreglos Generales' },
   { slug: 'jardineria', label: 'Jardinería' },
   { slug: 'pintura', label: null },
-  { slug: 'aire-acondicionado', label: 'Electrodomésticos' },
+  { slug: 'aire-acondicionado', label: 'Electro-\ndomésticos' },
   { slug: 'limpieza', label: 'Limpieza' },
 ];
 
