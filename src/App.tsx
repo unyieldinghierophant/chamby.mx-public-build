@@ -11,83 +11,80 @@ import {
   useNavigate,
 } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { ROUTES } from "@/constants/routes";
-import Index from "./pages/Index";
-import Home from "./pages/Home";
-import UserOnboardingWizard from "./pages/UserOnboardingWizard";
-import ProviderOnboardingWizard from "./pages/provider-portal/ProviderOnboardingWizard";
-import ProviderLanding from "./pages/ProviderLanding";
-import UserLanding from "./pages/UserLanding";
-import AuthCallback from "./pages/AuthCallback";
-// ProviderOnboarding removed - consolidated into ProviderOnboardingWizard
-import ProviderVerificationPage from "./pages/ProviderVerification";
-import ProviderProfile from "./pages/ProviderProfile";
-import UserProfile from "./pages/UserProfile";
-import ProfileSettings from "./pages/ProfileSettings";
-import SecuritySettings from "./pages/SecuritySettings";
-// Payment features disabled during cleanup
-import GeneralSettings from "./pages/GeneralSettings";
-import SavedLocations from "./pages/SavedLocations";
-import DataExport from "./pages/DataExport";
-import AccountDeletion from "./pages/AccountDeletion";
-import ProtectedRoute from "./components/ProtectedRoute";
-import BookingForm from "./pages/BookingForm";
-// ServiceDetail removed - all services are now jobs
-import NotFound from "./pages/NotFound";
-import MobileJobs from "./pages/MobileJobs";
-import MobileFavorites from "./pages/MobileFavorites";
-import MobileProfile from "./pages/MobileProfile";
-import BookingDateTime from "./pages/BookingDateTime";
-import BookJob from "./pages/BookJob";
-import EsperandoProveedor from "./pages/EsperandoProveedor";
-import PhotoRedirect from "./pages/PhotoRedirect";
-
-import ProviderPortal from "./pages/ProviderPortal";
-import ProviderDashboardHome from "./pages/provider-portal/ProviderDashboardHome";
-import ProviderJobs from "./pages/provider-portal/ProviderJobs";
-import JobTimelinePage from "./pages/provider-portal/JobTimelinePage";
-import ProviderReviewsPage from "./pages/provider-portal/ProviderReviewsPage";
-import ProviderCalendar from "./pages/provider-portal/ProviderCalendar";
-import ProviderMap from "./pages/provider-portal/ProviderMap";
-// Provider payment features disabled during cleanup
-import ProviderVerification from "./pages/provider-portal/ProviderVerification";
-import ProviderProfileEdit from "./pages/provider-portal/ProviderProfileEdit";
-import ProviderSupport from "./pages/provider-portal/ProviderSupport";
-import ProviderSkillsSelection from "./pages/provider-portal/ProviderSkillsSelection";
-import ProviderMessages from "./pages/provider-portal/ProviderMessages";
-import ProviderCreateHub from "./pages/provider-portal/ProviderCreateHub";
-import ProviderAccount from "./pages/provider-portal/ProviderAccount";
-// Provider notifications disabled during cleanup
-import RescheduleRequest from "./pages/provider-portal/RescheduleRequest";
-import AvailableJobs from "./pages/provider-portal/AvailableJobs";
-
-import RoleSelection from "./pages/RoleSelection";
-import Blog from "./pages/Blog";
-import HelpCenter from "./pages/HelpCenter";
-import ActiveJobs from "./pages/ActiveJobs";
-import Messages from "./pages/Messages";
-import FindingProvider from "./pages/FindingProvider";
-import AdminDashboard from "./pages/AdminDashboard";
-import InvoicePayPage from "./pages/InvoicePayPage";
-import InvoiceBuilderPage from "./pages/provider/InvoiceBuilderPage";
-import InvoicePreviewPage from "./pages/provider/InvoicePreviewPage";
-import ProviderInvoiceListPage from "./pages/provider/ProviderInvoiceListPage";
-import ProviderEarningsPage from "./pages/provider/ProviderEarningsPage";
-import ProviderPayoutsPage from "./pages/provider/ProviderPayoutsPage";
-import ProviderPayoutDetailPage from "./pages/provider/ProviderPayoutDetailPage";
-import ClientInvoiceListPage from "./pages/client/ClientInvoiceListPage";
-import AdminPayoutDashboard from "./pages/admin/AdminPayoutDashboard";
-import AdminPayoutDetailPage from "./pages/admin/AdminPayoutDetailPage";
-import AdminSupportInbox from "./pages/admin/AdminSupportInbox";
-import AdminDisputesPage from "./pages/admin/AdminDisputesPage";
-import AdminProvidersPage from "./pages/admin/AdminProvidersPage";
-import VisitFeePaymentPage from "./pages/VisitFeePaymentPage";
-import ResetPassword from "./pages/ResetPassword";
-import Login from "./pages/Login";
-import ProviderLogin from "./pages/ProviderLogin";
-import CookieConsent from "./components/CookieConsent";
 import { trackPageView, isGALoaded } from "@/lib/analytics";
+
+// Only eagerly import the homepage and critical shared components
+import Index from "./pages/Index";
+import ProtectedRoute from "./components/ProtectedRoute";
+import CookieConsent from "./components/CookieConsent";
+import AuthCallback from "./pages/AuthCallback";
+import NotFound from "./pages/NotFound";
+
+// Lazy-load everything else
+const Home = lazy(() => import("./pages/Home"));
+const UserOnboardingWizard = lazy(() => import("./pages/UserOnboardingWizard"));
+const ProviderOnboardingWizard = lazy(() => import("./pages/provider-portal/ProviderOnboardingWizard"));
+const ProviderLanding = lazy(() => import("./pages/ProviderLanding"));
+const UserLanding = lazy(() => import("./pages/UserLanding"));
+const ProviderVerificationPage = lazy(() => import("./pages/ProviderVerification"));
+const ProviderProfile = lazy(() => import("./pages/ProviderProfile"));
+const UserProfile = lazy(() => import("./pages/UserProfile"));
+const ProfileSettings = lazy(() => import("./pages/ProfileSettings"));
+const SecuritySettings = lazy(() => import("./pages/SecuritySettings"));
+const GeneralSettings = lazy(() => import("./pages/GeneralSettings"));
+const SavedLocations = lazy(() => import("./pages/SavedLocations"));
+const DataExport = lazy(() => import("./pages/DataExport"));
+const AccountDeletion = lazy(() => import("./pages/AccountDeletion"));
+const BookingForm = lazy(() => import("./pages/BookingForm"));
+const MobileJobs = lazy(() => import("./pages/MobileJobs"));
+const MobileFavorites = lazy(() => import("./pages/MobileFavorites"));
+const MobileProfile = lazy(() => import("./pages/MobileProfile"));
+const BookingDateTime = lazy(() => import("./pages/BookingDateTime"));
+const BookJob = lazy(() => import("./pages/BookJob"));
+const EsperandoProveedor = lazy(() => import("./pages/EsperandoProveedor"));
+const PhotoRedirect = lazy(() => import("./pages/PhotoRedirect"));
+const ProviderPortal = lazy(() => import("./pages/ProviderPortal"));
+const ProviderDashboardHome = lazy(() => import("./pages/provider-portal/ProviderDashboardHome"));
+const ProviderJobs = lazy(() => import("./pages/provider-portal/ProviderJobs"));
+const JobTimelinePage = lazy(() => import("./pages/provider-portal/JobTimelinePage"));
+const ProviderReviewsPage = lazy(() => import("./pages/provider-portal/ProviderReviewsPage"));
+const ProviderCalendar = lazy(() => import("./pages/provider-portal/ProviderCalendar"));
+const ProviderMap = lazy(() => import("./pages/provider-portal/ProviderMap"));
+const ProviderVerification = lazy(() => import("./pages/provider-portal/ProviderVerification"));
+const ProviderProfileEdit = lazy(() => import("./pages/provider-portal/ProviderProfileEdit"));
+const ProviderSupport = lazy(() => import("./pages/provider-portal/ProviderSupport"));
+const ProviderSkillsSelection = lazy(() => import("./pages/provider-portal/ProviderSkillsSelection"));
+const ProviderMessages = lazy(() => import("./pages/provider-portal/ProviderMessages"));
+const ProviderCreateHub = lazy(() => import("./pages/provider-portal/ProviderCreateHub"));
+const ProviderAccount = lazy(() => import("./pages/provider-portal/ProviderAccount"));
+const RescheduleRequest = lazy(() => import("./pages/provider-portal/RescheduleRequest"));
+const AvailableJobs = lazy(() => import("./pages/provider-portal/AvailableJobs"));
+const RoleSelection = lazy(() => import("./pages/RoleSelection"));
+const Blog = lazy(() => import("./pages/Blog"));
+const HelpCenter = lazy(() => import("./pages/HelpCenter"));
+const ActiveJobs = lazy(() => import("./pages/ActiveJobs"));
+const Messages = lazy(() => import("./pages/Messages"));
+const FindingProvider = lazy(() => import("./pages/FindingProvider"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const InvoicePayPage = lazy(() => import("./pages/InvoicePayPage"));
+const InvoiceBuilderPage = lazy(() => import("./pages/provider/InvoiceBuilderPage"));
+const InvoicePreviewPage = lazy(() => import("./pages/provider/InvoicePreviewPage"));
+const ProviderInvoiceListPage = lazy(() => import("./pages/provider/ProviderInvoiceListPage"));
+const ProviderEarningsPage = lazy(() => import("./pages/provider/ProviderEarningsPage"));
+const ProviderPayoutsPage = lazy(() => import("./pages/provider/ProviderPayoutsPage"));
+const ProviderPayoutDetailPage = lazy(() => import("./pages/provider/ProviderPayoutDetailPage"));
+const ClientInvoiceListPage = lazy(() => import("./pages/client/ClientInvoiceListPage"));
+const AdminPayoutDashboard = lazy(() => import("./pages/admin/AdminPayoutDashboard"));
+const AdminPayoutDetailPage = lazy(() => import("./pages/admin/AdminPayoutDetailPage"));
+const AdminSupportInbox = lazy(() => import("./pages/admin/AdminSupportInbox"));
+const AdminDisputesPage = lazy(() => import("./pages/admin/AdminDisputesPage"));
+const AdminProvidersPage = lazy(() => import("./pages/admin/AdminProvidersPage"));
+const VisitFeePaymentPage = lazy(() => import("./pages/VisitFeePaymentPage"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Login = lazy(() => import("./pages/Login"));
+const ProviderLogin = lazy(() => import("./pages/ProviderLogin"));
 
 const queryClient = new QueryClient();
 
