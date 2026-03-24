@@ -401,38 +401,127 @@ const UserAuth = () => {
                         )}
                       </form>
 
-                      {/* Reset Password Form */}
+                      {/* Reset Password Flow */}
                       {showResetForm && (
                         <div className="mt-6 p-5 border border-border rounded-lg bg-muted/30">
-                          <h3 className="font-semibold mb-3 text-foreground">Recuperar Contraseña</h3>
-                          <form onSubmit={handleResetPassword} className="space-y-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="reset-email">Email</Label>
-                              <Input
-                                id="reset-email"
-                                type="email"
-                                value={resetEmail}
-                                onChange={(e) => setResetEmail(e.target.value)}
-                                placeholder="tu@email.com"
-                                required
-                              />
+                          {resetStep === 'email' && (
+                            <>
+                              <h3 className="font-semibold mb-3 text-foreground">Recuperar Contraseña</h3>
+                              <form onSubmit={handleResetPassword} className="space-y-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="reset-email">Email</Label>
+                                  <Input
+                                    id="reset-email"
+                                    type="email"
+                                    value={resetEmail}
+                                    onChange={(e) => setResetEmail(e.target.value)}
+                                    placeholder="tu@email.com"
+                                    required
+                                  />
+                                </div>
+                                <div className="flex gap-2">
+                                  <Button type="submit" disabled={loading} className="flex-1">
+                                    {loading ? 'Enviando...' : 'Enviar Código'}
+                                  </Button>
+                                  <Button type="button" variant="outline" onClick={handleCancelReset}>
+                                    Cancelar
+                                  </Button>
+                                </div>
+                              </form>
+                            </>
+                          )}
+
+                          {resetStep === 'otp' && (
+                            <>
+                              <div className="text-center mb-4">
+                                <Lock className="w-10 h-10 text-primary mx-auto mb-2" />
+                                <h3 className="font-semibold text-foreground">Ingresa el código</h3>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  Enviamos un código de 6 dígitos a <strong>{resetEmail}</strong>
+                                </p>
+                              </div>
+                              <form onSubmit={handleVerifyOtp} className="space-y-4">
+                                <div className="flex justify-center">
+                                  <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode}>
+                                    <InputOTPGroup>
+                                      <InputOTPSlot index={0} />
+                                      <InputOTPSlot index={1} />
+                                      <InputOTPSlot index={2} />
+                                      <InputOTPSlot index={3} />
+                                      <InputOTPSlot index={4} />
+                                      <InputOTPSlot index={5} />
+                                    </InputOTPGroup>
+                                  </InputOTP>
+                                </div>
+                                <Button type="submit" className="w-full" disabled={loading || otpCode.length !== 6}>
+                                  {loading ? 'Verificando...' : 'Verificar Código'}
+                                </Button>
+                                <Button type="button" variant="ghost" size="sm" className="w-full" onClick={handleCancelReset}>
+                                  Cancelar
+                                </Button>
+                              </form>
+                            </>
+                          )}
+
+                          {resetStep === 'newPassword' && (
+                            <>
+                              <div className="text-center mb-4">
+                                <Lock className="w-10 h-10 text-primary mx-auto mb-2" />
+                                <h3 className="font-semibold text-foreground">Nueva Contraseña</h3>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  Ingresa tu nueva contraseña
+                                </p>
+                              </div>
+                              <form onSubmit={handleUpdatePassword} className="space-y-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="new-password" className={resetErrors.password ? 'text-destructive' : ''}>
+                                    Nueva Contraseña
+                                  </Label>
+                                  <Input
+                                    id="new-password"
+                                    type="password"
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    placeholder="Mínimo 6 caracteres"
+                                    required
+                                  />
+                                  {resetErrors.password && (
+                                    <p className="text-destructive text-sm">{resetErrors.password}</p>
+                                  )}
+                                  <PasswordStrengthBar password={newPassword} className="mt-2" />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor="confirm-password" className={resetErrors.confirmPassword ? 'text-destructive' : ''}>
+                                    Confirmar Contraseña
+                                  </Label>
+                                  <Input
+                                    id="confirm-password"
+                                    type="password"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    placeholder="Repite la contraseña"
+                                    required
+                                  />
+                                  {resetErrors.confirmPassword && (
+                                    <p className="text-destructive text-sm">{resetErrors.confirmPassword}</p>
+                                  )}
+                                </div>
+                                <Button type="submit" className="w-full" disabled={loading}>
+                                  {loading ? 'Actualizando...' : 'Actualizar Contraseña'}
+                                </Button>
+                              </form>
+                            </>
+                          )}
+
+                          {resetStep === 'success' && (
+                            <div className="text-center py-4">
+                              <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
+                              <h3 className="font-semibold text-foreground mb-1">¡Contraseña Actualizada!</h3>
+                              <p className="text-sm text-muted-foreground">
+                                Ahora puedes iniciar sesión con tu nueva contraseña.
+                              </p>
                             </div>
-                            <div className="flex gap-2">
-                              <Button type="submit" disabled={loading} className="flex-1">
-                                {loading ? 'Enviando...' : 'Enviar Enlace'}
-                              </Button>
-                              <Button 
-                                type="button" 
-                                variant="outline"
-                                onClick={() => {
-                                  setShowResetForm(false);
-                                  setResetEmail('');
-                                }}
-                              >
-                                Cancelar
-                              </Button>
-                            </div>
-                          </form>
+                          )}
                         </div>
                       )}
                     </TabsContent>
