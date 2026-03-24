@@ -205,7 +205,11 @@ const AdminProvidersPage = () => {
       const { data, error } = await supabase.functions.invoke('admin-verify-provider', {
         body: { action: 'reject', provider_user_id: selectedProvider.user_id, admin_notes: revokeNotes },
       });
-      if (error) throw new Error(error.message);
+      if (error) {
+        let msg = error.message;
+        try { const body = await error.context?.json(); if (body?.error) msg = body.error; } catch {}
+        throw new Error(msg);
+      }
       if (data?.error) throw new Error(data.error);
 
       // Notify provider

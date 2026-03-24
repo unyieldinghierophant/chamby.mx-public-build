@@ -267,7 +267,11 @@ const AdminDashboard = () => {
         body: { action: 'reject', provider_user_id: userId, admin_notes: notes }
       });
 
-      if (error) throw new Error(error.message || 'Error al rechazar');
+      if (error) {
+        let msg = error.message || 'Error al rechazar';
+        try { const body = await error.context?.json(); if (body?.error) msg = body.error; } catch {}
+        throw new Error(msg);
+      }
       if (data?.error) throw new Error(data.error);
 
       toast.success('Proveedor rechazado', {
