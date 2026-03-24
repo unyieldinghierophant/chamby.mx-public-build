@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { ArrowLeft, CheckCircle, Lock, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import { ROUTES } from '@/constants/routes';
 import { z } from 'zod';
 import { PasswordStrengthBar } from '@/components/PasswordStrengthBar';
 import { FullPageSkeleton } from '@/components/skeletons';
@@ -139,7 +140,7 @@ const ResetPassword = () => {
       
       // Redirect after a short delay
       setTimeout(() => {
-        navigate('/user-auth');
+        navigate(ROUTES.USER_LANDING);
       }, 3000);
     }
     
@@ -166,7 +167,7 @@ const ResetPassword = () => {
               <AlertCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
               <h2 className="text-xl font-semibold text-foreground mb-2">Enlace Expirado</h2>
               <p className="text-muted-foreground mb-6">{error}</p>
-              <Link to="/user-auth">
+              <Link to={ROUTES.LOGIN}>
                 <Button className="w-full">
                   Solicitar nuevo enlace
                 </Button>
