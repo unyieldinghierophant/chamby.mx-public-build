@@ -326,46 +326,6 @@ export const CategoryTabs = () => {
                 )}
               </motion.div>
 
-              {/* Hero image */}
-              <motion.div
-                className="rounded-2xl overflow-hidden bg-blue-50 p-4 md:p-6"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2, duration: 0.5 }}
-              >
-                <div className="relative">
-                  <PreloadedImage
-                    src={heroImg}
-                    alt={cat.name}
-                    className="w-full h-[220px] md:h-[400px] object-cover rounded-xl"
-                  />
-                  {/* Desktop overlay */}
-                  <div className="hidden md:block absolute top-8 left-8 bg-white rounded-xl p-6 shadow-lg max-w-[350px]">
-                    <h3 className="text-2xl font-jakarta font-semibold text-foreground mb-4">
-                      {cat.name}
-                    </h3>
-                    {cat.description && (
-                      <p className="text-base flex items-start gap-2">
-                        <span className="text-primary text-lg">✓</span>
-                        <span>{cat.description}</span>
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Mobile: text above image */}
-                <div className="md:hidden mt-4 text-left">
-                  <h3 className="text-xl font-jakarta font-semibold text-foreground mb-2">
-                    {cat.name}
-                  </h3>
-                  {cat.description && (
-                    <p className="text-sm flex items-start gap-2 text-muted-foreground">
-                      <span className="text-primary text-lg">✓</span>
-                      <span>{cat.description}</span>
-                    </p>
-                  )}
-                </div>
-              </motion.div>
             </TabsContent>
           );
         })}
