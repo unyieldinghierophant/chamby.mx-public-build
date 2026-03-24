@@ -224,6 +224,9 @@ export const CategoryTabs = ({ onIconsReady }: { onIconsReady?: () => void } = {
     });
   }, [onIconsReady, iconsLoaded]);
 
+  // Determine if we should show skeleton
+  const isReady = !loading && displayCategories.length > 0 && iconsLoaded;
+
   // Update indicator
   useEffect(() => {
     if (!isReady) return;
