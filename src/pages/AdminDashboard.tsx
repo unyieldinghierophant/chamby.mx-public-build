@@ -346,7 +346,7 @@ const AdminDashboard = () => {
     try {
       const { error } = await supabase
         .from('documents')
-        .update({ verification_status: 'verified', reviewed_by: user?.id, reviewed_at: new Date().toISOString() })
+        .update({ verification_status: 'approved', reviewed_by: user?.id, reviewed_at: new Date().toISOString() })
         .eq('id', docId);
       if (error) throw error;
       toast.success('Documento aprobado');
