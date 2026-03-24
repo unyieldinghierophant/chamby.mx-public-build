@@ -73,37 +73,6 @@ allImages.forEach((src) => {
   if (img.complete) imageCache.set(src, true);
 });
 
-/** Tiny hook: returns true once the image is decoded & ready to paint */
-function useImageReady(src: string) {
-  const [ready, setReady] = useState(() => imageCache.get(src) === true);
-  useEffect(() => {
-    if (ready) return;
-    if (imageCache.get(src)) { setReady(true); return; }
-    const img = new window.Image();
-    img.onload = () => { imageCache.set(src, true); setReady(true); };
-    img.src = src;
-    if (img.complete) { imageCache.set(src, true); setReady(true); }
-  }, [src, ready]);
-  return ready;
-}
-
-/** Preloaded image with skeleton fallback */
-const PreloadedImage = ({ src, alt, className, ...props }: React.ImgHTMLAttributes<HTMLImageElement>) => {
-  const isReady = useImageReady(src || '');
-  return (
-    <div className="relative w-full h-full">
-      {!isReady && (
-        <Skeleton className={cn("absolute inset-0", className)} />
-      )}
-      <img
-        src={src}
-        alt={alt}
-        className={cn(className, isReady ? 'opacity-100' : 'opacity-0', 'transition-opacity duration-300')}
-        {...props}
-      />
-    </div>
-  );
-};
 
 const SLUG_ICON_MAP: Record<string, string> = {
   general: categoryHandyman,
@@ -151,11 +120,38 @@ const FALLBACK_CATEGORIES: ServiceCategory[] = VISIBLE_SLUGS_ORDERED.map((v, i) 
   is_active: true,
 }));
 
+const CategoryTabsSkeleton = () => (
+  <div className="w-full mx-auto">
+    <div className="flex gap-6 sm:gap-8 md:gap-10 justify-start md:justify-center py-4 pb-6 overflow-x-auto scrollbar-hide px-4">
+      {Array.from({ length: 7 }).map((_, i) => (
+        <div key={i} className="flex flex-col items-center gap-1.5 md:gap-3 w-[80px] min-w-[80px] sm:w-[90px] sm:min-w-[90px] md:w-[110px]">
+          <Skeleton className="w-16 h-16 md:w-20 md:h-20 rounded-full" />
+          <Skeleton className="w-14 h-3 mt-1" />
+        </div>
+      ))}
+    </div>
+    <div className="relative mt-2 pl-4">
+      <div className="w-full h-[1px] bg-border" />
+    </div>
+    {/* Pill skeleton */}
+    <div className="flex flex-wrap gap-2 md:gap-3 mt-8 mb-6 max-w-xl px-4">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <Skeleton key={i} className="h-10 w-28 rounded-full" />
+      ))}
+      <Skeleton className="h-10 w-44 rounded-full" />
+    </div>
+  </div>
+);
+
 export const CategoryTabs = ({ onIconsReady }: { onIconsReady?: () => void } = {}) => {
   const { categories, subcategories, loading, error } = useServiceCatalog();
   const navigate = useNavigate();
   const tabsListRef = useRef<HTMLDivElement>(null);
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 40 });
+  const [iconsLoaded, setIconsLoaded] = useState(() => {
+    // Check if all icons are already cached from module-level preload
+    return iconImages.every((src) => imageCache.get(src) === true);
+  });
 
   // Filter & order categories to the 7 we want
   const displayCategories = useMemo(() => {
@@ -178,20 +174,31 @@ export const CategoryTabs = ({ onIconsReady }: { onIconsReady?: () => void } = {
     }
   }, [displayCategories, selectedSlug]);
 
-  // Signal parent when all category icons are loaded
+  // Wait for all icon images to be fully loaded before showing content
   const iconsSignaled = useRef(false);
   useEffect(() => {
-    if (iconsSignaled.current || !onIconsReady) return;
+    if (iconsLoaded) {
+      if (!iconsSignaled.current && onIconsReady) {
+        iconsSignaled.current = true;
+        onIconsReady();
+      }
+      return;
+    }
     preloadCategoryIcons().then(() => {
-      if (!iconsSignaled.current) {
+      setIconsLoaded(true);
+      if (!iconsSignaled.current && onIconsReady) {
         iconsSignaled.current = true;
         onIconsReady();
       }
     });
-  }, [onIconsReady]);
+  }, [onIconsReady, iconsLoaded]);
+
+  // Determine if we should show skeleton
+  const isReady = !loading && displayCategories.length > 0 && iconsLoaded;
 
   // Update indicator
   useEffect(() => {
+    if (!isReady) return;
     const update = () => {
       if (tabsListRef.current) {
         const active = tabsListRef.current.querySelector(`[data-state="active"]`) as HTMLElement;
@@ -212,7 +219,7 @@ export const CategoryTabs = ({ onIconsReady }: { onIconsReady?: () => void } = {
       window.removeEventListener('resize', update);
       if (el) el.removeEventListener('scroll', update);
     };
-  }, [selectedSlug]);
+  }, [selectedSlug, isReady]);
 
   const handleServiceClick = (serviceName: string, categorySlug: string, serviceSlug: string) => {
     localStorage.removeItem('chamby_form_job-booking');
@@ -220,25 +227,20 @@ export const CategoryTabs = ({ onIconsReady }: { onIconsReady?: () => void } = {
     navigate(`/book-job?category=${categorySlug}&service=${serviceSlug}&source=category&new=${Date.now()}`);
   };
 
-  if (loading) {
-    return (
-      <div className="w-full mx-auto">
-        <div className="flex gap-6 md:gap-10 justify-start md:justify-center py-6 overflow-x-auto scrollbar-hide pl-4">
-          {Array.from({ length: 7 }).map((_, i) => (
-            <div key={i} className="flex flex-col items-center gap-2 min-w-[70px]">
-              <Skeleton className="w-16 h-16 md:w-20 md:h-20 rounded-full" />
-              <Skeleton className="w-14 h-3" />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
+  // Show skeleton until data + icons are fully ready
+  if (!isReady) {
+    return <CategoryTabsSkeleton />;
   }
 
   if (displayCategories.length === 0) return null;
 
   return (
-    <div className="w-full mx-auto">
+    <motion.div
+      className="w-full mx-auto"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.2 }}
+    >
       <Tabs value={selectedSlug} onValueChange={setSelectedSlug} className="w-full">
         <div className="w-full relative z-30">
           <TabsList
@@ -266,7 +268,7 @@ export const CategoryTabs = ({ onIconsReady }: { onIconsReady?: () => void } = {
                     whileHover={{ scale: 1.1 }}
                     transition={{ type: 'spring', stiffness: 300 }}
                   >
-                    <PreloadedImage
+                    <img
                       src={SLUG_ICON_MAP[cat.slug] || categoryHandyman}
                       alt={cat.name}
                       className="w-16 h-16 md:w-20 md:h-20 object-contain transform scale-[2]"
@@ -362,6 +364,6 @@ export const CategoryTabs = ({ onIconsReady }: { onIconsReady?: () => void } = {
           );
         })}
       </Tabs>
-    </div>
+    </motion.div>
   );
 };
