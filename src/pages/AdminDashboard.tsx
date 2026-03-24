@@ -968,11 +968,11 @@ const AdminDashboard = () => {
                                   {documentTypeLabels[doc.doc_type] || doc.doc_type}
                                 </span>
                                 <Badge 
-                                  variant={doc.verification_status === 'verified' ? 'default' : 
+                                  variant={doc.verification_status === 'approved' ? 'default' : 
                                            doc.verification_status === 'rejected' ? 'destructive' : 'secondary'}
                                   className="text-xs flex-shrink-0"
                                 >
-                                  {doc.verification_status === 'verified' ? '✓ Aprobado' : 
+                                  {doc.verification_status === 'approved' ? '✓ Aprobado' : 
                                    doc.verification_status === 'rejected' ? '✗ Rechazado' : '⏳ Pendiente'}
                                 </Badge>
                               </div>
