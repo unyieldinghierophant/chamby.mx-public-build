@@ -61,7 +61,7 @@ const Trust = () => {
       icon: SealCheck,
       title: "Garantía de servicio",
       description: "Si no quedas satisfecho, regresamos a corregir el trabajo sin costo",
-      stats: "30 días garantía",
+      stats: "7 días garantía",
       color: "bg-indigo-50 text-indigo-600"
     }
   ];

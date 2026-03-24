@@ -152,24 +152,10 @@ const Index = () => {
         </div>
       </header>
         <main className="pt-16">
-          <div className="animate-fade-in">
-            <Hero onMediaReady={onHeroMediaReady} onIconsReady={onIconsReady} />
-          </div>
-          <div className="animate-blur-fade" style={{
-          animationDelay: "0.3s"
-        }}>
-            <HowItWorks />
-          </div>
-          <div className="animate-blur-fade" style={{
-          animationDelay: "0.5s"
-        }}>
-            <ReviewsCarousel />
-          </div>
-          <div className="animate-blur-fade" style={{
-          animationDelay: "0.7s"
-        }}>
-            <Trust />
-          </div>
+          <Hero onMediaReady={onHeroMediaReady} onIconsReady={onIconsReady} />
+          <HowItWorks />
+          <ReviewsCarousel />
+          <Trust />
         </main>
         <Footer />
         <div className="desktop-only">
