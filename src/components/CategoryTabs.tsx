@@ -256,7 +256,7 @@ export const CategoryTabs = ({ onIconsReady }: { onIconsReady?: () => void } = {
                     'flex flex-col items-center gap-1.5 md:gap-3 p-1 md:p-3',
                     'data-[state=active]:bg-transparent data-[state=active]:text-primary',
                     'text-muted-foreground bg-transparent',
-                    'rounded-none h-auto w-[75px] min-w-[75px] sm:w-[85px] sm:min-w-[85px] md:w-[110px]',
+                    'rounded-none h-auto w-[80px] min-w-[80px] sm:w-[90px] sm:min-w-[90px] md:w-[110px]',
                     'hover:text-primary transition-all duration-300',
                     'border-b-0 shadow-none overflow-visible cursor-pointer relative z-10'
                   )}
