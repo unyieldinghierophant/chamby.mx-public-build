@@ -11,31 +11,38 @@ const HowItWorks = () => {
   const navigate = useNavigate();
   const steps = [
     {
-      icon: Sparkle,
+      icon: MagnifyingGlass,
       step: "1",
-      title: "Escribe tu problema",
-      description: "Describe lo que necesitas en el buscador con IA. Ejemplo: \"Mi lavabo está goteando\" o \"Necesito cambiar una lámpara\"",
+      title: "Busca tu servicio",
+      description: "Describe lo que necesitas y nuestra IA encuentra el servicio ideal para ti",
       color: "bg-blue-50/30 text-blue-600"
     },
     {
-      icon: Brain,
-      step: "2", 
-      title: "Chamby detecta el servicio",
-      description: "Nuestra IA identifica el tipo de trabajo y selecciona al profesional adecuado",
+      icon: CalendarCheck,
+      step: "2",
+      title: "Agenda tu visita",
+      description: "Elige fecha, sube fotos y agenda una visita de diagnóstico con un profesional",
       color: "bg-purple-50 text-purple-600"
     },
     {
-      icon: Camera,
+      icon: Receipt,
       step: "3",
-      title: "Completa tu solicitud",
-      description: "Sube fotos, elige el horario y confirma los detalles del trabajo",
+      title: "Recibe tu cotización",
+      description: "El profesional evalúa el trabajo y te envía una cotización detallada",
       color: "bg-orange-50 text-orange-600"
     },
     {
-      icon: ChatCircle,
+      icon: Wrench,
       step: "4",
-      title: "Conéctate por WhatsApp",
-      description: "Te redirigimos automáticamente a WhatsApp para coordinar el servicio con nuestro equipo",
+      title: "Se realiza el trabajo",
+      description: "Una vez aprobada la cotización, el profesional completa el servicio",
+      color: "bg-amber-50 text-amber-600"
+    },
+    {
+      icon: CheckCircle,
+      step: "5",
+      title: "Paga y listo",
+      description: "Paga de forma segura por la plataforma y califica al profesional",
       color: "bg-green-50 text-green-600"
     }
   ];
