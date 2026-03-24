@@ -67,17 +67,6 @@ const SLUG_ICON_MAP: Record<string, string> = {
   electrodomesticos: categoryElectrodomesticos,
 };
 
-const SLUG_HERO_MAP: Record<string, string> = {
-  general: handymanHero,
-  electricidad: electricianHero,
-  plomeria: plumbingHero,
-  'aire-acondicionado': acHero,
-  limpieza: cleaningHero,
-  jardineria: gardeningHero,
-  pintura: pinturaHero,
-  albanileria: albanileriaHero,
-  electrodomesticos: cleaningHero,
-};
 
 // The 7 categories to show, in order, with display label overrides
 const VISIBLE_SLUGS_ORDERED = [

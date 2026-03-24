@@ -9,10 +9,10 @@ import {
 } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
 import { RatingDisplay } from "@/components/provider/RatingDisplay";
-import reviewWork1 from "@/assets/review-work-1.jpg";
-import reviewWork2 from "@/assets/review-work-2.jpg";
-import reviewWork3 from "@/assets/review-work-3.jpg";
-import reviewWork4 from "@/assets/review-work-4.jpg";
+import reviewWork1 from "@/assets/review-work-1.webp";
+import reviewWork2 from "@/assets/review-work-2.webp";
+import reviewWork3 from "@/assets/review-work-3.webp";
+import reviewWork4 from "@/assets/review-work-4.webp";
 
 interface Review {
   id: number;
