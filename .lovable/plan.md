@@ -1,40 +1,33 @@
 
 
-## Fix: Admin Provider Approval Error Handling
+## Fix: Document Approval UI State + Selfie Requirement Alignment
 
-### Problem
+### Problems Found
 
-Two issues are causing the generic "Edge Function returned a non-2xx status code" error:
+1. **Badge shows wrong status**: The UI checks `doc.verification_status === 'verified'` but the database constraint only allows `'pending'`, `'approved'`, or `'rejected'`. After approving a document, the status becomes `'approved'` but the UI only recognizes `'verified'` — so it stays showing "Pendiente" and keeps the red X button visible.
 
-1. **Lost error details**: When `supabase.functions.invoke` receives a non-2xx response, it sets `error` with a generic message. The actual response body (e.g., "Faltan documentos: Selfie") is buried in `error.context` and never extracted. Both `AdminProvidersPage.tsx` and `AdminDashboard.tsx` just use `error.message`, losing the useful detail.
+2. **Standalone selfie mismatch**: The `admin-verify-provider` edge function requires 5 canonical documents including a standalone `selfie`, but `DocumentsStep.tsx` (provider onboarding) only collects 4 documents — no standalone selfie. The provider can never upload a standalone selfie, so approval always fails with "Faltan documentos: Selfie".
 
-2. **Missing document**: The provider in the screenshot has 4 documents but is missing the standalone "Selfie" (separate from "Selfie con INE"). The edge function correctly requires all 5 canonical documents before approving. This is working as designed, but the admin sees a useless error instead of "Faltan documentos: Selfie".
+### Changes
 
-### Fix
+**1. Fix badge status checks in `AdminDashboard.tsx` (lines 970-988)**
 
-**Files to change**: `src/pages/admin/AdminProvidersPage.tsx` and `src/pages/AdminDashboard.tsx`
-
-In both approve/reject handlers, replace the generic error extraction with context-aware parsing:
-
+Replace all `'verified'` comparisons with `'approved'` to match the DB constraint:
 ```typescript
-// Before:
-if (error) throw new Error(error.message);
-
-// After:
-if (error) {
-  let msg = error.message;
-  try {
-    const body = await error.context?.json();
-    if (body?.error) msg = body.error;
-  } catch {}
-  throw new Error(msg);
-}
+// Badge display
+doc.verification_status === 'approved' ? '✓ Aprobado' : ...
+// Hide approve button
+doc.verification_status !== 'approved' && (...)
 ```
 
-This surfaces the actual Spanish error message from the edge function (e.g., "No se puede aprobar. Faltan documentos: Selfie") instead of the generic "non-2xx status code" message.
+**2. Fix badge status check in `AdminProvidersPage.tsx` (line 428)**
 
-### What Won't Change
-- Edge function logic stays the same (document requirements are correct)
-- No database or migration changes
-- The 5-document requirement is valid and enforced by both the edge function and the `enforce_verified_has_docs` DB trigger
+Same fix — change `'verified'` to `'approved'`.
+
+**3. Remove standalone selfie from edge function requirements**
+
+In `admin-verify-provider/index.ts`, remove the `selfie` entry from `CANONICAL_DOCS`. The provider already uploads `selfie_with_id` which serves the same identity verification purpose. This aligns the edge function with what providers can actually upload. The `CANONICAL_DOCS` array becomes 4 items: `ine_front`, `ine_back`, `selfie_with_id`, `proof_of_address`.
+
+### Risk Assessment
+- **Low risk**: Only fixing a status string mismatch and removing an impossible-to-satisfy requirement. No schema changes, no new policies.
 
