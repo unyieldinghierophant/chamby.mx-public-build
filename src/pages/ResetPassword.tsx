@@ -140,7 +140,7 @@ const ResetPassword = () => {
       
       // Redirect after a short delay
       setTimeout(() => {
-        navigate('/user-auth');
+        navigate(ROUTES.USER_LANDING);
       }, 3000);
     }
     
