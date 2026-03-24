@@ -224,8 +224,41 @@ export const CategoryTabs = ({ onIconsReady }: { onIconsReady?: () => void } = {
     });
   }, [onIconsReady, iconsLoaded]);
 
-  // Determine if we should show skeleton
-  const isReady = !loading && displayCategories.length > 0 && iconsLoaded;
+  // Update indicator
+  useEffect(() => {
+    if (!isReady) return;
+    const update = () => {
+      if (tabsListRef.current) {
+        const active = tabsListRef.current.querySelector(`[data-state="active"]`) as HTMLElement;
+        if (active) {
+          const listRect = tabsListRef.current.getBoundingClientRect();
+          const activeRect = active.getBoundingClientRect();
+          const center = activeRect.left - listRect.left + activeRect.width / 2;
+          setIndicatorStyle({ left: center - 20, width: 40 });
+        }
+      }
+    };
+    const t = setTimeout(update, 50);
+    window.addEventListener('resize', update);
+    const el = tabsListRef.current;
+    if (el) el.addEventListener('scroll', update);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener('resize', update);
+      if (el) el.removeEventListener('scroll', update);
+    };
+  }, [selectedSlug, isReady]);
+
+  const handleServiceClick = (serviceName: string, categorySlug: string, serviceSlug: string) => {
+    localStorage.removeItem('chamby_form_job-booking');
+    sessionStorage.removeItem('chamby_form_job-booking');
+    navigate(`/book-job?category=${categorySlug}&service=${serviceSlug}&source=category&new=${Date.now()}`);
+  };
+
+  // Show skeleton until data + icons are fully ready
+  if (!isReady) {
+    return <CategoryTabsSkeleton />;
+  }
 
   if (displayCategories.length === 0) return null;
 
