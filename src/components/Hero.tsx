@@ -16,7 +16,7 @@ const HERO_VIDEO_URL = "https://uiyjmjibshnkhwewtkoz.supabase.co/storage/v1/obje
 const preloadMoneyBag = new window.Image();
 preloadMoneyBag.src = moneyBagIcon;
 
-const Hero = ({ onMediaReady }: { onMediaReady?: () => void }) => {
+const Hero = ({ onMediaReady, onIconsReady }: { onMediaReady?: () => void; onIconsReady?: () => void }) => {
   const [location, setLocation] = useState("");
   const [videoReady, setVideoReady] = useState(false);
   const navigate = useNavigate();
@@ -146,7 +146,7 @@ const Hero = ({ onMediaReady }: { onMediaReady?: () => void }) => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5, duration: 0.4 }}
           >
-            <CategoryTabs />
+            <CategoryTabs onIconsReady={onIconsReady} />
           </motion.div>
 
           {/* Gana dinero CTA - Below categories */}

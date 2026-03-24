@@ -33,19 +33,42 @@ import autoHero from '@/assets/category-auto-hero.jpg';
 import cleaningHero from '@/assets/category-cleaning-hero.png';
 import gardeningHero from '@/assets/category-gardening-hero.png';
 
-// Preload ALL images (icons + heroes) immediately at module load
-const allImages = [
+// Preload ALL icon images immediately at module load
+const iconImages = [
   categoryHandyman, categoryElectrician, categoryPlumbing,
   categoryAuto, categoryCleaning, categoryGardening,
   categoryAC, categoryAlbanileria, categoryPintura, categoryElectrodomesticos,
+];
+const heroImages = [
   handymanHero, electricianHero, plumbingHero,
   autoHero, cleaningHero, gardeningHero,
   acHero, pinturaHero, albanileriaHero,
 ];
+const allImages = [...iconImages, ...heroImages];
 const imageCache = new Map<string, boolean>();
+
+// Returns a promise that resolves when ALL icon images are loaded
+export function preloadCategoryIcons(): Promise<void> {
+  return Promise.all(
+    iconImages.map((src) => {
+      if (imageCache.get(src)) return Promise.resolve();
+      return new Promise<void>((resolve) => {
+        const img = new window.Image();
+        img.onload = () => { imageCache.set(src, true); resolve(); };
+        img.onerror = () => { imageCache.set(src, true); resolve(); };
+        img.src = src;
+        if (img.complete) { imageCache.set(src, true); resolve(); }
+      });
+    })
+  ).then(() => {});
+}
+
+// Kick off preload immediately
 allImages.forEach((src) => {
+  if (imageCache.get(src)) return;
   const img = new window.Image();
   img.onload = () => imageCache.set(src, true);
+  img.onerror = () => imageCache.set(src, true);
   img.src = src;
   if (img.complete) imageCache.set(src, true);
 });
@@ -128,7 +151,7 @@ const FALLBACK_CATEGORIES: ServiceCategory[] = VISIBLE_SLUGS_ORDERED.map((v, i) 
   is_active: true,
 }));
 
-export const CategoryTabs = () => {
+export const CategoryTabs = ({ onIconsReady }: { onIconsReady?: () => void } = {}) => {
   const { categories, subcategories, loading, error } = useServiceCatalog();
   const navigate = useNavigate();
   const tabsListRef = useRef<HTMLDivElement>(null);
@@ -154,6 +177,18 @@ export const CategoryTabs = () => {
       setSelectedSlug(displayCategories[0].slug);
     }
   }, [displayCategories, selectedSlug]);
+
+  // Signal parent when all category icons are loaded
+  const iconsSignaled = useRef(false);
+  useEffect(() => {
+    if (iconsSignaled.current || !onIconsReady) return;
+    preloadCategoryIcons().then(() => {
+      if (!iconsSignaled.current) {
+        iconsSignaled.current = true;
+        onIconsReady();
+      }
+    });
+  }, [onIconsReady]);
 
   // Update indicator
   useEffect(() => {
@@ -210,12 +245,9 @@ export const CategoryTabs = () => {
             ref={tabsListRef}
             className="w-full h-auto bg-transparent p-0 py-4 pb-6 flex justify-start md:justify-center gap-4 sm:gap-6 md:gap-8 overflow-x-auto scrollbar-hide px-4 sm:px-4 relative z-30"
           >
-            {displayCategories.map((cat, index) => (
-              <motion.div
+            {displayCategories.map((cat) => (
+              <div
                 key={cat.slug}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.08, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
                 className="flex items-center justify-center overflow-visible relative z-10"
               >
                 <TabsTrigger
@@ -245,7 +277,7 @@ export const CategoryTabs = () => {
                     {cat.name}
                   </span>
                 </TabsTrigger>
-              </motion.div>
+              </div>
             ))}
           </TabsList>
 

@@ -28,7 +28,7 @@ const Index = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [categoriesDialogOpen, setCategoriesDialogOpen] = useState(false);
-  const { isSkeletonVisible, onHeroMediaReady } = useLandingSkeleton();
+  const { isSkeletonVisible, onHeroMediaReady, onIconsReady } = useLandingSkeleton();
 
   const handlePostJobClick = () => {
     startBooking(navigate, { entrySource: 'hero_cta' });
@@ -153,7 +153,7 @@ const Index = () => {
       </header>
         <main className="pt-16">
           <div className="animate-fade-in">
-            <Hero onMediaReady={onHeroMediaReady} />
+            <Hero onMediaReady={onHeroMediaReady} onIconsReady={onIconsReady} />
           </div>
           <div className="animate-blur-fade" style={{
           animationDelay: "0.3s"
