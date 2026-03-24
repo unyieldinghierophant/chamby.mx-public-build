@@ -293,23 +293,41 @@ export const CategoryTabs = () => {
                 }}
               >
                 {subs.length > 0 ? (
-                  subs.slice(0, 8).map((sub) => (
+                  <>
+                    {subs.slice(0, 8).map((sub) => (
+                      <motion.div
+                        key={sub.id}
+                        variants={{
+                          hidden: { opacity: 0, y: 10, scale: 0.95 },
+                          visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.3, ease: 'easeOut' } },
+                        }}
+                      >
+                        <Button
+                          onClick={() => handleServiceClick(sub.name, cat.slug, sub.slug)}
+                          variant="outline"
+                          className="rounded-full px-3 py-1.5 sm:px-4 sm:py-2 md:px-6 md:py-2.5 h-auto text-xs sm:text-sm md:text-base font-medium bg-background border-border hover:bg-primary/5 hover:text-primary hover:border-primary transition-all duration-200 whitespace-nowrap"
+                        >
+                          {sub.name}
+                        </Button>
+                      </motion.div>
+                    ))}
+                    {/* "Otro servicio" pill */}
                     <motion.div
-                      key={sub.id}
                       variants={{
                         hidden: { opacity: 0, y: 10, scale: 0.95 },
                         visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.3, ease: 'easeOut' } },
                       }}
                     >
                       <Button
-                        onClick={() => handleServiceClick(sub.name, cat.slug, sub.slug)}
+                        onClick={() => handleServiceClick('Otro', cat.slug, 'otro')}
                         variant="outline"
-                        className="rounded-full px-3 py-1.5 sm:px-4 sm:py-2 md:px-6 md:py-2.5 h-auto text-xs sm:text-sm md:text-base font-medium bg-background border-border hover:bg-primary/5 hover:text-primary hover:border-primary transition-all duration-200 whitespace-nowrap"
+                        className="rounded-full px-3 py-1.5 sm:px-4 sm:py-2 md:px-6 md:py-2.5 h-auto text-xs sm:text-sm md:text-base font-bold bg-primary/5 border-primary/30 hover:bg-primary/10 hover:text-primary hover:border-primary transition-all duration-200 whitespace-nowrap gap-1"
                       >
-                        {sub.name}
+                        <Plus className="w-3.5 h-3.5" />
+                        Otros trabajos de {cat.name}
                       </Button>
                     </motion.div>
-                  ))
+                  </>
                 ) : (
                   <p className="text-sm text-muted-foreground">Selecciona una categoría para ver servicios disponibles</p>
                 )}
