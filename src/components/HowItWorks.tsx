@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { ModernButton } from "@/components/ui/modern-button";
-import { Sparkle, Brain, Camera, ChatCircle } from "@phosphor-icons/react";
+import { MagnifyingGlass, CalendarCheck, Receipt, Wrench, CheckCircle } from "@phosphor-icons/react";
 import { ForwardRefExoticComponent, RefAttributes } from "react";
 import { IconProps } from "@phosphor-icons/react";
 import { useNavigate } from "react-router-dom";
