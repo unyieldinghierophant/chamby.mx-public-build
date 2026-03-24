@@ -272,7 +272,7 @@ export const CategoryTabs = ({ onIconsReady }: { onIconsReady?: () => void } = {
           const subs = cat.slug === 'general'
             ? [...baseSubs, ...getSubcategoriesForCategory('albanileria', subcategories, categories.length > 0 ? categories : displayCategories)]
             : baseSubs;
-          const heroImg = SLUG_HERO_MAP[cat.slug] || handymanHero;
+          
 
           return (
             <TabsContent key={cat.slug} value={cat.slug} className="mt-8 relative z-10">
