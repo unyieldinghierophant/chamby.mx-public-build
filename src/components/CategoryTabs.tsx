@@ -284,7 +284,10 @@ export const CategoryTabs = () => {
               >
                 {subs.length > 0 ? (
                   <>
-                    {subs.slice(0, 8).map((sub) => (
+                    {subs.slice(0, 8).filter((sub) => {
+                      const lower = sub.name.toLowerCase();
+                      return !lower.startsWith('otro') && !lower.startsWith('otra');
+                    }).map((sub) => (
                       <motion.div
                         key={sub.id}
                         variants={{
