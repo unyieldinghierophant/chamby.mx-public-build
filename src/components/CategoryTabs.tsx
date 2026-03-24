@@ -395,6 +395,6 @@ export const CategoryTabs = ({ onIconsReady }: { onIconsReady?: () => void } = {
           );
         })}
       </Tabs>
-    </div>
+    </motion.div>
   );
 };
