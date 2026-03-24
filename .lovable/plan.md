@@ -1,23 +1,17 @@
 
 
-## Update "¿Cómo funciona?" to reflect new flow
+## Increase spacing between category icons
 
-### What changes
-Replace the 4 current steps with 5 new steps that match the actual booking lifecycle:
+### Problem
+On mobile (390px), 7 categories with `gap-4` and `w-[75px]` items feel cramped, especially with "Electrodomésticos" being a long label.
 
-| Step | Title | Description | Icon |
-|------|-------|-------------|------|
-| 1 | Busca tu servicio | Describe lo que necesitas y nuestra IA encuentra el servicio ideal para ti | MagnifyingGlass |
-| 2 | Agenda tu visita | Elige fecha, sube fotos y agenda una visita de diagnóstico con un profesional | CalendarCheck |
-| 3 | Recibe tu cotización | El profesional evalúa el trabajo y te envía una cotización detallada | Receipt |
-| 4 | Se realiza el trabajo | Una vez aprobada la cotización, el profesional completa el servicio | Wrench |
-| 5 | Paga y listo | Paga de forma segura por la plataforma y califica al profesional | CheckCircle |
+### Changes
 
-### File: `src/components/HowItWorks.tsx`
+**File: `src/components/CategoryTabs.tsx`**
 
-1. Replace the `steps` array with the 5 new steps above
-2. Update icon imports from `@phosphor-icons/react` accordingly
-3. Change grid from `lg:grid-cols-4` to `lg:grid-cols-5`
-4. Update header subtitle to match the new flow description
-5. Keep the CTA section at the bottom as-is
+1. **Increase gap** in TabsList (line 246): change `gap-4 sm:gap-6 md:gap-8` to `gap-6 sm:gap-8 md:gap-10`
+2. **Slightly increase item width** (line 259): change `w-[75px] min-w-[75px]` to `w-[80px] min-w-[80px]` so labels have more breathing room
+3. **Match skeleton gap** (line 226): update skeleton loading state gap from `gap-6` to `gap-6` (already matches, no change needed)
+
+This gives ~8px more space between each category on mobile, making the row feel less cramped while keeping horizontal scroll natural.
 
