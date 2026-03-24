@@ -86,7 +86,7 @@ const SLUG_ICON_MAP: Record<string, string> = {
   general: categoryHandyman,
   electricidad: categoryElectrician,
   plomeria: categoryPlumbing,
-  'aire-acondicionado': categoryAC,
+  'aire-acondicionado': categoryElectrodomesticos,
   limpieza: categoryCleaning,
   jardineria: categoryGardening,
   pintura: categoryPintura,
