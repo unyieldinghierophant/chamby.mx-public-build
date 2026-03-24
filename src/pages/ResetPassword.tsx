@@ -167,7 +167,7 @@ const ResetPassword = () => {
               <AlertCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
               <h2 className="text-xl font-semibold text-foreground mb-2">Enlace Expirado</h2>
               <p className="text-muted-foreground mb-6">{error}</p>
-              <Link to="/user-auth">
+              <Link to={ROUTES.LOGIN}>
                 <Button className="w-full">
                   Solicitar nuevo enlace
                 </Button>
