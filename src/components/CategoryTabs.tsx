@@ -245,12 +245,9 @@ export const CategoryTabs = ({ onIconsReady }: { onIconsReady?: () => void } = {
             ref={tabsListRef}
             className="w-full h-auto bg-transparent p-0 py-4 pb-6 flex justify-start md:justify-center gap-4 sm:gap-6 md:gap-8 overflow-x-auto scrollbar-hide px-4 sm:px-4 relative z-30"
           >
-            {displayCategories.map((cat, index) => (
-              <motion.div
+            {displayCategories.map((cat) => (
+              <div
                 key={cat.slug}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.08, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
                 className="flex items-center justify-center overflow-visible relative z-10"
               >
                 <TabsTrigger
