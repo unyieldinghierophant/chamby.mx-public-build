@@ -1,18 +1,23 @@
 
 
-## Fix: Category spacing and Electrodomésticos label centering on mobile
+## Update "¿Cómo funciona?" to reflect new flow
 
-### Problem
-On mobile (390px), the tab triggers are `w-[80px]` with `gap-4` between them. "Electrodomésticos" is 16 characters and doesn't fit cleanly, causing misalignment with its icon.
+### What changes
+Replace the 4 current steps with 5 new steps that match the actual booking lifecycle:
 
-### Changes
+| Step | Title | Description | Icon |
+|------|-------|-------------|------|
+| 1 | Busca tu servicio | Describe lo que necesitas y nuestra IA encuentra el servicio ideal para ti | MagnifyingGlass |
+| 2 | Agenda tu visita | Elige fecha, sube fotos y agenda una visita de diagnóstico con un profesional | CalendarCheck |
+| 3 | Recibe tu cotización | El profesional evalúa el trabajo y te envía una cotización detallada | Receipt |
+| 4 | Se realiza el trabajo | Una vez aprobada la cotización, el profesional completa el servicio | Wrench |
+| 5 | Paga y listo | Paga de forma segura por la plataforma y califica al profesional | CheckCircle |
 
-**File: `src/components/CategoryTabs.tsx`**
+### File: `src/components/HowItWorks.tsx`
 
-1. **Increase tab trigger width on mobile** from `w-[80px]` to `w-[85px]` (line 234)
-2. **Increase gap** in TabsList from `gap-4` to `gap-5` (line 211)  
-3. **Remove conditional font size** — use a single uniform size for all labels: `text-[10px] sm:text-[11px] md:text-sm` (lines 251-254). This makes "Electrodomésticos" the same size as other labels instead of shrinking it
-4. **Set label width to match trigger width** — always `w-full` so text centers relative to the icon above it
-
-This ensures all category labels are the same font size, properly centered under their icons, with enough breathing room between tabs for the longer text to wrap naturally.
+1. Replace the `steps` array with the 5 new steps above
+2. Update icon imports from `@phosphor-icons/react` accordingly
+3. Change grid from `lg:grid-cols-4` to `lg:grid-cols-5`
+4. Update header subtitle to match the new flow description
+5. Keep the CTA section at the bottom as-is
 
