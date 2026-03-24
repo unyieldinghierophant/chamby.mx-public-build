@@ -141,6 +141,7 @@ const App = () => {
           <BrowserRouter>
             <AnalyticsTracker />
             <RedirectHandler />
+            <Suspense fallback={null}>
             <Routes>
               <Route path={ROUTES.HOME} element={<Index />} />
               <Route path={ROUTES.USER_LANDING} element={<UserLanding />} />
