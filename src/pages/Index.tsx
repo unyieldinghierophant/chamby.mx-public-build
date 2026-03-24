@@ -153,7 +153,7 @@ const Index = () => {
       </header>
         <main className="pt-16">
           <div className="animate-fade-in">
-            <Hero onMediaReady={onHeroMediaReady} />
+            <Hero onMediaReady={onHeroMediaReady} onIconsReady={onIconsReady} />
           </div>
           <div className="animate-blur-fade" style={{
           animationDelay: "0.3s"

@@ -146,7 +146,7 @@ const Hero = ({ onMediaReady, onIconsReady }: { onMediaReady?: () => void; onIco
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5, duration: 0.4 }}
           >
-            <CategoryTabs />
+            <CategoryTabs onIconsReady={onIconsReady} />
           </motion.div>
 
           {/* Gana dinero CTA - Below categories */}

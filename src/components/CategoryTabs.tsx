@@ -151,7 +151,7 @@ const FALLBACK_CATEGORIES: ServiceCategory[] = VISIBLE_SLUGS_ORDERED.map((v, i) 
   is_active: true,
 }));
 
-export const CategoryTabs = () => {
+export const CategoryTabs = ({ onIconsReady }: { onIconsReady?: () => void } = {}) => {
   const { categories, subcategories, loading, error } = useServiceCatalog();
   const navigate = useNavigate();
   const tabsListRef = useRef<HTMLDivElement>(null);
