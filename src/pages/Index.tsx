@@ -28,7 +28,7 @@ const Index = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [categoriesDialogOpen, setCategoriesDialogOpen] = useState(false);
-  const { isSkeletonVisible, onHeroMediaReady } = useLandingSkeleton();
+  const { isSkeletonVisible, onHeroMediaReady, onIconsReady } = useLandingSkeleton();
 
   const handlePostJobClick = () => {
     startBooking(navigate, { entrySource: 'hero_cta' });
