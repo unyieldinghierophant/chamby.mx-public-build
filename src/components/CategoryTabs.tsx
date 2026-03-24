@@ -248,7 +248,10 @@ export const CategoryTabs = () => {
                       style={{ imageRendering: 'auto' }}
                     />
                   </motion.div>
-                  <span className="text-[11px] sm:text-xs md:text-sm font-bold text-center leading-tight whitespace-normal w-full">
+                  <span className={cn(
+                    "font-bold text-center leading-tight whitespace-normal w-full",
+                    cat.name.length > 10 ? "text-[9px] sm:text-[10px] md:text-xs" : "text-[11px] sm:text-xs md:text-sm"
+                  )}>
                     {cat.name}
                   </span>
                 </TabsTrigger>
