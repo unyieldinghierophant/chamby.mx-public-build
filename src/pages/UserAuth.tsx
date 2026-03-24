@@ -143,12 +143,86 @@ const UserAuth = () => {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success('Se ha enviado un email de recuperación. Revisa tu bandeja de entrada.');
-      setShowResetForm(false);
-      setResetEmail('');
+      toast.success('Se ha enviado un código de recuperación a tu email.');
+      setResetStep('otp');
     }
     
     setLoading(false);
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (otpCode.length !== 6) {
+      toast.error('Ingresa el código de 6 dígitos');
+      return;
+    }
+    setLoading(true);
+    
+    const { error } = await supabase.auth.verifyOtp({
+      email: resetEmail,
+      token: otpCode,
+      type: 'recovery'
+    });
+    
+    if (error) {
+      toast.error('Código inválido o expirado. Intenta de nuevo.');
+    } else {
+      setResetStep('newPassword');
+    }
+    
+    setLoading(false);
+  };
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetErrors({});
+    
+    if (newPassword.length < 6) {
+      setResetErrors({ password: 'La contraseña debe tener al menos 6 caracteres' });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setResetErrors({ confirmPassword: 'Las contraseñas no coinciden' });
+      return;
+    }
+    
+    setLoading(true);
+    
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    
+    if (error) {
+      let msg = error.message;
+      if (msg.toLowerCase().includes('weak') || msg.toLowerCase().includes('easy to guess')) {
+        msg = 'La contraseña es muy común. Elige una diferente.';
+        setResetErrors({ password: msg });
+      }
+      toast.error(msg);
+    } else {
+      setResetStep('success');
+      toast.success('¡Contraseña actualizada!');
+      await supabase.auth.signOut();
+      setTimeout(() => {
+        setShowResetForm(false);
+        setResetStep('email');
+        setOtpCode('');
+        setNewPassword('');
+        setConfirmPassword('');
+        setResetEmail('');
+        setResetErrors({});
+      }, 2500);
+    }
+    
+    setLoading(false);
+  };
+
+  const handleCancelReset = () => {
+    setShowResetForm(false);
+    setResetStep('email');
+    setOtpCode('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setResetEmail('');
+    setResetErrors({});
   };
 
   const getInputClassName = (fieldName: string, errors: Record<string, string>) => {
