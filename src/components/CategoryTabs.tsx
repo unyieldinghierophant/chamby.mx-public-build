@@ -178,6 +178,18 @@ export const CategoryTabs = ({ onIconsReady }: { onIconsReady?: () => void } = {
     }
   }, [displayCategories, selectedSlug]);
 
+  // Signal parent when all category icons are loaded
+  const iconsSignaled = useRef(false);
+  useEffect(() => {
+    if (iconsSignaled.current || !onIconsReady) return;
+    preloadCategoryIcons().then(() => {
+      if (!iconsSignaled.current) {
+        iconsSignaled.current = true;
+        onIconsReady();
+      }
+    });
+  }, [onIconsReady]);
+
   // Update indicator
   useEffect(() => {
     const update = () => {
