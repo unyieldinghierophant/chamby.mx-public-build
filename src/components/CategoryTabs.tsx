@@ -277,7 +277,7 @@ export const CategoryTabs = ({ onIconsReady }: { onIconsReady?: () => void } = {
                     {cat.name}
                   </span>
                 </TabsTrigger>
-              </motion.div>
+              </div>
             ))}
           </TabsList>
 
