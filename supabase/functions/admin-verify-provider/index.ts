@@ -142,7 +142,7 @@ Deno.serve(async (req) => {
       // Update legacy documents table
       await supabaseAdmin
         .from('documents')
-        .update({ verification_status: 'verified' })
+        .update({ verification_status: 'approved' })
         .eq('provider_id', provider_user_id)
 
       console.log(`Admin ${user.id} approved provider ${provider_user_id}`)
