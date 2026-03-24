@@ -117,20 +117,19 @@ const CategoryTabsSkeleton = () => (
     <div className="flex gap-6 sm:gap-8 md:gap-10 justify-start md:justify-center py-4 pb-6 overflow-x-auto scrollbar-hide px-4">
       {Array.from({ length: 7 }).map((_, i) => (
         <div key={i} className="flex flex-col items-center gap-1.5 md:gap-3 w-[80px] min-w-[80px] sm:w-[90px] sm:min-w-[90px] md:w-[110px]">
-          <Skeleton className="w-16 h-16 md:w-20 md:h-20 rounded-full" />
-          <Skeleton className="w-14 h-3 mt-1" />
+          <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-accent animate-pulse" />
+          <div className="w-14 h-3 mt-1 rounded bg-accent animate-pulse" />
         </div>
       ))}
     </div>
     <div className="relative mt-2 pl-4">
       <div className="w-full h-[1px] bg-border" />
     </div>
-    {/* Pill skeleton */}
     <div className="flex flex-wrap gap-2 md:gap-3 mt-8 mb-6 max-w-xl px-4">
       {Array.from({ length: 4 }).map((_, i) => (
-        <Skeleton key={i} className="h-10 w-28 rounded-full" />
+        <div key={i} className="h-10 w-28 rounded-full bg-accent animate-pulse" />
       ))}
-      <Skeleton className="h-10 w-44 rounded-full" />
+      <div className="h-10 w-44 rounded-full bg-accent animate-pulse" />
     </div>
   </div>
 );
