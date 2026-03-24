@@ -371,24 +371,6 @@ export const CategoryTabs = () => {
             </TabsContent>
           );
         })}
-        {/* CTA Chambynauta */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
-          className="mt-8"
-        >
-          <Link
-            to="/provider-landing"
-            className="flex items-center justify-between w-full p-4 rounded-2xl bg-primary/5 border border-primary/20 hover:bg-primary/10 hover:border-primary/40 transition-all duration-300 group"
-          >
-            <div className="flex flex-col">
-              <span className="text-sm font-bold text-foreground">💰 Gana dinero como Chambynauta</span>
-              <span className="text-xs text-muted-foreground">Ofrece tus servicios y recibe trabajos en tu zona</span>
-            </div>
-            <ArrowRight className="w-5 h-5 text-primary group-hover:translate-x-1 transition-transform" />
-          </Link>
-        </motion.div>
       </Tabs>
     </div>
   );
