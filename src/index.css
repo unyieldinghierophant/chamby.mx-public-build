@@ -166,6 +166,13 @@ All colors MUST be HSL.
     overflow-x: hidden;
     max-width: 100vw;
   }
+}
+
+/* Safari-only: increase base font size */
+@supports (-webkit-touch-callout: none) {
+  html {
+    font-size: 112.5%; /* 18px base instead of 16px, only in Safari */
+  }
 
   /* Safari mobile input fixes - prevents cursor clipping and zoom */
   input, textarea {
