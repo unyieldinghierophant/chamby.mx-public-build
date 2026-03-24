@@ -42,6 +42,11 @@ const UserAuth = () => {
   });
   const [resetEmail, setResetEmail] = useState('');
   const [showResetForm, setShowResetForm] = useState(false);
+  const [resetStep, setResetStep] = useState<'email' | 'otp' | 'newPassword' | 'success'>('email');
+  const [otpCode, setOtpCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [resetErrors, setResetErrors] = useState<Record<string, string>>({});
   
   // View state
   const [showEmailAuth, setShowEmailAuth] = useState(false);
