@@ -14,7 +14,7 @@ const HowItWorks = () => {
       icon: MagnifyingGlass,
       step: "1",
       title: "Busca tu servicio",
-      description: "Describe lo que necesitas y nuestra IA encuentra el servicio ideal para ti",
+      description: "Explora nuestro catálogo de servicios y elige el que necesitas para tu hogar",
       color: "bg-blue-50/30 text-blue-600"
     },
     {
@@ -42,7 +42,7 @@ const HowItWorks = () => {
       icon: CheckCircle,
       step: "5",
       title: "Paga y listo",
-      description: "Paga de forma segura por la plataforma y califica al profesional",
+      description: "Paga de forma segura — tu dinero queda protegido hasta que ambas partes estén satisfechas",
       color: "bg-green-50 text-green-600"
     }
   ];
