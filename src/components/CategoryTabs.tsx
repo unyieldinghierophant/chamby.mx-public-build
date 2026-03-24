@@ -34,7 +34,7 @@ import gardeningHero from '@/assets/category-gardening-hero.png';
 const allImages = [
   categoryHandyman, categoryElectrician, categoryPlumbing,
   categoryAuto, categoryCleaning, categoryGardening,
-  categoryAC, categoryAlbanileria, categoryPintura,
+  categoryAC, categoryAlbanileria, categoryPintura, categoryElectrodomesticos,
   handymanHero, electricianHero, plumbingHero,
   autoHero, cleaningHero, gardeningHero,
   acHero, pinturaHero, albanileriaHero,
