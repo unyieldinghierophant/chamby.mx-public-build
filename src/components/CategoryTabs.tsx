@@ -231,7 +231,7 @@ export const CategoryTabs = () => {
                     'flex flex-col items-center gap-2 md:gap-3 p-2 md:p-3',
                     'data-[state=active]:bg-transparent data-[state=active]:text-primary',
                     'text-muted-foreground bg-transparent',
-                    'rounded-none h-auto w-[80px] sm:w-[90px] md:w-[110px]',
+                    'rounded-none h-auto w-[85px] sm:w-[90px] md:w-[110px]',
                     'hover:text-primary transition-all duration-300',
                     'border-b-0 shadow-none overflow-visible cursor-pointer relative z-10'
                   )}
