@@ -9,27 +9,16 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, ArrowRight } from 'lucide-react';
 
 // Icon imports
-import categoryHandyman from '@/assets/category-handyman.png';
-import categoryElectrician from '@/assets/category-electrician.png';
-import categoryPlumbing from '@/assets/category-plumbing.png';
-import categoryAuto from '@/assets/category-auto.png';
-import categoryCleaning from '@/assets/category-cleaning.png';
-import categoryGardening from '@/assets/category-gardening.png';
-import categoryAC from '@/assets/category-ac.png';
-import categoryAlbanileria from '@/assets/category-albanileria.png';
-import categoryPintura from '@/assets/category-pintura.png';
-import categoryElectrodomesticos from '@/assets/category-electrodomesticos.png';
-import acHero from '@/assets/category-ac-hero.png';
-import pinturaHero from '@/assets/category-pintura-hero.png';
-import albanileriaHero from '@/assets/category-albanileria-hero.png';
-
-// Hero images
-import handymanHero from '@/assets/category-handyman-hero.jpg';
-import electricianHero from '@/assets/category-electrician-hero.jpg';
-import plumbingHero from '@/assets/category-plumbing-hero.jpg';
-import autoHero from '@/assets/category-auto-hero.jpg';
-import cleaningHero from '@/assets/category-cleaning-hero.png';
-import gardeningHero from '@/assets/category-gardening-hero.png';
+import categoryHandyman from '@/assets/category-handyman.webp';
+import categoryElectrician from '@/assets/category-electrician.webp';
+import categoryPlumbing from '@/assets/category-plumbing.webp';
+import categoryAuto from '@/assets/category-auto.webp';
+import categoryCleaning from '@/assets/category-cleaning.webp';
+import categoryGardening from '@/assets/category-gardening.webp';
+import categoryAC from '@/assets/category-ac.webp';
+import categoryAlbanileria from '@/assets/category-albanileria.webp';
+import categoryPintura from '@/assets/category-pintura.webp';
+import categoryElectrodomesticos from '@/assets/category-electrodomesticos.webp';
 
 // Preload ALL icon images immediately at module load
 const iconImages = [
@@ -78,17 +67,6 @@ const SLUG_ICON_MAP: Record<string, string> = {
   electrodomesticos: categoryElectrodomesticos,
 };
 
-const SLUG_HERO_MAP: Record<string, string> = {
-  general: handymanHero,
-  electricidad: electricianHero,
-  plomeria: plumbingHero,
-  'aire-acondicionado': acHero,
-  limpieza: cleaningHero,
-  jardineria: gardeningHero,
-  pintura: pinturaHero,
-  albanileria: albanileriaHero,
-  electrodomesticos: cleaningHero,
-};
 
 // The 7 categories to show, in order, with display label overrides
 const VISIBLE_SLUGS_ORDERED = [
@@ -294,7 +272,7 @@ export const CategoryTabs = ({ onIconsReady }: { onIconsReady?: () => void } = {
           const subs = cat.slug === 'general'
             ? [...baseSubs, ...getSubcategoriesForCategory('albanileria', subcategories, categories.length > 0 ? categories : displayCategories)]
             : baseSubs;
-          const heroImg = SLUG_HERO_MAP[cat.slug] || handymanHero;
+          
 
           return (
             <TabsContent key={cat.slug} value={cat.slug} className="mt-8 relative z-10">

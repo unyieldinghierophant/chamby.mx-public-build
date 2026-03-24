@@ -8,13 +8,7 @@ import { ArrowRight } from "lucide-react";
 import { LocationChip } from "@/components/LocationChip";
 import { CategoryTabs } from "@/components/CategoryTabs";
 import { SavedJobBanner } from "@/components/SavedJobBanner";
-import moneyBagIcon from "@/assets/money-bag-icon.png";
-
 const HERO_VIDEO_URL = "https://uiyjmjibshnkhwewtkoz.supabase.co/storage/v1/object/public/Video%20Assets/TR_HomeCreative_r1.mp4";
-
-// Preload icon image immediately
-const preloadMoneyBag = new window.Image();
-preloadMoneyBag.src = moneyBagIcon;
 
 const Hero = ({ onMediaReady, onIconsReady }: { onMediaReady?: () => void; onIconsReady?: () => void }) => {
   const [location, setLocation] = useState("");
