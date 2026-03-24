@@ -73,37 +73,6 @@ allImages.forEach((src) => {
   if (img.complete) imageCache.set(src, true);
 });
 
-/** Tiny hook: returns true once the image is decoded & ready to paint */
-function useImageReady(src: string) {
-  const [ready, setReady] = useState(() => imageCache.get(src) === true);
-  useEffect(() => {
-    if (ready) return;
-    if (imageCache.get(src)) { setReady(true); return; }
-    const img = new window.Image();
-    img.onload = () => { imageCache.set(src, true); setReady(true); };
-    img.src = src;
-    if (img.complete) { imageCache.set(src, true); setReady(true); }
-  }, [src, ready]);
-  return ready;
-}
-
-/** Preloaded image with skeleton fallback */
-const PreloadedImage = ({ src, alt, className, ...props }: React.ImgHTMLAttributes<HTMLImageElement>) => {
-  const isReady = useImageReady(src || '');
-  return (
-    <div className="relative w-full h-full">
-      {!isReady && (
-        <Skeleton className={cn("absolute inset-0", className)} />
-      )}
-      <img
-        src={src}
-        alt={alt}
-        className={cn(className, isReady ? 'opacity-100' : 'opacity-0', 'transition-opacity duration-300')}
-        {...props}
-      />
-    </div>
-  );
-};
 
 const SLUG_ICON_MAP: Record<string, string> = {
   general: categoryHandyman,
