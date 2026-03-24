@@ -294,7 +294,7 @@ export const CategoryTabs = ({ onIconsReady }: { onIconsReady?: () => void } = {
                     whileHover={{ scale: 1.1 }}
                     transition={{ type: 'spring', stiffness: 300 }}
                   >
-                    <PreloadedImage
+                    <img
                       src={SLUG_ICON_MAP[cat.slug] || categoryHandyman}
                       alt={cat.name}
                       className="w-16 h-16 md:w-20 md:h-20 object-contain transform scale-[2]"
