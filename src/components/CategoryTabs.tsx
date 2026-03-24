@@ -243,7 +243,7 @@ export const CategoryTabs = ({ onIconsReady }: { onIconsReady?: () => void } = {
         <div className="w-full relative z-30">
           <TabsList
             ref={tabsListRef}
-            className="w-full h-auto bg-transparent p-0 py-4 pb-6 flex justify-start md:justify-center gap-4 sm:gap-6 md:gap-8 overflow-x-auto scrollbar-hide px-4 sm:px-4 relative z-30"
+            className="w-full h-auto bg-transparent p-0 py-4 pb-6 flex justify-start md:justify-center gap-6 sm:gap-8 md:gap-10 overflow-x-auto scrollbar-hide px-4 sm:px-4 relative z-30"
           >
             {displayCategories.map((cat) => (
               <div
