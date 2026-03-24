@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { ArrowLeft, CheckCircle, Lock, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import { ROUTES } from '@/constants/routes';
 import { z } from 'zod';
 import { PasswordStrengthBar } from '@/components/PasswordStrengthBar';
 import { FullPageSkeleton } from '@/components/skeletons';
