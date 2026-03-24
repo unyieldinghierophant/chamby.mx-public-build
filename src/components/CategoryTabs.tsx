@@ -208,7 +208,7 @@ export const CategoryTabs = () => {
         <div className="w-full relative z-30">
           <TabsList
             ref={tabsListRef}
-            className="w-full h-auto bg-transparent p-0 py-6 flex justify-start md:justify-center gap-4 sm:gap-6 md:gap-8 overflow-x-auto overflow-y-visible pl-4 pr-4 relative z-30"
+            className="w-full h-auto bg-transparent p-0 py-6 flex justify-start md:justify-center gap-5 sm:gap-6 md:gap-8 overflow-x-auto overflow-y-visible pl-4 pr-4 relative z-30"
             style={{
               WebkitOverflowScrolling: 'touch',
               scrollSnapType: 'x mandatory',
@@ -231,7 +231,7 @@ export const CategoryTabs = () => {
                     'flex flex-col items-center gap-2 md:gap-3 p-2 md:p-3',
                     'data-[state=active]:bg-transparent data-[state=active]:text-primary',
                     'text-muted-foreground bg-transparent',
-                    'rounded-none h-auto w-[80px] sm:w-[90px] md:w-[110px]',
+                    'rounded-none h-auto w-[85px] sm:w-[90px] md:w-[110px]',
                     'hover:text-primary transition-all duration-300',
                     'border-b-0 shadow-none overflow-visible cursor-pointer relative z-10'
                   )}
@@ -248,10 +248,7 @@ export const CategoryTabs = () => {
                       style={{ imageRendering: 'auto' }}
                     />
                   </motion.div>
-                  <span className={cn(
-                    "font-bold text-center leading-tight whitespace-normal",
-                    cat.name.length > 10 ? "text-[9px] sm:text-[10px] md:text-xs w-[80px] sm:w-[90px] md:w-full" : "text-[11px] sm:text-xs md:text-sm w-full"
-                  )}>
+                  <span className="font-bold text-center leading-tight whitespace-normal text-[10px] sm:text-[11px] md:text-sm w-full">
                     {cat.name}
                   </span>
                 </TabsTrigger>
