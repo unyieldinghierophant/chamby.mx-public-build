@@ -4,7 +4,7 @@ const FAILSAFE_TIMEOUT_MS = 2500;
 
 /**
  * Manages a skeleton overlay for landing pages.
- * Hides once both hero media AND icons are ready, or after a failsafe timeout.
+ * Hides once both hero media AND category icons are ready, or after a failsafe timeout.
  */
 export function useLandingSkeleton() {
   const [isVisible, setIsVisible] = useState(true);
@@ -32,15 +32,6 @@ export function useLandingSkeleton() {
     const timer = setTimeout(() => setIsVisible(false), FAILSAFE_TIMEOUT_MS);
     return () => clearTimeout(timer);
   }, []);
-
-  // Mark icons ready after first paint (requestAnimationFrame)
-  useEffect(() => {
-    const raf = requestAnimationFrame(() => {
-      iconsReady.current = true;
-      tryHide();
-    });
-    return () => cancelAnimationFrame(raf);
-  }, [tryHide]);
 
   return { isSkeletonVisible: isVisible, onHeroMediaReady, onIconsReady };
 }

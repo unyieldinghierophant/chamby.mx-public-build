@@ -33,19 +33,42 @@ import autoHero from '@/assets/category-auto-hero.jpg';
 import cleaningHero from '@/assets/category-cleaning-hero.png';
 import gardeningHero from '@/assets/category-gardening-hero.png';
 
-// Preload ALL images (icons + heroes) immediately at module load
-const allImages = [
+// Preload ALL icon images immediately at module load
+const iconImages = [
   categoryHandyman, categoryElectrician, categoryPlumbing,
   categoryAuto, categoryCleaning, categoryGardening,
   categoryAC, categoryAlbanileria, categoryPintura, categoryElectrodomesticos,
+];
+const heroImages = [
   handymanHero, electricianHero, plumbingHero,
   autoHero, cleaningHero, gardeningHero,
   acHero, pinturaHero, albanileriaHero,
 ];
+const allImages = [...iconImages, ...heroImages];
 const imageCache = new Map<string, boolean>();
+
+// Returns a promise that resolves when ALL icon images are loaded
+export function preloadCategoryIcons(): Promise<void> {
+  return Promise.all(
+    iconImages.map((src) => {
+      if (imageCache.get(src)) return Promise.resolve();
+      return new Promise<void>((resolve) => {
+        const img = new window.Image();
+        img.onload = () => { imageCache.set(src, true); resolve(); };
+        img.onerror = () => { imageCache.set(src, true); resolve(); };
+        img.src = src;
+        if (img.complete) { imageCache.set(src, true); resolve(); }
+      });
+    })
+  ).then(() => {});
+}
+
+// Kick off preload immediately
 allImages.forEach((src) => {
+  if (imageCache.get(src)) return;
   const img = new window.Image();
   img.onload = () => imageCache.set(src, true);
+  img.onerror = () => imageCache.set(src, true);
   img.src = src;
   if (img.complete) imageCache.set(src, true);
 });
