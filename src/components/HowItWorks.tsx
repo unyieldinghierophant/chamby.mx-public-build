@@ -56,8 +56,7 @@ const HowItWorks = () => {
             ¿Cómo funciona Chamby.mx?
           </h2>
           <p className="text-lg text-muted-foreground">
-            Con Chamby.mx, la inteligencia artificial encuentra al profesional ideal por ti. 
-            Describe tu problema, completa los detalles y agenda por WhatsApp.
+            Busca, agenda, recibe cotización, y paga — todo desde la plataforma.
           </p>
         </div>
 
