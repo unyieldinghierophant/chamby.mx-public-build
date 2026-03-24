@@ -243,7 +243,7 @@ export const CategoryTabs = ({ onIconsReady }: { onIconsReady?: () => void } = {
         <div className="w-full relative z-30">
           <TabsList
             ref={tabsListRef}
-            className="w-full h-auto bg-transparent p-0 py-4 pb-6 flex justify-start md:justify-center gap-4 sm:gap-6 md:gap-8 overflow-x-auto scrollbar-hide px-4 sm:px-4 relative z-30"
+            className="w-full h-auto bg-transparent p-0 py-4 pb-6 flex justify-start md:justify-center gap-6 sm:gap-8 md:gap-10 overflow-x-auto scrollbar-hide px-4 sm:px-4 relative z-30"
           >
             {displayCategories.map((cat) => (
               <div
@@ -256,7 +256,7 @@ export const CategoryTabs = ({ onIconsReady }: { onIconsReady?: () => void } = {
                     'flex flex-col items-center gap-1.5 md:gap-3 p-1 md:p-3',
                     'data-[state=active]:bg-transparent data-[state=active]:text-primary',
                     'text-muted-foreground bg-transparent',
-                    'rounded-none h-auto w-[75px] min-w-[75px] sm:w-[85px] sm:min-w-[85px] md:w-[110px]',
+                    'rounded-none h-auto w-[80px] min-w-[80px] sm:w-[90px] sm:min-w-[90px] md:w-[110px]',
                     'hover:text-primary transition-all duration-300',
                     'border-b-0 shadow-none overflow-visible cursor-pointer relative z-10'
                   )}
