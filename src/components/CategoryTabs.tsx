@@ -266,7 +266,12 @@ export const CategoryTabs = ({ onIconsReady }: { onIconsReady?: () => void } = {
   if (displayCategories.length === 0) return null;
 
   return (
-    <div className="w-full mx-auto">
+    <motion.div
+      className="w-full mx-auto"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.2 }}
+    >
       <Tabs value={selectedSlug} onValueChange={setSelectedSlug} className="w-full">
         <div className="w-full relative z-30">
           <TabsList
