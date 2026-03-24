@@ -2,10 +2,11 @@ import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useServiceCatalog, getSubcategoriesForCategory, ServiceCategory } from '@/hooks/useServiceCatalog';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Plus, ArrowRight } from 'lucide-react';
 
 // Icon imports
 import categoryHandyman from '@/assets/category-handyman.png';
@@ -287,23 +288,41 @@ export const CategoryTabs = () => {
                 }}
               >
                 {subs.length > 0 ? (
-                  subs.slice(0, 8).map((sub) => (
+                  <>
+                    {subs.slice(0, 8).map((sub) => (
+                      <motion.div
+                        key={sub.id}
+                        variants={{
+                          hidden: { opacity: 0, y: 10, scale: 0.95 },
+                          visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.3, ease: 'easeOut' } },
+                        }}
+                      >
+                        <Button
+                          onClick={() => handleServiceClick(sub.name, cat.slug, sub.slug)}
+                          variant="outline"
+                          className="rounded-full px-3 py-1.5 sm:px-4 sm:py-2 md:px-6 md:py-2.5 h-auto text-xs sm:text-sm md:text-base font-medium bg-background border-border hover:bg-primary/5 hover:text-primary hover:border-primary transition-all duration-200 whitespace-nowrap"
+                        >
+                          {sub.name}
+                        </Button>
+                      </motion.div>
+                    ))}
+                    {/* "Otro servicio" pill */}
                     <motion.div
-                      key={sub.id}
                       variants={{
                         hidden: { opacity: 0, y: 10, scale: 0.95 },
                         visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.3, ease: 'easeOut' } },
                       }}
                     >
                       <Button
-                        onClick={() => handleServiceClick(sub.name, cat.slug, sub.slug)}
+                        onClick={() => handleServiceClick('Otro', cat.slug, 'otro')}
                         variant="outline"
-                        className="rounded-full px-3 py-1.5 sm:px-4 sm:py-2 md:px-6 md:py-2.5 h-auto text-xs sm:text-sm md:text-base font-medium bg-background border-border hover:bg-primary/5 hover:text-primary hover:border-primary transition-all duration-200 whitespace-nowrap"
+                        className="rounded-full px-3 py-1.5 sm:px-4 sm:py-2 md:px-6 md:py-2.5 h-auto text-xs sm:text-sm md:text-base font-bold bg-primary/5 border-primary/30 hover:bg-primary/10 hover:text-primary hover:border-primary transition-all duration-200 whitespace-nowrap gap-1"
                       >
-                        {sub.name}
+                        <Plus className="w-3.5 h-3.5" />
+                        Otros trabajos de {cat.name}
                       </Button>
                     </motion.div>
-                  ))
+                  </>
                 ) : (
                   <p className="text-sm text-muted-foreground">Selecciona una categoría para ver servicios disponibles</p>
                 )}
@@ -352,6 +371,24 @@ export const CategoryTabs = () => {
             </TabsContent>
           );
         })}
+        {/* CTA Chambynauta */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+          className="mt-8"
+        >
+          <Link
+            to="/provider-landing"
+            className="flex items-center justify-between w-full p-4 rounded-2xl bg-primary/5 border border-primary/20 hover:bg-primary/10 hover:border-primary/40 transition-all duration-300 group"
+          >
+            <div className="flex flex-col">
+              <span className="text-sm font-bold text-foreground">💰 Gana dinero como Chambynauta</span>
+              <span className="text-xs text-muted-foreground">Ofrece tus servicios y recibe trabajos en tu zona</span>
+            </div>
+            <ArrowRight className="w-5 h-5 text-primary group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </motion.div>
       </Tabs>
     </div>
   );
