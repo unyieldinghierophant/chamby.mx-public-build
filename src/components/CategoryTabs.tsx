@@ -237,7 +237,7 @@ export const CategoryTabs = () => {
                     <PreloadedImage
                       src={SLUG_ICON_MAP[cat.slug] || categoryHandyman}
                       alt={cat.name}
-                      className="w-12 h-12 md:w-20 md:h-20 object-contain transform scale-[2]"
+                      className="w-16 h-16 md:w-20 md:h-20 object-contain transform scale-[2]"
                       style={{ imageRendering: 'auto' }}
                     />
                   </motion.div>
