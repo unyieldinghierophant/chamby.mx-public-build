@@ -241,7 +241,7 @@ export const CategoryTabs = () => {
                       style={{ imageRendering: 'auto' }}
                     />
                   </motion.div>
-                  <span className="font-bold text-center leading-tight whitespace-normal text-[10px] sm:text-[11px] md:text-sm w-full h-[2.5em] flex items-center justify-center">
+                  <span className="font-bold text-center leading-tight whitespace-normal text-xs sm:text-sm md:text-sm w-full h-[2.5em] flex items-center justify-center">
                     {cat.name}
                   </span>
                 </TabsTrigger>
@@ -295,7 +295,7 @@ export const CategoryTabs = () => {
                         <Button
                           onClick={() => handleServiceClick(sub.name, cat.slug, sub.slug)}
                           variant="outline"
-                          className="rounded-full px-3 py-1.5 sm:px-4 sm:py-2 md:px-6 md:py-2.5 h-auto text-xs sm:text-sm md:text-base font-medium bg-background border-border hover:bg-primary/5 hover:text-primary hover:border-primary transition-all duration-200 whitespace-nowrap"
+                          className="rounded-full px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-2.5 h-auto text-sm sm:text-base md:text-lg font-medium bg-background border-border hover:bg-primary/5 hover:text-primary hover:border-primary transition-all duration-200 whitespace-nowrap"
                         >
                           {sub.name}
                         </Button>
@@ -311,9 +311,9 @@ export const CategoryTabs = () => {
                       <Button
                         onClick={() => handleServiceClick('Otro', cat.slug, 'otro')}
                         variant="outline"
-                        className="rounded-full px-3 py-1.5 sm:px-4 sm:py-2 md:px-6 md:py-2.5 h-auto text-xs sm:text-sm md:text-base font-bold bg-primary/5 border-primary/30 hover:bg-primary/10 hover:text-primary hover:border-primary transition-all duration-200 whitespace-nowrap gap-1"
+                        className="rounded-full px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-2.5 h-auto text-sm sm:text-base md:text-lg font-bold bg-primary/5 border-primary/30 hover:bg-primary/10 hover:text-primary hover:border-primary transition-all duration-200 whitespace-nowrap gap-1.5"
                       >
-                        <Plus className="w-3.5 h-3.5" />
+                        <Plus className="w-4 h-4" />
                         Otros trabajos de {cat.name}
                       </Button>
                     </motion.div>
