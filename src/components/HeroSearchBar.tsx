@@ -284,7 +284,12 @@ export const HeroSearchBar: React.FC = () => {
 
           <Input
             ref={inputRef}
-            type="text"
+            type="search"
+            name="hero-search-query"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck={false}
             placeholder={dynamicPlaceholder || "Buscar Servicio..."}
             value={query}
             onChange={(e) => {
@@ -294,7 +299,7 @@ export const HeroSearchBar: React.FC = () => {
             onFocus={() => { setIsFocused(true); setIsOpen(true); setShowPopular(!query.trim()); }}
             onBlur={() => setIsFocused(false)}
             onKeyDown={handleKeyPress}
-            className="h-full w-full pl-12 pr-16 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base text-foreground rounded-xl placeholder:text-muted-foreground/70"
+            className="h-full w-full pl-12 pr-16 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base text-foreground rounded-xl placeholder:text-muted-foreground/70 [&::-webkit-search-decoration]:hidden [&::-webkit-search-cancel-button]:hidden"
           />
 
           <button
