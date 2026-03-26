@@ -32,7 +32,7 @@ export function useRefundRequest(jobId: string | null) {
         .order('requested_at', { ascending: false })
         .limit(1)
         .maybeSingle();
-      setExistingRequest(data as RefundRequest | null);
+      setExistingRequest(data as unknown as RefundRequest | null);
     } catch {
       // table may not exist yet, ignore
     } finally {
