@@ -345,44 +345,7 @@ const EsperandoProveedor = () => {
                     variant="outline"
                     className="w-full"
                     disabled={refundRequested || requestingRefund || job?.has_open_dispute}
-                    onClick={async () => {
-                      if (!user || !jobId) return;
-                      setRequestingRefund(true);
-                      try {
-                        // Check for existing dispute
-                        const { data: existing } = await supabase
-                          .from("disputes")
-                          .select("id")
-                          .eq("job_id", jobId)
-                          .eq("status", "open")
-                          .maybeSingle();
-
-                        if (existing) {
-                          setRefundRequested(true);
-                          toast.info("Ya existe una solicitud de reembolso para este trabajo");
-                          return;
-                        }
-
-                        const { error } = await supabase.from("disputes").insert({
-                          job_id: jobId,
-                          opened_by_user_id: user.id,
-                          opened_by_role: "client",
-                          reason_code: "other",
-                          reason_text: "Solicitud de reembolso: No se encontró proveedor disponible",
-                          status: "open",
-                        });
-
-                        if (error) throw error;
-
-                        setRefundRequested(true);
-                        toast.success("Tu solicitud de reembolso fue enviada. Un administrador la revisará pronto.");
-                      } catch (err: any) {
-                        console.error("Refund request error:", err);
-                        toast.error("Error al solicitar reembolso. Intenta de nuevo.");
-                      } finally {
-                        setRequestingRefund(false);
-                      }
-                    }}
+                    onClick={() => setRefundModalOpen(true)}
                   >
                     {requestingRefund
                       ? "Enviando..."
@@ -390,6 +353,11 @@ const EsperandoProveedor = () => {
                         ? "Reembolso solicitado"
                         : "Solicitar reembolso"}
                   </Button>
+                  {refundPending && (
+                    <Badge className="bg-amber-500/10 text-amber-700 border-amber-500/20 w-fit mx-auto">
+                      Reembolso solicitado - En revisión
+                    </Badge>
+                  )}
                 </div>
               </CardContent>
             </Card>
