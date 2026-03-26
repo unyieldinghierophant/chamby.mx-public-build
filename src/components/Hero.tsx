@@ -55,16 +55,6 @@ const Hero = ({ onMediaReady, onIconsReady }: { onMediaReady?: () => void; onIco
               <div className="absolute inset-0 bg-black/40" />
             </div>
 
-            {/* Subtle grid pattern background */}
-            <div className="absolute inset-0 overflow-hidden rounded-[1.5rem] md:rounded-[2.5rem] z-[1]">
-              <div 
-                className="absolute inset-0 opacity-[0.05]"
-                style={{
-                  backgroundImage: 'linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)',
-                  backgroundSize: '60px 60px',
-                }}
-              />
-            </div>
             
             {/* Main Content */}
             <div className="relative z-40 p-6 md:p-8 lg:p-10 xl:p-12 max-w-4xl mx-auto">

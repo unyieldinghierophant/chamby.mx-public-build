@@ -167,10 +167,10 @@ const InteractiveHeroBackground = ({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Generate random position within safe bounds
+  // Generate random position within safe bounds (avoid top collision)
   const getRandomPosition = useCallback(() => ({
     x: 15 + Math.random() * 70, // 15-85% horizontal
-    y: 25 + Math.random() * 50, // 25-75% vertical
+    y: 35 + Math.random() * 45, // 35-80% vertical — avoids header/top area
   }), []);
 
   // Add a new dot with smoother animation
@@ -291,7 +291,7 @@ const InteractiveHeroBackground = ({
         id: i,
         x: pos.x,
         y: pos.y,
-        opacity: 0.4 + Math.random() * 0.3, // Start more subtle
+        opacity: 0.4 + Math.random() * 0.3,
         scale: 0.8 + Math.random() * 0.4,
       };
     });
@@ -348,8 +348,7 @@ const InteractiveHeroBackground = ({
       {/* Subtle radial overlay for depth */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.2)_100%)]" />
       
-      {/* Grid pattern */}
-      <GridPattern />
+      {/* Grid pattern removed */}
       
       {/* Mexico map outline with parallax */}
       <div 

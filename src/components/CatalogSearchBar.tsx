@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Search, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useServiceCatalog, ServiceCategory, ServiceSubcategory } from '@/hooks/useServiceCatalog';
 import { startBooking } from '@/lib/booking';
+import { createPortal } from 'react-dom';
 
 interface SuggestionItem {
   subcategory: ServiceSubcategory;
@@ -38,9 +39,35 @@ export function CatalogSearchBar({ className }: { className?: string }) {
   const [suggestions, setSuggestions] = useState<SuggestionItem[]>([]);
   const [dynamicPlaceholder, setDynamicPlaceholder] = useState('');
   const [isFocused, setIsFocused] = useState(false);
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
 
   const searchRef = useRef<HTMLDivElement>(null);
   const typingExamples = isMobile ? TYPING_EXAMPLES_MOBILE : TYPING_EXAMPLES_DESKTOP;
+
+  // Position dropdown via portal
+  const updateDropdownPosition = useCallback(() => {
+    if (!searchRef.current) return;
+    const rect = searchRef.current.getBoundingClientRect();
+    setDropdownStyle({
+      position: 'fixed',
+      top: rect.bottom + 8,
+      left: rect.left,
+      width: rect.width,
+      zIndex: 9999,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    updateDropdownPosition();
+    const onScroll = () => updateDropdownPosition();
+    window.addEventListener('scroll', onScroll, true);
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll, true);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, [isOpen, updateDropdownPosition]);
 
   // Typing animation
   useEffect(() => {
@@ -128,7 +155,11 @@ export function CatalogSearchBar({ className }: { className?: string }) {
   // Close on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(e.target as Node)) setIsOpen(false);
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        const dropdown = document.getElementById('catalog-search-dropdown');
+        if (dropdown && dropdown.contains(e.target as Node)) return;
+        setIsOpen(false);
+      }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -195,75 +226,78 @@ export function CatalogSearchBar({ className }: { className?: string }) {
             </Button>
           </div>
 
-          {/* Suggestions dropdown */}
-          {isOpen && (
-            <div
-              className="absolute top-full left-0 right-0 mt-2 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-border max-h-80 overflow-y-auto z-[9999] animate-fade-in"
-              style={{ backgroundColor: 'white' }}
-            >
-              <div className="p-2 sm:p-3">
-                {/* Show popular services on focus with no query */}
-                {(!query.trim() || query.length < 2) && popularSuggestions.length > 0 && (
-                  <>
-                    <p className="px-3 pt-1 pb-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                      Servicios populares
-                    </p>
-                    <div className="space-y-0.5">
-                      {popularSuggestions.map((s) => (
-                        <button
-                          key={`pop-${s.category.id}-${s.subcategory.id}`}
-                          onClick={() => handleSuggestionClick(s)}
-                          className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-accent text-foreground transition-colors text-sm sm:text-base flex items-center gap-3"
-                        >
-                          <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                          <div className="min-w-0">
-                            <span className="text-foreground">{s.subcategory.name}</span>
-                            <span className="text-muted-foreground ml-2 text-xs">({s.category.name})</span>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
-
-                {/* Show search results when typing */}
-                {query.trim().length >= 2 && (
-                  <>
-                    {suggestions.length > 0 ? (
-                      <div className="space-y-0.5">
-                        {suggestions.map((s) => (
-                          <button
-                            key={`${s.category.id}-${s.subcategory.id}`}
-                            onClick={() => handleSuggestionClick(s)}
-                            className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-accent text-foreground transition-colors text-sm sm:text-base flex items-center gap-3"
-                          >
-                            <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                            <div className="min-w-0">
-                              <span className="text-foreground">{s.subcategory.name}</span>
-                              <span className="text-muted-foreground ml-2 text-xs">({s.category.name})</span>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="px-3 py-2 text-sm text-muted-foreground">
-                        No se encontraron servicios
-                      </div>
-                    )}
-                    <button
-                      onClick={() => handleSubmit()}
-                      className="w-full mt-1 px-3 py-2.5 rounded-xl text-primary hover:bg-accent transition-colors text-sm font-medium flex items-center gap-3"
-                    >
-                      <Search className="w-4 h-4 flex-shrink-0" />
-                      Buscar "{query}" →
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          )}
         </div>
       </form>
+
+      {/* Portal-based dropdown to escape overflow-hidden */}
+      {isOpen && createPortal(
+        <div
+          id="catalog-search-dropdown"
+          style={dropdownStyle}
+          className="rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-border max-h-80 overflow-y-auto animate-fade-in bg-background"
+        >
+          <div className="p-2 sm:p-3">
+            {/* Show popular services on focus with no query */}
+            {(!query.trim() || query.length < 2) && popularSuggestions.length > 0 && (
+              <>
+                <p className="px-3 pt-1 pb-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Servicios populares
+                </p>
+                <div className="space-y-0.5">
+                  {popularSuggestions.map((s) => (
+                    <button
+                      key={`pop-${s.category.id}-${s.subcategory.id}`}
+                      onClick={() => handleSuggestionClick(s)}
+                      className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-accent text-foreground transition-colors text-sm sm:text-base flex items-center gap-3"
+                    >
+                      <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                      <div className="min-w-0">
+                        <span className="text-foreground">{s.subcategory.name}</span>
+                        <span className="text-muted-foreground ml-2 text-xs">({s.category.name})</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {/* Show search results when typing */}
+            {query.trim().length >= 2 && (
+              <>
+                {suggestions.length > 0 ? (
+                  <div className="space-y-0.5">
+                    {suggestions.map((s) => (
+                      <button
+                        key={`${s.category.id}-${s.subcategory.id}`}
+                        onClick={() => handleSuggestionClick(s)}
+                        className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-accent text-foreground transition-colors text-sm sm:text-base flex items-center gap-3"
+                      >
+                        <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                        <div className="min-w-0">
+                          <span className="text-foreground">{s.subcategory.name}</span>
+                          <span className="text-muted-foreground ml-2 text-xs">({s.category.name})</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="px-3 py-2 text-sm text-muted-foreground">
+                    No se encontraron servicios
+                  </div>
+                )}
+                <button
+                  onClick={() => handleSubmit()}
+                  className="w-full mt-1 px-3 py-2.5 rounded-xl text-primary hover:bg-accent transition-colors text-sm font-medium flex items-center gap-3"
+                >
+                  <Search className="w-4 h-4 flex-shrink-0" />
+                  Buscar "{query}" →
+                </button>
+              </>
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
