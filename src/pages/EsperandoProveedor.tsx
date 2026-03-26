@@ -118,7 +118,7 @@ const EsperandoProveedor = () => {
     }
 
     setJob(data);
-    if (data.has_open_dispute) setRefundRequested(true);
+    // refund status is now managed by useRefundRequest hook
     setVerifying(false);
   }, [jobId, navigate]);
 
