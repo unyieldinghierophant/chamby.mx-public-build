@@ -20,7 +20,6 @@ import { GenericPageSkeleton } from "@/components/skeletons";
 import { RescheduleDialog } from "@/components/RescheduleDialog";
 import { useRefundRequest } from "@/hooks/useRefundRequest";
 import { RefundRequestModal } from "@/components/RefundRequestModal";
-import { Badge } from "@/components/ui/badge";
 
 const ASSIGNMENT_WINDOW_HOURS = 4;
 
