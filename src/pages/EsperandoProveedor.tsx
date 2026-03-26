@@ -572,6 +572,13 @@ const EsperandoProveedor = () => {
           onRescheduleComplete={fetchJob}
         />
       )}
+
+      <RefundRequestModal
+        open={refundModalOpen}
+        onOpenChange={setRefundModalOpen}
+        onConfirm={submitRefundRequest}
+        submitting={requestingRefund}
+      />
     </div>
   );
 };
