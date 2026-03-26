@@ -6,7 +6,6 @@ import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useServiceCatalog, ServiceCategory, ServiceSubcategory } from '@/hooks/useServiceCatalog';
 import { startBooking } from '@/lib/booking';
-import { createPortal } from 'react-dom';
 
 interface SuggestionItem {
   subcategory: ServiceSubcategory;
