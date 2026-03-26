@@ -131,9 +131,6 @@ export const HeroSearchBar: React.FC = () => {
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
-        // Also check if click is inside the portal dropdown
-        const dropdown = document.getElementById('hero-search-dropdown');
-        if (dropdown && dropdown.contains(e.target as Node)) return;
         setIsOpen(false);
       }
     };
