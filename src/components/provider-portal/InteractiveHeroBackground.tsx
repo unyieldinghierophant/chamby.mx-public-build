@@ -167,10 +167,10 @@ const InteractiveHeroBackground = ({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Generate random position within safe bounds
+  // Generate random position within safe bounds (avoid top collision)
   const getRandomPosition = useCallback(() => ({
     x: 15 + Math.random() * 70, // 15-85% horizontal
-    y: 25 + Math.random() * 50, // 25-75% vertical
+    y: 35 + Math.random() * 45, // 35-80% vertical — avoids header/top area
   }), []);
 
   // Add a new dot with smoother animation
