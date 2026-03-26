@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Search, ArrowRight, Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -6,7 +6,6 @@ import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { startBooking } from '@/lib/booking';
 import { useServiceCatalog, ServiceCategory, ServiceSubcategory } from '@/hooks/useServiceCatalog';
-import { createPortal } from 'react-dom';
 
 // 5 default suggestions shown on focus (before typing)
 const DEFAULT_SUGGESTION_SLUGS = [
@@ -49,7 +48,6 @@ export const HeroSearchBar: React.FC = () => {
   const [showPopular, setShowPopular] = useState(true);
   const [dynamicPlaceholder, setDynamicPlaceholder] = useState('');
   const [isFocused, setIsFocused] = useState(false);
-  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
 
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -60,30 +58,6 @@ export const HeroSearchBar: React.FC = () => {
     .map((slug) => categories.find((c) => c.slug === slug))
     .filter(Boolean) as ServiceCategory[];
 
-  // Position the dropdown using a portal to escape overflow:hidden
-  const updateDropdownPosition = useCallback(() => {
-    if (!searchRef.current) return;
-    const rect = searchRef.current.getBoundingClientRect();
-    setDropdownStyle({
-      position: 'fixed',
-      top: rect.bottom + 8,
-      left: rect.left,
-      width: rect.width,
-      zIndex: 9999,
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    updateDropdownPosition();
-    const onScroll = () => updateDropdownPosition();
-    window.addEventListener('scroll', onScroll, true);
-    window.addEventListener('resize', onScroll);
-    return () => {
-      window.removeEventListener('scroll', onScroll, true);
-      window.removeEventListener('resize', onScroll);
-    };
-  }, [isOpen, updateDropdownPosition]);
 
   // Typing animation
   useEffect(() => {
@@ -157,9 +131,6 @@ export const HeroSearchBar: React.FC = () => {
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
-        // Also check if click is inside the portal dropdown
-        const dropdown = document.getElementById('hero-search-dropdown');
-        if (dropdown && dropdown.contains(e.target as Node)) return;
         setIsOpen(false);
       }
     };
@@ -205,11 +176,9 @@ export const HeroSearchBar: React.FC = () => {
     else if (e.key === 'Escape') setIsOpen(false);
   };
 
-  const dropdown = isOpen && createPortal(
+  const dropdown = isOpen && (
     <div
-      id="hero-search-dropdown"
-      style={dropdownStyle}
-      className="bg-background rounded-xl shadow-lg border border-border max-h-80 overflow-y-auto animate-fade-in"
+      className="absolute top-full left-0 right-0 mt-2 bg-background rounded-xl shadow-lg border border-border max-h-60 overflow-y-auto animate-fade-in z-50"
     >
       {showPopular && defaultSuggestions.length > 0 && (
         <div className="p-3">
@@ -260,8 +229,7 @@ export const HeroSearchBar: React.FC = () => {
           )}
         </div>
       )}
-    </div>,
-    document.body
+    </div>
   );
 
   return (
