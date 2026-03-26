@@ -38,7 +38,6 @@ export function CatalogSearchBar({ className }: { className?: string }) {
   const [suggestions, setSuggestions] = useState<SuggestionItem[]>([]);
   const [dynamicPlaceholder, setDynamicPlaceholder] = useState('');
   const [isFocused, setIsFocused] = useState(false);
-  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
 
   const searchRef = useRef<HTMLDivElement>(null);
   const typingExamples = isMobile ? TYPING_EXAMPLES_MOBILE : TYPING_EXAMPLES_DESKTOP;
