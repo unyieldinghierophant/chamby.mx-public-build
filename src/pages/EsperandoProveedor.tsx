@@ -74,8 +74,8 @@ const EsperandoProveedor = () => {
   const [emailNotify, setEmailNotify] = useState(false);
   const [showFullDetails, setShowFullDetails] = useState(false);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
-  const [refundRequested, setRefundRequested] = useState(false);
-  const [requestingRefund, setRequestingRefund] = useState(false);
+  const [refundModalOpen, setRefundModalOpen] = useState(false);
+  const { hasRequested: refundRequested, submitting: requestingRefund, submitRefundRequest, isPending: refundPending } = useRefundRequest(jobId);
 
   // Prevent scroll-jump: anchor scroll position
   const scrollRef = useRef<HTMLDivElement>(null);
