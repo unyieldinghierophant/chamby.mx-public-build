@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useJobRealtime } from './useJobRealtime';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { getCurrentProfile } from '@/lib/profile';
