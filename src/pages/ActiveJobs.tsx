@@ -25,7 +25,7 @@ import { startBooking } from "@/lib/booking";
 import { RescheduleDialog } from "@/components/RescheduleDialog";
 import { RatingDialog, isDismissed } from "@/components/provider-portal/RatingDialog";
 import { useJobRating } from "@/hooks/useJobRating";
-
+import { useJobRealtime } from "@/hooks/useJobRealtime";
 interface ActiveJob {
   id: string;
   title: string;
@@ -200,6 +200,14 @@ const ActiveJobs = () => {
       setLoading(false);
     }
   };
+
+  // Realtime: re-fetch when any of this client's jobs change
+  useJobRealtime(
+    `client-active-jobs-${user?.id}`,
+    fetchActiveJobs,
+    user ? { column: 'client_id', value: user.id } : undefined,
+    !!user,
+  );
 
   const handleCancelJob = async (jobId: string) => {
     if (!confirm("¿Estás seguro de que quieres cancelar este trabajo?")) return;

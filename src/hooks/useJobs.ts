@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useJobRealtime } from './useJobRealtime';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -74,6 +75,9 @@ export const useJobs = (filters?: JobFilters) => {
   useEffect(() => {
     fetchJobs();
   }, [filters?.search, filters?.category, filters?.sortBy]);
+
+  // Realtime: refresh when any job changes
+  useJobRealtime('jobs-list', fetchJobs);
 
   return {
     jobs,

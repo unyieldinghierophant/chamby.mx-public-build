@@ -8,7 +8,8 @@ import { JobCardActive } from "@/components/provider-portal/JobCardActive";
 import { InvoiceCreationDialog } from "@/components/provider-portal/InvoiceCreationDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { useJobRealtime } from "@/hooks/useJobRealtime";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toFixedSafe } from "@/utils/formatSafe";
@@ -47,12 +48,24 @@ const ProviderJobs = () => {
   const [loadingFuture, setLoadingFuture] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
+  const refetchAll = useCallback(() => {
+    fetchFutureJobs();
+    fetchHistoricalJobs();
+  }, [user]);
+
   useEffect(() => {
     if (user) {
-      fetchFutureJobs();
-      fetchHistoricalJobs();
+      refetchAll();
     }
   }, [user]);
+
+  // Realtime: refresh future/historical tabs when provider's jobs change
+  useJobRealtime(
+    `provider-jobs-tabs-${user?.id}`,
+    refetchAll,
+    user ? { column: 'provider_id', value: user.id } : undefined,
+    !!user,
+  );
 
   const fetchFutureJobs = async () => {
     if (!user) return;

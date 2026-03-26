@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useJobRealtime } from './useJobRealtime';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { getCurrentProfile } from '@/lib/profile';
@@ -122,6 +123,14 @@ export const useProviderJobs = () => {
   useEffect(() => {
     fetchProviderJobs();
   }, [user]);
+
+  // Realtime: refresh when provider's jobs change
+  useJobRealtime(
+    `provider-jobs-${user?.id}`,
+    fetchProviderJobs,
+    user ? { column: 'provider_id', value: user.id } : undefined,
+    !!user,
+  );
 
   return {
     jobs,
