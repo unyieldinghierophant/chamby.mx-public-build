@@ -201,7 +201,15 @@ const ActiveJobs = () => {
     }
   };
 
-  const handleCancelJob = async (jobId: string) => {
+  // Realtime: re-fetch when any of this client's jobs change
+  useJobRealtime(
+    `client-active-jobs-${user?.id}`,
+    fetchActiveJobs,
+    user ? { column: 'client_id', value: user.id } : undefined,
+    !!user,
+  );
+
+
     if (!confirm("¿Estás seguro de que quieres cancelar este trabajo?")) return;
 
     try {
