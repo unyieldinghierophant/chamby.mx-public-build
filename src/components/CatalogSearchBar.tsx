@@ -166,7 +166,7 @@ export function CatalogSearchBar({ className }: { className?: string }) {
   };
 
   return (
-    <div ref={searchRef} className={className || 'w-full'}>
+    <div ref={searchRef} className={`relative ${className || 'w-full'}`}>
       <form onSubmit={handleSubmit}>
         <div className="relative">
           {/* Pill search bar */}
