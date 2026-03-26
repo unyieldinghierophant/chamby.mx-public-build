@@ -200,7 +200,12 @@ export function CatalogSearchBar({ className }: { className?: string }) {
           {/* Pill search bar */}
           <div className="relative flex items-center h-14 sm:h-16 bg-white dark:bg-card rounded-full shadow-[0_4px_24px_-4px_hsl(214_80%_41%/0.18)] ring-1 ring-black/[0.04] dark:ring-white/10 transition-shadow focus-within:shadow-[0_6px_32px_-4px_hsl(214_80%_41%/0.28)] focus-within:ring-primary/30">
             <Input
-              type="text"
+              type="search"
+              name="catalog-search-query"
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck={false}
               placeholder={dynamicPlaceholder || '¿Qué necesitas?'}
               value={query}
               onChange={(e) => {
@@ -215,7 +220,7 @@ export function CatalogSearchBar({ className }: { className?: string }) {
               onKeyDown={(e) => {
                 if (e.key === 'Escape') setIsOpen(false);
               }}
-              className="h-full w-full pl-5 sm:pl-6 pr-16 sm:pr-20 text-base sm:text-lg border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 rounded-full placeholder:text-muted-foreground/60"
+              className="h-full w-full pl-5 sm:pl-6 pr-16 sm:pr-20 text-base sm:text-lg border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 rounded-full placeholder:text-muted-foreground/60 [&::-webkit-search-decoration]:hidden [&::-webkit-search-cancel-button]:hidden"
               style={{ fontSize: '16px', lineHeight: 'normal', WebkitAppearance: 'none', transform: 'none' }}
             />
             <Button
