@@ -269,8 +269,7 @@ export function CatalogSearchBar({ className }: { className?: string }) {
               </>
             )}
           </div>
-        </div>,
-        document.body
+        </div>
       )}
     </div>
   );

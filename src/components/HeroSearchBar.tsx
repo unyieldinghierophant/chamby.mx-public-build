@@ -229,8 +229,7 @@ export const HeroSearchBar: React.FC = () => {
           )}
         </div>
       )}
-    </div>,
-    document.body
+    </div>
   );
 
   return (
