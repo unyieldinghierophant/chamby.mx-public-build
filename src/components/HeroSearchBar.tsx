@@ -176,11 +176,9 @@ export const HeroSearchBar: React.FC = () => {
     else if (e.key === 'Escape') setIsOpen(false);
   };
 
-  const dropdown = isOpen && createPortal(
+  const dropdown = isOpen && (
     <div
-      id="hero-search-dropdown"
-      style={dropdownStyle}
-      className="bg-background rounded-xl shadow-lg border border-border max-h-80 overflow-y-auto animate-fade-in"
+      className="absolute top-full left-0 right-0 mt-2 bg-background rounded-xl shadow-lg border border-border max-h-60 overflow-y-auto animate-fade-in z-50"
     >
       {showPopular && defaultSuggestions.length > 0 && (
         <div className="p-3">
