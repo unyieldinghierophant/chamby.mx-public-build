@@ -124,6 +124,14 @@ export const useProviderJobs = () => {
     fetchProviderJobs();
   }, [user]);
 
+  // Realtime: refresh when provider's jobs change
+  useJobRealtime(
+    `provider-jobs-${user?.id}`,
+    fetchProviderJobs,
+    user ? { column: 'provider_id', value: user.id } : undefined,
+    !!user,
+  );
+
   return {
     jobs,
     loading,

@@ -76,6 +76,9 @@ export const useJobs = (filters?: JobFilters) => {
     fetchJobs();
   }, [filters?.search, filters?.category, filters?.sortBy]);
 
+  // Realtime: refresh when any job changes
+  useJobRealtime('jobs-list', fetchJobs);
+
   return {
     jobs,
     loading,

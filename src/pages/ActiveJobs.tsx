@@ -116,6 +116,14 @@ const ActiveJobs = () => {
     }
   }, [user]);
 
+  // Realtime: re-fetch when any of this client's jobs change
+  useJobRealtime(
+    `client-active-jobs-${user?.id}`,
+    fetchActiveJobs,
+    user ? { column: 'client_id', value: user.id } : undefined,
+    !!user,
+  );
+
   const fetchActiveJobs = async () => {
     if (!user) {
       setLoading(false);

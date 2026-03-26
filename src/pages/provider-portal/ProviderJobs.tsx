@@ -48,12 +48,24 @@ const ProviderJobs = () => {
   const [loadingFuture, setLoadingFuture] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
+  const refetchAll = useCallback(() => {
+    fetchFutureJobs();
+    fetchHistoricalJobs();
+  }, [user]);
+
   useEffect(() => {
     if (user) {
-      fetchFutureJobs();
-      fetchHistoricalJobs();
+      refetchAll();
     }
   }, [user]);
+
+  // Realtime: refresh future/historical tabs when provider's jobs change
+  useJobRealtime(
+    `provider-jobs-tabs-${user?.id}`,
+    refetchAll,
+    user ? { column: 'provider_id', value: user.id } : undefined,
+    !!user,
+  );
 
   const fetchFutureJobs = async () => {
     if (!user) return;
