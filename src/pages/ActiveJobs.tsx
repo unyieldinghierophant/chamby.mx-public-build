@@ -25,7 +25,7 @@ import { startBooking } from "@/lib/booking";
 import { RescheduleDialog } from "@/components/RescheduleDialog";
 import { RatingDialog, isDismissed } from "@/components/provider-portal/RatingDialog";
 import { useJobRating } from "@/hooks/useJobRating";
-
+import { useJobRealtime } from "@/hooks/useJobRealtime";
 interface ActiveJob {
   id: string;
   title: string;
