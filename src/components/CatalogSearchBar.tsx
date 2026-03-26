@@ -206,12 +206,9 @@ export function CatalogSearchBar({ className }: { className?: string }) {
         </div>
       </form>
 
-      {/* Portal-based dropdown to escape overflow-hidden */}
-      {isOpen && createPortal(
+      {isOpen && (
         <div
-          id="catalog-search-dropdown"
-          style={dropdownStyle}
-          className="rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-border max-h-80 overflow-y-auto animate-fade-in bg-background"
+          className="absolute top-full left-0 right-0 mt-2 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-border max-h-60 overflow-y-auto animate-fade-in bg-background z-50"
         >
           <div className="p-2 sm:p-3">
             {/* Show popular services on focus with no query */}
