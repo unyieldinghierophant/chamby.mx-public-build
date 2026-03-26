@@ -155,7 +155,11 @@ export function CatalogSearchBar({ className }: { className?: string }) {
   // Close on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(e.target as Node)) setIsOpen(false);
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        const dropdown = document.getElementById('catalog-search-dropdown');
+        if (dropdown && dropdown.contains(e.target as Node)) return;
+        setIsOpen(false);
+      }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
