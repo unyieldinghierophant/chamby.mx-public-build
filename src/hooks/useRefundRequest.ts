@@ -60,7 +60,7 @@ export function useRefundRequest(jobId: string | null) {
         .single();
 
       if (error) throw error;
-      setExistingRequest(data as RefundRequest);
+      setExistingRequest(data as unknown as RefundRequest);
       toast.success('Tu solicitud de reembolso fue enviada. Un administrador la revisará pronto.');
       return true;
     } catch (err: any) {
