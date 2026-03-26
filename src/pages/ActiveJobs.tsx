@@ -209,7 +209,7 @@ const ActiveJobs = () => {
     !!user,
   );
 
-
+  const handleCancelJob = async (jobId: string) => {
     if (!confirm("¿Estás seguro de que quieres cancelar este trabajo?")) return;
 
     try {
