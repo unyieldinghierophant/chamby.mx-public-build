@@ -1,47 +1,33 @@
 
 
-## Redesign Email Capture Modal — Ultra-minimal $100 MXN credit popup
+## Fix: Search dropdown displacement on mobile keyboard open
 
-### What changes
+### Problem
+Both `HeroSearchBar` and `CatalogSearchBar` use `createPortal` + `position: fixed` to render the dropdown. When the mobile keyboard opens, the visual viewport shrinks/shifts but `getBoundingClientRect` returns layout viewport coordinates, causing the dropdown to float in the wrong position or get displaced.
 
-Strip the modal down to a clean, Stripe/Uber-style centered card. Remove the image carousel, wave divider, logo, and verbose copy. Replace with a focused value-prop layout.
+### Solution
+Remove the portal approach entirely. Render the dropdown inline as an absolutely-positioned child of the search bar's own container. This guarantees it always sits directly below the input regardless of viewport changes from keyboard.
 
-### File: `src/components/EmailCaptureModalV2.tsx`
+### Changes
 
-**Remove entirely:**
-- Image carousel (CAROUSEL_IMAGES, currentImage state, intervalRef, carousel useEffect, WaveDivider component, AnimatePresence block)
-- Chamby logo import and rendering
-- Wave divider SVG component
+**File: `src/components/HeroSearchBar.tsx`**
+- Remove `createPortal` import
+- Remove `dropdownStyle` state, `updateDropdownPosition` callback, and the scroll/resize useEffect
+- Remove `id="hero-search-dropdown"` portal check in click-outside handler
+- Move dropdown JSX inline inside the `searchRef` div, as a sibling after the input wrapper
+- Style: `absolute top-full left-0 right-0 mt-2 max-h-60 overflow-y-auto z-50 bg-background rounded-xl shadow-lg border`
+- The parent `searchRef` div already has `relative`, so this works
 
-**Capture step — new layout:**
-```
-[Wallet icon — Lucide "Wallet" in primary color, inside a primary/10 circle]
+**File: `src/components/CatalogSearchBar.tsx`**
+- Same changes: remove `createPortal`, `dropdownStyle`, portal positioning logic
+- Render dropdown inline with `absolute top-full left-0 right-0 mt-2 max-h-60 overflow-y-auto z-50`
+- Ensure the parent container has `overflow-visible` (no `overflow-hidden` ancestor clipping — the previous portal was added to escape this, but we need to check the parent)
 
-$100 MXN de crédito          ← DialogTitle, text-2xl font-extrabold
-Para tu próximo servicio      ← text-sm text-muted-foreground
-en Chamby
+**Overflow concern:** The original portal was added to escape `overflow-hidden` on parent containers. We need to ensure the search bar's ancestors don't clip. The Hero section wrapper that previously had `overflow-hidden` had the grid overlay removed already. If any parent still clips, we add `overflow-visible` to the immediate search wrapper only.
 
-Se aplica automáticamente     ← text-xs text-muted-foreground
-después de tu primer servicio
-
-[Email input — placeholder "Tu correo"]
-[CTA button — "Activar crédito", disabled until valid email]
-
-Sin spam. Crédito válido      ← text-xs text-muted-foreground
-por 14 días.
-```
-
-**Success step — new layout:**
-```
-[CheckCircle icon in primary/10 circle]
-
-Crédito activado              ← text-xl font-bold
-$100 MXN listo para usar      ← text-2xl font-bold text-primary
-```
-- Auto-close after 1.5s via `setTimeout(() => setOpen(false), 1500)` when step becomes "success"
-- Remove the "¡Entendido!" button
-
-**Edge function call:** Change `urgency: false` body — keep as-is, the server determines amount. The UI just displays $100 MXN as the marketing value.
-
-**Styling:** Keep the existing Dialog/Drawer wrapper, rounded-3xl, `[&>button]:hidden`. Padding: `px-8 py-10` centered. Max-width stays `sm:max-w-[440px]`.
+### Result
+- Dropdown locked under search bar via CSS `position: absolute` relative to parent
+- No JS listeners needed for repositioning
+- Works on iOS Safari + Android Chrome regardless of keyboard state
+- Internal scroll via `max-h-60 overflow-y-auto`
 
