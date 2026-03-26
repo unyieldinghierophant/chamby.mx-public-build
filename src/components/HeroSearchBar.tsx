@@ -48,7 +48,6 @@ export const HeroSearchBar: React.FC = () => {
   const [showPopular, setShowPopular] = useState(true);
   const [dynamicPlaceholder, setDynamicPlaceholder] = useState('');
   const [isFocused, setIsFocused] = useState(false);
-  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
 
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
