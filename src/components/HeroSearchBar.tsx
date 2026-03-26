@@ -6,7 +6,6 @@ import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { startBooking } from '@/lib/booking';
 import { useServiceCatalog, ServiceCategory, ServiceSubcategory } from '@/hooks/useServiceCatalog';
-import { createPortal } from 'react-dom';
 
 // 5 default suggestions shown on focus (before typing)
 const DEFAULT_SUGGESTION_SLUGS = [
