@@ -58,30 +58,6 @@ export const HeroSearchBar: React.FC = () => {
     .map((slug) => categories.find((c) => c.slug === slug))
     .filter(Boolean) as ServiceCategory[];
 
-  // Position the dropdown using a portal to escape overflow:hidden
-  const updateDropdownPosition = useCallback(() => {
-    if (!searchRef.current) return;
-    const rect = searchRef.current.getBoundingClientRect();
-    setDropdownStyle({
-      position: 'fixed',
-      top: rect.bottom + 8,
-      left: rect.left,
-      width: rect.width,
-      zIndex: 9999,
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    updateDropdownPosition();
-    const onScroll = () => updateDropdownPosition();
-    window.addEventListener('scroll', onScroll, true);
-    window.addEventListener('resize', onScroll);
-    return () => {
-      window.removeEventListener('scroll', onScroll, true);
-      window.removeEventListener('resize', onScroll);
-    };
-  }, [isOpen, updateDropdownPosition]);
 
   // Typing animation
   useEffect(() => {
