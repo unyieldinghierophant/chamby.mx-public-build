@@ -39,9 +39,35 @@ export function CatalogSearchBar({ className }: { className?: string }) {
   const [suggestions, setSuggestions] = useState<SuggestionItem[]>([]);
   const [dynamicPlaceholder, setDynamicPlaceholder] = useState('');
   const [isFocused, setIsFocused] = useState(false);
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
 
   const searchRef = useRef<HTMLDivElement>(null);
   const typingExamples = isMobile ? TYPING_EXAMPLES_MOBILE : TYPING_EXAMPLES_DESKTOP;
+
+  // Position dropdown via portal
+  const updateDropdownPosition = useCallback(() => {
+    if (!searchRef.current) return;
+    const rect = searchRef.current.getBoundingClientRect();
+    setDropdownStyle({
+      position: 'fixed',
+      top: rect.bottom + 8,
+      left: rect.left,
+      width: rect.width,
+      zIndex: 9999,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    updateDropdownPosition();
+    const onScroll = () => updateDropdownPosition();
+    window.addEventListener('scroll', onScroll, true);
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll, true);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, [isOpen, updateDropdownPosition]);
 
   // Typing animation
   useEffect(() => {

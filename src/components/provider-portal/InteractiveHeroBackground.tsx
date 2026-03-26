@@ -291,7 +291,7 @@ const InteractiveHeroBackground = ({
         id: i,
         x: pos.x,
         y: pos.y,
-        opacity: 0.4 + Math.random() * 0.3, // Start more subtle
+        opacity: 0.4 + Math.random() * 0.3,
         scale: 0.8 + Math.random() * 0.4,
       };
     });
