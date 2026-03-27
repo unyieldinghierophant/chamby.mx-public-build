@@ -28,7 +28,6 @@ export const AISearchBar = ({ className }: { className?: string }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<{ text: string; category: string }[]>([]);
   const [showDefaults, setShowDefaults] = useState(false);
-  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
   const navigate = useNavigate();
   const searchRef = useRef<HTMLDivElement>(null);
   const { categories } = useServiceCatalog();
@@ -36,31 +35,6 @@ export const AISearchBar = ({ className }: { className?: string }) => {
   const defaultCategories = DEFAULT_CATEGORY_SLUGS
     .map((slug) => categories.find((c) => c.slug === slug))
     .filter(Boolean);
-
-  // Position dropdown via portal
-  const updateDropdownPosition = useCallback(() => {
-    if (!searchRef.current) return;
-    const rect = searchRef.current.getBoundingClientRect();
-    setDropdownStyle({
-      position: 'fixed',
-      top: rect.bottom + 8,
-      left: rect.left,
-      width: rect.width,
-      zIndex: 9999,
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!isOpen && !showDefaults) return;
-    updateDropdownPosition();
-    const onScroll = () => updateDropdownPosition();
-    window.addEventListener('scroll', onScroll, true);
-    window.addEventListener('resize', onScroll);
-    return () => {
-      window.removeEventListener('scroll', onScroll, true);
-      window.removeEventListener('resize', onScroll);
-    };
-  }, [isOpen, showDefaults, updateDropdownPosition]);
 
   // Typing animation for placeholder
   useEffect(() => {
