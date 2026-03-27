@@ -1,13 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Loader2, Sparkles } from "lucide-react";
+import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { getSearchSuggestions } from "@/utils/searchSuggestions";
-import { startBooking } from "@/lib/booking";
-import { useServiceCatalog } from "@/hooks/useServiceCatalog";
+import { useServiceCatalog, ServiceCategory, ServiceSubcategory } from "@/hooks/useServiceCatalog";
 
 const TYPING_EXAMPLES = [
   "Lavar mi carro",
@@ -20,32 +16,35 @@ const TYPING_EXAMPLES = [
 
 const DEFAULT_CATEGORY_SLUGS = ['plomeria', 'electricidad', 'pintura', 'jardineria', 'general'];
 
+interface GroupedResult {
+  category: ServiceCategory;
+  subcategories: ServiceSubcategory[];
+}
+
+function normalize(str: string): string {
+  return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+}
+
 export const AISearchBar = ({ className }: { className?: string }) => {
   const [query, setQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [dynamicPlaceholder, setDynamicPlaceholder] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const [suggestions, setSuggestions] = useState<{ text: string; category: string }[]>([]);
   const [showDefaults, setShowDefaults] = useState(false);
   const navigate = useNavigate();
   const searchRef = useRef<HTMLDivElement>(null);
-  const { categories } = useServiceCatalog();
+  const { categories, subcategories } = useServiceCatalog();
 
   const defaultCategories = DEFAULT_CATEGORY_SLUGS
     .map((slug) => categories.find((c) => c.slug === slug))
     .filter(Boolean);
 
-  // Typing animation for placeholder
+  // Typing animation
   useEffect(() => {
     if (isFocused || query) return;
-
     let currentIndex = 0;
     let charIndex = 0;
     let isDeleting = false;
-    const typeSpeed = 90;
-    const deleteSpeed = 45;
-    const pauseDuration = 2000;
 
     const type = () => {
       const current = TYPING_EXAMPLES[currentIndex];
@@ -53,10 +52,10 @@ export const AISearchBar = ({ className }: { className?: string }) => {
         charIndex++;
         setDynamicPlaceholder(current.substring(0, charIndex));
         if (charIndex === current.length) {
-          setTimeout(() => { isDeleting = true; setTimeout(type, deleteSpeed); }, pauseDuration);
+          setTimeout(() => { isDeleting = true; setTimeout(type, 45); }, 2000);
           return;
         }
-        setTimeout(type, typeSpeed);
+        setTimeout(type, 90);
       } else {
         charIndex--;
         setDynamicPlaceholder(current.substring(0, charIndex));
@@ -66,7 +65,7 @@ export const AISearchBar = ({ className }: { className?: string }) => {
           setTimeout(type, 400);
           return;
         }
-        setTimeout(type, deleteSpeed);
+        setTimeout(type, 45);
       }
     };
 
@@ -74,108 +73,104 @@ export const AISearchBar = ({ className }: { className?: string }) => {
     return () => clearTimeout(timeout);
   }, [isFocused, query]);
 
-  // Smart suggestion matching
-  useEffect(() => {
-    if (!query.trim() || query.length < 2) {
-      setSuggestions([]);
-      if (isFocused && !query.trim()) {
-        setShowDefaults(true);
-        setIsOpen(false);
+  // Local catalog search
+  const grouped = useMemo<GroupedResult[]>(() => {
+    if (!query.trim() || query.length < 2) return [];
+    const q = normalize(query);
+
+    const matchingSubs = subcategories.filter((sub) => {
+      const n = normalize(sub.name);
+      const d = sub.description ? normalize(sub.description) : "";
+      const s = normalize(sub.slug);
+      return n.includes(q) || d.includes(q) || s.includes(q);
+    });
+
+    // Also match by category name and pull its subs
+    if (matchingSubs.length === 0) {
+      const matchingCats = categories.filter((cat) => {
+        const n = normalize(cat.name);
+        const d = cat.description ? normalize(cat.description) : "";
+        return n.includes(q) || d.includes(q);
+      });
+      for (const cat of matchingCats) {
+        const subs = subcategories.filter((s) => s.category_id === cat.id).slice(0, 4);
+        if (subs.length > 0) matchingSubs.push(...subs);
       }
-      return;
     }
 
+    // Group by category
+    const map = new Map<string, { category: ServiceCategory; subcategories: ServiceSubcategory[] }>();
+    for (const sub of matchingSubs) {
+      const cat = categories.find((c) => c.id === sub.category_id);
+      if (!cat) continue;
+      if (!map.has(cat.id)) map.set(cat.id, { category: cat, subcategories: [] });
+      const group = map.get(cat.id)!;
+      if (group.subcategories.length < 4) group.subcategories.push(sub);
+    }
+
+    return Array.from(map.values());
+  }, [query, categories, subcategories]);
+
+  const hasResults = grouped.length > 0;
+
+  // Update dropdown state when query changes
+  useEffect(() => {
+    if (!query.trim() || query.length < 2) {
+      setIsOpen(false);
+      if (isFocused) setShowDefaults(true);
+      return;
+    }
     setShowDefaults(false);
-    const matches = getSearchSuggestions(query, 8);
-    setSuggestions(matches);
-    setIsOpen(matches.length > 0);
+    setIsOpen(true);
   }, [query, isFocused]);
 
-  // Close dropdown on outside click
+  // Close on outside click
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        const dropdown = document.getElementById('ai-search-dropdown');
-        if (dropdown && dropdown.contains(event.target as Node)) return;
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
         setIsOpen(false);
         setShowDefaults(false);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const handleSearch = async (e?: React.FormEvent, directQuery?: string) => {
-    if (e) e.preventDefault();
+  const handleSubcategoryClick = (cat: ServiceCategory, sub: ServiceSubcategory) => {
+    setQuery(sub.name);
+    setIsOpen(false);
+    navigate(`/book-job?category=${cat.slug}&service=${sub.slug}&source=search&new=${Date.now()}`);
+  };
 
-    const searchQuery = directQuery || query;
-    if (!searchQuery.trim()) {
-      toast.error("Por favor escribe tu búsqueda");
+  const handleFallback = () => {
+    setIsOpen(false);
+    navigate(`/book-job?category=general&service=otro&intent=${encodeURIComponent(query.trim())}&source=search&new=${Date.now()}`);
+  };
+
+  const handleSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!query.trim()) return;
+
+    // If there are results, navigate to the first one
+    if (grouped.length > 0) {
+      const first = grouped[0];
+      const sub = first.subcategories[0];
+      handleSubcategoryClick(first.category, sub);
       return;
     }
 
-    setIsOpen(false);
-    setIsLoading(true);
-
-    try {
-      const { data, error } = await supabase.functions.invoke("ai-search-service", {
-        body: { query: searchQuery.trim() },
-      });
-
-      if (error) throw error;
-
-      console.log("AI Search Response:", data);
-
-      if (data.confidence < 50) {
-        toast.info("Búsqueda imprecisa - revisa los detalles", {
-          description: `Detectamos: ${data.keywords_detected?.join(", ") || "consulta general"}`,
-        });
-      } else if (data.confidence < 70) {
-        toast.success("Búsqueda encontrada", {
-          description: `${data.service} en ${data.category}`,
-        });
-      } else {
-        toast.success("¡Servicio encontrado!", {
-          description: `${data.service} - ${data.category}`,
-        });
-      }
-
-      startBooking(navigate, {
-        intentText: data.description || data.service,
-        serviceCategory: data.category,
-        entrySource: 'ai_search',
-      });
-    } catch (error) {
-      console.error("Error searching:", error);
-      const errorMessage = error instanceof Error ? error.message : "Error desconocido";
-
-      if (errorMessage.includes("clasificar")) {
-        toast.error("No pudimos entender tu búsqueda", {
-          description: "Intenta ser más específico o usa las categorías",
-        });
-      } else {
-        toast.error("Error al buscar el servicio", {
-          description: "Por favor intenta de nuevo",
-        });
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSuggestionClick = (text: string) => {
-    setQuery(text);
-    handleSearch(undefined, text);
+    // No results — fallback
+    handleFallback();
   };
 
   return (
     <div ref={searchRef} className={`relative ${className || "w-full max-w-none mx-auto"}`}>
-      <form onSubmit={handleSearch}>
+      <form onSubmit={handleSubmit}>
         <div className="relative">
-          {/* Pill-shaped search bar */}
           <div className="relative flex items-center h-14 sm:h-16 bg-white dark:bg-card rounded-full shadow-[0_4px_24px_-4px_hsl(214_80%_41%/0.18)] ring-1 ring-black/[0.04] dark:ring-white/10 transition-shadow focus-within:shadow-[0_6px_32px_-4px_hsl(214_80%_41%/0.28)] focus-within:ring-primary/30">
             <Input
-              type="text"
+              type="search"
+              autoComplete="off"
               placeholder={dynamicPlaceholder || "¿Qué necesitas?"}
               value={query}
               onChange={(e) => {
@@ -185,39 +180,35 @@ export const AISearchBar = ({ className }: { className?: string }) => {
               onFocus={() => {
                 setIsFocused(true);
                 if (!query.trim()) setShowDefaults(true);
+                window.dispatchEvent(new CustomEvent('search-focus', { detail: true }));
               }}
-              onBlur={() => setIsFocused(false)}
-              disabled={isLoading}
+              onBlur={() => {
+                setIsFocused(false);
+                window.dispatchEvent(new CustomEvent('search-focus', { detail: false }));
+              }}
               className="h-full w-full pl-5 sm:pl-6 pr-16 sm:pr-20 text-base sm:text-lg border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 rounded-full placeholder:text-muted-foreground/60"
               style={{ fontSize: "16px", lineHeight: "normal", WebkitAppearance: "none" }}
             />
-
             <Button
               type="submit"
-              disabled={isLoading}
               className="absolute right-2 h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground p-0 shadow-md hover:shadow-lg transition-all hover:scale-105 active:scale-95"
             >
-              {isLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <Search className="w-5 h-5" />
-              )}
+              <Search className="w-5 h-5" />
             </Button>
           </div>
         </div>
       </form>
 
-      {/* Absolute-positioned dropdown — no portal, no fixed */}
-      {(showDefaults || (isOpen && !isLoading)) && (
+      {/* Dropdown */}
+      {(showDefaults || isOpen) && (
         <div
-          id="ai-search-dropdown"
           className="absolute left-0 right-0 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-border max-h-80 overflow-y-auto animate-fade-in bg-background"
           style={{ top: 'calc(100% + 8px)', zIndex: 9999, overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}
         >
+          {/* Default categories when focused with empty query */}
           {showDefaults && !isOpen && defaultCategories.length > 0 && (
             <div className="p-2 sm:p-3">
-              <h3 className="font-medium text-muted-foreground text-xs uppercase tracking-wide mb-2 px-3 flex items-center gap-1.5">
-                <Sparkles className="w-3 h-3" />
+              <h3 className="font-medium text-muted-foreground text-xs uppercase tracking-wide mb-2 px-3">
                 Servicios populares
               </h3>
               <div className="space-y-0.5">
@@ -239,29 +230,40 @@ export const AISearchBar = ({ className }: { className?: string }) => {
             </div>
           )}
 
-          {isOpen && !isLoading && (
+          {/* Search results grouped by category */}
+          {isOpen && (
             <div className="p-2 sm:p-3">
-              {suggestions.length > 0 && (
-                <div className="space-y-0.5">
-                  {suggestions.map((s, i) => (
-                    <button
-                      key={`${s.text}-${i}`}
-                      onClick={() => handleSuggestionClick(s.text)}
-                      className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-accent text-foreground transition-colors text-sm sm:text-base flex items-center gap-3"
-                    >
-                      <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                      <span className="text-foreground">{s.text}</span>
-                    </button>
+              {hasResults ? (
+                <div className="space-y-3">
+                  {grouped.map((group) => (
+                    <div key={group.category.id}>
+                      <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-3 mb-1">
+                        {group.category.name}
+                      </h4>
+                      <div className="space-y-0.5">
+                        {group.subcategories.map((sub) => (
+                          <button
+                            key={sub.id}
+                            onClick={() => handleSubcategoryClick(group.category, sub)}
+                            className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-accent text-foreground transition-colors text-sm sm:text-base flex items-center gap-3"
+                          >
+                            <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                            <span>{sub.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   ))}
                 </div>
+              ) : (
+                <button
+                  onClick={handleFallback}
+                  className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-accent text-foreground transition-colors text-sm sm:text-base flex items-center gap-3"
+                >
+                  <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                  <span>Otro servicio — continuar</span>
+                </button>
               )}
-              <button
-                onClick={() => handleSearch()}
-                className="w-full mt-1 px-3 py-2.5 rounded-xl text-primary hover:bg-accent transition-colors text-sm font-medium flex items-center gap-3"
-              >
-                <Search className="w-4 h-4 flex-shrink-0" />
-                Buscar "{query}" con IA →
-              </button>
             </div>
           )}
         </div>
