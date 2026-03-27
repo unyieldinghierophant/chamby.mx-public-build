@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import { getSearchSuggestions } from "@/utils/searchSuggestions";
 import { startBooking } from "@/lib/booking";
 import { useServiceCatalog } from "@/hooks/useServiceCatalog";
-import { createPortal } from "react-dom";
 
 const TYPING_EXAMPLES = [
   "Lavar mi carro",
@@ -29,7 +28,6 @@ export const AISearchBar = ({ className }: { className?: string }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<{ text: string; category: string }[]>([]);
   const [showDefaults, setShowDefaults] = useState(false);
-  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
   const navigate = useNavigate();
   const searchRef = useRef<HTMLDivElement>(null);
   const { categories } = useServiceCatalog();
@@ -37,31 +35,6 @@ export const AISearchBar = ({ className }: { className?: string }) => {
   const defaultCategories = DEFAULT_CATEGORY_SLUGS
     .map((slug) => categories.find((c) => c.slug === slug))
     .filter(Boolean);
-
-  // Position dropdown via portal
-  const updateDropdownPosition = useCallback(() => {
-    if (!searchRef.current) return;
-    const rect = searchRef.current.getBoundingClientRect();
-    setDropdownStyle({
-      position: 'fixed',
-      top: rect.bottom + 8,
-      left: rect.left,
-      width: rect.width,
-      zIndex: 9999,
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!isOpen && !showDefaults) return;
-    updateDropdownPosition();
-    const onScroll = () => updateDropdownPosition();
-    window.addEventListener('scroll', onScroll, true);
-    window.addEventListener('resize', onScroll);
-    return () => {
-      window.removeEventListener('scroll', onScroll, true);
-      window.removeEventListener('resize', onScroll);
-    };
-  }, [isOpen, showDefaults, updateDropdownPosition]);
 
   // Typing animation for placeholder
   useEffect(() => {
@@ -196,12 +169,11 @@ export const AISearchBar = ({ className }: { className?: string }) => {
   };
 
   return (
-    <div ref={searchRef} className={className || "w-full max-w-none mx-auto"}>
+    <div ref={searchRef} className={`relative ${className || "w-full max-w-none mx-auto"}`}>
       <form onSubmit={handleSearch}>
         <div className="relative">
           {/* Pill-shaped search bar */}
           <div className="relative flex items-center h-14 sm:h-16 bg-white dark:bg-card rounded-full shadow-[0_4px_24px_-4px_hsl(214_80%_41%/0.18)] ring-1 ring-black/[0.04] dark:ring-white/10 transition-shadow focus-within:shadow-[0_6px_32px_-4px_hsl(214_80%_41%/0.28)] focus-within:ring-primary/30">
-            {/* Input — no left icon */}
             <Input
               type="text"
               placeholder={dynamicPlaceholder || "¿Qué necesitas?"}
@@ -217,10 +189,9 @@ export const AISearchBar = ({ className }: { className?: string }) => {
               onBlur={() => setIsFocused(false)}
               disabled={isLoading}
               className="h-full w-full pl-5 sm:pl-6 pr-16 sm:pr-20 text-base sm:text-lg border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 rounded-full placeholder:text-muted-foreground/60"
-              style={{ fontSize: "16px", lineHeight: "normal", WebkitAppearance: "none", transform: "none" }}
+              style={{ fontSize: "16px", lineHeight: "normal", WebkitAppearance: "none" }}
             />
 
-            {/* Right-side search button */}
             <Button
               type="submit"
               disabled={isLoading}
@@ -233,16 +204,15 @@ export const AISearchBar = ({ className }: { className?: string }) => {
               )}
             </Button>
           </div>
-
         </div>
       </form>
 
-      {/* Portal-based dropdown to escape overflow-hidden */}
-      {(showDefaults || (isOpen && !isLoading)) && createPortal(
+      {/* Absolute-positioned dropdown — no portal, no fixed */}
+      {(showDefaults || (isOpen && !isLoading)) && (
         <div
           id="ai-search-dropdown"
-          style={dropdownStyle}
-          className="rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-border max-h-80 overflow-y-auto animate-fade-in bg-background"
+          className="absolute left-0 right-0 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-border max-h-80 overflow-y-auto animate-fade-in bg-background"
+          style={{ top: 'calc(100% + 8px)', zIndex: 9999, overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}
         >
           {showDefaults && !isOpen && defaultCategories.length > 0 && (
             <div className="p-2 sm:p-3">
@@ -294,8 +264,7 @@ export const AISearchBar = ({ className }: { className?: string }) => {
               </button>
             </div>
           )}
-        </div>,
-        document.body
+        </div>
       )}
     </div>
   );
