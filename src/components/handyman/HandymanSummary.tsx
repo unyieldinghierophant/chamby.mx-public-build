@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import { ArrowLeft, MapPin, Calendar, Clock, Camera, Plus, ChevronRight, Lock, Info } from "lucide-react";
 import { PRICING, formatMXN } from "@/utils/pricingConfig";
 
@@ -21,6 +23,8 @@ interface Props {
     accessTypes: string[];
     additionalNotes: string;
     serviceAddress?: string;
+    serviceLatitude?: number | null;
+    serviceLongitude?: number | null;
     scheduleMode?: string | null;
     scheduledDate?: Date | string | null;
     timeWindow?: string | null;
@@ -37,6 +41,57 @@ const totalCents = PRICING.VISIT_FEE.CLIENT_TOTAL_CENTS;
 export const HandymanSummary = ({ formData, onConfirm, onGoBack, isSubmitting }: Props) => {
   const [countdown, setCountdown] = useState(15);
   const hasSubmittedRef = useRef(false);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+
+  // Leaflet static preview map
+  useEffect(() => {
+    if (!mapContainerRef.current || mapInstanceRef.current) return;
+
+    const lat = formData.serviceLatitude ?? 20.6597;
+    const lng = formData.serviceLongitude ?? -103.3496;
+
+    const map = L.map(mapContainerRef.current, {
+      center: [lat, lng],
+      zoom: 15,
+      zoomControl: false,
+      dragging: false,
+      scrollWheelZoom: false,
+      doubleClickZoom: false,
+      touchZoom: false,
+      boxZoom: false,
+      keyboard: false,
+      attributionControl: false,
+    });
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+    }).addTo(map);
+
+    // Custom dark pin marker
+    const pinIcon = L.divIcon({
+      html: `<svg width="28" height="36" viewBox="0 0 28 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="14" cy="33" rx="6" ry="3" fill="rgba(0,0,0,0.15)"/>
+        <path d="M14 0C6.268 0 0 6.268 0 14c0 10.5 14 22 14 22s14-11.5 14-22C28 6.268 21.732 0 14 0z" fill="hsl(0,0%,6%)"/>
+        <circle cx="14" cy="13" r="5" fill="white"/>
+      </svg>`,
+      iconSize: [28, 36],
+      iconAnchor: [14, 36],
+      className: '',
+    });
+
+    L.marker([lat, lng], { icon: pinIcon, interactive: false }).addTo(map);
+
+    mapInstanceRef.current = map;
+
+    // Fix tile rendering after container is visible
+    setTimeout(() => map.invalidateSize(), 100);
+
+    return () => {
+      map.remove();
+      mapInstanceRef.current = null;
+    };
+  }, [formData.serviceLatitude, formData.serviceLongitude]);
 
   useEffect(() => {
     if (isSubmitting || hasSubmittedRef.current) return;
@@ -92,28 +147,7 @@ export const HandymanSummary = ({ formData, onConfirm, onGoBack, isSubmitting }:
       <div className="flex-1 overflow-y-auto">
         {/* Map block */}
         <div className="w-full h-[168px] relative overflow-hidden flex-shrink-0">
-          <svg className="w-full h-full" viewBox="0 0 375 168" xmlns="http://www.w3.org/2000/svg">
-            <rect width="375" height="168" fill="#E8EAD8"/>
-            <rect x="0" y="0" width="375" height="168" fill="#DFE1CE"/>
-            <line x1="0" y1="84" x2="375" y2="84" stroke="white" strokeWidth="10"/>
-            <line x1="0" y1="44" x2="375" y2="44" stroke="white" strokeWidth="6" opacity="0.7"/>
-            <line x1="0" y1="128" x2="375" y2="128" stroke="white" strokeWidth="6" opacity="0.7"/>
-            <line x1="100" y1="0" x2="100" y2="168" stroke="white" strokeWidth="6" opacity="0.7"/>
-            <line x1="190" y1="0" x2="190" y2="168" stroke="white" strokeWidth="10"/>
-            <line x1="280" y1="0" x2="280" y2="168" stroke="white" strokeWidth="6" opacity="0.7"/>
-            <rect x="56" y="50" width="36" height="28" rx="4" fill="#CECFBA"/>
-            <rect x="56" y="90" width="36" height="32" rx="4" fill="#CECFBA"/>
-            <rect x="108" y="50" width="74" height="28" rx="4" fill="#CECFBA"/>
-            <rect x="108" y="90" width="74" height="32" rx="4" fill="#CECFBA"/>
-            <rect x="196" y="50" width="76" height="28" rx="4" fill="#CECFBA"/>
-            <rect x="196" y="90" width="76" height="32" rx="4" fill="#CECFBA"/>
-            <rect x="286" y="50" width="36" height="28" rx="4" fill="#CECFBA"/>
-            <rect x="286" y="90" width="36" height="32" rx="4" fill="#CECFBA"/>
-            <circle cx="190" cy="80" r="18" fill="#0F0F0F" opacity="0.12"/>
-            <circle cx="190" cy="76" r="14" fill="#0F0F0F"/>
-            <circle cx="190" cy="76" r="6" fill="white"/>
-            <polygon points="190,94 185,86 195,86" fill="#0F0F0F"/>
-          </svg>
+          <div ref={mapContainerRef} className="w-full h-full" />
         </div>
 
         {/* Service */}
