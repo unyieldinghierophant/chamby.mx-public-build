@@ -25,7 +25,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Helper to store intended destination before redirecting to login
   const storeReturnPath = () => {
-    const returnPath = location.pathname;
+    const returnPath = location.pathname + location.search;
     sessionStorage.setItem('auth_return_to', returnPath);
     localStorage.setItem('auth_return_to', returnPath);
   };
