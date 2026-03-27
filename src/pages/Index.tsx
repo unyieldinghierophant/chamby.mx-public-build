@@ -16,10 +16,8 @@ import { ReviewsCarousel } from "@/components/ReviewsCarousel";
 import { FullPageSkeleton } from "@/components/skeletons";
 import { LandingPageSkeleton } from "@/components/LandingPageSkeleton";
 import { useLandingSkeleton } from "@/hooks/useLandingSkeleton";
-import { WelcomeCreditModal } from "@/components/WelcomeCreditModal";
-import { EmailCaptureModalV2 } from "@/components/EmailCaptureModalV2";
 
-const EMAIL_CAPTURE_V2 = true;
+
 const Index = () => {
   const {
     user,
