@@ -40,7 +40,7 @@ const Hero = ({ onMediaReady, onIconsReady }: { onMediaReady?: () => void; onIco
             className="relative rounded-[1.5rem] md:rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] border border-primary-foreground/20"
           >
             {/* Video background */}
-            <div className="absolute inset-0 z-0">
+            <div className="absolute inset-0 z-0 overflow-hidden rounded-[1.5rem] md:rounded-[2.5rem]">
               <video
                 autoPlay
                 loop
