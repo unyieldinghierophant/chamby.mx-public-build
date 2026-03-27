@@ -23,6 +23,8 @@ interface Props {
     accessTypes: string[];
     additionalNotes: string;
     serviceAddress?: string;
+    serviceLatitude?: number | null;
+    serviceLongitude?: number | null;
     scheduleMode?: string | null;
     scheduledDate?: Date | string | null;
     timeWindow?: string | null;
