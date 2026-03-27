@@ -37,7 +37,7 @@ const Hero = ({ onMediaReady, onIconsReady }: { onMediaReady?: () => void; onIco
             initial={{ opacity: 0, y: 30, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="relative rounded-[1.5rem] md:rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] border border-primary-foreground/20 overflow-hidden"
+            className="relative rounded-[1.5rem] md:rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(30,58,138,0.5)] border border-primary-foreground/20"
           >
             {/* Video background */}
             <div className="absolute inset-0 z-0">
