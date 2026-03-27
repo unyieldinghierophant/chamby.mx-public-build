@@ -147,28 +147,7 @@ export const HandymanSummary = ({ formData, onConfirm, onGoBack, isSubmitting }:
       <div className="flex-1 overflow-y-auto">
         {/* Map block */}
         <div className="w-full h-[168px] relative overflow-hidden flex-shrink-0">
-          <svg className="w-full h-full" viewBox="0 0 375 168" xmlns="http://www.w3.org/2000/svg">
-            <rect width="375" height="168" fill="#E8EAD8"/>
-            <rect x="0" y="0" width="375" height="168" fill="#DFE1CE"/>
-            <line x1="0" y1="84" x2="375" y2="84" stroke="white" strokeWidth="10"/>
-            <line x1="0" y1="44" x2="375" y2="44" stroke="white" strokeWidth="6" opacity="0.7"/>
-            <line x1="0" y1="128" x2="375" y2="128" stroke="white" strokeWidth="6" opacity="0.7"/>
-            <line x1="100" y1="0" x2="100" y2="168" stroke="white" strokeWidth="6" opacity="0.7"/>
-            <line x1="190" y1="0" x2="190" y2="168" stroke="white" strokeWidth="10"/>
-            <line x1="280" y1="0" x2="280" y2="168" stroke="white" strokeWidth="6" opacity="0.7"/>
-            <rect x="56" y="50" width="36" height="28" rx="4" fill="#CECFBA"/>
-            <rect x="56" y="90" width="36" height="32" rx="4" fill="#CECFBA"/>
-            <rect x="108" y="50" width="74" height="28" rx="4" fill="#CECFBA"/>
-            <rect x="108" y="90" width="74" height="32" rx="4" fill="#CECFBA"/>
-            <rect x="196" y="50" width="76" height="28" rx="4" fill="#CECFBA"/>
-            <rect x="196" y="90" width="76" height="32" rx="4" fill="#CECFBA"/>
-            <rect x="286" y="50" width="36" height="28" rx="4" fill="#CECFBA"/>
-            <rect x="286" y="90" width="36" height="32" rx="4" fill="#CECFBA"/>
-            <circle cx="190" cy="80" r="18" fill="#0F0F0F" opacity="0.12"/>
-            <circle cx="190" cy="76" r="14" fill="#0F0F0F"/>
-            <circle cx="190" cy="76" r="6" fill="white"/>
-            <polygon points="190,94 185,86 195,86" fill="#0F0F0F"/>
-          </svg>
+          <div ref={mapContainerRef} className="w-full h-full" />
         </div>
 
         {/* Service */}
