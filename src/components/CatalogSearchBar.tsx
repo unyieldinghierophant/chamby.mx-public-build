@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Search, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -40,8 +40,44 @@ export function CatalogSearchBar({ className }: { className?: string }) {
   const [isFocused, setIsFocused] = useState(false);
 
   const searchRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const typingExamples = isMobile ? TYPING_EXAMPLES_MOBILE : TYPING_EXAMPLES_DESKTOP;
 
+  // Visual viewport listener — constrain dropdown when mobile keyboard opens
+  const updateDropdownHeight = useCallback(() => {
+    if (!window.visualViewport || !inputRef.current || !dropdownRef.current) return;
+    const rect = inputRef.current.getBoundingClientRect();
+    const spaceBelow = window.visualViewport.height - rect.bottom - 8;
+    dropdownRef.current.style.maxHeight = `${Math.max(120, spaceBelow)}px`;
+  }, []);
+
+  useEffect(() => {
+    const input = inputRef.current;
+    if (!input) return;
+
+    const onFocus = () => {
+      updateDropdownHeight();
+      window.dispatchEvent(new CustomEvent('search-focus', { detail: { focused: true } }));
+    };
+    const onBlur = () => {
+      window.dispatchEvent(new CustomEvent('search-focus', { detail: { focused: false } }));
+    };
+
+    input.addEventListener('focus', onFocus);
+    input.addEventListener('blur', onBlur);
+
+    const vv = window.visualViewport;
+    vv?.addEventListener('resize', updateDropdownHeight);
+    vv?.addEventListener('scroll', updateDropdownHeight);
+
+    return () => {
+      input.removeEventListener('focus', onFocus);
+      input.removeEventListener('blur', onBlur);
+      vv?.removeEventListener('resize', updateDropdownHeight);
+      vv?.removeEventListener('scroll', updateDropdownHeight);
+    };
+  }, [updateDropdownHeight]);
 
   // Typing animation
   useEffect(() => {
@@ -84,7 +120,6 @@ export function CatalogSearchBar({ className }: { className?: string }) {
     const popular: SuggestionItem[] = [];
     for (const cat of categories) {
       const catSubs = subcategories.filter((s) => s.category_id === cat.id);
-      // Take first 2 subcategories per category for variety
       catSubs.slice(0, 2).forEach((sub) => popular.push({ subcategory: sub, category: cat }));
     }
     return popular.slice(0, 8);
@@ -113,7 +148,6 @@ export function CatalogSearchBar({ className }: { className?: string }) {
       }
     }
 
-    // Also match category names and show their first subcategories
     if (matches.length === 0) {
       for (const cat of categories) {
         if (cat.name.toLowerCase().includes(q) || cat.slug.includes(q)) {
@@ -148,7 +182,6 @@ export function CatalogSearchBar({ className }: { className?: string }) {
     if (!query.trim()) return;
     setIsOpen(false);
 
-    // Try to find an exact match
     const q = query.toLowerCase().trim();
     const subMatch = subcategories.find(
       (s) => s.name.toLowerCase().includes(q) || (s.description && s.description.toLowerCase().includes(q))
@@ -161,7 +194,6 @@ export function CatalogSearchBar({ className }: { className?: string }) {
       }
     }
 
-    // No match — send to general with intent text
     startBooking(navigate, { intentText: query.trim(), serviceCategory: 'general', entrySource: 'catalog_search' });
   };
 
@@ -172,6 +204,7 @@ export function CatalogSearchBar({ className }: { className?: string }) {
           {/* Pill search bar */}
           <div className="relative flex items-center h-14 sm:h-16 bg-white dark:bg-card rounded-full shadow-[0_4px_24px_-4px_hsl(214_80%_41%/0.18)] ring-1 ring-black/[0.04] dark:ring-white/10 transition-shadow focus-within:shadow-[0_6px_32px_-4px_hsl(214_80%_41%/0.28)] focus-within:ring-primary/30">
             <Input
+              ref={inputRef}
               type="search"
               name="catalog-search-query"
               autoComplete="off"
@@ -208,7 +241,13 @@ export function CatalogSearchBar({ className }: { className?: string }) {
 
       {isOpen && (
         <div
-          className="absolute top-full left-0 right-0 mt-2 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-border max-h-60 overflow-y-auto animate-fade-in bg-background z-50"
+          ref={dropdownRef}
+          className="absolute top-full left-0 right-0 mt-2 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-border overflow-y-auto animate-fade-in bg-background z-[9999]"
+          style={{
+            maxHeight: 'min(40dvh, 320px)',
+            overscrollBehavior: 'contain',
+            WebkitOverflowScrolling: 'touch',
+          }}
         >
           <div className="p-2 sm:p-3">
             {/* Show popular services on focus with no query */}

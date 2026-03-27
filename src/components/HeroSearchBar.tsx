@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Search, ArrowRight, Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -51,6 +51,7 @@ export const HeroSearchBar: React.FC = () => {
 
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const typingExamples = isMobile ? TYPING_EXAMPLES_MOBILE : TYPING_EXAMPLES_DESKTOP;
 
   // Build default suggestions from catalog categories
@@ -58,6 +59,41 @@ export const HeroSearchBar: React.FC = () => {
     .map((slug) => categories.find((c) => c.slug === slug))
     .filter(Boolean) as ServiceCategory[];
 
+  // Visual viewport listener — constrain dropdown when mobile keyboard opens
+  const updateDropdownHeight = useCallback(() => {
+    if (!window.visualViewport || !inputRef.current || !dropdownRef.current) return;
+    const rect = inputRef.current.getBoundingClientRect();
+    const spaceBelow = window.visualViewport.height - rect.bottom - 8;
+    dropdownRef.current.style.maxHeight = `${Math.max(120, spaceBelow)}px`;
+  }, []);
+
+  useEffect(() => {
+    const input = inputRef.current;
+    if (!input) return;
+
+    const onFocus = () => {
+      updateDropdownHeight();
+      // Notify bottom nav to hide
+      window.dispatchEvent(new CustomEvent('search-focus', { detail: { focused: true } }));
+    };
+    const onBlur = () => {
+      window.dispatchEvent(new CustomEvent('search-focus', { detail: { focused: false } }));
+    };
+
+    input.addEventListener('focus', onFocus);
+    input.addEventListener('blur', onBlur);
+
+    const vv = window.visualViewport;
+    vv?.addEventListener('resize', updateDropdownHeight);
+    vv?.addEventListener('scroll', updateDropdownHeight);
+
+    return () => {
+      input.removeEventListener('focus', onFocus);
+      input.removeEventListener('blur', onBlur);
+      vv?.removeEventListener('resize', updateDropdownHeight);
+      vv?.removeEventListener('scroll', updateDropdownHeight);
+    };
+  }, [updateDropdownHeight]);
 
   // Typing animation
   useEffect(() => {
@@ -178,7 +214,13 @@ export const HeroSearchBar: React.FC = () => {
 
   const dropdown = isOpen && (
     <div
-      className="absolute top-full left-0 right-0 mt-2 bg-background rounded-xl shadow-lg border border-border max-h-60 overflow-y-auto animate-fade-in z-50"
+      ref={dropdownRef}
+      className="absolute top-full left-0 right-0 mt-2 bg-background rounded-xl shadow-lg border border-border overflow-y-auto animate-fade-in z-[9999]"
+      style={{
+        maxHeight: 'min(40dvh, 320px)',
+        overscrollBehavior: 'contain',
+        WebkitOverflowScrolling: 'touch',
+      }}
     >
       {showPopular && defaultSuggestions.length > 0 && (
         <div className="p-3">
@@ -267,7 +309,8 @@ export const HeroSearchBar: React.FC = () => {
             onFocus={() => { setIsFocused(true); setIsOpen(true); setShowPopular(!query.trim()); }}
             onBlur={() => setIsFocused(false)}
             onKeyDown={handleKeyPress}
-            className="h-full w-full pl-12 pr-16 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base text-foreground rounded-xl placeholder:text-muted-foreground/70 [&::-webkit-search-decoration]:hidden [&::-webkit-search-cancel-button]:hidden"
+            className="h-full w-full pl-12 pr-16 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-foreground rounded-xl placeholder:text-muted-foreground/70 [&::-webkit-search-decoration]:hidden [&::-webkit-search-cancel-button]:hidden"
+            style={{ fontSize: '16px' }}
           />
 
           <button

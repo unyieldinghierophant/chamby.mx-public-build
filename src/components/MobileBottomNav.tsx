@@ -10,6 +10,17 @@ const MobileBottomNav = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("home");
+  const [hidden, setHidden] = useState(false);
+
+  // Hide bottom nav when search input is focused (keyboard open)
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      setHidden(!!detail?.focused);
+    };
+    window.addEventListener('search-focus', handler);
+    return () => window.removeEventListener('search-focus', handler);
+  }, []);
 
   // Update active tab based on current route
   useEffect(() => {
@@ -56,6 +67,8 @@ const MobileBottomNav = () => {
     setActiveTab(tab.id);
     navigate(tab.path);
   };
+
+  if (hidden) return null;
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-gradient-card backdrop-blur-glass border-t border-white/20 shadow-floating">
