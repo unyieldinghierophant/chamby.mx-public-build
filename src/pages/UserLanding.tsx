@@ -306,7 +306,7 @@ const UserLanding = () => {
       <main className="container mx-auto px-4 pb-24">
 
         {/* Category Tabs - Using shared component */}
-        <div className="mb-8 md:mb-12 -mt-8">
+        <div className="mb-8 md:mb-12 mt-4 md:mt-6">
           <CategoryTabs />
         </div>
 
