@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import { ArrowLeft, MapPin, Calendar, Clock, Camera, Plus, ChevronRight, Lock, Info } from "lucide-react";
 import { PRICING, formatMXN } from "@/utils/pricingConfig";
 
