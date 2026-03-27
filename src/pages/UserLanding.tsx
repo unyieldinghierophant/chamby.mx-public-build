@@ -272,7 +272,7 @@ const UserLanding = () => {
               👋 ¡Hola{profile?.full_name ? `, ${profile.full_name.split(' ')[0]}` : ''}!
             </Badge>
             
-            <h1 className="font-jakarta font-medium text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white leading-[1.15] tracking-tight drop-shadow-lg">
+            <h1 className="font-jakarta font-medium text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white leading-[1.3] tracking-tight drop-shadow-lg">
               SOLUCIONA EN
               <span className="block">MINUTOS NO</span>
               <span className="block">EN DÍAS.</span>
