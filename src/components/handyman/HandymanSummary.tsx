@@ -41,6 +41,57 @@ const totalCents = PRICING.VISIT_FEE.CLIENT_TOTAL_CENTS;
 export const HandymanSummary = ({ formData, onConfirm, onGoBack, isSubmitting }: Props) => {
   const [countdown, setCountdown] = useState(15);
   const hasSubmittedRef = useRef(false);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+
+  // Leaflet static preview map
+  useEffect(() => {
+    if (!mapContainerRef.current || mapInstanceRef.current) return;
+
+    const lat = formData.serviceLatitude ?? 20.6597;
+    const lng = formData.serviceLongitude ?? -103.3496;
+
+    const map = L.map(mapContainerRef.current, {
+      center: [lat, lng],
+      zoom: 15,
+      zoomControl: false,
+      dragging: false,
+      scrollWheelZoom: false,
+      doubleClickZoom: false,
+      touchZoom: false,
+      boxZoom: false,
+      keyboard: false,
+      attributionControl: false,
+    });
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+    }).addTo(map);
+
+    // Custom dark pin marker
+    const pinIcon = L.divIcon({
+      html: `<svg width="28" height="36" viewBox="0 0 28 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="14" cy="33" rx="6" ry="3" fill="rgba(0,0,0,0.15)"/>
+        <path d="M14 0C6.268 0 0 6.268 0 14c0 10.5 14 22 14 22s14-11.5 14-22C28 6.268 21.732 0 14 0z" fill="hsl(0,0%,6%)"/>
+        <circle cx="14" cy="13" r="5" fill="white"/>
+      </svg>`,
+      iconSize: [28, 36],
+      iconAnchor: [14, 36],
+      className: '',
+    });
+
+    L.marker([lat, lng], { icon: pinIcon, interactive: false }).addTo(map);
+
+    mapInstanceRef.current = map;
+
+    // Fix tile rendering after container is visible
+    setTimeout(() => map.invalidateSize(), 100);
+
+    return () => {
+      map.remove();
+      mapInstanceRef.current = null;
+    };
+  }, [formData.serviceLatitude, formData.serviceLongitude]);
 
   useEffect(() => {
     if (isSubmitting || hasSubmittedRef.current) return;
