@@ -159,7 +159,7 @@ const Index = () => {
         <div className="desktop-only">
           <MobileBottomNav />
         </div>
-        {EMAIL_CAPTURE_V2 ? <EmailCaptureModalV2 /> : <WelcomeCreditModal />}
+        
       </div>;
   }
 

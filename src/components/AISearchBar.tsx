@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import { getSearchSuggestions } from "@/utils/searchSuggestions";
 import { startBooking } from "@/lib/booking";
 import { useServiceCatalog } from "@/hooks/useServiceCatalog";
-import { createPortal } from "react-dom";
 
 const TYPING_EXAMPLES = [
   "Lavar mi carro",
