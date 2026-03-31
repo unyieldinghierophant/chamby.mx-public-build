@@ -42,7 +42,7 @@ const BookJob = () => {
           </button>
         </div>
       </header>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-background to-blue-50/30 dark:from-blue-950/20 dark:via-background dark:to-blue-950/10 pt-24 pb-12 px-4 md:px-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-background to-blue-50/30 dark:from-blue-950/20 dark:via-background dark:to-blue-950/10 pt-[calc(4rem+12px)] md:pt-24 pb-12 px-4 md:px-8">
         <HandymanBookingFlow intentText={intentParam} categorySlug={categoryParam || 'general'} />
       </div>
     </>

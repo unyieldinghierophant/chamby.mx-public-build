@@ -597,7 +597,7 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
       <HandymanStepIndicator currentStep={showSummary ? 6 : currentStep} totalSteps={6} />
 
       {/* Step Content */}
-      <div className="mt-8 space-y-6 animate-fade-in" key={currentStep}>
+      <div className="mt-3 md:mt-8 space-y-6 animate-fade-in" key={currentStep}>
         {/* ---- STEP 1: Description ---- */}
         {currentStep === 1 && (
           <div className="space-y-6">
