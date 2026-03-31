@@ -14,7 +14,7 @@ import { RescheduleDialog } from "@/components/RescheduleDialog";
 import { useRefundRequest } from "@/hooks/useRefundRequest";
 import { RefundRequestModal } from "@/components/RefundRequestModal";
 
-const ASSIGNMENT_WINDOW_HOURS = 4;
+const ASSIGNMENT_WINDOW_HOURS = 1;
 
 const formatTime = (ms: number) => {
   const h = Math.floor(ms / 3600000);

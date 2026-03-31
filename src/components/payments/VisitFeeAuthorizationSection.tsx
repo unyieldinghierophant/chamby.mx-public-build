@@ -92,7 +92,7 @@ const VisitFeeForm = ({
         
         if (isSuccessful) {
           // Update job status to 'searching' with visit_fee_paid and assignment deadline
-          const assignmentDeadline = new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString();
+          const assignmentDeadline = new Date(Date.now() + 1 * 60 * 60 * 1000).toISOString();
           const { error: updateError } = await supabase
             .from('jobs')
             .update({
