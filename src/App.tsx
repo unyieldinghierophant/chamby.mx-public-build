@@ -63,6 +63,8 @@ const RescheduleRequest = lazy(() => import("./pages/provider-portal/RescheduleR
 const AvailableJobs = lazy(() => import("./pages/provider-portal/AvailableJobs"));
 const RoleSelection = lazy(() => import("./pages/RoleSelection"));
 const Blog = lazy(() => import("./pages/Blog"));
+const HowItWorksPage = lazy(() => import("./pages/HowItWorks"));
+const About = lazy(() => import("./pages/About"));
 const HelpCenter = lazy(() => import("./pages/HelpCenter"));
 const ActiveJobs = lazy(() => import("./pages/ActiveJobs"));
 const Messages = lazy(() => import("./pages/Messages"));
