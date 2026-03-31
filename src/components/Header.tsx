@@ -231,13 +231,13 @@ const Header = () => {
                   >
                     Registrarse
                   </Link>
-                  <Link 
-                    to={ROUTES.PROVIDER_AUTH} 
-                    className="block py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Ser Chambynauta
-                  </Link>
+                   <Link 
+                     to={ROUTES.CHAMBYNAUTA} 
+                     className="block py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
+                     onClick={() => setIsMenuOpen(false)}
+                   >
+                     Ser Chambynauta
+                   </Link>
                 </>
               )}
             </div>

@@ -172,6 +172,9 @@ const App = () => {
               <Route path="/blog" element={<Blog />} />
               <Route path="/help-center" element={<HelpCenter />} />
               <Route path="/provider-landing" element={<ProviderLanding />} />
+              <Route path={ROUTES.CHAMBYNAUTA} element={<ProviderLanding />} />
+              <Route path={ROUTES.ABOUT} element={<About />} />
+              <Route path={ROUTES.HOW_IT_WORKS} element={<HowItWorksPage />} />
 
               <Route
                 path="/provider-profile"

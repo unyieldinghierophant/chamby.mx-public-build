@@ -1,15 +1,14 @@
+import { useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Helmet } from "react-helmet-async";
 
 const About = () => {
+  useEffect(() => {
+    document.title = "Sobre nosotros — Chamby.mx | Servicios del hogar en Guadalajara";
+  }, []);
+
   return (
     <>
-      <Helmet>
-        <title>Sobre nosotros — Chamby.mx | Servicios del hogar en Guadalajara</title>
-        <meta name="description" content="Conoce al equipo detrás de Chamby, la plataforma líder de servicios del hogar en Guadalajara, Jalisco. Nuestra historia, misión y visión." />
-        <link rel="canonical" href="https://chamby.mx/about" />
-      </Helmet>
       <Header />
       <main className="min-h-screen pt-20 md:pt-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 max-w-3xl">
