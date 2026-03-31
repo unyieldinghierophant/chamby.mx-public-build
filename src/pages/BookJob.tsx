@@ -1,17 +1,11 @@
 import { useEffect } from "react";
 import { HandymanBookingFlow } from "@/components/handyman/HandymanBookingFlow";
-import { X } from "lucide-react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-
-import { ROUTES } from "@/constants/routes";
-import { useAuth } from "@/contexts/AuthContext";
+import { useSearchParams } from "react-router-dom";
 
 const STORAGE_KEY_PREFIX = 'chamby_form_';
 
 const BookJob = () => {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user } = useAuth();
 
   const intentParam = searchParams.get("intent") || "";
   const categoryParam = searchParams.get("category") || "";
