@@ -28,6 +28,7 @@ import { HandymanSummary } from "./HandymanSummary";
 import { HandymanStepIndicator } from "./HandymanStepIndicator";
 import { useGlobalLocation } from "@/hooks/useGlobalLocation";
 import { useServiceCatalog, getSubcategoriesForCategory } from "@/hooks/useServiceCatalog";
+import { ROUTES } from "@/constants/routes";
 
 // ---- Types ----
 type WorkType = "reparacion" | "instalacion" | "armado" | "ajuste";
