@@ -589,19 +589,26 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
     </button>
   );
 
+  const stepTitles = ["Servicio", "Ubicación", "Tamaño", "Fecha", "Fotos"];
+  const currentStepTitle = showSummary ? "Resumen" : stepTitles[currentStep - 1] || "";
+
   return (
     <div className="max-w-2xl mx-auto">
       <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} onLogin={handleAuthLogin} onGuest={() => {}} showGuestOption={false} />
 
-      {/* Mobile progress bar */}
-      <div className="lg:hidden mb-3">
-        <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
-          <div
-            className="h-full bg-primary rounded-full transition-all duration-300"
-            style={{ width: `${((showSummary ? 6 : currentStep) / 6) * 100}%` }}
-          />
-        </div>
-        <p className="text-xs text-muted-foreground mt-1.5">Paso {showSummary ? 6 : currentStep} de 6</p>
+      {/* Compact top bar: step counter + close */}
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-sm font-medium text-muted-foreground font-jakarta">
+          {showSummary ? "Paso 6 de 6" : `Paso ${currentStep} de ${TOTAL_STEPS}`} · {currentStepTitle}
+        </p>
+        <button
+          type="button"
+          onClick={() => navigate(ROUTES.USER_LANDING)}
+          className="p-2 -mr-2 hover:bg-accent rounded-lg transition-colors"
+          aria-label="Cerrar"
+        >
+          <X className="w-5 h-5 text-muted-foreground" />
+        </button>
       </div>
 
       {/* Step Indicator — desktop only */}
