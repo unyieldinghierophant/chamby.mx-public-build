@@ -1828,6 +1828,26 @@ export default function ProviderOnboardingWizard() {
             Esto ayudará a los clientes a conocer tu trabajo
           </p>
         </div>
+
+        {/* Phone Number - Mandatory */}
+        <div className="space-y-2">
+          <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+            TELÉFONO <span className="text-destructive">*</span>
+          </Label>
+          <PhoneInput
+            value={profileData.phone}
+            onChange={(val) => setProfileData(prev => ({ ...prev, phone: val }))}
+            error={profileData.phone.length > 0 && !isValidMexicanPhone(profileData.phone)}
+          />
+          {profileData.phone.length > 0 && !isValidMexicanPhone(profileData.phone) && (
+            <p className="text-xs text-destructive">
+              Ingresa un número mexicano válido de 10 dígitos
+            </p>
+          )}
+          <p className="text-[11px] text-muted-foreground">
+            Número mexicano de 10 dígitos (obligatorio)
+          </p>
+        </div>
       </div>
     );
   }
