@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { HandymanBookingFlow } from "@/components/handyman/HandymanBookingFlow";
 import { X } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import ChambyLogoText from "@/components/ChambyLogoText";
+
 import { ROUTES } from "@/constants/routes";
 import { useAuth } from "@/contexts/AuthContext";
 
