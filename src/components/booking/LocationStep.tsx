@@ -148,7 +148,7 @@ export function LocationStep({
     setSearchQuery(value);
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
-    if (value.trim().length < 3) {
+    if (value.trim().length < 2) {
       setPredictions([]);
       setShowPredictions(false);
       return;
@@ -160,7 +160,6 @@ export function LocationStep({
         {
           input: value,
           componentRestrictions: { country: "mx" },
-          types: ["address", "establishment", "geocode"],
         },
         (results, status) => {
           if (status === google.maps.places.PlacesServiceStatus.OK && results) {
@@ -172,7 +171,7 @@ export function LocationStep({
           }
         }
       );
-    }, 250);
+    }, 200);
   };
 
   const selectPrediction = (prediction: google.maps.places.AutocompletePrediction) => {
@@ -246,12 +245,12 @@ export function LocationStep({
   }, []);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div>
-        <h1 className="text-3xl md:text-4xl font-jakarta font-medium text-foreground">
+        <h1 className="text-2xl md:text-3xl font-jakarta font-medium text-foreground">
           Ubicación del servicio
         </h1>
-        <p className="text-muted-foreground mt-2">
+        <p className="text-sm text-muted-foreground mt-1">
           Mueve el mapa o busca tu dirección abajo
         </p>
       </div>
@@ -260,7 +259,7 @@ export function LocationStep({
       <div className="relative rounded-2xl overflow-hidden border border-border/60 shadow-md ring-1 ring-border/20">
         <div
           ref={mapContainerRef}
-          className="w-full h-[280px] md:h-[320px]"
+          className="w-full h-[240px] md:h-[300px]"
           style={{ zIndex: 0 }}
         />
 
@@ -315,7 +314,7 @@ export function LocationStep({
       </div>
 
       {/* Address search + display — BELOW map */}
-      <div className="bg-card border border-border rounded-xl p-4 shadow-sm space-y-3">
+      <div className="bg-card border border-border rounded-xl p-3 shadow-sm space-y-2.5">
         {/* Current address display */}
         <div className="flex items-start gap-3">
           <div className="p-2 rounded-lg bg-primary/10 shrink-0">
