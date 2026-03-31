@@ -44,15 +44,6 @@ const Header = () => {
     return isOnProviderPage ? ROUTES.PROVIDER_LANDING : ROUTES.USER_LANDING;
   };
 
-  const handleHowItWorksClick = (e: React.MouseEvent) => {
-    if (location.pathname === ROUTES.HOME || location.pathname === ROUTES.USER_LANDING) {
-      e.preventDefault();
-      const howItWorksSection = document.getElementById('how-it-works-section');
-      if (howItWorksSection) {
-        howItWorksSection.scrollIntoView({ behavior: 'smooth' });
-      }
-    }
-  };
 
   return (
     <>
