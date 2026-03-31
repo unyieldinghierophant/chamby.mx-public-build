@@ -260,7 +260,7 @@ export function LocationStep({
       <div className="relative rounded-2xl overflow-hidden border border-border/60 shadow-md ring-1 ring-border/20">
         <div
           ref={mapContainerRef}
-          className="w-full h-[280px] md:h-[320px]"
+          className="w-full h-[240px] md:h-[300px]"
           style={{ zIndex: 0 }}
         />
 
