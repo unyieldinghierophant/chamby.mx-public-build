@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Upload, Check, Camera, ArrowLeft, Wrench, Hammer, Settings, RotateCcw, Ruler, MoveVertical, PackageOpen, HelpCircle, Building, Home, Loader2, CalendarIcon, Clock, Zap, Sun, Sunset, Moon } from "lucide-react";
+import { Upload, Check, Camera, ArrowLeft, Wrench, Hammer, Settings, RotateCcw, Ruler, MoveVertical, PackageOpen, HelpCircle, Building, Home, Loader2, CalendarIcon, Clock, Zap, Sun, Sunset, Moon, X } from "lucide-react";
 import { LocationStep } from "@/components/booking/LocationStep";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -28,6 +28,7 @@ import { HandymanSummary } from "./HandymanSummary";
 import { HandymanStepIndicator } from "./HandymanStepIndicator";
 import { useGlobalLocation } from "@/hooks/useGlobalLocation";
 import { useServiceCatalog, getSubcategoriesForCategory } from "@/hooks/useServiceCatalog";
+import { ROUTES } from "@/constants/routes";
 
 // ---- Types ----
 type WorkType = "reparacion" | "instalacion" | "armado" | "ajuste";
@@ -589,19 +590,26 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
     </button>
   );
 
+  const stepTitles = ["Servicio", "Ubicación", "Tamaño", "Fecha", "Fotos"];
+  const currentStepTitle = showSummary ? "Resumen" : stepTitles[currentStep - 1] || "";
+
   return (
     <div className="max-w-2xl mx-auto">
       <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} onLogin={handleAuthLogin} onGuest={() => {}} showGuestOption={false} />
 
-      {/* Mobile progress bar */}
-      <div className="lg:hidden mb-3">
-        <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
-          <div
-            className="h-full bg-primary rounded-full transition-all duration-300"
-            style={{ width: `${((showSummary ? 6 : currentStep) / 6) * 100}%` }}
-          />
-        </div>
-        <p className="text-xs text-muted-foreground mt-1.5">Paso {showSummary ? 6 : currentStep} de 6</p>
+      {/* Compact top bar: step counter + close */}
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-sm font-medium text-muted-foreground font-jakarta">
+          {showSummary ? "Paso 6 de 6" : `Paso ${currentStep} de ${TOTAL_STEPS}`} · {currentStepTitle}
+        </p>
+        <button
+          type="button"
+          onClick={() => navigate(ROUTES.USER_LANDING)}
+          className="p-2 -mr-2 hover:bg-accent rounded-lg transition-colors"
+          aria-label="Cerrar"
+        >
+          <X className="w-5 h-5 text-muted-foreground" />
+        </button>
       </div>
 
       {/* Step Indicator — desktop only */}
@@ -641,7 +649,7 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
                           }
                         }}
                         className={cn(
-                          "flex items-center gap-2 px-5 py-3 rounded-full border-2 text-sm font-medium transition-all active:scale-95",
+                          "flex items-center gap-1.5 px-3.5 py-2 rounded-full border-2 text-xs font-medium transition-all active:scale-95",
                           isSelected
                             ? "border-primary bg-primary text-primary-foreground shadow-md"
                             : "border-border bg-card text-foreground hover:border-primary/40 hover:bg-accent/50"
@@ -907,18 +915,6 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
         )}
       </div>
 
-      {/* Mobile Step Indicator dots */}
-      <div className="lg:hidden mt-6 flex justify-center gap-1.5">
-        {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-          <div
-            key={i}
-            className={cn(
-              "h-2 rounded-full transition-all",
-              currentStep === i + 1 ? "w-8 bg-primary" : i + 1 < currentStep ? "w-2 bg-primary/40" : "w-2 bg-muted"
-            )}
-          />
-        ))}
-      </div>
     </div>
   );
 };
