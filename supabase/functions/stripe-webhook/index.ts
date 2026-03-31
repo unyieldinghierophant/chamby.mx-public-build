@@ -182,7 +182,7 @@ serve(async (req) => {
             // Update job status — enters 'searching' state with 4-hour assignment window
             // NOTE: visit_fee_paid is also set by the fn_sync_visit_fee trigger
             // when the payments row is inserted below
-            const assignmentDeadline = new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString();
+            const assignmentDeadline = new Date(Date.now() + 1 * 60 * 60 * 1000).toISOString();
             const { error: updateError } = await supabaseClient
               .from("jobs")
               .update({
