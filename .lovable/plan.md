@@ -1,33 +1,33 @@
 
 
-## Fix: Search dropdown displacement on mobile keyboard open
+## Fix: Booking Flow Scroll & Header
 
 ### Problem
-Both `HeroSearchBar` and `CatalogSearchBar` use `createPortal` + `position: fixed` to render the dropdown. When the mobile keyboard opens, the visual viewport shrinks/shifts but `getBoundingClientRect` returns layout viewport coordinates, causing the dropdown to float in the wrong position or get displaced.
-
-### Solution
-Remove the portal approach entirely. Render the dropdown inline as an absolutely-positioned child of the search bar's own container. This guarantees it always sits directly below the input regardless of viewport changes from keyboard.
+1. The fixed header with the Chamby logo wastes ~64px of vertical space on mobile throughout the entire booking flow
+2. The `min-h-screen` on the content wrapper combined with the fixed header creates scroll jank and "pull back" behavior
+3. Steps should start at the very top — no branding header needed during booking
 
 ### Changes
 
-**File: `src/components/HeroSearchBar.tsx`**
-- Remove `createPortal` import
-- Remove `dropdownStyle` state, `updateDropdownPosition` callback, and the scroll/resize useEffect
-- Remove `id="hero-search-dropdown"` portal check in click-outside handler
-- Move dropdown JSX inline inside the `searchRef` div, as a sibling after the input wrapper
-- Style: `absolute top-full left-0 right-0 mt-2 max-h-60 overflow-y-auto z-50 bg-background rounded-xl shadow-lg border`
-- The parent `searchRef` div already has `relative`, so this works
+**1. `src/pages/BookJob.tsx` — Remove fixed header, simplify layout**
+- Remove the entire `<header>` block (logo + X button)
+- Replace with a minimal inline top bar: just a back arrow (or X) on the left, no logo, no fixed positioning — use normal document flow
+- Remove `min-h-screen` from the content wrapper to eliminate overscroll bounce
+- Change padding from `pt-[calc(4rem+12px)]` to `pt-3` (12px) since there's no fixed header to clear
+- Keep the X button to navigate home, but place it inline at the top-right of the content area
 
-**File: `src/components/CatalogSearchBar.tsx`**
-- Same changes: remove `createPortal`, `dropdownStyle`, portal positioning logic
-- Render dropdown inline with `absolute top-full left-0 right-0 mt-2 max-h-60 overflow-y-auto z-50`
-- Ensure the parent container has `overflow-visible` (no `overflow-hidden` ancestor clipping — the previous portal was added to escape this, but we need to check the parent)
+**2. `src/components/handyman/HandymanBookingFlow.tsx` — Move step indicator to top**
+- Remove `mt-3 md:mt-8` gap before step content — steps render immediately
+- The `HandymanStepIndicator` already renders at the top of the component; it stays as-is
+- Add a mobile-visible compact progress bar (thin colored bar showing step progress) since the current step indicator is `hidden lg:flex`
 
-**Overflow concern:** The original portal was added to escape `overflow-hidden` on parent containers. We need to ensure the search bar's ancestors don't clip. The Hero section wrapper that previously had `overflow-hidden` had the grid overlay removed already. If any parent still clips, we add `overflow-visible` to the immediate search wrapper only.
+**3. Add `ScrollToTop` component**
+- Create `src/components/ScrollToTop.tsx` that scrolls to top on route change
+- Add it inside `<BrowserRouter>` in `App.tsx` to prevent stale scroll positions between steps/pages
 
 ### Result
-- Dropdown locked under search bar via CSS `position: absolute` relative to parent
-- No JS listeners needed for repositioning
-- Works on iOS Safari + Android Chrome regardless of keyboard state
-- Internal scroll via `max-h-60 overflow-y-auto`
+- No fixed header stealing 64px on mobile
+- Native document scrolling (no overscroll fighting)
+- Steps start immediately at the top with just a small close button
+- Smooth, lag-free vertical scrolling
 
