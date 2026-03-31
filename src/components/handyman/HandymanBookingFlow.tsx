@@ -648,7 +648,7 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
                           }
                         }}
                         className={cn(
-                          "flex items-center gap-2 px-5 py-3 rounded-full border-2 text-sm font-medium transition-all active:scale-95",
+                          "flex items-center gap-1.5 px-3.5 py-2 rounded-full border-2 text-xs font-medium transition-all active:scale-95",
                           isSelected
                             ? "border-primary bg-primary text-primary-foreground shadow-md"
                             : "border-border bg-card text-foreground hover:border-primary/40 hover:bg-accent/50"
