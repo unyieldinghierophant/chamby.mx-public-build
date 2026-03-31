@@ -1191,7 +1191,7 @@ export default function ProviderOnboardingWizard() {
         }
         return true;
       case 2:
-        return (profileData.avatarUrl || '').length > 0 && (profileData.bio || '').trim().length > 0;
+        return (profileData.avatarUrl || '').length > 0 && (profileData.bio || '').trim().length > 0 && isValidMexicanPhone(profileData.phone);
       case 3:
         return selectedSkills.length >= ONBOARDING_MIN_SKILLS && selectedSkills.length <= MAX_SKILLS;
       case 4:
@@ -1826,6 +1826,26 @@ export default function ProviderOnboardingWizard() {
           />
           <p className="text-[11px] text-muted-foreground">
             Esto ayudará a los clientes a conocer tu trabajo
+          </p>
+        </div>
+
+        {/* Phone Number - Mandatory */}
+        <div className="space-y-2">
+          <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+            TELÉFONO <span className="text-destructive">*</span>
+          </Label>
+          <PhoneInput
+            value={profileData.phone}
+            onChange={(val) => setProfileData(prev => ({ ...prev, phone: val }))}
+            error={profileData.phone.length > 0 && !isValidMexicanPhone(profileData.phone)}
+          />
+          {profileData.phone.length > 0 && !isValidMexicanPhone(profileData.phone) && (
+            <p className="text-xs text-destructive">
+              Ingresa un número mexicano válido de 10 dígitos
+            </p>
+          )}
+          <p className="text-[11px] text-muted-foreground">
+            Número mexicano de 10 dígitos (obligatorio)
           </p>
         </div>
       </div>
