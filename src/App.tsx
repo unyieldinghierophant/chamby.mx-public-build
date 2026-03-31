@@ -19,6 +19,7 @@ import { trackPageView, isGALoaded } from "@/lib/analytics";
 import Index from "./pages/Index";
 import ProtectedRoute from "./components/ProtectedRoute";
 import CookieConsent from "./components/CookieConsent";
+import ScrollToTop from "./components/ScrollToTop";
 import AuthCallback from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
 
@@ -141,6 +142,7 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <ScrollToTop />
             <AnalyticsTracker />
             <RedirectHandler />
             <Suspense fallback={null}>
