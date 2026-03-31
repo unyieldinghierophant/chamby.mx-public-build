@@ -134,3 +134,6 @@ verify_jwt = false
 
 [functions.transition-job-status]
 verify_jwt = false
+
+[functions.notify-no-provider]
+verify_jwt = false
