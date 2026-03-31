@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, Component, type ErrorInfo, type ReactNode } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -80,6 +80,199 @@ const PROGRESS_STEPS = [
   { id: 5, label: 'DOCS' },
 ];
 
+const ONBOARDING_MIN_SKILLS = 0;
+
+const sanitizeSkills = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return [];
+
+  return Array.from(
+    new Set(
+      value
+        .map((item) => (typeof item === 'string' ? item.trim() : ''))
+        .filter(Boolean)
+    )
+  ).slice(0, MAX_SKILLS);
+};
+
+interface SkillsStepBoundaryProps {
+  children: ReactNode;
+  onReset: () => void;
+}
+
+interface SkillsStepBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class SkillsStepBoundary extends Component<SkillsStepBoundaryProps, SkillsStepBoundaryState> {
+  state: SkillsStepBoundaryState = {
+    hasError: false,
+    error: null,
+  };
+
+  static getDerivedStateFromError(error: Error): SkillsStepBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('[ProviderOnboarding][SkillsBoundary] Render crash detected', {
+      message: error.message,
+      stack: error.stack,
+      componentStack: info.componentStack,
+    });
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="space-y-4 rounded-xl border border-destructive/20 bg-destructive/5 p-4">
+          <div className="space-y-1">
+            <h3 className="font-semibold text-foreground">Tuvimos un problema al mostrar los oficios</h3>
+            <p className="text-sm text-muted-foreground">
+              Tus datos guardados siguen intactos. Puedes reintentar sin empezar de nuevo.
+            </p>
+            <p className="text-xs font-mono text-muted-foreground break-all">
+              {this.state.error?.message || 'Error desconocido'}
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => {
+              console.log('[ProviderOnboarding][SkillsBoundary] Resetting skills step after render error');
+              this.setState({ hasError: false, error: null });
+              this.props.onReset();
+            }}
+          >
+            Reintentar selección
+          </Button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+interface SkillsSelectionContentProps {
+  customSkill: string;
+  onCustomSkillChange: (value: string) => void;
+  selectedSkills: string[];
+  onToggleSkill: (skill: string) => void;
+  onRemoveSkill: (skill: string) => void;
+}
+
+function SkillsSelectionContent({
+  customSkill,
+  onCustomSkillChange,
+  selectedSkills,
+  onToggleSkill,
+  onRemoveSkill,
+}: SkillsSelectionContentProps) {
+  const searchQuery = customSkill.toLowerCase().trim();
+  const filteredCategories = searchQuery
+    ? CURATED_SKILL_CATEGORIES.map((cat) => ({
+        ...cat,
+        skills: cat.skills.filter((s) => s.toLowerCase().includes(searchQuery)),
+      })).filter((cat) => cat.skills.length > 0)
+    : CURATED_SKILL_CATEGORIES;
+
+  return (
+    <div className="space-y-5">
+      <div className="mb-4">
+        <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+          ¿Qué servicios ofreces?
+        </h2>
+        <p className="text-muted-foreground">
+          Elige tus habilidades (0–{MAX_SKILLS})
+        </p>
+      </div>
+
+      <Input
+        placeholder="Buscar habilidad…"
+        value={customSkill}
+        onChange={(e) => onCustomSkillChange(e.target.value)}
+        className="h-12 text-base border-2 rounded-xl"
+      />
+
+      <p className={cn(
+        'text-sm font-medium text-center',
+        selectedSkills.length >= MAX_SKILLS ? 'text-amber-600' : 'text-muted-foreground'
+      )}>
+        {selectedSkills.length}/{MAX_SKILLS} seleccionadas
+      </p>
+
+      <div className="space-y-5">
+        {filteredCategories.map((cat) => (
+          <div key={cat.name}>
+            <h3 className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">
+              {cat.name}
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {cat.skills.map((skill) => {
+                const isSelected = selectedSkills.includes(skill);
+                const isDisabled = !isSelected && selectedSkills.length >= MAX_SKILLS;
+
+                return (
+                  <button
+                    key={skill}
+                    type="button"
+                    disabled={isDisabled}
+                    onClick={() => onToggleSkill(skill)}
+                    className={cn(
+                      'px-3 py-2 rounded-full text-sm font-medium border transition-all',
+                      isSelected
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : isDisabled
+                          ? 'bg-muted text-muted-foreground/50 border-muted cursor-not-allowed'
+                          : 'bg-background text-foreground border-border hover:border-primary/50'
+                    )}
+                  >
+                    {isSelected && <CheckCircle2 className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />}
+                    {skill}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+
+        {filteredCategories.length === 0 && (
+          <p className="text-sm text-muted-foreground text-center py-4">
+            No se encontraron habilidades con "{customSkill}"
+          </p>
+        )}
+      </div>
+
+      {selectedSkills.filter((skill) => !ALL_CURATED_SKILLS.includes(skill)).length > 0 && (
+        <div className="pt-4 border-t">
+          <h3 className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">
+            Otras seleccionadas
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {selectedSkills
+              .filter((skill) => !ALL_CURATED_SKILLS.includes(skill))
+              .map((skill) => (
+                <span
+                  key={skill}
+                  className="inline-flex items-center gap-1 px-3 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium"
+                >
+                  {skill}
+                  <button
+                    type="button"
+                    onClick={() => onRemoveSkill(skill)}
+                    className="hover:text-destructive"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </span>
+              ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ProviderOnboardingWizard() {
   const { user, signUp, signIn, signInWithGoogle, resetPassword } = useAuth();
   const navigate = useNavigate();
@@ -95,6 +288,7 @@ export default function ProviderOnboardingWizard() {
   const photoInputRef = useRef<HTMLInputElement>(null);
   const hasRestoredForm = useRef(false);
   const hasCheckedOnboarding = useRef(false); // Track if we've already checked onboarding status
+  const restoredStepRef = useRef<number | null>(null);
 
   // Form persistence
   const { saveFormData, loadFormData, clearFormData } = useFormPersistence(FORM_STORAGE_KEY);
@@ -146,30 +340,62 @@ export default function ProviderOnboardingWizard() {
     
     const savedData = loadFormData();
     if (savedData) {
-      // Don't restore currentStep — always start at step 1 on fresh mount
+      const restoredStep = typeof savedData.currentStep === 'number'
+        ? Math.min(Math.max(savedData.currentStep, 1), 7)
+        : null;
+
+      if (restoredStep) {
+        restoredStepRef.current = restoredStep;
+        if (user) {
+          setCurrentStep(restoredStep);
+        }
+      }
+
+      if (savedData.authMode === 'signup' || savedData.authMode === 'login') {
+        setAuthMode(savedData.authMode);
+      }
+      if (savedData.signupData) setSignupData((prev) => ({ ...prev, ...savedData.signupData }));
+      if (savedData.loginData) setLoginData((prev) => ({ ...prev, ...savedData.loginData }));
       if (savedData.profileData) setProfileData(savedData.profileData);
-      if (savedData.selectedSkills) setSelectedSkills(savedData.selectedSkills);
+      if (savedData.selectedSkills) setSelectedSkills(sanitizeSkills(savedData.selectedSkills));
+      if (typeof savedData.customSkill === 'string') setCustomSkill(savedData.customSkill);
       if (savedData.workZone) setWorkZone(savedData.workZone);
       if (savedData.workZoneCoords) setWorkZoneCoords(savedData.workZoneCoords);
       if (savedData.workZoneRadius) setWorkZoneRadius(savedData.workZoneRadius);
       if (savedData.availability) setAvailability(savedData.availability);
     }
-  }, [loadFormData]);
+  }, [loadFormData, user]);
 
   // Auto-save form data on step change
   useEffect(() => {
     if (currentStep > 1) {
       saveFormData({
         currentStep,
+        authMode,
+        signupData,
+        loginData,
         profileData,
-        selectedSkills,
+        selectedSkills: sanitizeSkills(selectedSkills),
+        customSkill,
         workZone,
         workZoneCoords,
         workZoneRadius,
         availability,
       });
     }
-  }, [currentStep, profileData, selectedSkills, workZone, workZoneCoords, workZoneRadius, availability, saveFormData]);
+  }, [currentStep, authMode, signupData, loginData, profileData, selectedSkills, customSkill, workZone, workZoneCoords, workZoneRadius, availability, saveFormData]);
+
+  useEffect(() => {
+    if (currentStep !== 3) return;
+
+    console.log('[ProviderOnboarding][Skills] Step state snapshot', {
+      userId: user?.id ?? null,
+      currentStep,
+      selectedSkills: sanitizeSkills(selectedSkills),
+      count: sanitizeSkills(selectedSkills).length,
+      hasSession: !!user,
+    });
+  }, [currentStep, selectedSkills, user]);
 
   const handleWorkZoneChange = useCallback((lat: number, lng: number, radiusKm: number, zoneName: string) => {
     setWorkZoneCoords({ lat, lng });
@@ -220,88 +446,100 @@ export default function ProviderOnboardingWizard() {
       
       const checkOnboardingStatus = async () => {
         setCheckingStatus(true);
-        
-        const { data: roles } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id);
-        
-        const isProvider = roles?.some(r => r.role === 'provider');
-        const isAdmin = roles?.some(r => r.role === 'admin');
-        setHasProviderRole(isProvider || isAdmin);
-        
-        // Read onboarding state from DB (single source of truth)
-        const { data: providerData } = await supabase
-          .from('providers')
-          .select('skills, zone_served, display_name, avatar_url, onboarding_complete, onboarding_step')
-          .eq('user_id', user.id)
-          .maybeSingle();
-        
-        const dbComplete = providerData?.onboarding_complete === true;
-        const dbStep = providerData?.onboarding_step;
-        
-        console.log('[Onboarding] DB check:', { userId: user.id, dbComplete, dbStep, isProvider, skills: providerData?.skills?.length });
-        setDebugInfo({ userId: user.id, onboardingComplete: dbComplete, dbStep });
-        setOnboardingComplete(dbComplete);
-        
-        // If DB says complete, redirect immediately
-        if (dbComplete && (isProvider || isAdmin)) {
-          console.log('[Onboarding] onboarding_complete=true, redirecting to portal');
-          navigate(ROUTES.PROVIDER_PORTAL, { replace: true });
-          setCheckingStatus(false);
-          return;
-        }
-        
-        hasCheckedOnboarding.current = true;
-        
-        // Resume from saved DB step (if past auth)
-        const resumeStep = dbStep ? (STEP_NUMBER_MAP[dbStep] || 1) : 1;
-        if (currentStep <= 1) {
-          const targetStep = Math.max(1, resumeStep);
-          console.log('[Onboarding] Resuming from step:', targetStep, '(db:', dbStep, ')');
-          setCurrentStep(targetStep);
-        }
 
-        // Ensure public.users row exists (FK safety net for broken trigger)
-        await ensurePublicUserRow();
-        // Ensure provider row exists now that user is authenticated
-        await ensureProviderRow();
-        
-        const { data: userData } = await supabase
-          .from('users')
-          .select('full_name, phone')
-          .eq('id', user.id)
-          .single();
+        try {
+          const { data: roles } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', user.id);
+          
+          const isProvider = roles?.some(r => r.role === 'provider');
+          const isAdmin = roles?.some(r => r.role === 'admin');
+          setHasProviderRole(isProvider || isAdmin);
+          
+          const { data: providerData } = await supabase
+            .from('providers')
+            .select('skills, zone_served, display_name, avatar_url, onboarding_complete, onboarding_step')
+            .eq('user_id', user.id)
+            .maybeSingle();
+          
+          const dbComplete = providerData?.onboarding_complete === true;
+          const dbStep = providerData?.onboarding_step;
+          
+          console.log('[Onboarding] DB check:', {
+            userId: user.id,
+            dbComplete,
+            dbStep,
+            isProvider,
+            savedStep: restoredStepRef.current,
+            skills: providerData?.skills?.length,
+          });
+          setDebugInfo({ userId: user.id, onboardingComplete: dbComplete, dbStep });
+          setOnboardingComplete(dbComplete);
+          
+          if (dbComplete && (isProvider || isAdmin)) {
+            console.log('[Onboarding] onboarding_complete=true, redirecting to portal');
+            navigate(ROUTES.PROVIDER_PORTAL, { replace: true });
+            return;
+          }
+          
+          hasCheckedOnboarding.current = true;
+          
+          const resumeStep = dbStep ? (STEP_NUMBER_MAP[dbStep] || 1) : 1;
+          if (currentStep <= 1) {
+            const targetStep = Math.max(1, resumeStep, restoredStepRef.current ?? 1);
+            console.log('[Onboarding] Resuming from step:', targetStep, '(db:', dbStep, 'saved:', restoredStepRef.current, ')');
+            setCurrentStep(targetStep);
+          }
 
-        if (userData) {
-          setProfileData(prev => ({
-            ...prev,
-            displayName: userData.full_name || '',
-            phone: userData.phone || '',
-          }));
-          setSignupData(prev => ({
-            ...prev,
-            fullName: userData.full_name || '',
-            phone: userData.phone || ''
-          }));
-        }
-        
-        // Pre-populate existing provider data
-        if (providerData) {
-          if (providerData.skills) setSelectedSkills(providerData.skills);
-          if (providerData.zone_served) setWorkZone(providerData.zone_served);
-          if (providerData.display_name) {
+          await ensurePublicUserRow();
+          await ensureProviderRow();
+          
+          const { data: userData } = await supabase
+            .from('users')
+            .select('full_name, phone')
+            .eq('id', user.id)
+            .single();
+
+          if (userData) {
             setProfileData(prev => ({
               ...prev,
-              displayName: providerData.display_name || prev.displayName
+              displayName: userData.full_name || prev.displayName,
+              phone: userData.phone || prev.phone,
+            }));
+            setSignupData(prev => ({
+              ...prev,
+              fullName: userData.full_name || prev.fullName,
+              phone: userData.phone || prev.phone
             }));
           }
-          if (providerData.avatar_url) {
-            setProfileData(prev => ({ ...prev, avatarUrl: providerData.avatar_url || '' }));
+          
+          if (providerData) {
+            setSelectedSkills((prev) => {
+              const localSkills = sanitizeSkills(prev);
+              const dbSkills = sanitizeSkills(providerData.skills);
+              return localSkills.length > 0 ? localSkills : dbSkills;
+            });
+
+            if (providerData.zone_served) setWorkZone(providerData.zone_served);
+            if (providerData.display_name) {
+              setProfileData(prev => ({
+                ...prev,
+                displayName: providerData.display_name || prev.displayName
+              }));
+            }
+            if (providerData.avatar_url) {
+              setProfileData(prev => ({ ...prev, avatarUrl: providerData.avatar_url || prev.avatarUrl }));
+            }
           }
+        } catch (error: any) {
+          console.error('[Onboarding] Failed to restore onboarding state:', error);
+          toast.error('No pudimos restaurar el registro', {
+            description: 'Tus datos locales siguen guardados para que no tengas que empezar de nuevo.',
+          });
+        } finally {
+          setCheckingStatus(false);
         }
-        
-        setCheckingStatus(false);
       };
 
       checkOnboardingStatus();
@@ -749,22 +987,55 @@ export default function ProviderOnboardingWizard() {
   };
 
   const toggleSkill = (skill: string) => {
-    setSelectedSkills(prev => {
-      if (prev.includes(skill)) return prev.filter(s => s !== skill);
-      if (prev.length >= MAX_SKILLS) return prev;
-      return [...prev, skill];
+    console.log('[ProviderOnboarding][Skills] Toggle requested', {
+      skill,
+      userId: user?.id ?? null,
+      currentStep,
+    });
+
+    setSelectedSkills(prevState => {
+      const prev = sanitizeSkills(prevState);
+      const next = prev.includes(skill)
+        ? prev.filter((item) => item !== skill)
+        : prev.length >= MAX_SKILLS
+          ? prev
+          : [...prev, skill];
+
+      console.log('[ProviderOnboarding][Skills] Selection updated', {
+        previous: prev,
+        next,
+        count: next.length,
+      });
+
+      return next;
     });
   };
 
   const addCustomSkill = () => {
-    if (customSkill.trim() && !selectedSkills.includes(customSkill.trim())) {
-      setSelectedSkills([...selectedSkills, customSkill.trim()]);
-      setCustomSkill('');
-    }
+    const nextSkill = customSkill.trim();
+    if (!nextSkill) return;
+
+    setSelectedSkills((prevState) => {
+      const prev = sanitizeSkills(prevState);
+      if (prev.includes(nextSkill) || prev.length >= MAX_SKILLS) {
+        return prev;
+      }
+
+      const next = [...prev, nextSkill];
+      console.log('[ProviderOnboarding][Skills] Custom skill added', { nextSkill, next, count: next.length });
+      return next;
+    });
+    setCustomSkill('');
   };
 
   const removeSkill = (skill: string) => {
-    setSelectedSkills(selectedSkills.filter(s => s !== skill));
+    console.log('[ProviderOnboarding][Skills] Removing skill', { skill, userId: user?.id ?? null });
+    setSelectedSkills((prevState) => {
+      const prev = sanitizeSkills(prevState);
+      const next = prev.filter((item) => item !== skill);
+      console.log('[ProviderOnboarding][Skills] Skill removed', { previous: prev, next, count: next.length });
+      return next;
+    });
   };
 
   // Persistent error state for unmissable error display
@@ -922,7 +1193,7 @@ export default function ProviderOnboardingWizard() {
       case 2:
         return (profileData.avatarUrl || '').length > 0 && (profileData.bio || '').trim().length > 0;
       case 3:
-        return selectedSkills.length >= MIN_SKILLS && selectedSkills.length <= MAX_SKILLS;
+        return selectedSkills.length >= ONBOARDING_MIN_SKILLS && selectedSkills.length <= MAX_SKILLS;
       case 4:
         // Allow advancing if we have valid coordinates (zone name is optional - geocoding may fail)
         return workZoneCoords !== null && (workZoneCoords.lat !== 0 || workZoneCoords.lng !== 0);
@@ -1562,108 +1833,22 @@ export default function ProviderOnboardingWizard() {
   }
 
   function renderSkillsStep() {
-    const searchQuery = customSkill.toLowerCase().trim();
-    const filteredCategories = searchQuery
-      ? CURATED_SKILL_CATEGORIES.map(cat => ({
-          ...cat,
-          skills: cat.skills.filter(s => s.toLowerCase().includes(searchQuery)),
-        })).filter(cat => cat.skills.length > 0)
-      : CURATED_SKILL_CATEGORIES;
-
     return (
-      <div className="space-y-5">
-        <div className="mb-4">
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
-            ¿Qué servicios ofreces?
-          </h2>
-          <p className="text-muted-foreground">
-            Elige tus habilidades (1–{MAX_SKILLS})
-          </p>
-        </div>
-
-        {/* Search */}
-        <Input
-          placeholder="Buscar habilidad…"
-          value={customSkill}
-          onChange={(e) => setCustomSkill(e.target.value)}
-          className="h-12 text-base border-2 rounded-xl"
+      <SkillsStepBoundary
+        onReset={() => {
+          console.log('[ProviderOnboarding][SkillsBoundary] Manual reset invoked');
+          setCustomSkill('');
+          setSelectedSkills((prev) => sanitizeSkills(prev));
+        }}
+      >
+        <SkillsSelectionContent
+          customSkill={customSkill}
+          onCustomSkillChange={setCustomSkill}
+          selectedSkills={sanitizeSkills(selectedSkills)}
+          onToggleSkill={toggleSkill}
+          onRemoveSkill={removeSkill}
         />
-
-        {/* Counter */}
-        <p className={cn(
-          "text-sm font-medium text-center",
-          selectedSkills.length === 0 ? "text-destructive/70"
-            : selectedSkills.length >= MAX_SKILLS ? "text-amber-600"
-            : "text-muted-foreground"
-        )}>
-          {selectedSkills.length}/{MAX_SKILLS} seleccionadas
-        </p>
-
-        {/* Categorized chips */}
-        <div className="space-y-5">
-          {filteredCategories.map((cat) => (
-            <div key={cat.name}>
-              <h3 className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">
-                {cat.name}
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {cat.skills.map((skill) => {
-                  const isSelected = selectedSkills.includes(skill);
-                  const isDisabled = !isSelected && selectedSkills.length >= MAX_SKILLS;
-                  return (
-                    <button
-                      key={skill}
-                      type="button"
-                      disabled={isDisabled}
-                      onClick={() => toggleSkill(skill)}
-                      className={cn(
-                        "px-3 py-2 rounded-full text-sm font-medium border transition-all",
-                        isSelected
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : isDisabled
-                            ? "bg-muted text-muted-foreground/50 border-muted cursor-not-allowed"
-                            : "bg-background text-foreground border-border hover:border-primary/50"
-                      )}
-                    >
-                      {isSelected && <CheckCircle2 className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />}
-                      {skill}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-          {filteredCategories.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              No se encontraron habilidades con "{customSkill}"
-            </p>
-          )}
-        </div>
-
-        {/* Show selected non-curated skills from DB (legacy) */}
-        {selectedSkills.filter(s => !ALL_CURATED_SKILLS.includes(s)).length > 0 && (
-          <div className="pt-4 border-t">
-            <h3 className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">
-              Otras seleccionadas
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {selectedSkills
-                .filter(s => !ALL_CURATED_SKILLS.includes(s))
-                .map((skill) => (
-                  <span
-                    key={skill}
-                    className="inline-flex items-center gap-1 px-3 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium"
-                  >
-                    {skill}
-                    <button type="button" onClick={() => removeSkill(skill)} className="hover:text-destructive">
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </span>
-                ))}
-            </div>
-          </div>
-        )}
-      </div>
+      </SkillsStepBoundary>
     );
   }
 
