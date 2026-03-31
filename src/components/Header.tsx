@@ -81,12 +81,12 @@ const Header = () => {
               <Link to={ROUTES.ACTIVE_JOBS} className="text-foreground/70 hover:text-foreground transition-colors text-sm font-medium whitespace-nowrap">
                 Trabajos activos
               </Link>
-              <button 
-                onClick={handleHowItWorksClick}
-                className="text-foreground/70 hover:text-foreground transition-colors text-sm font-medium whitespace-nowrap"
-              >
+              <Link to={ROUTES.HOW_IT_WORKS} className="text-foreground/70 hover:text-foreground transition-colors text-sm font-medium whitespace-nowrap">
                 Cómo funciona
-              </button>
+              </Link>
+              <Link to={ROUTES.ABOUT} className="text-foreground/70 hover:text-foreground transition-colors text-sm font-medium whitespace-nowrap">
+                Sobre nosotros
+              </Link>
               
               {user ? (
                 <DropdownMenu>
