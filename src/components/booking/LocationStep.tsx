@@ -160,7 +160,6 @@ export function LocationStep({
         {
           input: value,
           componentRestrictions: { country: "mx" },
-          types: ["address", "establishment", "geocode"],
         },
         (results, status) => {
           if (status === google.maps.places.PlacesServiceStatus.OK && results) {
@@ -172,7 +171,7 @@ export function LocationStep({
           }
         }
       );
-    }, 250);
+    }, 200);
   };
 
   const selectPrediction = (prediction: google.maps.places.AutocompletePrediction) => {
