@@ -315,7 +315,7 @@ export function LocationStep({
       </div>
 
       {/* Address search + display — BELOW map */}
-      <div className="bg-card border border-border rounded-xl p-4 shadow-sm space-y-3">
+      <div className="bg-card border border-border rounded-xl p-3 shadow-sm space-y-2.5">
         {/* Current address display */}
         <div className="flex items-start gap-3">
           <div className="p-2 rounded-lg bg-primary/10 shrink-0">
