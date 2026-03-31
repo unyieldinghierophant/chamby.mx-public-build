@@ -246,12 +246,12 @@ export function LocationStep({
   }, []);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div>
-        <h1 className="text-3xl md:text-4xl font-jakarta font-medium text-foreground">
+        <h1 className="text-2xl md:text-3xl font-jakarta font-medium text-foreground">
           Ubicación del servicio
         </h1>
-        <p className="text-muted-foreground mt-2">
+        <p className="text-sm text-muted-foreground mt-1">
           Mueve el mapa o busca tu dirección abajo
         </p>
       </div>
