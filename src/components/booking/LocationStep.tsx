@@ -252,86 +252,19 @@ export function LocationStep({
           Ubicación del servicio
         </h1>
         <p className="text-muted-foreground mt-2">
-          ¿Dónde necesitas que vaya el proveedor?
+          Mueve el mapa o busca tu dirección abajo
         </p>
       </div>
 
-      {/* Search bar */}
-      <div className="relative z-[60]" ref={searchContainerRef}>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
-          <Input
-            ref={searchInputRef}
-            value={searchQuery}
-            onChange={(e) => handleSearchInput(e.target.value)}
-            onFocus={() => predictions.length > 0 && setShowPredictions(true)}
-            placeholder="Buscar dirección o lugar…"
-            className="h-14 text-base pl-10 pr-10 rounded-xl border-border bg-background"
-            maxLength={300}
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={clearSearch}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-muted transition-colors"
-            >
-              <X className="w-4 h-4 text-muted-foreground" />
-            </button>
-          )}
-        </div>
-
-        {/* Predictions dropdown */}
-        {showPredictions && predictions.length > 0 && (
-          <div className="absolute z-[1000] w-full mt-1 bg-background border border-border rounded-xl shadow-lg max-h-56 overflow-y-auto">
-            {predictions.map((p) => (
-              <button
-                key={p.place_id}
-                type="button"
-                onClick={() => selectPrediction(p)}
-                className="w-full px-4 py-3 text-left text-sm hover:bg-muted/50 transition-colors flex items-start gap-3 border-b border-border/50 last:border-b-0"
-              >
-                <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-                <div>
-                  <span className="font-medium text-foreground">
-                    {p.structured_formatting.main_text}
-                  </span>
-                  <span className="block text-xs text-muted-foreground">
-                    {p.structured_formatting.secondary_text}
-                  </span>
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* GPS button */}
-      <button
-        type="button"
-        onClick={handleUseMyLocation}
-        disabled={isLocating}
-        className={cn(
-          "w-full flex items-center justify-center gap-2 h-12 rounded-xl border-2 border-primary/30 bg-primary/5 text-primary font-medium transition-colors",
-          isLocating ? "opacity-70 cursor-not-allowed" : "hover:bg-primary/10"
-        )}
-      >
-        {isLocating ? (
-          <Loader2 className="w-4 h-4 animate-spin" />
-        ) : (
-          <Navigation className="w-4 h-4" />
-        )}
-        {isLocating ? "Detectando ubicación…" : "Usar mi ubicación actual"}
-      </button>
-
-      {/* Map with fixed center pin */}
+      {/* Map with fixed center pin — TOP */}
       <div className="relative rounded-2xl overflow-hidden border border-border/60 shadow-md ring-1 ring-border/20">
         <div
           ref={mapContainerRef}
-          className="w-full h-[300px] md:h-[350px]"
+          className="w-full h-[280px] md:h-[320px]"
           style={{ zIndex: 0 }}
         />
 
-        {/* Fixed center pin — CSS positioned, not a map marker */}
+        {/* Fixed center pin */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full z-[10] pointer-events-none">
           <div
             className={cn(
@@ -347,7 +280,6 @@ export function LocationStep({
               <circle cx="18" cy="18" r="7" fill="white" />
             </svg>
           </div>
-          {/* Drop shadow on ground */}
           <div
             className={cn(
               "mx-auto rounded-full bg-foreground/20 transition-all duration-200",
@@ -356,7 +288,25 @@ export function LocationStep({
           />
         </div>
 
-        {/* Loading overlay when map not ready */}
+        {/* GPS button overlaid on map */}
+        <button
+          type="button"
+          onClick={handleUseMyLocation}
+          disabled={isLocating}
+          className={cn(
+            "absolute bottom-3 right-3 z-[10] flex items-center gap-2 px-3 py-2 rounded-lg bg-background/95 backdrop-blur-sm border border-border shadow-md text-sm font-medium text-primary transition-colors",
+            isLocating ? "opacity-70 cursor-not-allowed" : "hover:bg-background"
+          )}
+        >
+          {isLocating ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Navigation className="w-4 h-4" />
+          )}
+          {isLocating ? "Detectando…" : "Mi ubicación"}
+        </button>
+
+        {/* Loading overlay */}
         {!mapReady && (
           <div className="absolute inset-0 bg-muted flex items-center justify-center z-[5]">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -364,8 +314,9 @@ export function LocationStep({
         )}
       </div>
 
-      {/* Bottom address card */}
+      {/* Address search + display — BELOW map */}
       <div className="bg-card border border-border rounded-xl p-4 shadow-sm space-y-3">
+        {/* Current address display */}
         <div className="flex items-start gap-3">
           <div className="p-2 rounded-lg bg-primary/10 shrink-0">
             <MapPin className="w-5 h-5 text-primary" />
@@ -387,6 +338,56 @@ export function LocationStep({
               </p>
             )}
           </div>
+        </div>
+
+        {/* Search input to correct address */}
+        <div className="relative z-[60]" ref={searchContainerRef}>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <Input
+              ref={searchInputRef}
+              value={searchQuery}
+              onChange={(e) => handleSearchInput(e.target.value)}
+              onFocus={() => predictions.length > 0 && setShowPredictions(true)}
+              placeholder="¿Dirección incorrecta? Búscala aquí…"
+              className="h-11 text-sm pl-9 pr-9 rounded-lg border-border bg-background"
+              style={{ fontSize: "16px" }}
+              maxLength={300}
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={clearSearch}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-muted transition-colors"
+              >
+                <X className="w-4 h-4 text-muted-foreground" />
+              </button>
+            )}
+          </div>
+
+          {/* Predictions dropdown */}
+          {showPredictions && predictions.length > 0 && (
+            <div className="absolute z-[1000] w-full mt-1 bg-background border border-border rounded-xl shadow-lg max-h-56 overflow-y-auto">
+              {predictions.map((p) => (
+                <button
+                  key={p.place_id}
+                  type="button"
+                  onClick={() => selectPrediction(p)}
+                  className="w-full px-4 py-3 text-left text-sm hover:bg-muted/50 transition-colors flex items-start gap-3 border-b border-border/50 last:border-b-0"
+                >
+                  <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                  <div>
+                    <span className="font-medium text-foreground">
+                      {p.structured_formatting.main_text}
+                    </span>
+                    <span className="block text-xs text-muted-foreground">
+                      {p.structured_formatting.secondary_text}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Access notes */}
