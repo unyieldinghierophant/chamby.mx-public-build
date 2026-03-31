@@ -77,11 +77,13 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-semibold mb-4">Compañía</h4>
             <ul className="space-y-2 text-muted-foreground">
-              <li><a href="#" className="hover:text-primary transition-colors">Acerca de nosotros</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Cómo funciona</a></li>
-              <li><Link to="/provider/onboarding" className="hover:text-primary transition-colors font-medium">Conviértete en Chambynauta</Link></li>
-              <li><a href="/help-center" className="hover:text-primary transition-colors">Centro de ayuda</a></li>
-              <li><a href="/blog" className="hover:text-primary transition-colors">Blog</a></li>
+              <li><Link to="/about" className="hover:text-primary transition-colors">Sobre nosotros</Link></li>
+              <li><Link to="/how-it-works" className="hover:text-primary transition-colors">Cómo funciona</Link></li>
+              <li><Link to="/chambynauta" className="hover:text-primary transition-colors font-medium">Conviértete en Chambynauta</Link></li>
+              <li><Link to="/book-job" className="hover:text-primary transition-colors">Agenda tu primer trabajo</Link></li>
+              <li><a href="https://wa.me/523325520551" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Atención al cliente</a></li>
+              <li><Link to="/help-center" className="hover:text-primary transition-colors">Centro de ayuda</Link></li>
+              <li><Link to="/blog" className="hover:text-primary transition-colors">Blog</Link></li>
             </ul>
           </div>
 

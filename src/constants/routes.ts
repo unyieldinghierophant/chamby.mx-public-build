@@ -50,6 +50,9 @@ export const ROUTES = {
   PROVIDER_SKILLS_SELECTION: '/provider-portal/skills-selection',
   PROVIDER_SUPPORT: '/provider-portal/support',
   PROVIDER_ONBOARDING_WIZARD: '/provider/onboarding',
+  CHAMBYNAUTA: '/chambynauta',
+  ABOUT: '/about',
+  HOW_IT_WORKS: '/how-it-works',
 } as const;
 
 export type AppRoute = typeof ROUTES[keyof typeof ROUTES];

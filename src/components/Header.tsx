@@ -44,15 +44,6 @@ const Header = () => {
     return isOnProviderPage ? ROUTES.PROVIDER_LANDING : ROUTES.USER_LANDING;
   };
 
-  const handleHowItWorksClick = (e: React.MouseEvent) => {
-    if (location.pathname === ROUTES.HOME || location.pathname === ROUTES.USER_LANDING) {
-      e.preventDefault();
-      const howItWorksSection = document.getElementById('how-it-works-section');
-      if (howItWorksSection) {
-        howItWorksSection.scrollIntoView({ behavior: 'smooth' });
-      }
-    }
-  };
 
   return (
     <>
@@ -81,12 +72,12 @@ const Header = () => {
               <Link to={ROUTES.ACTIVE_JOBS} className="text-foreground/70 hover:text-foreground transition-colors text-sm font-medium whitespace-nowrap">
                 Trabajos activos
               </Link>
-              <button 
-                onClick={handleHowItWorksClick}
-                className="text-foreground/70 hover:text-foreground transition-colors text-sm font-medium whitespace-nowrap"
-              >
+              <Link to={ROUTES.HOW_IT_WORKS} className="text-foreground/70 hover:text-foreground transition-colors text-sm font-medium whitespace-nowrap">
                 Cómo funciona
-              </button>
+              </Link>
+              <Link to={ROUTES.ABOUT} className="text-foreground/70 hover:text-foreground transition-colors text-sm font-medium whitespace-nowrap">
+                Sobre nosotros
+              </Link>
               
               {user ? (
                 <DropdownMenu>
@@ -151,7 +142,7 @@ const Header = () => {
                   <Link to={ROUTES.LOGIN} className="text-foreground/70 hover:text-foreground transition-colors text-sm font-medium whitespace-nowrap">
                     Iniciar sesión
                   </Link>
-                  <Link to={ROUTES.PROVIDER_AUTH} className="text-primary hover:text-primary/80 transition-colors text-sm font-semibold whitespace-nowrap">
+                  <Link to={ROUTES.CHAMBYNAUTA} className="text-primary hover:text-primary/80 transition-colors text-sm font-semibold whitespace-nowrap">
                     Ser Chambynauta
                   </Link>
                 </>
@@ -231,13 +222,13 @@ const Header = () => {
                   >
                     Registrarse
                   </Link>
-                  <Link 
-                    to={ROUTES.PROVIDER_AUTH} 
-                    className="block py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Ser Chambynauta
-                  </Link>
+                   <Link 
+                     to={ROUTES.CHAMBYNAUTA} 
+                     className="block py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
+                     onClick={() => setIsMenuOpen(false)}
+                   >
+                     Ser Chambynauta
+                   </Link>
                 </>
               )}
             </div>

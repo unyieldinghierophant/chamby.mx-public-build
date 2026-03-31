@@ -63,6 +63,8 @@ const RescheduleRequest = lazy(() => import("./pages/provider-portal/RescheduleR
 const AvailableJobs = lazy(() => import("./pages/provider-portal/AvailableJobs"));
 const RoleSelection = lazy(() => import("./pages/RoleSelection"));
 const Blog = lazy(() => import("./pages/Blog"));
+const HowItWorksPage = lazy(() => import("./pages/HowItWorks"));
+const About = lazy(() => import("./pages/About"));
 const HelpCenter = lazy(() => import("./pages/HelpCenter"));
 const ActiveJobs = lazy(() => import("./pages/ActiveJobs"));
 const Messages = lazy(() => import("./pages/Messages"));
@@ -170,6 +172,9 @@ const App = () => {
               <Route path="/blog" element={<Blog />} />
               <Route path="/help-center" element={<HelpCenter />} />
               <Route path="/provider-landing" element={<ProviderLanding />} />
+              <Route path={ROUTES.CHAMBYNAUTA} element={<ProviderLanding />} />
+              <Route path={ROUTES.ABOUT} element={<About />} />
+              <Route path={ROUTES.HOW_IT_WORKS} element={<HowItWorksPage />} />
 
               <Route
                 path="/provider-profile"
