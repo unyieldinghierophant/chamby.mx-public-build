@@ -151,7 +151,7 @@ const Header = () => {
                   <Link to={ROUTES.LOGIN} className="text-foreground/70 hover:text-foreground transition-colors text-sm font-medium whitespace-nowrap">
                     Iniciar sesión
                   </Link>
-                  <Link to={ROUTES.PROVIDER_AUTH} className="text-primary hover:text-primary/80 transition-colors text-sm font-semibold whitespace-nowrap">
+                  <Link to={ROUTES.CHAMBYNAUTA} className="text-primary hover:text-primary/80 transition-colors text-sm font-semibold whitespace-nowrap">
                     Ser Chambynauta
                   </Link>
                 </>
