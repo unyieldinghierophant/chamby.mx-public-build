@@ -73,7 +73,14 @@ const EsperandoProveedor = () => {
     if (!job?.assignment_deadline || isExpired) return;
     const tick = () => {
       const diff = new Date(job.assignment_deadline).getTime() - Date.now();
-      if (diff <= 0) { setTimeLeft({ h: 0, m: 0, s: 0, total: 0 }); setIsExpired(true); supabase.from("jobs").update({ status: "unassigned" }).eq("id", job.id).then(); return; }
+      if (diff <= 0) {
+        setTimeLeft({ h: 0, m: 0, s: 0, total: 0 });
+        setIsExpired(true);
+        supabase.from("jobs").update({ status: "unassigned" }).eq("id", job.id).then();
+        // Trigger no-provider email notification
+        supabase.functions.invoke("notify-no-provider", { body: { jobId: job.id } }).catch(console.error);
+        return;
+      }
       setTimeLeft(formatTime(diff));
     };
     tick(); const interval = setInterval(tick, 1000);
