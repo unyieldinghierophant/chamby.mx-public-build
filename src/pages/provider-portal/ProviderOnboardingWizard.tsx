@@ -1191,7 +1191,7 @@ export default function ProviderOnboardingWizard() {
         }
         return true;
       case 2:
-        return (profileData.avatarUrl || '').length > 0 && (profileData.bio || '').trim().length > 0;
+        return (profileData.avatarUrl || '').length > 0 && (profileData.bio || '').trim().length > 0 && isValidMexicanPhone(profileData.phone);
       case 3:
         return selectedSkills.length >= ONBOARDING_MIN_SKILLS && selectedSkills.length <= MAX_SKILLS;
       case 4:
