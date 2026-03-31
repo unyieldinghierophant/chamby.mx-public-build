@@ -27,17 +27,7 @@ const BookJob = () => {
   }, [newParam]);
 
   return (
-    <div className="bg-gradient-to-br from-blue-50 via-background to-blue-50/30 dark:from-blue-950/20 dark:via-background dark:to-blue-950/10 pb-12 px-4 md:px-8">
-      {/* Minimal inline close button — no fixed header */}
-      <div className="max-w-2xl mx-auto flex justify-end pt-3 md:pt-6">
-        <button
-          onClick={() => navigate(ROUTES.USER_LANDING)}
-          className="p-2 hover:bg-accent rounded-lg transition-colors"
-          aria-label="Cerrar"
-        >
-          <X className="w-6 h-6 text-muted-foreground" />
-        </button>
-      </div>
+    <div className="bg-gradient-to-br from-blue-50 via-background to-blue-50/30 dark:from-blue-950/20 dark:via-background dark:to-blue-950/10 pb-12 px-4 md:px-8 pt-3 md:pt-6">
       <HandymanBookingFlow intentText={intentParam} categorySlug={categoryParam || 'general'} />
     </div>
   );

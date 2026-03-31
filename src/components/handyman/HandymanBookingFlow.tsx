@@ -914,18 +914,6 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
         )}
       </div>
 
-      {/* Mobile Step Indicator dots */}
-      <div className="lg:hidden mt-6 flex justify-center gap-1.5">
-        {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-          <div
-            key={i}
-            className={cn(
-              "h-2 rounded-full transition-all",
-              currentStep === i + 1 ? "w-8 bg-primary" : i + 1 < currentStep ? "w-2 bg-primary/40" : "w-2 bg-muted"
-            )}
-          />
-        ))}
-      </div>
     </div>
   );
 };
