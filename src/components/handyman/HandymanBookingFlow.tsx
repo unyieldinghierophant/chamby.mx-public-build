@@ -593,11 +593,22 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
     <div className="max-w-2xl mx-auto">
       <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} onLogin={handleAuthLogin} onGuest={() => {}} showGuestOption={false} />
 
-      {/* Step Indicator — 6 visual steps (5 interactive + Pago summary) */}
+      {/* Mobile progress bar */}
+      <div className="lg:hidden mb-3">
+        <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
+          <div
+            className="h-full bg-primary rounded-full transition-all duration-300"
+            style={{ width: `${((showSummary ? 6 : currentStep) / 6) * 100}%` }}
+          />
+        </div>
+        <p className="text-xs text-muted-foreground mt-1.5">Paso {showSummary ? 6 : currentStep} de 6</p>
+      </div>
+
+      {/* Step Indicator — desktop only */}
       <HandymanStepIndicator currentStep={showSummary ? 6 : currentStep} totalSteps={6} />
 
       {/* Step Content */}
-      <div className="mt-3 md:mt-8 space-y-6 animate-fade-in" key={currentStep}>
+      <div className="md:mt-4 space-y-6 animate-fade-in" key={currentStep}>
         {/* ---- STEP 1: Description ---- */}
         {currentStep === 1 && (
           <div className="space-y-6">

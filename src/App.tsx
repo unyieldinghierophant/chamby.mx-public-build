@@ -142,6 +142,7 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <ScrollToTop />
             <AnalyticsTracker />
             <RedirectHandler />
             <Suspense fallback={null}>
