@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Upload, Check, Camera, ArrowLeft, Wrench, Hammer, Settings, RotateCcw, Ruler, MoveVertical, PackageOpen, HelpCircle, Building, Home, Loader2, CalendarIcon, Clock, Zap, Sun, Sunset, Moon } from "lucide-react";
+import { Upload, Check, Camera, ArrowLeft, Wrench, Hammer, Settings, RotateCcw, Ruler, MoveVertical, PackageOpen, HelpCircle, Building, Home, Loader2, CalendarIcon, Clock, Zap, Sun, Sunset, Moon, X } from "lucide-react";
 import { LocationStep } from "@/components/booking/LocationStep";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
