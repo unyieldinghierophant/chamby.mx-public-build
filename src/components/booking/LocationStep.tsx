@@ -148,7 +148,7 @@ export function LocationStep({
     setSearchQuery(value);
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
-    if (value.trim().length < 3) {
+    if (value.trim().length < 2) {
       setPredictions([]);
       setShowPredictions(false);
       return;
