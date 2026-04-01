@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Circle, Upload, ArrowLeft, Clock, XCircle, Eye, RefreshCw } from "lucide-react";
+import { CheckCircle, Circle, Upload, ArrowLeft, Clock, XCircle, Eye, RefreshCw, CalendarCheck, ExternalLink } from "lucide-react";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { DocumentUploadDialog } from "@/components/provider-portal/DocumentUploadDialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -74,7 +74,9 @@ const ProviderVerification = () => {
     status: string;
     admin_notes: string | null;
     interview_completed: boolean;
-  }>({ status: 'pending', admin_notes: null, interview_completed: false });
+    interview_scheduled: boolean;
+  }>({ status: 'pending', admin_notes: null, interview_completed: false, interview_scheduled: false });
+  const [markingScheduled, setMarkingScheduled] = useState(false);
 
   const isVerified = verificationDetails.status === 'verified';
 
@@ -105,7 +107,7 @@ const ProviderVerification = () => {
 
       const { data: details } = await supabase
         .from("provider_details")
-        .select("verification_status, admin_notes, interview_completed")
+        .select("verification_status, admin_notes, interview_completed, interview_scheduled")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -113,7 +115,8 @@ const ProviderVerification = () => {
         setVerificationDetails({
           status: details.verification_status || 'pending',
           admin_notes: details.admin_notes,
-          interview_completed: details.interview_completed ?? false
+          interview_completed: details.interview_completed ?? false,
+          interview_scheduled: details.interview_scheduled ?? false,
         });
       }
     } catch (error) {
@@ -183,12 +186,33 @@ const ProviderVerification = () => {
         completed++;
       }
     }
-    // Interview counts as completed if interview_completed is true
+    // Interview counts as completed if admin confirmed, or half-credit if provider self-reported scheduled
     if (verificationDetails.interview_completed) completed++;
+    else if (verificationDetails.interview_scheduled) completed += 0.5;
     return Math.round((completed / totalItems) * 100);
   };
 
   const progress = calculateProgress();
+
+  const CALENDLY_URL = "https://calendly.com/hola-chamby/30min";
+
+  const handleMarkScheduled = async () => {
+    if (!user) return;
+    setMarkingScheduled(true);
+    try {
+      const { error } = await supabase
+        .from("provider_details")
+        .update({ interview_scheduled: true })
+        .eq("user_id", user.id);
+      if (error) throw error;
+      setVerificationDetails(prev => ({ ...prev, interview_scheduled: true }));
+      toast.success("¡Entrevista marcada como agendada! El equipo de Chamby confirmará tu cita.");
+    } catch (err) {
+      toast.error("Error al actualizar. Intenta de nuevo.");
+    } finally {
+      setMarkingScheduled(false);
+    }
+  };
 
   const handleUploadClick = (docType: string, title: string, description: string) => {
     setUploadDialog({ open: true, docType, title, description });
@@ -358,6 +382,31 @@ const ProviderVerification = () => {
         </Card>
       )}
 
+      {/* Interview reminder banner — shown until interview is scheduled */}
+      {!isVerified && !verificationDetails.interview_scheduled && !verificationDetails.interview_completed && (
+        <Card className="border-blue-500/50 bg-blue-500/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-blue-700 dark:text-blue-400 text-base">
+              <CalendarCheck className="h-5 w-5" />
+              Agenda tu entrevista con Chamby
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Para completar tu verificación necesitas agendar una entrevista breve con nuestro equipo. Es rápida y te ayudamos a empezar.
+            </p>
+            <Button
+              onClick={() => window.open(CALENDLY_URL, "_blank")}
+              className="gap-2"
+            >
+              <CalendarCheck className="h-4 w-4" />
+              Agendar Entrevista
+              <ExternalLink className="h-3 w-3" />
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {isVerified && (
         <Card className="border-green-500/50 bg-green-500/5">
           <CardHeader>
@@ -402,30 +451,67 @@ const ProviderVerification = () => {
             {/* Document requirement steps — driven by per-document status */}
             {DOC_REQUIREMENTS.map(renderRequirementStep)}
 
-            {/* Step: Interview (Admin controlled via interview_completed) */}
+            {/* Step: Interview */}
             <div className="flex items-start gap-4 p-4 border rounded-lg">
               <div className="mt-1">
                 {isVerified || verificationDetails.interview_completed ? (
                   <CheckCircle className="h-6 w-6 text-green-600" />
+                ) : verificationDetails.interview_scheduled ? (
+                  <Clock className="h-6 w-6 text-blue-500" />
                 ) : (
                   <Circle className="h-6 w-6 text-muted-foreground" />
                 )}
               </div>
-              <div className="flex-1 space-y-1">
-                <h3 className="font-medium">Completar entrevista presencial</h3>
+              <div className="flex-1 space-y-2 min-w-0">
+                <h3 className="font-medium">Entrevista con Chamby</h3>
+
                 {isVerified || verificationDetails.interview_completed ? (
                   <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20">
-                    Entrevista completada
+                    Entrevista completada ✓
                   </Badge>
+                ) : verificationDetails.interview_scheduled ? (
+                  <div className="space-y-1">
+                    <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20">
+                      Entrevista agendada ✓
+                    </Badge>
+                    <p className="text-xs text-muted-foreground">
+                      El equipo de Chamby confirmará y completará tu entrevista.
+                    </p>
+                  </div>
                 ) : (
-                  <>
+                  <div className="space-y-3">
                     <p className="text-sm text-muted-foreground">
-                      Contacta al equipo de Chamby para agendar tu entrevista
+                      Agenda una llamada breve con nuestro equipo para completar tu verificación.
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                      Email: armando@chamby.mx | Tel: 223 543 8136
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        size="sm"
+                        onClick={() => window.open(CALENDLY_URL, "_blank")}
+                        className="gap-2"
+                      >
+                        <CalendarCheck className="h-4 w-4" />
+                        Agendar Entrevista
+                        <ExternalLink className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleMarkScheduled}
+                        disabled={markingScheduled}
+                        className="gap-2"
+                      >
+                        {markingScheduled ? (
+                          <Clock className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <CheckCircle className="h-4 w-4" />
+                        )}
+                        Marcar entrevista como agendada
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Una vez que agendes en Calendly, haz clic en "Marcar entrevista como agendada" para notificarnos.
                     </p>
-                  </>
+                  </div>
                 )}
               </div>
             </div>

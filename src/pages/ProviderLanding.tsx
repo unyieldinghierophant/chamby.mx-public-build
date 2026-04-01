@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import { ModernButton } from "@/components/ui/modern-button";
 import { Button } from "@/components/ui/button";
@@ -44,7 +44,7 @@ import { useProfile } from "@/hooks/useProfile";
 import ChambyLogoText from "@/components/ChambyLogoText";
 import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
-import { ProviderHeroSlideshow } from "@/components/provider-portal/ProviderHeroSlideshow";
+import { ProviderHeroMap, type JobInfo } from "@/components/provider-portal/ProviderHeroMap";
 import { useScrollParallax } from "@/hooks/useScrollParallax";
 import { useLandingSkeleton } from "@/hooks/useLandingSkeleton";
 import { ProviderLandingSkeleton } from "@/components/ProviderLandingSkeleton";
@@ -60,9 +60,25 @@ const ProviderLanding = () => {
   
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isSkeletonVisible, onHeroMediaReady } = useLandingSkeleton();
-  
+
   // Parallax scroll effect
   const { scrollY, parallaxOffset, dotOpacity, cardOpacity, mapOpacity, heroOpacity } = useScrollParallax(500);
+
+  // Job label state — synced with ProviderHeroMap fly-to animation
+  const [activeJob, setActiveJob] = useState<JobInfo | null>(null);
+  const [labelPhase, setLabelPhase] = useState<"hidden" | "visible" | "exiting">("hidden");
+  const labelExitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleJobEnter = useCallback((job: JobInfo) => {
+    setActiveJob(job);
+    setLabelPhase("visible");
+  }, []);
+
+  const handleJobExit = useCallback(() => {
+    setLabelPhase("exiting");
+    if (labelExitTimer.current) clearTimeout(labelExitTimer.current);
+    labelExitTimer.current = setTimeout(() => setLabelPhase("hidden"), 500);
+  }, []);
 
   const handleJobCardVisible = useCallback((visible: boolean) => {
     setCtaPulse(visible);
@@ -272,53 +288,139 @@ const ProviderLanding = () => {
         )}
       </header>
       
-      {/* Hero Section with Interactive Background */}
-      <section className="relative min-h-[70vh] md:min-h-[80vh] lg:min-h-[90vh] flex items-center justify-center pt-24 pb-12 overflow-hidden">
-        {/* Video background */}
-        <div className="absolute inset-0 z-0">
-          <ProviderHeroSlideshow onReady={onHeroMediaReady} />
-          {/* Green tinted overlay */}
-          <div className="absolute inset-0 bg-[hsl(145_40%_20%/0.55)]" />
-          {/* Dark gradient for text legibility */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40" />
+      {/* Hero Section — full-screen map with animated job label */}
+      <section className="relative h-screen min-h-[600px] flex items-center justify-center overflow-hidden">
+        {/* Map — isolation:isolate keeps Leaflet's z-indices contained */}
+        <div className="absolute inset-0 z-0" style={{ isolation: "isolate" }}>
+          <ProviderHeroMap
+            onReady={onHeroMediaReady}
+            onJobEnter={handleJobEnter}
+            onJobExit={handleJobExit}
+          />
         </div>
-        
-        <div className="container mx-auto px-4 relative z-10">
+
+        {/* Soft light vignette — fades map edges, keeps center clear */}
+        <div
+          className="absolute inset-0 z-[2] pointer-events-none"
+          style={{
+            background: [
+              "radial-gradient(ellipse 90% 60% at 50% 48%, transparent 20%, rgba(248,250,252,0.5) 100%)",
+              "linear-gradient(to bottom, rgba(248,250,252,0.5) 0%, transparent 15%, transparent 75%, rgba(248,250,252,0.95) 100%)",
+            ].join(", "),
+          }}
+        />
+
+        {/* Hero content */}
+        <div className="relative z-[3] px-6 w-full flex justify-center">
           <motion.div
-            className="max-w-5xl mx-auto text-center space-y-8"
+            className="flex flex-col items-center text-center"
             initial="hidden"
             animate="visible"
-            variants={{
-              hidden: {},
-              visible: { transition: { staggerChildren: 0.1 } },
-            }}
+            variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.08 } } }}
           >
-            <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } }}>
-              <Badge className="bg-white/10 text-white border-white/20 text-sm font-medium px-4 py-2 inline-flex items-center gap-2 backdrop-blur-sm">
-                🚀 Únete a más de 500+ profesionales
-              </Badge>
+            {/* Badge — clickable pill to onboarding */}
+            <motion.div
+              variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } }}
+              className="mb-4"
+            >
+              <button
+                onClick={() => navigate('/provider/onboarding?tab=signup')}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#2563EB] text-white text-sm font-medium border border-blue-400/30 shadow-sm hover:bg-[#1D4ED8] transition-colors backdrop-blur-sm"
+              >
+                🚀 Únete a más de 500 chambynautas
+              </button>
             </motion.div>
-            
+
+            {/* Title */}
             <motion.h1
-              className="font-jakarta font-medium text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white leading-[1.15] tracking-tight drop-shadow-lg"
+              className="font-jakarta font-bold text-[#1B2A4A] leading-[1.05]"
+              style={{ fontSize: "clamp(38px, 6vw, 76px)", letterSpacing: "-1.5px" }}
               variants={{ hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6 } } }}
             >
               Sé tu propio jefe
             </motion.h1>
-            
 
+            {/* Job label slot — fixed height so layout never shifts */}
+            <div
+              style={{
+                height: "68px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                position: "relative",
+                margin: "20px 0",
+                minWidth: "260px",
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  padding: "10px 18px 10px 12px",
+                  background: "rgba(255,255,255,0.92)",
+                  backdropFilter: "blur(16px)",
+                  WebkitBackdropFilter: "blur(16px)",
+                  border: "1px solid #E2E8F0",
+                  borderRadius: "12px",
+                  whiteSpace: "nowrap",
+                  boxShadow: "0 4px 24px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04)",
+                  opacity: labelPhase === "visible" ? 1 : 0,
+                  transform:
+                    labelPhase === "visible"
+                      ? "translateY(0) scale(1)"
+                      : labelPhase === "exiting"
+                      ? "translateY(-6px) scale(0.96)"
+                      : "translateY(6px) scale(0.96)",
+                  transition:
+                    "opacity 0.5s ease, transform 0.5s cubic-bezier(0.16,1,0.3,1)",
+                  pointerEvents: "none",
+                }}
+              >
+                <div
+                  style={{
+                    width: "32px",
+                    height: "32px",
+                    borderRadius: "8px",
+                    background: "rgba(37,99,235,0.08)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                    fontSize: "16px",
+                    lineHeight: 1,
+                  }}
+                >
+                  {activeJob?.icon ?? "🔧"}
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                  <span
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: 600,
+                      color: "#1B2A4A",
+                      letterSpacing: "-0.2px",
+                    }}
+                  >
+                    {activeJob?.title ?? ""}
+                  </span>
+                  <span style={{ fontSize: "11px", color: "#94A3B8", fontWeight: 400 }}>
+                    {activeJob?.zone ?? ""} · hace un momento
+                  </span>
+                </div>
+              </div>
+            </div>
 
-
+            {/* CTA — keep existing animated-border design */}
             <motion.div
-              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
               variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } }}
             >
               <div className="relative w-fit p-[3px] rounded-[14px] shadow-elegant overflow-hidden">
-                {/* Rotating gradient border - hugs button tightly */}
                 <div className="absolute inset-0">
                   <div className="absolute inset-[-100%] animate-rotate-gradient bg-[conic-gradient(from_0deg,hsl(214_80%_41%),hsl(210_20%_85%),hsl(214_80%_55%),hsl(214_80%_30%),hsl(210_20%_85%),hsl(214_80%_41%))]" />
                 </div>
-                <button 
+                <button
                   className="relative inline-flex items-center justify-center bg-white text-primary hover:bg-white/90 font-semibold px-8 py-4 text-lg rounded-[10px] whitespace-nowrap"
                   onClick={handleGetStarted}
                 >
@@ -328,24 +430,31 @@ const ProviderLanding = () => {
               </div>
             </motion.div>
 
+            {/* Trust bar */}
             <motion.div
-              className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 text-sm text-white/90"
+              className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-7 text-sm font-medium text-slate-500 mt-6"
               variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } }}
             >
-              <div className="flex items-center space-x-2">
-                <CheckCircle className="h-5 w-5 text-white" />
-                <span>Sin costos ocultos</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <CheckCircle className="h-5 w-5 text-white" />
-                <span>Registro gratuito</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <CheckCircle className="h-5 w-5 text-white" />
-                <span>Solo 10% comisión</span>
-              </div>
+              {["Sin costos ocultos", "Registro gratuito", "Solo 10% comisión"].map(
+                (label) => (
+                  <div key={label} className="flex items-center gap-2">
+                    <span className="w-4 h-4 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center flex-shrink-0">
+                      <svg viewBox="0 0 24 24" className="w-2.5 h-2.5" fill="none" stroke="#2563EB" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 6 9 17l-5-5" />
+                      </svg>
+                    </span>
+                    {label}
+                  </div>
+                )
+              )}
             </motion.div>
           </motion.div>
+        </div>
+
+        {/* Live indicator — bottom-left */}
+        <div className="absolute bottom-4 left-4 z-[4] md:bottom-6 md:left-6 flex items-center gap-2 px-3 py-2 rounded-lg bg-white/90 backdrop-blur-sm border border-[#E2E8F0] text-xs font-medium text-slate-500 pointer-events-none">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          En vivo · Guadalajara
         </div>
       </section>
 

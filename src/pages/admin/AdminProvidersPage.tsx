@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Search, Loader2, Eye, ShieldCheck, ShieldX, Star, MapPin, Mail, Phone, Wrench, Calendar, MessageSquare, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Search, Loader2, Eye, ShieldCheck, ShieldX, Star, MapPin, Mail, Phone, Wrench, Calendar, CalendarCheck, MessageSquare, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -35,6 +35,7 @@ interface ProviderRow {
   verification_status: string | null;
   admin_notes: string | null;
   interview_completed: boolean;
+  interview_scheduled: boolean;
   completed_jobs: number;
 }
 
@@ -109,7 +110,7 @@ const AdminProvidersPage = () => {
         (providerData || []).map(async (p) => {
           const [userRes, detailRes, jobCountRes] = await Promise.all([
             supabase.from('users').select('full_name, email, phone').eq('id', p.user_id).maybeSingle(),
-            supabase.from('provider_details').select('verification_status, admin_notes, interview_completed').eq('user_id', p.user_id).maybeSingle(),
+            supabase.from('provider_details').select('verification_status, admin_notes, interview_completed, interview_scheduled').eq('user_id', p.user_id).maybeSingle(),
             supabase.from('jobs').select('id', { count: 'exact', head: true }).eq('provider_id', p.user_id).eq('status', 'completed'),
           ]);
 
@@ -121,6 +122,7 @@ const AdminProvidersPage = () => {
             verification_status: detailRes.data?.verification_status ?? 'pending',
             admin_notes: detailRes.data?.admin_notes ?? null,
             interview_completed: detailRes.data?.interview_completed ?? false,
+            interview_scheduled: detailRes.data?.interview_scheduled ?? false,
             completed_jobs: jobCountRes.count ?? 0,
           };
         })
@@ -226,6 +228,28 @@ const AdminProvidersPage = () => {
       fetchProviders();
     } catch (err: any) {
       toast.error(err.message || 'Error al revocar verificación');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleToggleInterviewCompleted = async () => {
+    if (!selectedProvider) return;
+    const newValue = !selectedProvider.interview_completed;
+    setActionLoading(true);
+    try {
+      const { error } = await supabase
+        .from('provider_details')
+        .update({ interview_completed: newValue })
+        .eq('user_id', selectedProvider.user_id);
+      if (error) throw error;
+      setSelectedProvider(prev => prev ? { ...prev, interview_completed: newValue } : null);
+      setProviders(prev => prev.map(p =>
+        p.user_id === selectedProvider.user_id ? { ...p, interview_completed: newValue } : p
+      ));
+      toast.success(newValue ? 'Entrevista marcada como completada' : 'Entrevista marcada como pendiente');
+    } catch (err: any) {
+      toast.error(err.message || 'Error al actualizar entrevista');
     } finally {
       setActionLoading(false);
     }
@@ -407,11 +431,27 @@ const AdminProvidersPage = () => {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="text-muted-foreground">Entrevista:</span>
-                    <Badge variant={selectedProvider.interview_completed ? 'default' : 'outline'}>
-                      {selectedProvider.interview_completed ? 'Completada' : 'Pendiente'}
-                    </Badge>
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground">Entrevista:</span>
+                      {selectedProvider.interview_completed ? (
+                        <Badge variant="default" className="bg-green-600">Completada ✓</Badge>
+                      ) : selectedProvider.interview_scheduled ? (
+                        <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200">Agendada — pendiente confirmación</Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-muted-foreground">Pendiente de agendar</Badge>
+                      )}
+                    </div>
+                    <Button
+                      size="sm"
+                      variant={selectedProvider.interview_completed ? 'outline' : 'default'}
+                      onClick={handleToggleInterviewCompleted}
+                      disabled={actionLoading}
+                      className="gap-1 text-xs h-7"
+                    >
+                      <CalendarCheck className="h-3 w-3" />
+                      {selectedProvider.interview_completed ? 'Desmarcar' : 'Marcar completada'}
+                    </Button>
                   </div>
                   {selectedProvider.admin_notes && (
                     <p className="text-sm text-muted-foreground bg-muted p-2 rounded">Notas: {selectedProvider.admin_notes}</p>
