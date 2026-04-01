@@ -50,7 +50,7 @@ import { toFixedSafe } from "@/utils/formatSafe";
 interface VerificationDetails {
   status: 'none' | 'pending' | 'verified' | 'rejected';
   admin_notes: string | null;
-  documentsCount: number;
+  missingDocs: string[];
 }
 
 const ProviderDashboardHome = () => {
@@ -84,7 +84,7 @@ const ProviderDashboardHome = () => {
   const [verificationDetails, setVerificationDetails] = useState<VerificationDetails>({
     status: 'none',
     admin_notes: null,
-    documentsCount: 0
+    missingDocs: []
   });
   const [showJobsAlert, setShowJobsAlert] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>(null);
@@ -130,22 +130,49 @@ const ProviderDashboardHome = () => {
     fetchVerificationDetails();
   }, [user]);
 
+  const REQUIRED_DOC_LABELS: { type: string; label: string }[] = [
+    { type: 'ine_front',      label: 'INE Frente' },
+    { type: 'ine_back',       label: 'INE Reverso' },
+    { type: 'selfie',         label: 'Selfie' },
+    { type: 'selfie_with_id', label: 'Selfie con INE' },
+    { type: 'proof_of_address', label: 'Comprobante de Domicilio' },
+    { type: 'criminal_record',  label: 'Antecedentes No Penales' },
+  ];
+
   const fetchVerificationDetails = async () => {
     if (!user) return;
     try {
       const { data: details } = await supabase
         .from('provider_details')
-        .select('verification_status, admin_notes')
+        .select('verification_status, admin_notes, ine_front_url, ine_back_url, selfie_url, selfie_with_id_url')
         .eq('user_id', user.id)
         .maybeSingle();
-      const { count } = await supabase
+
+      const uploaded = new Set<string>();
+      if (details) {
+        const d = details as any;
+        if (d.ine_front_url)      uploaded.add('ine_front');
+        if (d.ine_back_url)       uploaded.add('ine_back');
+        if (d.selfie_url)         uploaded.add('selfie');
+        if (d.selfie_with_id_url) uploaded.add('selfie_with_id');
+      }
+
+      const { data: docsData } = await supabase
         .from('documents')
-        .select('id', { count: 'exact' })
-        .eq('provider_id', user.id);
+        .select('doc_type')
+        .eq('provider_id', user.id)
+        .in('doc_type', ['proof_of_address', 'criminal_record']);
+
+      docsData?.forEach(d => { if (d.doc_type) uploaded.add(d.doc_type); });
+
+      const missing = REQUIRED_DOC_LABELS
+        .filter(r => !uploaded.has(r.type))
+        .map(r => r.label);
+
       setVerificationDetails({
         status: (details?.verification_status as 'none' | 'pending' | 'verified' | 'rejected') || 'none',
         admin_notes: details?.admin_notes || null,
-        documentsCount: count || 0
+        missingDocs: missing,
       });
     } catch (error) {
       console.error('Error fetching verification details:', error);
@@ -220,7 +247,7 @@ const ProviderDashboardHome = () => {
       .slice(0, 2);
   };
 
-  const { status, admin_notes, documentsCount } = verificationDetails;
+  const { status, admin_notes, missingDocs } = verificationDetails;
 
   return (
     <div className="min-h-screen overflow-x-hidden w-full max-w-full" style={{ background: '#f2f6fd', fontFamily: "'Nunito', sans-serif" }}>
@@ -479,10 +506,18 @@ const ProviderDashboardHome = () => {
               </div>
               <div className="flex-1">
                 <div className="text-[13px] font-bold leading-tight" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#92400e' }}>
-                  {status === 'rejected' ? 'Verificación rechazada' : status === 'pending' ? `Verificación pendiente — ${documentsCount} docs` : 'Sube tus documentos'}
+                  {status === 'rejected'
+                    ? 'Verificación rechazada'
+                    : missingDocs.length > 0
+                      ? `Verificación pendiente — ${missingDocs.length} documento${missingDocs.length > 1 ? 's' : ''} faltante${missingDocs.length > 1 ? 's' : ''}`
+                      : 'Verificación en revisión'}
                 </div>
                 <div className="text-[11px] mt-0.5" style={{ color: '#b45309' }}>
-                  {status === 'rejected' ? 'Revisa tus documentos y vuelve a intentar' : 'Completa tu perfil para más trabajos'}
+                  {status === 'rejected'
+                    ? 'Revisa tus documentos y vuelve a intentar'
+                    : missingDocs.length > 0
+                      ? `Faltan: ${missingDocs.join(', ')}`
+                      : 'Tu perfil está siendo revisado por el equipo'}
                 </div>
                 {/* Progress bar */}
                 <div className="h-[3px] rounded-full mt-[7px] overflow-hidden" style={{ background: 'rgba(0,0,0,0.08)' }}>

@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ModernButton } from "@/components/ui/modern-button";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,7 @@ import {
   AccordionTrigger 
 } from "@/components/ui/accordion";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useVerificationStatus } from "@/hooks/useVerificationStatus";
@@ -59,6 +60,19 @@ const ProviderLanding = () => {
   const [ctaPulse, setCtaPulse] = useState(false);
   
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [incompleteOnboarding, setIncompleteOnboarding] = useState(false);
+
+  useEffect(() => {
+    if (!user || role !== 'provider') return;
+    supabase
+      .from('providers')
+      .select('onboarding_complete')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data && data.onboarding_complete === false) setIncompleteOnboarding(true);
+      });
+  }, [user, role]);
   const { isSkeletonVisible, onHeroMediaReady } = useLandingSkeleton();
 
   // Parallax scroll effect
@@ -288,6 +302,21 @@ const ProviderLanding = () => {
         )}
       </header>
       
+      {/* Incomplete onboarding banner */}
+      {incompleteOnboarding && (
+        <div className="fixed top-16 md:top-20 left-0 right-0 z-40 bg-amber-50 border-b border-amber-200 px-4 py-2.5 flex items-center justify-between gap-3">
+          <p className="text-sm text-amber-800 font-medium">
+            Completa tu perfil para empezar a recibir trabajos
+          </p>
+          <button
+            onClick={() => navigate('/provider/onboarding')}
+            className="shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full bg-amber-800 text-white hover:bg-amber-900 transition-colors"
+          >
+            Retomar registro
+          </button>
+        </div>
+      )}
+
       {/* Hero Section — full-screen map with animated job label */}
       <section className="relative h-screen min-h-[600px] flex items-center justify-center overflow-hidden">
         {/* Map — isolation:isolate keeps Leaflet's z-indices contained */}

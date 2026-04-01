@@ -15,7 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { DocumentCaptureDialog } from "./DocumentCaptureDialog";
 
-type DocumentType = 'ine_front' | 'ine_back' | 'selfie' | 'selfie_with_id' | 'proof_of_address';
+type DocumentType = 'ine_front' | 'ine_back' | 'selfie' | 'selfie_with_id' | 'proof_of_address' | 'criminal_record';
 
 interface DocumentItem {
   type: DocumentType;
@@ -59,7 +59,14 @@ const REQUIRED_DOCUMENTS: DocumentItem[] = [
     name: 'Comprobante de Domicilio',
     description: 'Recibo de luz, agua o estado de cuenta (max 3 meses)',
     icon: FileText,
-    required: false
+    required: true
+  },
+  {
+    type: 'criminal_record',
+    name: 'Antecedentes No Penales',
+    description: 'Carta de antecedentes no penales vigente',
+    icon: Shield,
+    required: true
   }
 ];
 
@@ -107,12 +114,12 @@ export const DocumentsStep = ({ onComplete, isOptional = true }: DocumentsStepPr
         }
       }
 
-      // Also check documents table for proof_of_address (not in provider_details)
+      // Also check documents table for proof_of_address and criminal_record (not in provider_details)
       const { data: docsData } = await supabase
         .from('documents')
         .select('doc_type')
         .eq('provider_id', user.id)
-        .eq('doc_type', 'proof_of_address');
+        .in('doc_type', ['proof_of_address', 'criminal_record']);
 
       if (docsData) {
         docsData.forEach(d => { if (d.doc_type) docTypes.add(d.doc_type); });

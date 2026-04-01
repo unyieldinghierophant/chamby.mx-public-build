@@ -1221,7 +1221,7 @@ export default function ProviderOnboardingWizard() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center relative">
         <button
-          onClick={() => navigate(hasProviderRole ? ROUTES.PROVIDER_PORTAL : ROUTES.PROVIDER_LANDING)}
+          onClick={() => navigate(user && hasProviderRole ? ROUTES.PROVIDER_LANDING : '/')}
           className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground z-10"
           title="Salir"
         >
@@ -1259,7 +1259,7 @@ export default function ProviderOnboardingWizard() {
           </button>
           <ChambyLogoText size="lg" />
           <button 
-            onClick={() => navigate(hasProviderRole ? ROUTES.PROVIDER_PORTAL : ROUTES.PROVIDER_LANDING)}
+            onClick={() => navigate(user && hasProviderRole ? ROUTES.PROVIDER_LANDING : '/')}
             className="p-2 -mr-2 text-muted-foreground hover:text-foreground"
             title="Salir"
           >
@@ -1326,7 +1326,7 @@ export default function ProviderOnboardingWizard() {
           <div className="flex items-center justify-between px-8 pt-6">
             <div /> {/* Spacer */}
             <button 
-              onClick={() => navigate(hasProviderRole ? ROUTES.PROVIDER_PORTAL : ROUTES.PROVIDER_LANDING)}
+              onClick={() => navigate(user && hasProviderRole ? ROUTES.PROVIDER_LANDING : '/')}
               className="p-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted transition-colors"
               title="Salir"
             >

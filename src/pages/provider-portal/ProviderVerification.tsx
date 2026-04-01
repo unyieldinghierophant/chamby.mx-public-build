@@ -55,6 +55,13 @@ const DOC_REQUIREMENTS: DocRequirement[] = [
     description: 'Recibo de luz, agua o estado de cuenta reciente',
     uploadDocType: 'proof_of_address',
   },
+  {
+    key: 'criminal_record',
+    rawTypes: ['criminal_record', 'antecedentes_penales'],
+    title: 'Antecedentes No Penales',
+    description: 'Carta de antecedentes no penales vigente',
+    uploadDocType: 'criminal_record',
+  },
 ];
 
 const ProviderVerification = () => {
