@@ -5,10 +5,9 @@
 
 export const PRICING = {
   VISIT_FEE: {
-    CLIENT_TOTAL_CENTS: 42_900,      // $429.00 MXN — what client pays
+    CLIENT_TOTAL_CENTS: 40_600,      // $406.00 MXN — $350 base + $56 IVA (16%)
     BASE_AMOUNT_CENTS: 35_000,       // $350.00 MXN
     IVA_AMOUNT_CENTS: 5_600,         // $56.00 (16% of base)
-    STRIPE_ABSORBED_CENTS: 2_300,    // ~$23.00 (difference to reach $429)
     PROVIDER_SHARE_CENTS: 25_000,    // $250.00 to provider
     CHAMBY_SHARE_CENTS: 10_000,      // $100.00 to Chamby
     CURRENCY: 'mxn' as const,
@@ -58,7 +57,7 @@ export function formatMXN(centavos: number): string {
 
 // ── Backward-compatible helpers used across UI ──────────────
 export const VAT_LABEL = "IVA (16%)";
-export const VISIT_BASE_FEE = PRICING.VISIT_FEE.CLIENT_TOTAL_CENTS / 100; // 429 (pesos — total client pays)
+export const VISIT_BASE_FEE = PRICING.VISIT_FEE.CLIENT_TOTAL_CENTS / 100; // 406 (pesos — total client pays: $350 + IVA)
 
 export const VISIT_DISPLAY = {
   subtotal: formatMXN(PRICING.VISIT_FEE.CLIENT_TOTAL_CENTS - PRICING.VISIT_FEE.IVA_AMOUNT_CENTS), // pre-IVA

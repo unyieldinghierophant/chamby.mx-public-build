@@ -321,7 +321,6 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
   };
 
   const handleShowSummary = () => {
-    if (!user) { setShowAuthModal(true); return; }
     localStorage.setItem('booking_show_summary', 'true');
     setShowSummary(true);
   };
@@ -335,10 +334,12 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
     const newFiles: UploadedFile[] = files.map(f => ({ file: f, url: URL.createObjectURL(f), uploaded: false }));
     update("photos", [...formData.photos, ...newFiles]);
 
+    // If not logged in, keep as local preview — will upload in handleSubmit after auth
+    if (!user) { setIsUploading(false); e.target.value = ''; return; }
+
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const ext = file.name.split('.').pop();
-      if (!user) { toast({ title: "Inicia sesión para subir fotos", variant: "destructive" }); return; }
       const path = `${user.id}/${Math.random()}.${ext}`;
 
       try {
@@ -365,7 +366,20 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
 
   // ---- Submit ----
   const handleSubmit = async () => {
-    if (!user) { setShowAuthModal(true); return; }
+    if (!user) {
+      // Save form state + show auth modal — after login, booking_show_summary flag returns user here
+      const persistablePhotos = formData.photos
+        .filter(f => f.uploaded && f.url && !f.url.startsWith('blob:'))
+        .map(f => ({ file: null, url: f.url, uploaded: true }));
+      saveFormData({ handymanFormData: { ...formData, photos: persistablePhotos }, currentStep });
+      localStorage.setItem('booking_show_summary', 'true');
+      localStorage.setItem('login_context', 'client');
+      const returnPath = `/book-job?category=${categorySlug}`;
+      sessionStorage.setItem('auth_return_to', returnPath);
+      localStorage.setItem('auth_return_to', returnPath);
+      setShowAuthModal(true);
+      return;
+    }
     setIsSubmitting(true);
 
     try {
@@ -443,6 +457,21 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
       }
       const authenticatedUserId = freshSession.user.id;
 
+      // Upload any local photos that haven't been uploaded yet
+      const uploadedPhotos = [...formData.photos.filter(f => f.uploaded).map(f => f.url)];
+      const localPending = formData.photos.filter(f => !f.uploaded && f.file);
+      for (const pending of localPending) {
+        try {
+          const ext = pending.file!.name.split('.').pop();
+          const path = `${authenticatedUserId}/${Math.random()}.${ext}`;
+          const { error: upErr } = await supabase.storage.from('job-photos').upload(path, pending.file!);
+          if (!upErr) {
+            const { data: signed } = await supabase.storage.from('job-photos').createSignedUrl(path, 31536000);
+            if (signed) uploadedPhotos.push(signed.signedUrl);
+          }
+        } catch { /* photos are optional, continue */ }
+      }
+
       const jobInsertData = {
         client_id: authenticatedUserId,
         provider_id: null,
@@ -452,14 +481,14 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
         service_type: selectedSubService || formData.workType || 'general',
         problem: richDescription,
         location: formData.serviceAddress || '',
-        photos: formData.photos.filter(f => f.uploaded).map(f => f.url),
+        photos: uploadedPhotos,
         rate: VISIT_BASE_FEE,
-        status: 'pending' as const,
+        status: 'draft',  // promoted to 'searching' by webhook after payment confirmed
         scheduled_at: scheduledAt,
         time_preference: timePreference,
         exact_time: '',
         budget: '',
-        photo_count: formData.photos.filter(f => f.uploaded).length,
+        photo_count: uploadedPhotos.length,
       };
 
       let newJob: { id: string } | null = null;
@@ -502,17 +531,8 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
   };
 
   const handleAuthLogin = () => {
-    localStorage.setItem('login_context', 'client');
-    const persistablePhotos = formData.photos
-      .filter(f => f.uploaded && f.url && !f.url.startsWith('blob:'))
-      .map(f => ({ file: null, url: f.url, uploaded: true }));
-    saveFormData({ handymanFormData: { ...formData, photos: persistablePhotos }, currentStep });
-    // Set summary flag so that after auth the flow resumes at the summary, not photos
-    localStorage.setItem('booking_show_summary', 'true');
-    const returnPath = `/book-job?category=${categorySlug}`;
-    sessionStorage.setItem('auth_return_to', returnPath);
-    localStorage.setItem('auth_return_to', returnPath);
-    localStorage.setItem('booking_category', categorySlug);
+    // Form state + return path already saved in handleSubmit before showing the modal
+    const returnPath = localStorage.getItem('auth_return_to') || `/book-job?category=${categorySlug}`;
     navigate('/login', { state: { returnTo: returnPath } });
   };
 
@@ -595,7 +615,7 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
 
   return (
     <div className="max-w-2xl mx-auto">
-      <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} onLogin={handleAuthLogin} onGuest={() => {}} showGuestOption={false} />
+      <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} onLogin={handleAuthLogin} onGuest={() => {}} showGuestOption={false} message="Crea una cuenta para confirmar y pagar tu solicitud. Tu progreso está guardado." />
 
       {/* Compact top bar: step counter + close */}
       <div className="flex items-center justify-between mb-4">

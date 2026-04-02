@@ -66,13 +66,13 @@ serve(async (req) => {
       throw new Error("Visit fee has already been paid for this job");
     }
 
-    if (job.status !== "pending") {
-      throw new Error(`Job is not in pending status (current: ${job.status})`);
+    if (job.status !== "draft" && job.status !== "pending") {
+      throw new Error(`Job is not in a payable status (current: ${job.status})`);
     }
 
-    // Fixed visit fee — $429.00 MXN
+    // Fixed visit fee — $406.00 MXN ($350 base + $56 IVA 16%)
     // SYNC WITH src/utils/pricingConfig.ts PRICING.VISIT_FEE.CLIENT_TOTAL_CENTS
-    const VISIT_FEE_CENTS = 42900;
+    const VISIT_FEE_CENTS = 40600;
 
     logStep("Job found", { jobId: job.id, title: job.title, amountCents: VISIT_FEE_CENTS });
 
@@ -102,13 +102,16 @@ serve(async (req) => {
         quantity: 1,
       }],
       mode: "payment",
+      payment_intent_data: {
+        capture_method: "manual",  // Hold only — captured after job completion
+      },
       success_url: `${origin}/active-jobs?visit_fee_paid=true&job_id=${jobId}`,
-      cancel_url: `${origin}/user-landing?visit_fee_cancelled=true`,
+      cancel_url: `${origin}/book-job?cancelled=true&job_id=${jobId}`,
       metadata: {
         jobId,
         userId: user.id,
         type: "visit_fee",
-        pricing_version: "visit_v4_fixed_429",
+        pricing_version: "visit_v5_406_hold",
       },
     });
 

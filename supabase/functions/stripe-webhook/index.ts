@@ -169,15 +169,15 @@ serve(async (req) => {
         if (metadata.type === "visit_fee" && metadata.jobId) {
           const jobId = metadata.jobId;
 
-          // Idempotency guard: only process if job is still 'pending'
+          // Idempotency guard: only process if job is still 'draft' or 'pending'
           const { data: currentJob } = await supabaseClient
             .from("jobs")
             .select("status")
             .eq("id", jobId)
             .single();
 
-          if (currentJob?.status !== "pending") {
-            logStep("Skipping visit_fee processing — job not pending", { jobId, currentStatus: currentJob?.status });
+          if (currentJob?.status !== "draft" && currentJob?.status !== "pending") {
+            logStep("Skipping visit_fee processing — job already processed", { jobId, currentStatus: currentJob?.status });
           } else {
             // Update job status — enters 'searching' state with 4-hour assignment window
             // NOTE: visit_fee_paid is also set by the fn_sync_visit_fee trigger
@@ -199,7 +199,7 @@ serve(async (req) => {
               logStep("Job updated - visit fee paid, status → searching", { jobId });
             }
 
-            // Record in payments ledger — fixed $429 pricing
+            // Record in payments ledger — $406 MXN ($350 + IVA 16%)
             // SYNC WITH src/utils/pricingConfig.ts PRICING.VISIT_FEE
             await supabaseClient
               .from("payments")
@@ -208,15 +208,15 @@ serve(async (req) => {
                 provider_id: null,
                 stripe_payment_intent_id: session.payment_intent as string,
                 stripe_checkout_session_id: session.id,
-                amount: 429,
+                amount: 406,
                 currency: "mxn",
                 type: "visit_fee",
-                status: "succeeded",
+                status: "authorized",  // hold — not yet captured
                 metadata: metadata,
                 base_amount_cents: 35000,
                 vat_amount_cents: 5600,
-                total_amount_cents: 42900,
-                pricing_version: "visit_v4_fixed_429",
+                total_amount_cents: 40600,
+                pricing_version: "visit_v5_406_hold",
               });
 
             // Create notification for client

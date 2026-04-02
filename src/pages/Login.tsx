@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import { PhoneInput } from '@/components/ui/phone-input';
 import { PasswordStrengthBar } from '@/components/PasswordStrengthBar';
 import { isValidMexicanPhone, formatPhoneForStorage } from '@/utils/phoneValidation';
 import ChambyLogoText from '@/components/ChambyLogoText';
+import { supabase } from '@/integrations/supabase/client';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -54,6 +55,10 @@ const Login = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState('');
+  const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
+  const [otpError, setOtpError] = useState('');
+  const [otpLoading, setOtpLoading] = useState(false);
+  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   
   // Error states
   const [loginErrors, setLoginErrors] = useState<Record<string, string>>({});
@@ -228,7 +233,46 @@ const Login = () => {
     navigate(returnTo);
   };
 
-  // Email verification dialog
+  const handleOtpChange = (index: number, value: string) => {
+    if (!/^\d*$/.test(value)) return;
+    const next = [...otpDigits];
+    next[index] = value.slice(-1);
+    setOtpDigits(next);
+    setOtpError('');
+    if (value && index < 5) otpRefs.current[index + 1]?.focus();
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
+      otpRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent) => {
+    const text = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    if (text.length === 6) {
+      setOtpDigits(text.split(''));
+      otpRefs.current[5]?.focus();
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    const token = otpDigits.join('');
+    if (token.length !== 6) { setOtpError('Ingresa el código de 6 dígitos'); return; }
+    setOtpLoading(true);
+    setOtpError('');
+    const { error } = await supabase.auth.verifyOtp({ email: verificationEmail, token, type: 'email' });
+    if (error) {
+      setOtpError('Código incorrecto o expirado. Revisa tu email e intenta de nuevo.');
+    } else {
+      setSuccessMessage('¡Cuenta verificada!');
+      setShowEmailVerification(false);
+      setShowSuccess(true);
+    }
+    setOtpLoading(false);
+  };
+
+  // Email verification / OTP screen
   if (showEmailVerification) {
     return (
       <div className="min-h-screen bg-gradient-main bg-gradient-mesh flex flex-col items-center justify-center p-4">
@@ -239,26 +283,46 @@ const Login = () => {
             </div>
             <CardTitle className="text-2xl font-bold">Verifica tu email</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4 text-center">
-            <p className="text-muted-foreground">
-              Hemos enviado un enlace de verificación a:
+          <CardContent className="space-y-5">
+            <p className="text-center text-muted-foreground text-sm">
+              Enviamos un código de 6 dígitos a <span className="font-semibold text-foreground">{verificationEmail}</span>
             </p>
-            <p className="font-semibold text-foreground">{verificationEmail}</p>
-            <p className="text-sm text-muted-foreground">
-              Por favor revisa tu bandeja de entrada y haz clic en el enlace para activar tu cuenta.
-            </p>
-            <div className="pt-4 space-y-3">
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => {
-                  setShowEmailVerification(false);
-                  toggleMode('login');
-                }}
-              >
-                Volver a iniciar sesión
-              </Button>
+
+            {/* OTP digit boxes */}
+            <div className="flex justify-center gap-2" onPaste={handleOtpPaste}>
+              {otpDigits.map((digit, i) => (
+                <input
+                  key={i}
+                  ref={el => { otpRefs.current[i] = el; }}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  value={digit}
+                  onChange={e => handleOtpChange(i, e.target.value)}
+                  onKeyDown={e => handleOtpKeyDown(i, e)}
+                  className="w-11 h-14 text-center text-xl font-bold rounded-lg border-2 bg-background focus:outline-none focus:border-primary transition-colors"
+                />
+              ))}
             </div>
+
+            {otpError && <p className="text-sm text-destructive text-center">{otpError}</p>}
+
+            <Button
+              className="w-full h-12 text-base font-semibold"
+              onClick={handleVerifyOtp}
+              disabled={otpLoading || otpDigits.join('').length !== 6}
+            >
+              {otpLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Verificar cuenta
+            </Button>
+
+            <Button
+              variant="ghost"
+              className="w-full text-sm text-muted-foreground"
+              onClick={() => { setShowEmailVerification(false); toggleMode('login'); }}
+            >
+              Ya tengo una cuenta — Iniciar sesión
+            </Button>
           </CardContent>
         </Card>
       </div>
