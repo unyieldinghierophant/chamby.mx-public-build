@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { motion } from "framer-motion";
 import { ModernButton } from "@/components/ui/modern-button";
 import { Button } from "@/components/ui/button";
@@ -45,7 +45,15 @@ import { useProfile } from "@/hooks/useProfile";
 import ChambyLogoText from "@/components/ChambyLogoText";
 import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
-import { ProviderHeroMap, type JobInfo } from "@/components/provider-portal/ProviderHeroMap";
+const ProviderHeroMap = lazy(() =>
+  import("@/components/provider-portal/ProviderHeroMap").then((m) => ({ default: m.ProviderHeroMap }))
+);
+
+export interface JobInfo {
+  title: string;
+  icon: string;
+  zone: string;
+}
 import { useScrollParallax } from "@/hooks/useScrollParallax";
 import { useLandingSkeleton } from "@/hooks/useLandingSkeleton";
 import { ProviderLandingSkeleton } from "@/components/ProviderLandingSkeleton";
@@ -321,11 +329,13 @@ const ProviderLanding = () => {
       <section className="relative h-screen min-h-[600px] flex items-center justify-center overflow-hidden">
         {/* Map — isolation:isolate keeps Leaflet's z-indices contained */}
         <div className="absolute inset-0 z-0" style={{ isolation: "isolate" }}>
-          <ProviderHeroMap
-            onReady={onHeroMediaReady}
-            onJobEnter={handleJobEnter}
-            onJobExit={handleJobExit}
-          />
+          <Suspense fallback={<div className="absolute inset-0 bg-slate-100" />}>
+            <ProviderHeroMap
+              onReady={onHeroMediaReady}
+              onJobEnter={handleJobEnter}
+              onJobExit={handleJobExit}
+            />
+          </Suspense>
         </div>
 
         {/* Soft light vignette — fades map edges, keeps center clear */}
