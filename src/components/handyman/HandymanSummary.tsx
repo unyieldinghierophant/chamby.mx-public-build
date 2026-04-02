@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { ArrowLeft, MapPin, Calendar, Clock, Camera, Plus, ChevronRight, Lock, Info } from "lucide-react";
@@ -31,6 +31,7 @@ interface Props {
   };
   onConfirm: () => void;
   onGoBack: () => void;
+  onAddPhoto?: (files: FileList) => void;
   isSubmitting: boolean;
 }
 
@@ -38,9 +39,8 @@ const baseCents = PRICING.VISIT_FEE.BASE_AMOUNT_CENTS;
 const ivaCents = PRICING.VISIT_FEE.IVA_AMOUNT_CENTS;
 const totalCents = PRICING.VISIT_FEE.CLIENT_TOTAL_CENTS;
 
-export const HandymanSummary = ({ formData, onConfirm, onGoBack, isSubmitting }: Props) => {
-  const [countdown, setCountdown] = useState(15);
-  const hasSubmittedRef = useRef(false);
+export const HandymanSummary = ({ formData, onConfirm, onGoBack, onAddPhoto, isSubmitting }: Props) => {
+  const photoInputRef = useRef<HTMLInputElement>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
 
@@ -93,17 +93,6 @@ export const HandymanSummary = ({ formData, onConfirm, onGoBack, isSubmitting }:
     };
   }, [formData.serviceLatitude, formData.serviceLongitude]);
 
-  useEffect(() => {
-    if (isSubmitting || hasSubmittedRef.current) return;
-    const interval = setInterval(() => {
-      setCountdown(prev => {
-        if (prev <= 1) { clearInterval(interval); hasSubmittedRef.current = true; onConfirm(); return 0; }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [isSubmitting]);
-
   const getDateDisplay = () => {
     if (formData.scheduledDate) {
       const d = formData.scheduledDate instanceof Date ? formData.scheduledDate : new Date(formData.scheduledDate as string);
@@ -121,7 +110,7 @@ export const HandymanSummary = ({ formData, onConfirm, onGoBack, isSubmitting }:
     return formData.timeWindow ? map[formData.timeWindow] || formData.timeWindow : null;
   };
 
-  const uploadedPhotos = formData.photos.filter(p => p.uploaded);
+  const uploadedPhotos = formData.photos; // show all photos including local previews
   const categoryLabel = formData.workType ? workTypeLabels[formData.workType] || formData.workType : "Servicio general";
 
   return (
@@ -180,10 +169,23 @@ export const HandymanSummary = ({ formData, onConfirm, onGoBack, isSubmitting }:
                 <Camera className="w-5 h-5 text-[hsl(40,4%,65%)]" />
               </div>
             )}
-            <div className="w-[68px] h-[68px] rounded-lg border-[1.5px] border-dashed border-[hsl(40,6%,80%)] flex-shrink-0 flex flex-col items-center justify-center gap-1 text-[hsl(40,4%,65%)] cursor-pointer hover:border-[hsl(40,4%,65%)] transition-colors">
+            <button
+              type="button"
+              onClick={() => photoInputRef.current?.click()}
+              disabled={isSubmitting}
+              className="w-[68px] h-[68px] rounded-lg border-[1.5px] border-dashed border-[hsl(40,6%,80%)] flex-shrink-0 flex flex-col items-center justify-center gap-1 text-[hsl(40,4%,65%)] hover:border-[hsl(40,4%,65%)] transition-colors disabled:opacity-50"
+            >
               <Plus className="w-[18px] h-[18px]" />
               <span className="text-[11px] font-medium">Agregar</span>
-            </div>
+            </button>
+            <input
+              ref={photoInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={e => { if (e.target.files && onAddPhoto) { onAddPhoto(e.target.files); e.target.value = ''; } }}
+            />
           </div>
           <p className="text-[11px] text-[hsl(40,4%,65%)] mt-2">Ayuda al técnico a llegar preparado</p>
         </div>

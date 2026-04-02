@@ -561,11 +561,16 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
 
   // ---- Summary ----
   if (showSummary) {
+    const handleSummaryAddPhoto = (files: FileList) => {
+      const newFiles = Array.from(files).map(f => ({ file: f, url: URL.createObjectURL(f), uploaded: false }));
+      update("photos", [...formData.photos, ...newFiles]);
+    };
     return (
       <HandymanSummary
         formData={formData}
         onConfirm={handleSubmit}
         onGoBack={handleBack}
+        onAddPhoto={handleSummaryAddPhoto}
         isSubmitting={isSubmitting}
       />
     );
