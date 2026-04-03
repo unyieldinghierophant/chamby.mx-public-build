@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { ArrowLeft, MapPin, Calendar, Clock, Camera, Plus, ChevronRight, Lock, Info } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Clock, Camera, Plus, Lock, RotateCcw } from "lucide-react";
 import { PRICING, formatMXN } from "@/utils/pricingConfig";
 
 const workTypeLabels: Record<string, string> = {
@@ -19,7 +19,12 @@ interface Props {
     materialsProvider: string | null;
     toolsAvailable: string | null;
     importantDetails: string[];
-    photos: { url: string; uploaded: boolean }[];
+    photos: {
+      url: string;
+      uploaded: boolean;
+      uploadStatus?: 'idle' | 'uploading' | 'success' | 'error';
+      errorMessage?: string;
+    }[];
     accessTypes: string[];
     additionalNotes: string;
     serviceAddress?: string;
@@ -32,6 +37,8 @@ interface Props {
   onConfirm: () => void;
   onGoBack: () => void;
   onAddPhoto?: (files: FileList) => void;
+  onRetryPhoto?: (photoIdx: number) => void;
+  onNavigateToStep?: (step: number) => void;
   isSubmitting: boolean;
 }
 
@@ -39,7 +46,9 @@ const baseCents = PRICING.VISIT_FEE.BASE_AMOUNT_CENTS;
 const ivaCents = PRICING.VISIT_FEE.IVA_AMOUNT_CENTS;
 const totalCents = PRICING.VISIT_FEE.CLIENT_TOTAL_CENTS;
 
-export const HandymanSummary = ({ formData, onConfirm, onGoBack, onAddPhoto, isSubmitting }: Props) => {
+export const HandymanSummary = ({
+  formData, onConfirm, onGoBack, onAddPhoto, onRetryPhoto, onNavigateToStep, isSubmitting
+}: Props) => {
   const photoInputRef = useRef<HTMLInputElement>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -64,11 +73,8 @@ export const HandymanSummary = ({ formData, onConfirm, onGoBack, onAddPhoto, isS
       attributionControl: false,
     });
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
-    }).addTo(map);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
 
-    // Custom dark pin marker
     const pinIcon = L.divIcon({
       html: `<svg width="28" height="36" viewBox="0 0 28 36" fill="none" xmlns="http://www.w3.org/2000/svg">
         <ellipse cx="14" cy="33" rx="6" ry="3" fill="rgba(0,0,0,0.15)"/>
@@ -81,22 +87,20 @@ export const HandymanSummary = ({ formData, onConfirm, onGoBack, onAddPhoto, isS
     });
 
     L.marker([lat, lng], { icon: pinIcon, interactive: false }).addTo(map);
-
     mapInstanceRef.current = map;
-
-    // Fix tile rendering after container is visible
     setTimeout(() => map.invalidateSize(), 100);
 
-    return () => {
-      map.remove();
-      mapInstanceRef.current = null;
-    };
+    return () => { map.remove(); mapInstanceRef.current = null; };
   }, [formData.serviceLatitude, formData.serviceLongitude]);
 
   const getDateDisplay = () => {
     if (formData.scheduledDate) {
-      const d = formData.scheduledDate instanceof Date ? formData.scheduledDate : new Date(formData.scheduledDate as string);
-      return !isNaN(d.getTime()) ? d.toLocaleDateString("es-MX", { weekday: "short", day: "numeric", month: "short" }) : "Lo antes posible";
+      const d = formData.scheduledDate instanceof Date
+        ? formData.scheduledDate
+        : new Date(formData.scheduledDate as string);
+      return !isNaN(d.getTime())
+        ? d.toLocaleDateString("es-MX", { weekday: "short", day: "numeric", month: "short" })
+        : "Lo antes posible";
     }
     if (formData.scheduleMode === 'asap') return "Lo antes posible";
     if (formData.scheduleMode === 'today') return "Hoy";
@@ -110,14 +114,18 @@ export const HandymanSummary = ({ formData, onConfirm, onGoBack, onAddPhoto, isS
     return formData.timeWindow ? map[formData.timeWindow] || formData.timeWindow : null;
   };
 
-  const uploadedPhotos = formData.photos; // show all photos including local previews
+  const timeDisplay = getTimeDisplay();
   const categoryLabel = formData.workType ? workTypeLabels[formData.workType] || formData.workType : "Servicio general";
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-[hsl(40,10%,97%)] font-['DM_Sans',sans-serif]">
       {/* Nav bar */}
       <div className="flex-shrink-0 px-4 pt-3 pb-3 flex items-center gap-3 border-b border-[hsl(40,8%,88%)] bg-[hsl(40,10%,98%)]">
-        <button onClick={onGoBack} disabled={isSubmitting} className="w-[34px] h-[34px] rounded-full bg-[hsl(40,8%,95%)] flex items-center justify-center hover:bg-[hsl(40,8%,90%)] transition-colors">
+        <button
+          onClick={onGoBack}
+          disabled={isSubmitting}
+          className="w-[34px] h-[34px] rounded-full bg-[hsl(40,8%,95%)] flex items-center justify-center hover:bg-[hsl(40,8%,90%)] transition-colors"
+        >
           <ArrowLeft className="w-[14px] h-[14px] text-[hsl(0,0%,6%)]" />
         </button>
         <span className="text-[16px] font-semibold text-[hsl(0,0%,6%)]">Confirma tu solicitud</span>
@@ -126,10 +134,9 @@ export const HandymanSummary = ({ formData, onConfirm, onGoBack, onAddPhoto, isS
 
       {/* Progress bar */}
       <div className="flex-shrink-0 flex gap-[5px] px-4 pt-[10px] pb-[6px]">
-        <div className="h-[3px] flex-1 rounded-full bg-[hsl(155,85%,34%)]" />
-        <div className="h-[3px] flex-1 rounded-full bg-[hsl(155,85%,34%)]" />
-        <div className="h-[3px] flex-1 rounded-full bg-[hsl(155,85%,34%)]" />
-        <div className="h-[3px] flex-1 rounded-full bg-[hsl(0,0%,6%)]" />
+        {[0,1,2,3].map(i => (
+          <div key={i} className="h-[3px] flex-1 rounded-full bg-[hsl(0,0%,6%)]" />
+        ))}
       </div>
 
       {/* Scrollable body */}
@@ -159,16 +166,61 @@ export const HandymanSummary = ({ formData, onConfirm, onGoBack, onAddPhoto, isS
         <div className="px-4 py-4 border-b border-[hsl(40,8%,88%)]">
           <div className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[hsl(40,4%,65%)] mb-3">Fotos del problema</div>
           <div className="flex gap-2 overflow-x-auto pb-0.5">
-            {uploadedPhotos.map((photo, i) => (
-              <div key={i} className="w-[68px] h-[68px] rounded-lg bg-[hsl(40,8%,95%)] border border-[hsl(40,8%,88%)] flex-shrink-0 overflow-hidden">
-                <img src={photo.url} alt={`Foto ${i+1}`} className="w-full h-full object-cover" />
-              </div>
-            ))}
-            {uploadedPhotos.length === 0 && (
+            {formData.photos.map((photo, i) => {
+              const status = photo.uploadStatus ?? (photo.uploaded ? 'success' : 'idle');
+              return (
+                <div
+                  key={i}
+                  className="relative w-[68px] h-[68px] rounded-lg bg-[hsl(40,8%,95%)] border border-[hsl(40,8%,88%)] flex-shrink-0 overflow-hidden"
+                >
+                  <img src={photo.url} alt={`Foto ${i + 1}`} className="w-full h-full object-cover" />
+
+                  {/* Uploading overlay */}
+                  {status === 'uploading' && (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    </div>
+                  )}
+
+                  {/* Success badge */}
+                  {status === 'success' && (
+                    <div className="absolute bottom-1 right-1 w-[18px] h-[18px] rounded-full bg-[hsl(155,85%,34%)] flex items-center justify-center shadow-sm">
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
+                        <path d="M2 5l2 2 4-4" />
+                      </svg>
+                    </div>
+                  )}
+
+                  {/* Error overlay with retry */}
+                  {status === 'error' && (
+                    <div className="absolute inset-0 bg-black/55 flex flex-col items-center justify-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => onRetryPhoto?.(i)}
+                        className="flex flex-col items-center gap-0.5"
+                      >
+                        <RotateCcw className="w-4 h-4 text-white" />
+                        <span className="text-[9px] text-white font-medium leading-none">Reintentar</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Idle (not yet uploaded, no action) */}
+                  {status === 'idle' && (
+                    <div className="absolute inset-0 bg-black/25 flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-white/70" />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {formData.photos.length === 0 && (
               <div className="w-[68px] h-[68px] rounded-lg bg-[hsl(40,8%,95%)] border border-[hsl(40,8%,88%)] flex-shrink-0 flex items-center justify-center">
                 <Camera className="w-5 h-5 text-[hsl(40,4%,65%)]" />
               </div>
             )}
+
             <button
               type="button"
               onClick={() => photoInputRef.current?.click()}
@@ -202,7 +254,15 @@ export const HandymanSummary = ({ formData, onConfirm, onGoBack, onAddPhoto, isS
             <div className="flex-1">
               <div className="text-[11px] text-[hsl(40,4%,65%)] font-medium mb-[3px]">Ubicación</div>
               <div className="text-[13px] font-medium text-[hsl(0,0%,6%)] leading-[1.4]">{formData.serviceAddress || "Sin dirección"}</div>
-              <div className="text-[11px] text-[hsl(233,100%,55%)] mt-0.5 font-medium cursor-pointer">Cambiar dirección</div>
+              {onNavigateToStep && (
+                <button
+                  type="button"
+                  onClick={() => onNavigateToStep(2)}
+                  className="text-[11px] text-[hsl(233,100%,55%)] mt-0.5 font-medium"
+                >
+                  Cambiar dirección
+                </button>
+              )}
             </div>
           </div>
 
@@ -213,12 +273,22 @@ export const HandymanSummary = ({ formData, onConfirm, onGoBack, onAddPhoto, isS
             </div>
             <div className="flex-1">
               <div className="text-[11px] text-[hsl(40,4%,65%)] font-medium mb-[3px]">Fecha preferida</div>
-              <div className="text-[13px] font-medium text-[hsl(0,0%,6%)]">{getDateDisplay()}</div>
-              <div className="text-[11px] text-[hsl(233,100%,55%)] mt-0.5 font-medium cursor-pointer">Cambiar fecha</div>
+              <div className="text-[13px] font-medium text-[hsl(0,0%,6%)]">
+                {getDateDisplay()}{timeDisplay ? ` · ${timeDisplay}` : ""}
+              </div>
+              {onNavigateToStep && (
+                <button
+                  type="button"
+                  onClick={() => onNavigateToStep(4)}
+                  className="text-[11px] text-[hsl(233,100%,55%)] mt-0.5 font-medium"
+                >
+                  Cambiar fecha
+                </button>
+              )}
             </div>
           </div>
 
-          {/* Duration */}
+          {/* Duration — display only, no edit */}
           <div className="flex items-start gap-3 py-[11px]">
             <div className="w-[34px] h-[34px] rounded-lg bg-[hsl(40,8%,95%)] flex items-center justify-center flex-shrink-0">
               <Clock className="w-4 h-4 text-[hsl(0,0%,40%)]" />
@@ -232,8 +302,8 @@ export const HandymanSummary = ({ formData, onConfirm, onGoBack, onAddPhoto, isS
 
         {/* Cost breakdown */}
         <div className="px-4 py-4 border-b border-[hsl(40,8%,88%)]">
-          <div className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[hsl(40,4%,65%)] mb-3">Desglose de pago</div>
-          
+          <div className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[hsl(40,4%,65%)] mb-3">Desglose</div>
+
           <div className="flex justify-between py-[7px]">
             <span className="text-[13px] text-[hsl(0,0%,40%)]">Cuota diagnóstico</span>
             <span className="text-[13px] font-medium text-[hsl(0,0%,6%)]">{formatMXN(baseCents)}</span>
@@ -244,42 +314,59 @@ export const HandymanSummary = ({ formData, onConfirm, onGoBack, onAddPhoto, isS
           </div>
           <hr className="border-[hsl(40,8%,88%)] my-[6px]" />
           <div className="flex justify-between items-center py-[8px]">
-            <span className="text-[15px] font-semibold text-[hsl(0,0%,6%)]">Total hoy</span>
+            <div>
+              <span className="text-[15px] font-semibold text-[hsl(0,0%,6%)]">Retención</span>
+              <p className="text-[11px] text-[hsl(40,4%,65%)] mt-px">Solo se retiene, no se cobra aún</p>
+            </div>
             <span className="text-[17px] font-semibold text-[hsl(0,0%,6%)]">{formatMXN(totalCents)} MXN</span>
           </div>
 
-          {/* Info chip */}
-          <div className="flex gap-2 items-start bg-[hsl(152,60%,94%)] rounded-lg p-[10px_12px] mt-3 text-[12px] text-[hsl(155,80%,28%)] font-medium leading-[1.5]">
-            <Info className="w-[14px] h-[14px] flex-shrink-0 mt-0.5" />
-            <span>Esta cuota se <strong>reembolsa</strong> si el trabajo se completa. Solo pagas la cotización aprobada.</span>
-          </div>
-
           {/* Escrow chip */}
-          <div className="flex items-center gap-[10px] bg-[hsl(40,8%,95%)] rounded-lg p-[10px_12px] mt-[10px]">
-            <Lock className="w-[18px] h-[18px] text-[hsl(0,0%,40%)]" />
+          <div className="flex items-center gap-[10px] bg-[hsl(40,8%,95%)] rounded-lg p-[10px_12px] mt-3">
+            <Lock className="w-[18px] h-[18px] text-[hsl(0,0%,40%)] flex-shrink-0" />
             <div>
-              <div className="text-[12px] font-semibold text-[hsl(0,0%,6%)]">Pago retenido en escrow</div>
-              <div className="text-[11px] text-[hsl(0,0%,40%)] mt-px">Se libera solo al completar el trabajo</div>
+              <div className="text-[12px] font-semibold text-[hsl(0,0%,6%)]">Pago protegido en escrow</div>
+              <div className="text-[11px] text-[hsl(0,0%,40%)] mt-px">Se libera solo cuando el trabajo se completa satisfactoriamente</div>
             </div>
           </div>
         </div>
 
-        {/* Payment method */}
+        {/* Stripe handoff */}
         <div className="px-4 py-4">
-          <div className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[hsl(40,4%,65%)] mb-3">Método de pago</div>
-          <div className="flex items-center gap-[10px] p-3 border border-[hsl(40,8%,88%)] rounded-[14px] cursor-pointer hover:border-[hsl(40,4%,65%)] transition-colors">
-            <div className="w-8 h-[22px] rounded-[5px] bg-[hsl(0,0%,6%)] flex items-center justify-center flex-shrink-0">
-              <svg width="20" height="13" viewBox="0 0 20 13" fill="none">
-                <circle cx="7" cy="6.5" r="5" fill="#EB001B"/>
-                <circle cx="13" cy="6.5" r="5" fill="#F79E1B"/>
-                <path d="M10 2.5a5 5 0 0 1 0 8 5 5 0 0 1 0-8z" fill="#FF5F00"/>
-              </svg>
+          <div className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[hsl(40,4%,65%)] mb-3">Pago seguro</div>
+          <div className="rounded-[14px] border border-[hsl(40,8%,88%)] overflow-hidden">
+            <div className="flex items-center gap-3 p-3.5 border-b border-[hsl(40,8%,88%)]">
+              {/* Stripe pill */}
+              <div className="flex-shrink-0 bg-[#635BFF] rounded-[6px] px-2.5 py-1 flex items-center">
+                <span className="text-white font-bold text-[13px] tracking-tight">stripe</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[13px] font-semibold text-[hsl(0,0%,6%)]">Pago seguro con Stripe</div>
+                <div className="text-[11px] text-[hsl(40,4%,65%)] mt-px">Elige tu método en el siguiente paso</div>
+              </div>
+              {/* Payment method icons */}
+              <div className="flex-shrink-0 flex items-center gap-1">
+                {/* Visa */}
+                <div className="w-7 h-[18px] rounded-[3px] border border-[hsl(40,8%,88%)] bg-white flex items-center justify-center">
+                  <span className="text-[#1A1F71] font-black text-[8px] tracking-tight">VISA</span>
+                </div>
+                {/* Mastercard */}
+                <div className="w-7 h-[18px] rounded-[3px] border border-[hsl(40,8%,88%)] bg-white flex items-center justify-center">
+                  <svg width="14" height="9" viewBox="0 0 20 13" fill="none">
+                    <circle cx="7" cy="6.5" r="5" fill="#EB001B"/>
+                    <circle cx="13" cy="6.5" r="5" fill="#F79E1B"/>
+                    <path d="M10 2.5a5 5 0 0 1 0 8 5 5 0 0 1 0-8z" fill="#FF5F00"/>
+                  </svg>
+                </div>
+              </div>
             </div>
-            <div>
-              <div className="text-[13px] font-semibold text-[hsl(0,0%,6%)]">Tarjeta / Apple Pay</div>
-              <div className="text-[11px] text-[hsl(40,4%,65%)]">Se abrirá Stripe Checkout</div>
+            <div className="flex items-start gap-2 px-3.5 py-3 bg-[hsl(40,8%,97%)]">
+              <Lock className="w-[13px] h-[13px] text-[hsl(0,0%,50%)] flex-shrink-0 mt-[1px]" />
+              <p className="text-[11px] text-[hsl(0,0%,45%)] leading-[1.55]">
+                Solo se realizará una <strong className="text-[hsl(0,0%,15%)] font-semibold">retención</strong> en tu tarjeta.
+                No se cobra nada hasta que el trabajo esté completado y aprobado.
+              </p>
             </div>
-            <ChevronRight className="w-[14px] h-[14px] ml-auto text-[hsl(40,6%,80%)]" />
           </div>
         </div>
       </div>
@@ -292,19 +379,23 @@ export const HandymanSummary = ({ formData, onConfirm, onGoBack, onAddPhoto, isS
           className="w-full bg-[hsl(0,0%,6%)] text-white border-none rounded-full py-4 text-[15px] font-semibold cursor-pointer flex items-center justify-center gap-2 font-['DM_Sans',sans-serif] hover:opacity-85 transition-opacity disabled:opacity-50"
         >
           {isSubmitting ? (
-            <span className="flex items-center gap-2">
+            <>
               <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              Procesando...
-            </span>
+              Redirigiendo a Stripe…
+            </>
           ) : (
             <>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M2 8l4 4 8-8"/></svg>
-              Confirmar y pagar {formatMXN(totalCents)} MXN
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <rect x="1" y="3" width="12" height="9" rx="1.5" stroke="white" strokeWidth="1.5"/>
+                <path d="M1 6h12" stroke="white" strokeWidth="1.5"/>
+              </svg>
+              Continuar a Stripe · {formatMXN(totalCents)} MXN
             </>
           )}
         </button>
-        <p className="text-center text-[11px] text-[hsl(40,4%,65%)] mt-2">
-          Al confirmar aceptas los <span className="text-[hsl(0,0%,6%)] underline cursor-pointer">términos de Chamby</span>
+        <p className="text-center text-[11px] text-[hsl(40,4%,65%)] mt-2 leading-[1.5]">
+          Solo se retendrá el importe — no se cobra hasta completar el trabajo.{" "}
+          <span className="text-[hsl(0,0%,6%)] underline cursor-pointer">Términos de Chamby</span>
         </p>
       </div>
     </div>

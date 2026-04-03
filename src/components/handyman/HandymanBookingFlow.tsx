@@ -44,6 +44,8 @@ interface UploadedFile {
   file: File | null;
   url: string;
   uploaded: boolean;
+  uploadStatus: 'idle' | 'uploading' | 'success' | 'error';
+  errorMessage?: string;
 }
 
 interface HandymanFormData {
@@ -182,7 +184,9 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
         restored.scheduledDate = !isNaN(parsed.getTime()) ? parsed : null;
       }
       if (restored.photos && Array.isArray(restored.photos)) {
-        restored.photos = restored.photos.filter((p: any) => p?.uploaded && p?.url && !p.url.startsWith('blob:'));
+        restored.photos = restored.photos
+          .filter((p: any) => p?.uploaded && p?.url && !p.url.startsWith('blob:'))
+          .map((p: any) => ({ ...p, uploadStatus: 'success' as const }));
       } else {
         restored.photos = [];
       }
@@ -199,7 +203,9 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
         restored.scheduledDate = !isNaN(parsed.getTime()) ? parsed : null;
       }
       if (restored.photos && Array.isArray(restored.photos)) {
-        restored.photos = restored.photos.filter((p: any) => p?.uploaded && p?.url && !p.url.startsWith('blob:'));
+        restored.photos = restored.photos
+          .filter((p: any) => p?.uploaded && p?.url && !p.url.startsWith('blob:'))
+          .map((p: any) => ({ ...p, uploadStatus: 'success' as const }));
       } else {
         restored.photos = [];
       }
@@ -255,7 +261,7 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
       // Persist only uploaded photo URLs (File objects can't be serialized)
       const persistablePhotos = formData.photos
         .filter(f => f.uploaded && f.url && !f.url.startsWith('blob:'))
-        .map(f => ({ file: null, url: f.url, uploaded: true }));
+        .map(f => ({ file: null, url: f.url, uploaded: true, uploadStatus: 'success' as const }));
       saveFormData({ handymanFormData: { ...formData, photos: persistablePhotos }, currentStep });
     }
   }, [formData, currentStep]);
@@ -325,23 +331,13 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
     setShowSummary(true);
   };
 
-  // ---- Upload ----
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
-    setIsUploading(true);
-
-    const newFiles: UploadedFile[] = files.map(f => ({ file: f, url: URL.createObjectURL(f), uploaded: false }));
-    update("photos", [...formData.photos, ...newFiles]);
-
-    // If not logged in, keep as local preview — will upload in handleSubmit after auth
-    if (!user) { setIsUploading(false); e.target.value = ''; return; }
-
+  // ---- Upload helpers ----
+  const uploadFilesFromIndex = async (files: File[], startIdx: number, userId: string) => {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
+      const photoIdx = startIdx + i;
       const ext = file.name.split('.').pop();
-      const path = `${user.id}/${Math.random()}.${ext}`;
-
+      const path = `${userId}/${Math.random()}.${ext}`;
       try {
         const { error } = await supabase.storage.from('job-photos').upload(path, file);
         if (error) throw error;
@@ -349,19 +345,71 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
         if (signed) {
           setFormData(prev => ({
             ...prev,
-            photos: prev.photos.map((f, idx) =>
-              idx === prev.photos.length - files.length + i
-                ? { ...f, url: signed.signedUrl, uploaded: true }
-                : f
+            photos: prev.photos.map((p, idx) =>
+              idx === photoIdx
+                ? { ...p, url: signed.signedUrl, uploaded: true, uploadStatus: 'success' as const }
+                : p
             ),
           }));
         }
       } catch (err: any) {
-        toast({ title: "Error al subir imagen", description: err?.message, variant: "destructive" });
+        setFormData(prev => ({
+          ...prev,
+          photos: prev.photos.map((p, idx) =>
+            idx === photoIdx
+              ? { ...p, uploadStatus: 'error' as const, errorMessage: err?.message }
+              : p
+          ),
+        }));
       }
     }
-    setIsUploading(false);
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    const startIdx = formData.photos.length;
+    const newFiles: UploadedFile[] = files.map(f => ({
+      file: f,
+      url: URL.createObjectURL(f),
+      uploaded: false,
+      uploadStatus: user ? 'uploading' as const : 'idle' as const,
+    }));
+    setFormData(prev => ({ ...prev, photos: [...prev.photos, ...newFiles] }));
     e.target.value = '';
+
+    if (!user) return; // will upload in handleSubmit after auth
+    setIsUploading(true);
+    await uploadFilesFromIndex(files, startIdx, user.id);
+    setIsUploading(false);
+  };
+
+  const handleSummaryAddPhoto = async (files: FileList) => {
+    if (!user) return;
+    const fileArr = Array.from(files);
+    const startIdx = formData.photos.length;
+    const newFiles: UploadedFile[] = fileArr.map(f => ({
+      file: f,
+      url: URL.createObjectURL(f),
+      uploaded: false,
+      uploadStatus: 'uploading' as const,
+    }));
+    setFormData(prev => ({ ...prev, photos: [...prev.photos, ...newFiles] }));
+    await uploadFilesFromIndex(fileArr, startIdx, user.id);
+  };
+
+  const handleRetryPhoto = async (photoIdx: number) => {
+    if (!user) return;
+    const photo = formData.photos[photoIdx];
+    if (!photo?.file) return;
+    setFormData(prev => ({
+      ...prev,
+      photos: prev.photos.map((p, idx) =>
+        idx === photoIdx ? { ...p, uploadStatus: 'uploading' as const, errorMessage: undefined } : p
+      ),
+    }));
+    await uploadFilesFromIndex([photo.file], photoIdx, user.id);
   };
 
   // ---- Submit ----
@@ -370,7 +418,7 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
       // Save form state + show auth modal — after login, booking_show_summary flag returns user here
       const persistablePhotos = formData.photos
         .filter(f => f.uploaded && f.url && !f.url.startsWith('blob:'))
-        .map(f => ({ file: null, url: f.url, uploaded: true }));
+        .map(f => ({ file: null, url: f.url, uploaded: true, uploadStatus: 'success' as const }));
       saveFormData({ handymanFormData: { ...formData, photos: persistablePhotos }, currentStep });
       localStorage.setItem('booking_show_summary', 'true');
       localStorage.setItem('login_context', 'client');
@@ -530,6 +578,12 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
     }
   };
 
+  const handleNavigateToStep = (step: number) => {
+    setShowSummary(false);
+    localStorage.removeItem('booking_show_summary');
+    setCurrentStep(step);
+  };
+
   const handleAuthLogin = () => {
     // Form state + return path already saved in handleSubmit before showing the modal
     const returnPath = localStorage.getItem('auth_return_to') || `/book-job?category=${categorySlug}`;
@@ -561,17 +615,15 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
 
   // ---- Summary ----
   if (showSummary) {
-    const handleSummaryAddPhoto = (files: FileList) => {
-      const newFiles = Array.from(files).map(f => ({ file: f, url: URL.createObjectURL(f), uploaded: false }));
-      update("photos", [...formData.photos, ...newFiles]);
-    };
     return (
       <HandymanSummary
         formData={formData}
         onConfirm={handleSubmit}
         onGoBack={handleBack}
         onAddPhoto={handleSummaryAddPhoto}
-        isSubmitting={isSubmitting}
+        onRetryPhoto={handleRetryPhoto}
+        onNavigateToStep={handleNavigateToStep}
+        isSubmitting={isSubmitting || checkoutLoading}
       />
     );
   }
@@ -896,14 +948,26 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
                 {formData.photos.map((file, idx) => (
                   <div key={idx} className="relative rounded-lg overflow-hidden border border-border aspect-square">
                     <img src={file.url} alt={`Foto ${idx + 1}`} className="w-full h-full object-cover" />
-                    {file.uploaded && (
+                    {file.uploadStatus === 'uploading' && (
+                      <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
+                        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                      </div>
+                    )}
+                    {file.uploadStatus === 'success' && (
                       <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
                         <Check className="w-4 h-4 text-primary-foreground" />
                       </div>
                     )}
-                    {!file.uploaded && (
-                      <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
-                        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                    {file.uploadStatus === 'error' && (
+                      <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => handleRetryPhoto(idx)}
+                          className="flex flex-col items-center gap-1"
+                        >
+                          <RotateCcw className="w-5 h-5 text-white" />
+                          <span className="text-[10px] text-white font-medium">Reintentar</span>
+                        </button>
                       </div>
                     )}
                   </div>
