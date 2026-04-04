@@ -386,16 +386,16 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
   };
 
   const handleSummaryAddPhoto = async (files: FileList) => {
-    if (!user) return;
     const fileArr = Array.from(files);
     const startIdx = formData.photos.length;
     const newFiles: UploadedFile[] = fileArr.map(f => ({
       file: f,
       url: URL.createObjectURL(f),
       uploaded: false,
-      uploadStatus: 'uploading' as const,
+      uploadStatus: user ? 'uploading' as const : 'idle' as const,
     }));
     setFormData(prev => ({ ...prev, photos: [...prev.photos, ...newFiles] }));
+    if (!user) return; // local preview only — uploaded in handleSubmit after auth
     await uploadFilesFromIndex(fileArr, startIdx, user.id);
   };
 
