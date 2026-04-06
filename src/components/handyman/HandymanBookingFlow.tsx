@@ -588,9 +588,9 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
   };
 
   const handleAuthLogin = () => {
-    // Form state + return path already saved in handleSubmit before showing the modal
+    // Encode return path in the URL — survives Google OAuth redirects and page refreshes
     const returnPath = localStorage.getItem('auth_return_to') || `/book-job?category=${categorySlug}`;
-    navigate('/login', { state: { returnTo: returnPath } });
+    navigate(`/login?return_to=${encodeURIComponent(returnPath)}`);
   };
 
   // DEPRECATED: Authorization handlers removed in favor of Checkout flow. See Phase 4 S5.

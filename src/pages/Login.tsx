@@ -64,6 +64,15 @@ const Login = () => {
   const [loginErrors, setLoginErrors] = useState<Record<string, string>>({});
   const [signupErrors, setSignupErrors] = useState<Record<string, string>>({});
 
+  // On mount: persist return_to from URL into storage so it survives Google OAuth redirect
+  useEffect(() => {
+    const urlReturnTo = searchParams.get('return_to');
+    if (urlReturnTo) {
+      localStorage.setItem('auth_return_to', urlReturnTo);
+      sessionStorage.setItem('auth_return_to', urlReturnTo);
+    }
+  }, []);
+
   // Sync mode with URL params
   useEffect(() => {
     const urlMode = searchParams.get('mode');
@@ -223,7 +232,9 @@ const Login = () => {
       localStorage.getItem('auth_return_to') ||
       sessionStorage.getItem('auth_return_to');
     const stateReturnTo = (location.state as { returnTo?: string })?.returnTo;
-    const returnTo = storedReturnTo || stateReturnTo || '/user-landing';
+    const urlReturnTo = searchParams.get('return_to');
+    const returnTo = storedReturnTo || stateReturnTo || urlReturnTo || '/user-landing';
+    console.log('[Login handleSuccessComplete]', { storedReturnTo, stateReturnTo, urlReturnTo, returnTo });
 
     if (storedReturnTo) {
       localStorage.removeItem('auth_return_to');
