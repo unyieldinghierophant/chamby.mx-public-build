@@ -17,11 +17,13 @@ export const useVisitFeeCheckout = () => {
     setError(null);
 
     try {
+      console.log('[redirectToCheckout] invoking create-visit-payment for job:', jobId);
       const { data, error: invokeError } = await supabase.functions.invoke(
         'create-visit-payment',
         { body: { jobId } }
       );
 
+      console.log('[redirectToCheckout] response:', { data, invokeError });
       if (invokeError) {
         throw new Error(invokeError.message || 'Error al crear sesión de pago');
       }
@@ -33,6 +35,7 @@ export const useVisitFeeCheckout = () => {
       if (!data?.url) {
         throw new Error('No se recibió URL de pago');
       }
+      console.log('[redirectToCheckout] redirecting to:', data.url);
 
       // Redirect to Stripe Checkout
       window.location.href = data.url;

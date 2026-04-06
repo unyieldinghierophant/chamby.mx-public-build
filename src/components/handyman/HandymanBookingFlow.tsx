@@ -414,6 +414,7 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
 
   // ---- Submit ----
   const handleSubmit = async () => {
+    console.log('[handleSubmit] called, user=', user?.id ?? 'not logged in');
     if (!user) {
       // Save form state + show auth modal — after login, booking_show_summary flag returns user here
       const persistablePhotos = formData.photos
@@ -429,6 +430,7 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
       return;
     }
     setIsSubmitting(true);
+    console.log('[handleSubmit] user confirmed, starting job insert');
 
     try {
       const workTypeLabels: Record<WorkType, string> = {
@@ -539,6 +541,7 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
         photo_count: uploadedPhotos.length,
       };
 
+      console.log('[handleSubmit] inserting job:', jobInsertData.status, jobInsertData.location);
       let newJob: { id: string } | null = null;
       const { data: insertedJob, error } = await supabase
         .from('jobs')
@@ -564,6 +567,7 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
       if (!newJob) throw new Error('No se pudo crear el trabajo');
 
       setCreatedJobId(newJob.id);
+      console.log('[handleSubmit] job created:', newJob.id, '— calling redirectToCheckout');
       // redirectToCheckout throws on failure — summary stays visible so user can retry
       await redirectToCheckout(newJob.id);
       // Only reached if window.location.href was set (navigation pending)
