@@ -564,12 +564,11 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
       if (!newJob) throw new Error('No se pudo crear el trabajo');
 
       setCreatedJobId(newJob.id);
-      // Keep summary visible while redirect loads — only clear after redirect succeeds
+      // redirectToCheckout throws on failure — summary stays visible so user can retry
       await redirectToCheckout(newJob.id);
-      // If we reach here, window.location.href didn't fire (redirect failed silently)
+      // Only reached if window.location.href was set (navigation pending)
       localStorage.removeItem('booking_show_summary');
       clearFormData();
-      setShowSummary(false);
     } catch (err: any) {
       // Don't clear form data or hide summary on failure — user can retry
       toast({ title: "Error al enviar solicitud", description: err?.message, variant: "destructive" });

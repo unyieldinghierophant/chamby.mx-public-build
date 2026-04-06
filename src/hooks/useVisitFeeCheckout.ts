@@ -44,6 +44,7 @@ export const useVisitFeeCheckout = () => {
         description: msg,
         variant: 'destructive',
       });
+      throw err; // re-throw so callers can avoid clearing form state on failure
     } finally {
       setLoading(false);
     }
