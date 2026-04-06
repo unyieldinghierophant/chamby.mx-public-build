@@ -310,7 +310,17 @@ const AuthCallback = () => {
       // Clear the flag
       localStorage.removeItem('new_provider_signup');
 
-      // Redirect based on selected role - clients go to user landing
+      // Respect any pending return path (e.g. booking flow saved before auth)
+      const pendingReturn = localStorage.getItem('auth_return_to') || sessionStorage.getItem('auth_return_to');
+      if (pendingReturn) {
+        localStorage.removeItem('auth_return_to');
+        sessionStorage.removeItem('auth_return_to');
+        console.log('[AuthCallback] Redirecting to pending return path:', pendingReturn);
+        navigate(pendingReturn, { replace: true });
+        return;
+      }
+
+      // Default: clients go to user landing
       console.log('[AuthCallback] Redirecting to user landing');
       navigate('/user-landing', { replace: true });
     } catch (error) {
