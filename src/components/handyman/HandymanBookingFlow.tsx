@@ -619,15 +619,25 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
   // ---- Summary ----
   if (showSummary) {
     return (
-      <HandymanSummary
-        formData={formData}
-        onConfirm={handleSubmit}
-        onGoBack={handleBack}
-        onAddPhoto={handleSummaryAddPhoto}
-        onRetryPhoto={handleRetryPhoto}
-        onNavigateToStep={handleNavigateToStep}
-        isSubmitting={isSubmitting || checkoutLoading}
-      />
+      <>
+        <AuthModal
+          open={showAuthModal}
+          onOpenChange={setShowAuthModal}
+          onLogin={handleAuthLogin}
+          onGuest={() => {}}
+          showGuestOption={false}
+          message="Crea una cuenta para confirmar y pagar tu solicitud. Tu progreso está guardado."
+        />
+        <HandymanSummary
+          formData={formData}
+          onConfirm={handleSubmit}
+          onGoBack={handleBack}
+          onAddPhoto={handleSummaryAddPhoto}
+          onRetryPhoto={handleRetryPhoto}
+          onNavigateToStep={handleNavigateToStep}
+          isSubmitting={isSubmitting || checkoutLoading}
+        />
+      </>
     );
   }
 
