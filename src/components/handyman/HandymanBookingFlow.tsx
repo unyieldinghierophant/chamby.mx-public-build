@@ -116,9 +116,10 @@ interface HandymanBookingFlowProps {
 }
 
 export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: HandymanBookingFlowProps) => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const checkoutParam = searchParams.get('checkout');
   const { toast } = useToast();
   const { saveFormData, loadFormData, clearFormData } = useFormPersistence('handyman-booking');
   const { location: globalLocation } = useGlobalLocation();
@@ -165,6 +166,8 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
   const [isLoading, setIsLoading] = useState(true);
   // Session ID scopes form restoration to the originating browser tab
   const bookingSessionId = useRef<string | null>(null);
+  // Prevents auto-submit from firing more than once per mount
+  const hasAutoSubmitted = useRef(false);
 
   // Rotate placeholder
   useEffect(() => {
@@ -173,6 +176,24 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
     }, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  // Auto-submit to checkout when returning from login with ?checkout=1
+  useEffect(() => {
+    if (
+      !isLoading &&
+      !authLoading &&
+      user &&
+      checkoutParam === '1' &&
+      showSummary &&
+      !isSubmitting &&
+      !checkoutLoading &&
+      !hasAutoSubmitted.current
+    ) {
+      hasAutoSubmitted.current = true;
+      handleSubmit();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading, authLoading, user, checkoutParam, showSummary]);
 
   // Load saved data — only restore to sessions that own the data
   useEffect(() => {
@@ -452,7 +473,8 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
       localStorage.setItem('booking_show_summary', 'true');
       localStorage.setItem('login_context', 'client');
       localStorage.setItem('booking_auth_return', 'true');
-      const returnPath = `/book-job?category=${categorySlug}`;
+      // checkout=1 tells the booking flow to auto-submit on return, even if localStorage is stale
+      const returnPath = `/book-job?category=${categorySlug}&checkout=1`;
       sessionStorage.setItem('auth_return_to', returnPath);
       localStorage.setItem('auth_return_to', returnPath);
       setShowAuthModal(true);
