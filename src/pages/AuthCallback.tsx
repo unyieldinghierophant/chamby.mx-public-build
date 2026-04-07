@@ -263,8 +263,10 @@ const AuthCallback = () => {
       console.log('[AuthCallback] Selected role:', selectedRole);
       console.log('[AuthCallback] New provider signup:', isNewProviderSignup);
       
-      // Check for stored return path AFTER role is determined
-      const returnTo = sessionStorage.getItem('auth_return_to') || localStorage.getItem('auth_return_to');
+      // Check for stored return path AFTER role is determined.
+      // Priority: URL param (survives OAuth redirect) > sessionStorage > localStorage
+      const returnPathFromUrl = searchParams.get('return_to');
+      const returnTo = returnPathFromUrl || sessionStorage.getItem('auth_return_to') || localStorage.getItem('auth_return_to');
       
       // Clear stored values (after reading them)
       sessionStorage.removeItem('auth_return_to');

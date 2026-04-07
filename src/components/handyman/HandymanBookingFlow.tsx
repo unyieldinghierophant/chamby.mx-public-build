@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { VISIT_BASE_FEE } from "@/utils/pricingConfig";
 import { Button } from "@/components/ui/button";
 import { ModernButton } from "@/components/ui/modern-button";
@@ -163,6 +163,8 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
   const [createdJobId, setCreatedJobId] = useState<string | null>(null);
   const { redirectToCheckout, loading: checkoutLoading } = useVisitFeeCheckout();
   const [isLoading, setIsLoading] = useState(true);
+  // Session ID scopes form restoration to the originating browser tab
+  const bookingSessionId = useRef<string | null>(null);
 
   // Rotate placeholder
   useEffect(() => {
@@ -172,13 +174,17 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
     return () => clearInterval(interval);
   }, []);
 
-  // Load saved data
+  // Load saved data — only restore to sessions that own the data
   useEffect(() => {
     const saved = loadFormData();
     const shouldShowSummary = localStorage.getItem('booking_show_summary') === 'true';
+    const isAuthReturn = localStorage.getItem('booking_auth_return') === 'true';
+    const currentSessionId = sessionStorage.getItem('booking_session_id');
+    const savedSessionId = saved?.bookingSessionId;
 
-    if (shouldShowSummary && saved?.handymanFormData) {
-      const restored = { ...saved.handymanFormData };
+    // Helper to restore form fields from a saved snapshot
+    const applyRestored = (data: any) => {
+      const restored = { ...data };
       if (restored.scheduledDate) {
         const parsed = new Date(restored.scheduledDate);
         restored.scheduledDate = !isNaN(parsed.getTime()) ? parsed : null;
@@ -190,28 +196,46 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
       } else {
         restored.photos = [];
       }
+      return restored;
+    };
+
+    if (isAuthReturn && saved?.handymanFormData) {
+      // User returning from auth redirect — restore their data and show summary
+      localStorage.removeItem('booking_auth_return');
+      const restored = applyRestored(saved.handymanFormData);
       setFormData(prev => ({ ...prev, ...restored }));
-      setShowSummary(true);
+      if (shouldShowSummary) setShowSummary(true);
+      else setCurrentStep(saved.currentStep || 1);
+      // Carry forward the session ID so the tab keeps ownership
+      if (currentSessionId) {
+        bookingSessionId.current = currentSessionId;
+      } else {
+        const newId = crypto.randomUUID();
+        sessionStorage.setItem('booking_session_id', newId);
+        bookingSessionId.current = newId;
+      }
       setIsLoading(false);
       return;
     }
 
-    if (saved?.handymanFormData) {
-      const restored = { ...saved.handymanFormData };
-      if (restored.scheduledDate) {
-        const parsed = new Date(restored.scheduledDate);
-        restored.scheduledDate = !isNaN(parsed.getTime()) ? parsed : null;
-      }
-      if (restored.photos && Array.isArray(restored.photos)) {
-        restored.photos = restored.photos
-          .filter((p: any) => p?.uploaded && p?.url && !p.url.startsWith('blob:'))
-          .map((p: any) => ({ ...p, uploadStatus: 'success' as const }));
-      } else {
-        restored.photos = [];
-      }
+    if (currentSessionId && currentSessionId === savedSessionId && saved?.handymanFormData) {
+      // Same browser tab — restore normally
+      const restored = applyRestored(saved.handymanFormData);
       setFormData(prev => ({ ...prev, ...restored }));
-      setCurrentStep(saved.currentStep || 1);
+      if (shouldShowSummary) setShowSummary(true);
+      else setCurrentStep(saved.currentStep || 1);
+      bookingSessionId.current = currentSessionId;
+      setIsLoading(false);
+      return;
     }
+
+    // Fresh start — different tab/window or no prior session.
+    // Clear any stale data so it doesn't accumulate.
+    clearFormData();
+    localStorage.removeItem('booking_show_summary');
+    const newId = crypto.randomUUID();
+    sessionStorage.setItem('booking_session_id', newId);
+    bookingSessionId.current = newId;
     setIsLoading(false);
   }, []);
 
@@ -262,7 +286,11 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
       const persistablePhotos = formData.photos
         .filter(f => f.uploaded && f.url && !f.url.startsWith('blob:'))
         .map(f => ({ file: null, url: f.url, uploaded: true, uploadStatus: 'success' as const }));
-      saveFormData({ handymanFormData: { ...formData, photos: persistablePhotos }, currentStep });
+      saveFormData({
+        handymanFormData: { ...formData, photos: persistablePhotos },
+        currentStep,
+        bookingSessionId: bookingSessionId.current,
+      });
     }
   }, [formData, currentStep]);
 
@@ -423,6 +451,7 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
       saveFormData({ handymanFormData: { ...formData, photos: persistablePhotos }, currentStep });
       localStorage.setItem('booking_show_summary', 'true');
       localStorage.setItem('login_context', 'client');
+      localStorage.setItem('booking_auth_return', 'true');
       const returnPath = `/book-job?category=${categorySlug}`;
       sessionStorage.setItem('auth_return_to', returnPath);
       localStorage.setItem('auth_return_to', returnPath);

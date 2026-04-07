@@ -211,16 +211,19 @@ const Login = () => {
   const handleGoogleLogin = async () => {
     localStorage.removeItem('selected_role');
     localStorage.setItem('login_context', 'client');
-    
-    // Store return path before OAuth redirect
-    const returnTo = (location.state as { returnTo?: string })?.returnTo;
-    if (returnTo) {
-      sessionStorage.setItem('auth_return_to', returnTo);
-      localStorage.setItem('auth_return_to', returnTo);
-    }
-    
+
+    // Encode return_to directly in the callback URL — survives full OAuth redirect chain
+    // without depending on localStorage/sessionStorage (which may be cleared on mobile or cross-origin).
+    const urlReturnTo = searchParams.get('return_to');
+    const callbackUrl = urlReturnTo
+      ? `${window.location.origin}/auth/callback?return_to=${encodeURIComponent(urlReturnTo)}`
+      : `${window.location.origin}/auth/callback`;
+
     setGoogleLoading(true);
-    const { error } = await signInWithGoogle(false, 'client');
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: callbackUrl }
+    });
     if (error) {
       toast.error(error.message);
       setGoogleLoading(false);
