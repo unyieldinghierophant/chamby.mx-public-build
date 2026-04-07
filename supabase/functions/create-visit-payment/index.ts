@@ -54,12 +54,17 @@ serve(async (req) => {
     // Fetch the job — verify ownership and status
     const { data: job, error: jobError } = await supabaseClient
       .from("jobs")
-      .select("id, title, visit_fee_paid, status")
+      .select("id, title, visit_fee_paid, status, client_id")
       .eq("id", jobId)
       .single();
 
     if (jobError || !job) {
       throw new Error(`Job not found: ${jobError?.message || "Unknown error"}`);
+    }
+
+    // Ownership check — prevent any authenticated user from paying for someone else's job
+    if (job.client_id !== user.id) {
+      throw new Error("You are not authorized to pay for this job");
     }
 
     if (job.visit_fee_paid) {
