@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chamby — Buscando técnico</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+:root {
+  --black: #0F0F0E;
+  --white: #FAFAF8;
+  --gray-50: #F5F5F2;
+  --gray-100: #EDEDE8;
+  --gray-200: #E0E0DA;
+  --gray-300: #C8C8C0;
+  --gray-400: #A0A098;
+  --gray-600: #686860;
+  --green: #0D9E6A;
+  --green-light: #E6F7F1;
+  --amber: #E8A020;
+}
+body {
+  background: #DDDBD3;
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px 16px 48px;
+}
+.frame-label {
+  position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+  font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: #9A9890; font-weight: 500; white-space: nowrap; z-index: 9999;
+}
+.phone {
+  width: 375px; height: 812px;
+  background: var(--white);
+  border-radius: 48px; overflow: hidden;
+  border: 1.5px solid rgba(255,255,255,0.85);
+  box-shadow: 0 48px 96px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.05);
+  position: relative; display: flex; flex-direction: column;
+}
+.status-bar {
+  padding: 14px 28px 6px;
+  display: flex; justify-content: space-between; align-items: center;
+  flex-shrink: 0; z-index: 20; background: var(--white);
+}
+.status-time { font-size: 15px; font-weight: 600; color: var(--black); }
+.status-icons { display: flex; gap: 5px; align-items: center; }
+.nav-bar {
+  padding: 4px 16px 10px;
+  display: flex; align-items: center; gap: 10px;
+  flex-shrink: 0; z-index: 20; background: var(--white);
+}
+.back-btn {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--gray-50); border: 1px solid var(--gray-200);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.nav-title { font-size: 15px; font-weight: 600; color: var(--black); }
+.job-chip {
+  margin-left: auto;
+  background: var(--gray-50); border: 1px solid var(--gray-200);
+  border-radius: 20px; padding: 4px 10px;
+  font-size: 11px; font-weight: 600; color: var(--gray-600);
+}
+
+/* MAP */
+.map-area {
+  position: relative; height: 360px; flex-shrink: 0;
+}
+#map { width: 100%; height: 100%; }
+
+/* Floating message bar */
+.map-message-bar {
+  position: absolute; top: 12px; left: 12px; right: 12px;
+  z-index: 15; pointer-events: none;
+}
+.map-message {
+  background: var(--white);
+  border-radius: 14px;
+  padding: 10px 14px;
+  display: flex; align-items: center; gap: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.14);
+  border: 1px solid rgba(0,0,0,0.06);
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+.map-message.visible { opacity: 1; transform: translateY(0); }
+.msg-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  flex-shrink: 0; background: var(--green);
+  animation: pulse-dot 1.4s ease-in-out infinite;
+}
+.msg-dot.amber { background: var(--amber); animation: none; }
+@keyframes pulse-dot {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.6); }
+}
+.msg-text { font-size: 12px; font-weight: 600; color: var(--black); line-height: 1.3; }
+.msg-sub { font-size: 11px; color: var(--gray-600); margin-top: 1px; }
+
+/* Provider focus card that slides in above bottom */
+.provider-focus-card {
+  position: absolute; bottom: 88px; left: 12px; right: 12px;
+  z-index: 15;
+  background: var(--white);
+  border-radius: 16px;
+  padding: 12px 14px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.16);
+  border: 1px solid rgba(0,0,0,0.06);
+  display: flex; align-items: center; gap: 12px;
+  opacity: 0; transform: translateY(10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+}
+.provider-focus-card.visible { opacity: 1; transform: translateY(0); }
+.pfc-avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--green-light);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.pfc-name { font-size: 13px; font-weight: 700; color: var(--black); }
+.pfc-meta { font-size: 11px; color: var(--gray-600); margin-top: 1px; }
+.pfc-eta {
+  margin-left: auto; flex-shrink: 0;
+  background: var(--green-light); color: #0A7A52;
+  border-radius: 20px; padding: 4px 10px;
+  font-size: 12px; font-weight: 700;
+}
+.pfc-eta.notifying {
+  background: var(--amber-light, #FEF6E6); color: #B07818;
+}
+
+/* Accepted overlay */
+.accepted-overlay {
+  position: absolute; inset: 0; z-index: 40;
+  background: rgba(13,158,106,0.92);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 10px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.4s ease;
+  border-radius: 0;
+}
+.accepted-overlay.show { opacity: 1; pointer-events: all; }
+.accepted-check {
+  width: 64px; height: 64px; border-radius: 50%;
+  border: 2.5px solid rgba(255,255,255,0.4);
+  display: flex; align-items: center; justify-content: center;
+  animation: pop-in 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+@keyframes pop-in {
+  from { transform: scale(0.5); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.accepted-title { font-size: 18px; font-weight: 700; color: white; }
+.accepted-sub { font-size: 13px; color: rgba(255,255,255,0.8); }
+
+/* Map bottom fade */
+.map-fade {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 80px;
+  background: linear-gradient(to top, var(--white) 0%, transparent 100%);
+  pointer-events: none; z-index: 10;
+}
+
+/* BOTTOM SHEET */
+.bottom-sheet {
+  flex: 1; background: var(--white); z-index: 20;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.sheet-handle {
+  width: 36px; height: 4px; border-radius: 2px;
+  background: var(--gray-300); margin: 10px auto 14px; flex-shrink: 0;
+}
+.sheet-content { padding: 0 16px; flex: 1; overflow-y: auto; }
+.sheet-content::-webkit-scrollbar { display: none; }
+
+.status-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--green-light); border-radius: 20px;
+  padding: 5px 12px 5px 8px; margin-bottom: 10px;
+}
+.status-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--green);
+  animation: pulse-dot 1.4s ease-in-out infinite;
+}
+.status-pill-text { font-size: 12px; font-weight: 600; color: #0A7A52; }
+.sheet-title { font-size: 20px; font-weight: 700; color: var(--black); margin-bottom: 4px; }
+.sheet-sub { font-size: 13px; color: var(--gray-600); line-height: 1.55; margin-bottom: 14px; }
+
+.steps { display: flex; flex-direction: column; }
+.step-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid var(--gray-200);
+}
+.step-row:last-child { border-bottom: none; }
+.step-icon {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.step-icon.done { background: var(--green); }
+.step-icon.active { background: var(--black); }
+.step-icon.pending { background: var(--gray-200); }
+.step-text { font-size: 13px; font-weight: 600; color: var(--black); }
+.step-sub { font-size: 11px; color: var(--gray-400); margin-top: 1px; }
+.step-badge { margin-left: auto; font-size: 11px; font-weight: 600; flex-shrink: 0; }
+.step-badge.green { color: var(--green); }
+.step-badge.amber { color: var(--amber); }
+.step-badge.gray { color: var(--gray-400); }
+
+.cta-area {
+  padding: 10px 16px 28px; background: var(--white);
+  flex-shrink: 0; display: flex; flex-direction: column; gap: 8px;
+}
+.btn-primary {
+  width: 100%; padding: 14px; border-radius: 50px; border: none;
+  background: var(--black); color: white;
+  font-size: 14px; font-weight: 600; font-family: 'DM Sans', sans-serif;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: opacity 0.15s;
+}
+.btn-primary:hover { opacity: 0.82; }
+.btn-cancel {
+  width: 100%; padding: 14px; border-radius: 50px;
+  border: 1.5px solid var(--gray-300); background: transparent;
+  font-size: 14px; font-weight: 600; color: var(--gray-600);
+  font-family: 'DM Sans', sans-serif; cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.btn-cancel:hover { border-color: var(--black); color: var(--black); }
+
+/* Modal */
+.modal-overlay {
+  position: absolute; inset: 0; background: rgba(15,15,14,0.5);
+  z-index: 50; display: flex; align-items: flex-end;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+  border-radius: 48px; overflow: hidden;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal-sheet {
+  background: var(--white); width: 100%;
+  border-radius: 28px 28px 0 0; padding: 0 20px 32px;
+  transform: translateY(24px);
+  transition: transform 0.28s cubic-bezier(0.34,1.1,0.64,1);
+}
+.modal-overlay.open .modal-sheet { transform: translateY(0); }
+.modal-handle { width: 36px; height: 4px; border-radius: 2px; background: var(--gray-300); margin: 12px auto 18px; }
+.modal-title { font-size: 18px; font-weight: 700; color: var(--black); margin-bottom: 6px; }
+.modal-sub { font-size: 13px; color: var(--gray-600); line-height: 1.6; margin-bottom: 18px; }
+.modal-input {
+  width: 100%; border: 1.5px solid var(--gray-300); border-radius: 12px;
+  padding: 13px 14px; font-size: 15px; font-family: 'DM Sans', sans-serif;
+  color: var(--black); background: var(--white); outline: none;
+  transition: border-color 0.15s; margin-bottom: 12px;
+}
+.modal-input:focus { border-color: var(--black); }
+.modal-btn {
+  width: 100%; padding: 14px; border-radius: 50px; border: none;
+  background: var(--black); color: white;
+  font-size: 14px; font-weight: 600; font-family: 'DM Sans', sans-serif;
+  cursor: pointer; margin-bottom: 10px;
+}
+.modal-skip { text-align: center; font-size: 13px; color: var(--gray-400); cursor: pointer; padding: 6px; }
+
+/* Custom map markers */
+.home-marker-wrap { display: flex; flex-direction: column; align-items: center; }
+.home-bubble {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: #0F0F0E; border: 3px solid white;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+  display: flex; align-items: center; justify-content: center;
+}
+.home-tail {
+  width: 0; height: 0;
+  border-left: 6px solid transparent; border-right: 6px solid transparent;
+  border-top: 8px solid #0F0F0E; margin-top: -1px;
+}
+.home-shadow {
+  width: 14px; height: 5px; border-radius: 50%;
+  background: rgba(0,0,0,0.14); margin-top: 2px;
+}
+
+.provider-marker-wrap {
+  display: flex; flex-direction: column; align-items: center;
+  transition: transform 0.3s ease;
+}
+.provider-marker-wrap.focused { transform: scale(1.15); }
+.provider-bubble {
+  border-radius: 50%; background: white;
+  border: 2.5px solid #C8C8C0;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.16);
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px;
+  transition: all 0.3s ease;
+}
+.provider-bubble.active {
+  background: #0D9E6A; border-color: #0D9E6A;
+  width: 42px; height: 42px;
+  box-shadow: 0 5px 18px rgba(13,158,106,0.45);
+}
+.provider-tail-gray {
+  width: 0; height: 0;
+  border-left: 4px solid transparent; border-right: 4px solid transparent;
+  border-top: 5px solid #C8C8C0; margin-top: -1px;
+  transition: border-top-color 0.3s;
+}
+.provider-tail-gray.active { border-top-color: #0D9E6A; }
+</style>
+</head>
+<body>
+
+<div class="frame-label">Chamby — Buscando técnico</div>
+
+<div class="phone">
+
+  <div class="status-bar">
+    <span class="status-time">10:41</span>
+    <div class="status-icons">
+      <svg width="15" height="11" viewBox="0 0 15 11" fill="#0F0F0E"><rect x="0" y="4" width="3" height="7" rx="1"/><rect x="4.5" y="2.5" width="3" height="8.5" rx="1"/><rect x="9" y="1" width="3" height="10" rx="1"/><rect x="13" y="0" width="2" height="11" rx="1" opacity="0.25"/></svg>
+      <svg width="15" height="11" viewBox="0 0 15 11" fill="#0F0F0E"><path d="M7.5 2.5C9.5 2.5 11.3 3.3 12.6 4.6L14 3.1C12.3 1.2 10 0 7.5 0S2.7 1.2 1 3.1L2.4 4.6C3.7 3.3 5.5 2.5 7.5 2.5z"/><path d="M7.5 5.5C8.8 5.5 10 6 10.8 6.9L12.2 5.4C11 4.2 9.3 3.4 7.5 3.4 5.7 3.4 4 4.2 2.8 5.4L4.2 6.9C5 6 6.2 5.5 7.5 5.5z"/><circle cx="7.5" cy="9.5" r="1.5"/></svg>
+      <span style="font-size:11px;font-weight:600;">74%</span>
+    </div>
+  </div>
+
+  <div class="nav-bar">
+    <button class="back-btn">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#0F0F0E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2L4 7l5 5"/></svg>
+    </button>
+    <span class="nav-title">Buscando técnico</span>
+    <div class="job-chip">Job #4CE0352B</div>
+  </div>
+
+  <div class="map-area">
+    <div id="map"></div>
+
+    <!-- Floating message -->
+    <div class="map-message-bar">
+      <div class="map-message" id="mapMsg">
+        <div class="msg-dot" id="msgDot"></div>
+        <div>
+          <div class="msg-text" id="msgText">Notificando técnicos cercanos…</div>
+          <div class="msg-sub" id="msgSub">Guadalajara · Colomos Providencia</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Provider focus card -->
+    <div class="provider-focus-card" id="focusCard">
+      <div class="pfc-avatar" id="fcAvatar">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#0D9E6A" stroke-width="1.8" stroke-linecap="round">
+          <circle cx="10" cy="6.5" r="3.5"/><path d="M3 18c0-3.9 3.1-7 7-7s7 3.1 7 7"/>
+        </svg>
+      </div>
+      <div>
+        <div class="pfc-name" id="fcName">Jorge Reyes</div>
+        <div class="pfc-meta" id="fcMeta">★★★★★ 4.9 · Electricista</div>
+      </div>
+      <div class="pfc-eta" id="fcEta">8 min</div>
+    </div>
+
+    <!-- Accepted overlay -->
+    <div class="accepted-overlay" id="acceptedOverlay">
+      <div class="accepted-check">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M5 14l6.5 6.5L23 7"/></svg>
+      </div>
+      <div class="accepted-title">¡Técnico aceptó!</div>
+      <div class="accepted-sub" id="acceptedName">Jorge está en camino</div>
+    </div>
+
+    <div class="map-fade"></div>
+  </div>
+
+  <div class="bottom-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-content">
+      <div class="status-pill">
+        <div class="status-dot"></div>
+        <span class="status-pill-text">5 técnicos en tu zona</span>
+      </div>
+      <div class="sheet-title">Buscando tu técnico</div>
+      <div class="sheet-sub">Notificamos a los proveedores más cercanos. Suelen responder en menos de 5 minutos.</div>
+      <div class="steps">
+        <div class="step-row">
+          <div class="step-icon done">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M2 6.5l3 3 6-6"/></svg>
+          </div>
+          <div><div class="step-text">Solicitud creada</div><div class="step-sub">Job #4CE0352B</div></div>
+          <div class="step-badge green">Listo</div>
+        </div>
+        <div class="step-row">
+          <div class="step-icon done">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M2 6.5l3 3 6-6"/></svg>
+          </div>
+          <div><div class="step-text">Pago en escrow</div><div class="step-sub">$406 MXN retenidos</div></div>
+          <div class="step-badge green">Seguro</div>
+        </div>
+        <div class="step-row">
+          <div class="step-icon active">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="5"/><path d="M6.5 4v2.5l1.5 1.5"/></svg>
+          </div>
+          <div><div class="step-text">Notificando técnicos</div><div class="step-sub">5 proveedores cerca</div></div>
+          <div class="step-badge amber">En curso</div>
+        </div>
+        <div class="step-row" style="opacity:0.38">
+          <div class="step-icon pending"></div>
+          <div><div class="step-text">Técnico en camino</div><div class="step-sub">Recibirás una notificación</div></div>
+          <div class="step-badge gray">Pendiente</div>
+        </div>
+      </div>
+    </div>
+    <div class="cta-area">
+      <button class="btn-primary" onclick="document.getElementById('modal').classList.add('open')">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round"><path d="M7.5 1C5.6 1 4 2.5 4 4.4c0 2.7 3.5 8.1 3.5 8.1S11 7.1 11 4.4C11 2.5 9.4 1 7.5 1z"/><circle cx="7.5" cy="4.4" r="1.4" fill="white" stroke="none"/></svg>
+        Avísame cuando haya un técnico
+      </button>
+      <button class="btn-cancel">Cancelar solicitud</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal" onclick="if(event.target===this)this.classList.remove('open')">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">¿A dónde te avisamos?</div>
+      <div class="modal-sub">Te mandamos mensaje en cuanto un técnico acepte. Normalmente tarda menos de 10 minutos.</div>
+      <input class="modal-input" type="tel" placeholder="WhatsApp o número de teléfono" inputmode="tel"/>
+      <button class="modal-btn">Confirmar — avísame</button>
+      <div class="modal-skip" onclick="document.getElementById('modal').classList.remove('open')">Ahora no</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Google Maps — REPLACE AIzaSyDZtUXvQEb2sHGYoOMHfMllbbix9fUxa5I -->
+<script>
+window.initMap = function() {
+  const CLIENT = { lat: 20.6896, lng: -103.4067 };
+
+  const providers = [
+    { lat: 20.6945, lng: -103.4120, name: 'Jorge Reyes',   stars: '★★★★★', rating: '4.9', spec: 'Electricista', eta: '8 min' },
+    { lat: 20.6855, lng: -103.3985, name: 'Carlos Vega',   stars: '★★★★☆', rating: '4.7', spec: 'Electricista', eta: '13 min' },
+    { lat: 20.6928, lng: -103.4195, name: 'María Guerrero',stars: '★★★★★', rating: '4.8', spec: 'Electricista', eta: '11 min' },
+    { lat: 20.6820, lng: -103.4055, name: 'Roberto Muñoz', stars: '★★★★☆', rating: '4.6', spec: 'Electricista', eta: '17 min' },
+    { lat: 20.6975, lng: -103.4005, name: 'Ana López',     stars: '★★★★★', rating: '4.9', spec: 'Electricista', eta: '19 min' },
+  ];
+
+  const mapStyles = [
+    { featureType:'all', elementType:'labels.icon', stylers:[{visibility:'off'}] },
+    { featureType:'administrative', elementType:'geometry', stylers:[{visibility:'off'}] },
+    { featureType:'administrative', elementType:'labels.text.fill', stylers:[{color:'#9a9890'}] },
+    { featureType:'landscape', elementType:'geometry', stylers:[{color:'#f0efe8'}] },
+    { featureType:'poi', elementType:'geometry', stylers:[{color:'#e4e3db'}] },
+    { featureType:'poi', elementType:'labels', stylers:[{visibility:'off'}] },
+    { featureType:'poi.park', elementType:'geometry', stylers:[{color:'#d4dfc4'}] },
+    { featureType:'road', elementType:'geometry', stylers:[{color:'#ffffff'}] },
+    { featureType:'road', elementType:'geometry.stroke', stylers:[{color:'#e8e8e0'},{weight:0.5}] },
+    { featureType:'road', elementType:'labels.text.fill', stylers:[{color:'#b0b0a8'}] },
+    { featureType:'road.arterial', elementType:'geometry', stylers:[{color:'#ffffff'},{weight:1.5}] },
+    { featureType:'road.highway', elementType:'geometry', stylers:[{color:'#ffffff'},{weight:2}] },
+    { featureType:'transit', elementType:'all', stylers:[{visibility:'off'}] },
+    { featureType:'water', elementType:'geometry', stylers:[{color:'#dce8f0'}] },
+  ];
+
+  const map = new google.maps.Map(document.getElementById('map'), {
+    center: CLIENT,
+    zoom: 15,
+    styles: mapStyles,
+    disableDefaultUI: true,
+    gestureHandling: 'none',
+    keyboardShortcuts: false,
+  });
+
+  // Home marker
+  const homeMarkerEl = document.createElement('div');
+  homeMarkerEl.innerHTML = `
+    <div class="home-marker-wrap">
+      <div class="home-bubble">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10 1L1 9h2v9h4v-5h6v5h4V9h2L10 1z"/>
+        </svg>
+      </div>
+      <div class="home-tail"></div>
+      <div class="home-shadow"></div>
+    </div>`;
+
+  new google.maps.marker.AdvancedMarkerElement({
+    map, position: CLIENT, content: homeMarkerEl, zIndex: 10,
+  });
+
+  // Provider markers
+  const markerEls = [];
+  const markerObjs = [];
+
+  providers.forEach((p, i) => {
+    const el = document.createElement('div');
+    el.innerHTML = `
+      <div class="provider-marker-wrap" id="pmw${i}">
+        <div class="provider-bubble" id="pb${i}">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#A0A098" stroke-width="1.8" stroke-linecap="round">
+            <circle cx="10" cy="6.5" r="3.5"/>
+            <path d="M3 18c0-3.9 3.1-7 7-7s7 3.1 7 7"/>
+          </svg>
+        </div>
+        <div class="provider-tail-gray" id="pt${i}"></div>
+      </div>`;
+    markerEls.push(el);
+
+    const marker = new google.maps.marker.AdvancedMarkerElement({
+      map, position: { lat: p.lat, lng: p.lng },
+      content: el, zIndex: 5,
+    });
+    markerObjs.push(marker);
+  });
+
+  // Active route polyline (hidden initially)
+  let activeRoute = null;
+
+  function clearRoute() {
+    if (activeRoute) { activeRoute.setMap(null); activeRoute = null; }
+  }
+
+  function drawRoute(origin, destination, callback) {
+    const ds = new google.maps.DirectionsService();
+    ds.route({
+      origin, destination,
+      travelMode: google.maps.TravelMode.DRIVING,
+    }, (result, status) => {
+      if (status === 'OK') {
+        const path = result.routes[0].overview_path;
+        const poly = new google.maps.Polyline({
+          path,
+          strokeColor: '#0D9E6A',
+          strokeOpacity: 0,
+          strokeWeight: 3,
+          icons: [{
+            icon: {
+              path: 'M 0,-1 0,1',
+              strokeOpacity: 0.7,
+              scale: 3,
+            },
+            offset: '0',
+            repeat: '12px',
+          }],
+          map,
+        });
+        activeRoute = poly;
+        if (callback) callback();
+      }
+    });
+  }
+
+  // Reset all markers to inactive
+  function deactivateAll() {
+    providers.forEach((_, i) => {
+      const pb = document.getElementById('pb' + i);
+      const pt = document.getElementById('pt' + i);
+      const pmw = document.getElementById('pmw' + i);
+      if (pb) {
+        pb.className = 'provider-bubble';
+        pb.querySelector('svg').setAttribute('stroke', '#A0A098');
+      }
+      if (pt) pt.className = 'provider-tail-gray';
+      if (pmw) pmw.classList.remove('focused');
+      if (markerObjs[i]) markerObjs[i].zIndex = 5;
+    });
+  }
+
+  // Focus on provider i
+  function focusProvider(i) {
+    deactivateAll();
+    clearRoute();
+
+    const p = providers[i];
+
+    // Activate marker
+    const pb = document.getElementById('pb' + i);
+    const pt = document.getElementById('pt' + i);
+    const pmw = document.getElementById('pmw' + i);
+    if (pb) {
+      pb.className = 'provider-bubble active';
+      pb.querySelector('svg').setAttribute('stroke', 'white');
+    }
+    if (pt) pt.className = 'provider-tail-gray active';
+    if (pmw) pmw.classList.add('focused');
+    if (markerObjs[i]) markerObjs[i].zIndex = 20;
+
+    // Pan map to show both provider and client
+    const bounds = new google.maps.LatLngBounds();
+    bounds.extend(CLIENT);
+    bounds.extend({ lat: p.lat, lng: p.lng });
+    map.fitBounds(bounds, { top: 40, bottom: 100, left: 40, right: 40 });
+
+    // Draw route
+    drawRoute({ lat: p.lat, lng: p.lng }, CLIENT);
+
+    // Update focus card
+    document.getElementById('fcName').textContent = p.name;
+    document.getElementById('fcMeta').textContent = p.stars + ' ' + p.rating + ' · ' + p.spec;
+    document.getElementById('fcEta').textContent = p.eta;
+    document.getElementById('fcEta').className = 'pfc-eta';
+
+    const card = document.getElementById('focusCard');
+    card.classList.remove('visible');
+    setTimeout(() => card.classList.add('visible'), 80);
+  }
+
+  // Rotating messages
+  const messages = [
+    { text: 'Notificando técnicos cercanos…',   sub: '5 disponibles en tu zona ahora',       dot: 'green' },
+    { text: 'Jorge revisó tu solicitud',          sub: 'Evaluando disponibilidad · 8 min',      dot: 'green' },
+    { text: 'Tiempo promedio de respuesta',       sub: 'Los técnicos aceptan en ~4 minutos',    dot: 'amber' },
+    { text: 'Carlos está revisando tu pedido',    sub: 'Electricista verificado · 13 min',      dot: 'green' },
+    { text: '3 técnicos notificados',             sub: 'Esperando confirmación…',               dot: 'green' },
+    { text: 'María vio tu solicitud',             sub: 'Proveedora con 98% de aceptación',      dot: 'green' },
+    { text: 'Tu pago está seguro',                sub: '$406 MXN en escrow · sin cargos aún',   dot: 'amber' },
+    { text: 'Casi listo…',                        sub: 'Los técnicos suelen confirmar en <5 min', dot: 'green' },
+  ];
+
+  let msgIdx = 0;
+  const msgEl = document.getElementById('mapMsg');
+  const msgText = document.getElementById('msgText');
+  const msgSub = document.getElementById('msgSub');
+  const msgDot = document.getElementById('msgDot');
+
+  function showMessage(idx) {
+    const m = messages[idx % messages.length];
+    msgEl.classList.remove('visible');
+    setTimeout(() => {
+      msgText.textContent = m.text;
+      msgSub.textContent = m.sub;
+      msgDot.className = 'msg-dot' + (m.dot === 'amber' ? ' amber' : '');
+      msgEl.classList.add('visible');
+    }, 350);
+  }
+
+  // Kick off sequence
+  setTimeout(() => msgEl.classList.add('visible'), 400);
+
+  // Cycle providers every 3.5s
+  const providerCycle = [0, 1, 2, 3, 4];
+  let cycleIdx = 0;
+  let msgTimer = 0;
+
+  function nextCycle() {
+    focusProvider(providerCycle[cycleIdx % providerCycle.length]);
+    cycleIdx++;
+    msgTimer++;
+    showMessage(msgTimer);
+  }
+
+  // Start after map loads
+  setTimeout(nextCycle, 800);
+  const cycleInterval = setInterval(nextCycle, 3800);
+
+  // Simulate accept at ~20s (after ~5 cycles)
+  setTimeout(() => {
+    clearInterval(cycleInterval);
+
+    // Final focus on Jorge (index 0 — nearest)
+    focusProvider(0);
+    showMessage(7);
+
+    // Overlay after 1.5s
+    setTimeout(() => {
+      document.getElementById('acceptedOverlay').classList.add('show');
+      document.getElementById('acceptedName').textContent = 'Jorge está en camino · 8 min';
+    }, 1500);
+
+  }, 20000);
+};
+</script>
+<script async defer
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDZtUXvQEb2sHGYoOMHfMllbbix9fUxa5I&libraries=marker&callback=initMap">
+</script>
+</body>
+</html>
