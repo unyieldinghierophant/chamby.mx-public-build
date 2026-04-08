@@ -59,7 +59,7 @@ function loadGoogleMaps(): Promise<void> {
       return;
     }
     const s = document.createElement('script');
-    s.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,directions,marker`;
+    s.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,marker`;
     s.async = true;
     s.defer = true;
     s.onload  = () => resolve();
@@ -140,6 +140,7 @@ export const SearchingForProvider = ({ job, onTransition }: Props) => {
       const map = new google.maps.Map(mapContainerRef.current, {
         center: GDL_FALLBACK,
         zoom: 14,
+        mapId: 'DEMO_MAP_ID',
         styles: MAP_STYLES,
         disableDefaultUI: true,
         gestureHandling: 'none',
