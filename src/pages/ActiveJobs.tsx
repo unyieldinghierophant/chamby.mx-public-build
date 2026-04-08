@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calendar, XCircle, Plus, MessageCircle, MapPin, Clock, AlertTriangle } from "lucide-react";
+import { ArrowLeft, ChevronLeft, Calendar, XCircle, Plus, MessageCircle, MapPin, Clock, AlertTriangle } from "lucide-react";
 import { getStatusLabel, getStatusColor, JOB_STATUS_CONFIG, CLIENT_ACTIVE_STATES } from "@/utils/jobStateMachine";
 import { InvoiceCard } from "@/components/provider-portal/InvoiceCard";
 import { JobInvoiceSection } from "@/components/JobInvoiceSection";
@@ -402,172 +402,242 @@ const ActiveJobs = () => {
     );
   }
 
+  // Shared job-detail sections used in both mobile and desktop layouts
+  const renderJobBanners = (job: ActiveJob) => (
+    <>
+      {needsClientConfirmation(job) && (
+        <ClientVisitConfirmation
+          job={{ ...job, provider: job.provider ? { full_name: job.provider.full_name } : undefined }}
+          onConfirmed={fetchActiveJobs}
+        />
+      )}
+      {needsCompletionConfirmation(job) && !job.has_open_dispute && job.status !== 'provider_done' && (
+        <Card className="border-primary/50 bg-primary/5">
+          <CardContent className="p-4 space-y-3">
+            <h3 className="font-semibold text-foreground">✅ El proveedor indicó que el trabajo terminó</h3>
+            <p className="text-sm text-muted-foreground">
+              Confirma que estás satisfecho con el trabajo para liberar el pago al proveedor.
+            </p>
+            <div className="flex gap-2">
+              <Button onClick={() => handleConfirmCompletion(job.id)} disabled={confirmingCompletion} className="flex-1">
+                {confirmingCompletion ? "Confirmando..." : "Confirmar trabajo"}
+              </Button>
+              <Button variant="outline" disabled className="flex-1 opacity-60">Necesito ayuda</Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      {job.has_open_dispute && (
+        <Card className="border-destructive/50 bg-destructive/5">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <AlertTriangle className="h-4 w-4 text-destructive" />
+              <h3 className="font-semibold text-foreground text-sm">Disputa abierta</h3>
+            </div>
+            <p className="text-xs text-muted-foreground">El pago está congelado hasta que un administrador resuelva la disputa.</p>
+          </CardContent>
+        </Card>
+      )}
+      {job.invoice?.status === 'released' && (
+        <Card className="border-emerald-500/30 bg-emerald-500/5">
+          <CardContent className="p-4 text-center">
+            <p className="text-sm font-medium text-foreground">💸 Pago liberado al proveedor</p>
+          </CardContent>
+        </Card>
+      )}
+    </>
+  );
+
+  const renderJobCards = (job: ActiveJob) => (
+    <>
+      {job.provider && job.status !== 'assigned' && (
+        <Card>
+          <CardContent className="p-6">
+            <h3 className="font-semibold mb-4">Tu Chambynauta</h3>
+            <div className="flex items-center gap-4 mb-4">
+              <Avatar className="h-16 w-16">
+                <AvatarImage src={job.provider.avatar_url} />
+                <AvatarFallback>{job.provider.full_name?.charAt(0) || "P"}</AvatarFallback>
+              </Avatar>
+              <div>
+                <h4 className="font-semibold text-lg">{job.provider.full_name}</h4>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>⭐ {job.provider.rating?.toFixed(1) || "N/A"}</span>
+                  <span>•</span>
+                  <span>{job.provider.total_reviews || 0} reseñas</span>
+                </div>
+              </div>
+            </div>
+            <Button className="w-full" onClick={() => navigate(`/messages?jobId=${job.id}`)}>
+              <MessageCircle className="mr-2 h-4 w-4" />
+              Mensaje
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card>
+        <CardContent className="p-6">
+          <h3 className="font-semibold mb-4">Detalles del Trabajo</h3>
+          <div className="space-y-3">
+            <div className="flex items-start gap-2">
+              <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
+              <div>
+                <p className="text-sm font-medium">Ubicación</p>
+                <p className="text-sm text-muted-foreground">{job.location}</p>
+              </div>
+            </div>
+            {job.scheduled_at && (
+              <div className="flex items-start gap-2">
+                <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium">Programado</p>
+                  <p className="text-sm text-muted-foreground">{new Date(job.scheduled_at).toLocaleString()}</p>
+                </div>
+              </div>
+            )}
+            <div className="pt-3 border-t">
+              <p className="text-sm font-medium mb-1">Descripción</p>
+              <p className="text-sm text-muted-foreground">{job.description}</p>
+            </div>
+            <div className="pt-3 border-t space-y-1">
+              <p className="text-sm font-medium text-muted-foreground">Desglose de visita</p>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span>{VISIT_DISPLAY.subtotal}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">{VAT_LABEL}</span>
+                <span>{VISIT_DISPLAY.vat}</span>
+              </div>
+              <div className="flex justify-between text-sm font-semibold border-t pt-1">
+                <span>Total</span>
+                <span>{VISIT_DISPLAY.total}</span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <JobInvoiceSection jobId={job.id} role="client" onUpdate={fetchActiveJobs} />
+
+      <Card>
+        <CardContent className="p-6">
+          <h3 className="font-semibold mb-4">Acciones</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <Button variant="outline" onClick={() => setRescheduleDialogOpen(true)}>
+              <Calendar className="mr-2 h-4 w-4" />
+              Reagendar
+            </Button>
+            <Button variant="outline" onClick={() => navigate(`/book-job?category=${job.category}`)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Agregar servicios
+            </Button>
+            {job.invoice &&
+              ["paid", "ready_to_release"].includes(job.invoice.status) &&
+              !job.has_open_dispute && (
+                <Button
+                  variant="outline"
+                  className="col-span-2 border-destructive/30 text-destructive hover:bg-destructive/5"
+                  onClick={() => setDisputeModalOpen(true)}
+                >
+                  <AlertTriangle className="mr-2 h-4 w-4" />
+                  Iniciar disputa
+                </Button>
+              )}
+            <Button variant="destructive" className="col-span-2" onClick={() => handleCancelJob(job.id)}>
+              <XCircle className="mr-2 h-4 w-4" />
+              Cancelar trabajo
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </>
+  );
+
+  const isSearchingState = selectedJob?.status === 'searching' || selectedJob?.status === 'pending';
+
   return (
     <div className="min-h-screen bg-gradient-main">
       <Header />
-      <div className="container mx-auto px-4 pt-32 pb-8">
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/user-landing")}
-          className="mb-6"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Volver
-        </Button>
 
-        <h1 className="text-3xl font-bold mb-6">Trabajos Activos</h1>
-
-        {/* Pending Confirmations Alert */}
-        {pendingConfirmationJobs.length > 0 && (
-          <Card className="mb-6 border-primary/50 bg-primary/5">
-            <CardContent className="p-4">
-              <h3 className="font-semibold text-primary mb-3">
-                ⏳ {pendingConfirmationJobs.length} visita{pendingConfirmationJobs.length > 1 ? 's' : ''} pendiente{pendingConfirmationJobs.length > 1 ? 's' : ''} de confirmación
-              </h3>
-              <div className="space-y-3">
-                {pendingConfirmationJobs.map((job) => (
-                  <ClientVisitConfirmation 
-                    key={job.id}
-                    job={{
-                      ...job,
-                      provider: job.provider ? { full_name: job.provider.full_name } : undefined
-                    }}
-                    onConfirmed={fetchActiveJobs}
-                  />
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        <div className="grid md:grid-cols-3 gap-6">
-          {/* Jobs List */}
-          <div className="md:col-span-1 space-y-4">
-            {jobs.map((job) => {
-              const visitFeeStatus = getVisitFeeStatus(job);
-              const invoiceStatus = getInvoiceStatus(job.invoice);
-              const needsConfirm = needsClientConfirmation(job);
-              
-              return (
-                <Card
-                  key={job.id}
-                  className={`cursor-pointer transition-all ${
-                    selectedJob?.id === job.id
-                      ? "border-primary shadow-lg"
-                      : needsConfirm
-                      ? "border-warning/50 hover:border-warning"
-                      : "hover:border-primary/50"
-                  }`}
-                  onClick={() => setSelectedJob(job)}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-semibold">{job.title}</h3>
-                      <div className="flex items-center gap-1">
-                        {needsConfirm && (
-                          <Badge variant="outline" className="text-warning border-warning text-xs">
-                            Confirmar
-                          </Badge>
-                        )}
-                        <Badge variant={job.provider_id ? "default" : "secondary"}>
-                          {getStatusLabel(job.status)}
-                        </Badge>
-                      </div>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-2">{job.category}</p>
-                    
-                    {/* Payment Status Badges */}
-                    <div className="flex flex-wrap gap-1.5 mb-2">
-                      <PaymentStatusBadge type="visit_fee" status={visitFeeStatus} role="customer" />
-                      {invoiceStatus !== 'none' && (
-                        <PaymentStatusBadge type="invoice" status={invoiceStatus} role="customer" />
-                      )}
-                    </div>
-                    
-                    {job.provider && (
-                      <div className="flex items-center gap-2 mt-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={job.provider.avatar_url} />
-                          <AvatarFallback>
-                            {job.provider.full_name?.charAt(0) || "P"}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-sm font-medium">
-                          {job.provider.full_name}
-                        </span>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
+      {/* ── MOBILE layout — full-width, map-first, no card wrapper ────────────── */}
+      <div className="md:hidden">
+        {loading ? (
+          <div className="pt-16 px-4 py-8 animate-pulse space-y-4">
+            <div className="h-8 bg-muted rounded w-1/4" />
+            <div className="h-96 bg-muted rounded" />
           </div>
+        ) : jobs.length === 0 ? (
+          <div className="pt-16 px-4 py-12 text-center">
+            <h2 className="text-2xl font-bold mb-4">No tienes trabajos activos</h2>
+            <p className="text-muted-foreground mb-6">Solicita un servicio para ver tus trabajos activos aquí</p>
+            <Button onClick={() => startBooking(navigate, { entrySource: 'active_jobs' })}>
+              Solicitar servicio
+            </Button>
+          </div>
+        ) : selectedJob ? (
+          <>
+            {/* Minimal nav bar — hidden when SearchingForProvider renders its own */}
+            {!isSearchingState && (
+              <div
+                className="flex items-center gap-2.5 px-4 bg-[#FAFAF8] border-b border-[hsl(40,8%,88%)]"
+                style={{ paddingTop: 72, paddingBottom: 12 }}
+              >
+                <button
+                  onClick={() => navigate("/user-landing")}
+                  className="w-[34px] h-[34px] rounded-full bg-[#F5F5F2] border border-[#E0E0DA] flex items-center justify-center flex-shrink-0"
+                >
+                  <ChevronLeft className="w-4 h-4 text-[#0F0F0E]" />
+                </button>
+                <span className="text-[15px] font-semibold text-[#0F0F0E] flex-1 truncate">{selectedJob.title}</span>
+                <Badge variant={selectedJob.provider_id ? "default" : "secondary"} className="text-xs flex-shrink-0">
+                  {getStatusLabel(selectedJob.status)}
+                </Badge>
+              </div>
+            )}
 
-          {/* Job Details */}
-          {selectedJob && (
-            <div className="md:col-span-2 space-y-6">
-              {/* Client Visit Confirmation - Show at top if needed */}
-              {needsClientConfirmation(selectedJob) && (
-                <ClientVisitConfirmation 
-                  job={{
-                    ...selectedJob,
-                    provider: selectedJob.provider ? { full_name: selectedJob.provider.full_name } : undefined
-                  }}
-                  onConfirmed={fetchActiveJobs}
-                />
-              )}
-
-              {/* Completion Confirmation Banner — legacy fallback */}
-              {needsCompletionConfirmation(selectedJob) && !selectedJob.has_open_dispute && selectedJob.status !== 'provider_done' && (
+            {/* Pending confirmations — shown above the map with padding */}
+            {pendingConfirmationJobs.length > 0 && (
+              <div className="px-4 pt-3">
                 <Card className="border-primary/50 bg-primary/5">
-                  <CardContent className="p-4 space-y-3">
-                    <h3 className="font-semibold text-foreground">
-                      ✅ El proveedor indicó que el trabajo terminó
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Confirma que estás satisfecho con el trabajo para liberar el pago al proveedor.
-                    </p>
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => handleConfirmCompletion(selectedJob.id)}
-                        disabled={confirmingCompletion}
-                        className="flex-1"
-                      >
-                        {confirmingCompletion ? "Confirmando..." : "Confirmar trabajo"}
-                      </Button>
-                      <Button variant="outline" disabled className="flex-1 opacity-60">
-                        Necesito ayuda
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Dispute Banner */}
-              {selectedJob.has_open_dispute && (
-                <Card className="border-destructive/50 bg-destructive/5">
                   <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-1">
-                      <AlertTriangle className="h-4 w-4 text-destructive" />
-                      <h3 className="font-semibold text-foreground text-sm">Disputa abierta</h3>
+                    <h3 className="font-semibold text-primary mb-3">
+                      ⏳ {pendingConfirmationJobs.length} visita{pendingConfirmationJobs.length > 1 ? 's' : ''} pendiente{pendingConfirmationJobs.length > 1 ? 's' : ''} de confirmación
+                    </h3>
+                    <div className="space-y-3">
+                      {pendingConfirmationJobs.map((job) => (
+                        <ClientVisitConfirmation
+                          key={job.id}
+                          job={{ ...job, provider: job.provider ? { full_name: job.provider.full_name } : undefined }}
+                          onConfirmed={fetchActiveJobs}
+                        />
+                      ))}
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      El pago está congelado hasta que un administrador resuelva la disputa.
-                    </p>
                   </CardContent>
                 </Card>
-              )}
+              </div>
+            )}
 
-              {/* Pago liberado */}
-              {selectedJob.invoice?.status === 'released' && (
-                <Card className="border-emerald-500/30 bg-emerald-500/5">
-                  <CardContent className="p-4 text-center">
-                    <p className="text-sm font-medium text-foreground">💸 Pago liberado al proveedor</p>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* State-dependent UI */}
+            {/* Full-width status section — no horizontal padding, map edge-to-edge */}
+            {isSearchingState ? (
+              // SearchingForProvider manages its own top offset (pt-16 built in via its nav bar)
+              <div className="pt-16">
+                <ClientStatusSections
+                  job={{
+                    id: selectedJob.id,
+                    status: selectedJob.status,
+                    provider_id: selectedJob.provider_id,
+                    location: selectedJob.location,
+                    invoice: selectedJob.invoice,
+                    provider: selectedJob.provider,
+                  }}
+                  transitioning={clientTransitioning}
+                  onTransition={handleClientTransition}
+                  onRefresh={fetchActiveJobs}
+                />
+              </div>
+            ) : (
               <ClientStatusSections
                 job={{
                   id: selectedJob.id,
@@ -581,175 +651,160 @@ const ActiveJobs = () => {
                 onTransition={handleClientTransition}
                 onRefresh={fetchActiveJobs}
               />
+            )}
 
-              {/* Provider Info */}
-              {selectedJob.provider && selectedJob.status !== 'assigned' && (
-                <Card>
-                  <CardContent className="p-6">
-                    <h3 className="font-semibold mb-4">Tu Chambynauta</h3>
-                    <div className="flex items-center gap-4 mb-4">
-                      <Avatar className="h-16 w-16">
-                        <AvatarImage src={selectedJob.provider.avatar_url} />
-                        <AvatarFallback>
-                          {selectedJob.provider.full_name?.charAt(0) || "P"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <h4 className="font-semibold text-lg">
-                          {selectedJob.provider.full_name}
-                        </h4>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <span>⭐ {selectedJob.provider.rating?.toFixed(1) || "N/A"}</span>
-                          <span>•</span>
-                          <span>{selectedJob.provider.total_reviews || 0} reseñas</span>
-                        </div>
-                      </div>
-                    </div>
-                    <Button
-                      className="w-full"
-                      onClick={() => navigate(`/messages?jobId=${selectedJob.id}`)}
-                    >
-                      <MessageCircle className="mr-2 h-4 w-4" />
-                      Mensaje
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Job Details */}
-              <Card>
-                <CardContent className="p-6">
-                  <h3 className="font-semibold mb-4">Detalles del Trabajo</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-2">
-                      <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
-                      <div>
-                        <p className="text-sm font-medium">Ubicación</p>
-                        <p className="text-sm text-muted-foreground">{selectedJob.location}</p>
-                      </div>
-                    </div>
-                    {selectedJob.scheduled_at && (
-                      <div className="flex items-start gap-2">
-                        <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
-                        <div>
-                          <p className="text-sm font-medium">Programado</p>
-                          <p className="text-sm text-muted-foreground">
-                            {new Date(selectedJob.scheduled_at).toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                    <div className="pt-3 border-t">
-                      <p className="text-sm font-medium mb-1">Descripción</p>
-                      <p className="text-sm text-muted-foreground">{selectedJob.description}</p>
-                    </div>
-                    <div className="pt-3 border-t space-y-1">
-                      <p className="text-sm font-medium text-muted-foreground">Desglose de visita</p>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Subtotal</span>
-                        <span>{VISIT_DISPLAY.subtotal}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">{VAT_LABEL}</span>
-                        <span>{VISIT_DISPLAY.vat}</span>
-                      </div>
-                      <div className="flex justify-between text-sm font-semibold border-t pt-1">
-                        <span>Total</span>
-                        <span>{VISIT_DISPLAY.total}</span>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Invoice Section - client side */}
-              <JobInvoiceSection
-                jobId={selectedJob.id}
-                role="client"
-                onUpdate={fetchActiveJobs}
-              />
-
-              {/* Actions */}
-              <Card>
-                <CardContent className="p-6">
-                  <h3 className="font-semibold mb-4">Acciones</h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button variant="outline" onClick={() => setRescheduleDialogOpen(true)}>
-                      <Calendar className="mr-2 h-4 w-4" />
-                      Reagendar
-                    </Button>
-                    <Button variant="outline" onClick={() => navigate(`/book-job?category=${selectedJob.category}`)}>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Agregar servicios
-                    </Button>
-                    {/* Dispute button — show if invoice paid and not released and no open dispute */}
-                    {selectedJob.invoice &&
-                      ["paid", "ready_to_release"].includes(selectedJob.invoice.status) &&
-                      !selectedJob.has_open_dispute && (
-                        <Button
-                          variant="outline"
-                          className="col-span-2 border-destructive/30 text-destructive hover:bg-destructive/5"
-                          onClick={() => setDisputeModalOpen(true)}
-                        >
-                          <AlertTriangle className="mr-2 h-4 w-4" />
-                          Iniciar disputa
-                        </Button>
-                      )}
-                    <Button
-                      variant="destructive"
-                      className="col-span-2"
-                      onClick={() => handleCancelJob(selectedJob.id)}
-                    >
-                      <XCircle className="mr-2 h-4 w-4" />
-                      Cancelar trabajo
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Dispute Modal */}
-              <DisputeModal
-                open={disputeModalOpen}
-                onOpenChange={setDisputeModalOpen}
-                jobId={selectedJob.id}
-                onDisputeOpened={fetchActiveJobs}
-              />
-
-              <RescheduleDialog
-                open={rescheduleDialogOpen}
-                onOpenChange={setRescheduleDialogOpen}
-                jobId={selectedJob.id}
-                currentScheduledAt={selectedJob.scheduled_at}
-                providerId={selectedJob.provider_id}
-                clientId={user?.id || ""}
-                onRescheduleComplete={fetchActiveJobs}
-              />
+            {/* Below-map padded content */}
+            <div className="px-4 space-y-4 pt-4 pb-8">
+              {renderJobBanners(selectedJob)}
+              {renderJobCards(selectedJob)}
             </div>
-          )}
-        </div>
-
-        {/* Rating Dialog for completed jobs */}
-        {showRating && ratingJob && ratingJob.provider_id && (
-          <RatingDialog
-            jobId={ratingJob.id}
-            otherUserId={ratingJob.provider_id}
-            reviewerRole="client"
-            onComplete={() => {
-              setShowRating(false);
-              setRatingJob(null);
-            }}
-            onDismiss={() => {
-              setShowRating(false);
-              setRatingJob(null);
-            }}
-            subjectName={ratingJob.provider?.full_name || "Proveedor"}
-            subjectAvatarUrl={ratingJob.provider?.avatar_url || null}
-            jobCategory={ratingJob.category}
-            jobServiceType={""}
-            jobRate={ratingJob.rate}
-          />
-        )}
+          </>
+        ) : null}
       </div>
+
+      {/* ── DESKTOP layout — unchanged ─────────────────────────────────────────── */}
+      <div className="hidden md:block">
+        <div className="container mx-auto px-4 pt-32 pb-8">
+          <Button variant="ghost" onClick={() => navigate("/user-landing")} className="mb-6">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Volver
+          </Button>
+
+          <h1 className="text-3xl font-bold mb-6">Trabajos Activos</h1>
+
+          {/* Pending Confirmations Alert */}
+          {pendingConfirmationJobs.length > 0 && (
+            <Card className="mb-6 border-primary/50 bg-primary/5">
+              <CardContent className="p-4">
+                <h3 className="font-semibold text-primary mb-3">
+                  ⏳ {pendingConfirmationJobs.length} visita{pendingConfirmationJobs.length > 1 ? 's' : ''} pendiente{pendingConfirmationJobs.length > 1 ? 's' : ''} de confirmación
+                </h3>
+                <div className="space-y-3">
+                  {pendingConfirmationJobs.map((job) => (
+                    <ClientVisitConfirmation
+                      key={job.id}
+                      job={{ ...job, provider: job.provider ? { full_name: job.provider.full_name } : undefined }}
+                      onConfirmed={fetchActiveJobs}
+                    />
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {/* Jobs List */}
+            <div className="md:col-span-1 space-y-4">
+              {jobs.map((job) => {
+                const visitFeeStatus = getVisitFeeStatus(job);
+                const invoiceStatus = getInvoiceStatus(job.invoice);
+                const needsConfirm = needsClientConfirmation(job);
+                return (
+                  <Card
+                    key={job.id}
+                    className={`cursor-pointer transition-all ${
+                      selectedJob?.id === job.id
+                        ? "border-primary shadow-lg"
+                        : needsConfirm
+                        ? "border-warning/50 hover:border-warning"
+                        : "hover:border-primary/50"
+                    }`}
+                    onClick={() => setSelectedJob(job)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <h3 className="font-semibold">{job.title}</h3>
+                        <div className="flex items-center gap-1">
+                          {needsConfirm && (
+                            <Badge variant="outline" className="text-warning border-warning text-xs">
+                              Confirmar
+                            </Badge>
+                          )}
+                          <Badge variant={job.provider_id ? "default" : "secondary"}>
+                            {getStatusLabel(job.status)}
+                          </Badge>
+                        </div>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-2">{job.category}</p>
+                      <div className="flex flex-wrap gap-1.5 mb-2">
+                        <PaymentStatusBadge type="visit_fee" status={visitFeeStatus} role="customer" />
+                        {invoiceStatus !== 'none' && (
+                          <PaymentStatusBadge type="invoice" status={invoiceStatus} role="customer" />
+                        )}
+                      </div>
+                      {job.provider && (
+                        <div className="flex items-center gap-2 mt-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={job.provider.avatar_url} />
+                            <AvatarFallback>{job.provider.full_name?.charAt(0) || "P"}</AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm font-medium">{job.provider.full_name}</span>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+
+            {/* Job Details */}
+            {selectedJob && (
+              <div className="md:col-span-2 space-y-6">
+                {renderJobBanners(selectedJob)}
+                <ClientStatusSections
+                  job={{
+                    id: selectedJob.id,
+                    status: selectedJob.status,
+                    provider_id: selectedJob.provider_id,
+                    location: selectedJob.location,
+                    invoice: selectedJob.invoice,
+                    provider: selectedJob.provider,
+                  }}
+                  transitioning={clientTransitioning}
+                  onTransition={handleClientTransition}
+                  onRefresh={fetchActiveJobs}
+                />
+                {renderJobCards(selectedJob)}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Modals — rendered once, portal to body ─────────────────────────────── */}
+      {selectedJob && (
+        <>
+          <DisputeModal
+            open={disputeModalOpen}
+            onOpenChange={setDisputeModalOpen}
+            jobId={selectedJob.id}
+            onDisputeOpened={fetchActiveJobs}
+          />
+          <RescheduleDialog
+            open={rescheduleDialogOpen}
+            onOpenChange={setRescheduleDialogOpen}
+            jobId={selectedJob.id}
+            currentScheduledAt={selectedJob.scheduled_at}
+            providerId={selectedJob.provider_id}
+            clientId={user?.id || ""}
+            onRescheduleComplete={fetchActiveJobs}
+          />
+        </>
+      )}
+      {showRating && ratingJob && ratingJob.provider_id && (
+        <RatingDialog
+          jobId={ratingJob.id}
+          otherUserId={ratingJob.provider_id}
+          reviewerRole="client"
+          onComplete={() => { setShowRating(false); setRatingJob(null); }}
+          onDismiss={() => { setShowRating(false); setRatingJob(null); }}
+          subjectName={ratingJob.provider?.full_name || "Proveedor"}
+          subjectAvatarUrl={ratingJob.provider?.avatar_url || null}
+          jobCategory={ratingJob.category}
+          jobServiceType={""}
+          jobRate={ratingJob.rate}
+        />
+      )}
     </div>
   );
 };
