@@ -25,7 +25,7 @@ export type JobStatus = typeof JOB_STATES[keyof typeof JOB_STATES];
 export const TERMINAL_STATES: JobStatus[] = ['completed', 'cancelled'];
 
 export const CLIENT_ACTIVE_STATES: JobStatus[] = [
-  'pending', 'searching', 'assigned', 'on_site', 'quoted',
+  'draft', 'pending', 'searching', 'assigned', 'on_site', 'quoted',
   'quote_accepted', 'job_paid', 'in_progress', 'provider_done',
 ];
 
@@ -61,6 +61,7 @@ export function isTerminal(status: string): boolean {
 
 export function getStatusLabel(status: string): string {
   const labels: Record<string, string> = {
+    draft: 'Pago en proceso',
     pending: 'Pendiente',
     searching: 'Buscando proveedor',
     assigned: 'Proveedor asignado',
@@ -81,6 +82,7 @@ export function getStatusLabel(status: string): string {
 
 export function getStatusColor(status: string): string {
   const colors: Record<string, string> = {
+    draft: 'bg-amber-100 text-amber-700',
     pending: 'bg-gray-100 text-gray-700',
     searching: 'bg-blue-100 text-blue-700',
     assigned: 'bg-indigo-100 text-indigo-700',
@@ -101,6 +103,7 @@ export function getStatusColor(status: string): string {
 
 /** Structured config for badge rendering (border included) */
 export const JOB_STATUS_CONFIG: Record<string, { bg: string; text: string; border: string }> = {
+  draft:           { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-300' },
   pending:         { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300' },
   searching:       { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300' },
   assigned:        { bg: 'bg-indigo-100', text: 'text-indigo-700', border: 'border-indigo-300' },

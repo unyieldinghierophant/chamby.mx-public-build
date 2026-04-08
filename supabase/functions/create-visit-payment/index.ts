@@ -101,7 +101,10 @@ serve(async (req) => {
       line_items: [{
         price_data: {
           currency: "mxn",
-          product_data: { name: "Diagnóstico a domicilio — Chamby" },
+          product_data: {
+            name: "Diagnóstico a domicilio — Chamby",
+            description: "Retención temporal de $406 MXN. No se cobra hasta que el trabajo sea completado. Si no se asigna proveedor, el cargo se cancela automáticamente.",
+          },
           unit_amount: VISIT_FEE_CENTS,
         },
         quantity: 1,

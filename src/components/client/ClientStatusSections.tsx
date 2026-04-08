@@ -3,12 +3,14 @@ import { ClientQuoteReview } from "@/components/quotes/ClientQuoteReview";
 import { QuotePaymentCard } from "@/components/payments/QuotePaymentCard";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { formatMXN, PRICING } from "@/utils/pricingConfig";
+import { SearchingForProvider } from "@/components/client/SearchingForProvider";
 
 interface ClientStatusSectionsProps {
   job: {
     id: string;
     status: string;
     provider_id: string | null;
+    location?: string | null;
     invoice: any;
     provider?: {
       full_name: string;
@@ -34,20 +36,10 @@ export const ClientStatusSections = ({
   /* ====== SEARCHING / PENDING ====== */
   if (status === 'searching' || status === 'pending') {
     return (
-      <div className="font-['DM_Sans',sans-serif]">
-        <div className="flex flex-col items-center text-center px-6 py-8">
-          <div className="w-[100px] h-[100px] rounded-full border-[3px] border-[hsl(0,0%,6%)] flex items-center justify-center relative mb-6 animate-[pulse-ring_2s_ease-in-out_infinite]">
-            <div className="w-16 h-16 rounded-full bg-[hsl(0,0%,6%)] flex items-center justify-center">
-              <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="4"/><path d="M12 4v2M12 18v2M4 12h2M18 12h2"/>
-              </svg>
-            </div>
-          </div>
-          <h3 className="text-[20px] font-semibold text-[hsl(0,0%,6%)] mb-2">Buscando proveedor disponible...</h3>
-          <p className="text-[14px] text-[hsl(0,0%,40%)] leading-[1.6]">Te notificaremos cuando un proveedor acepte tu solicitud.</p>
-        </div>
-        <style>{`@keyframes pulse-ring { 0%, 100% { box-shadow: 0 0 0 0 rgba(15,15,15,0.15); } 50% { box-shadow: 0 0 0 18px rgba(15,15,15,0); } }`}</style>
-      </div>
+      <SearchingForProvider
+        job={{ id: job.id, status, location: job.location, provider: job.provider }}
+        onTransition={onTransition}
+      />
     );
   }
 

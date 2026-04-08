@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -82,6 +82,8 @@ const ActiveJobs = () => {
   const [jobs, setJobs] = useState<ActiveJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedJob, setSelectedJob] = useState<ActiveJob | null>(null);
+  // Capture job_id from Stripe redirect before params are cleaned up
+  const returnJobIdRef = useRef<string | null>(searchParams.get("job_id"));
   const [confirmingCompletion, setConfirmingCompletion] = useState(false);
   const [clientTransitioning, setClientTransitioning] = useState(false);
   const [disputeModalOpen, setDisputeModalOpen] = useState(false);
@@ -91,6 +93,12 @@ const ActiveJobs = () => {
 
   // Handle Stripe redirect query params
   useEffect(() => {
+    if (searchParams.get("visit_fee_paid") === "true") {
+      toast.success("¡Pago de visita procesado! Estamos buscando un proveedor.", { duration: 6000 });
+      searchParams.delete("visit_fee_paid");
+      searchParams.delete("job_id");
+      setSearchParams(searchParams, { replace: true });
+    }
     if (searchParams.get("invoice_paid") === "true") {
       toast.success("Pago realizado con éxito. Tu proveedor será notificado.", { duration: 5000 });
       searchParams.delete("invoice_paid");
@@ -191,7 +199,10 @@ const ActiveJobs = () => {
 
       setJobs(jobsWithProviders);
       if (jobsWithProviders.length > 0) {
-        setSelectedJob(jobsWithProviders[0]);
+        const targetId = returnJobIdRef.current;
+        const target = targetId ? jobsWithProviders.find(j => j.id === targetId) : null;
+        setSelectedJob(target || jobsWithProviders[0]);
+        returnJobIdRef.current = null;
       }
     } catch (error) {
       console.error("Error fetching active jobs:", error);
@@ -562,6 +573,7 @@ const ActiveJobs = () => {
                   id: selectedJob.id,
                   status: selectedJob.status,
                   provider_id: selectedJob.provider_id,
+                  location: selectedJob.location,
                   invoice: selectedJob.invoice,
                   provider: selectedJob.provider,
                 }}

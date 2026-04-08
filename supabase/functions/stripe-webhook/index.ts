@@ -17,7 +17,8 @@ serve(async (req) => {
     if (!stripeKey) {
       throw new Error("STRIPE_SECRET_KEY not configured");
     }
-    logStep("🔴 Using Stripe LIVE mode");
+    const isTestMode = stripeKey.startsWith('sk_test_');
+    logStep(isTestMode ? "🟢 Using Stripe TEST mode" : "🔴 Using Stripe LIVE mode");
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
@@ -170,23 +171,31 @@ serve(async (req) => {
           const jobId = metadata.jobId;
 
           // Idempotency guard: only process if job is still 'draft' or 'pending'
-          const { data: currentJob } = await supabaseClient
+          const { data: currentJob, error: jobLookupError } = await supabaseClient
             .from("jobs")
             .select("status")
             .eq("id", jobId)
             .single();
 
-          if (currentJob?.status !== "draft" && currentJob?.status !== "pending") {
-            logStep("Skipping visit_fee processing — job already processed", { jobId, currentStatus: currentJob?.status });
+          if (jobLookupError || !currentJob) {
+            // Job not found or DB error — throw so Stripe retries this webhook
+            throw new Error(`Job lookup failed for id ${jobId}: ${jobLookupError?.message ?? "not found"}`);
+          }
+
+          if (currentJob.status !== "draft" && currentJob.status !== "pending") {
+            logStep("Skipping visit_fee processing — job already processed", { jobId, currentStatus: currentJob.status });
           } else {
             // Update job status — enters 'searching' state with 4-hour assignment window
-            // NOTE: visit_fee_paid is also set by the fn_sync_visit_fee trigger
-            // when the payments row is inserted below
             const assignmentDeadline = new Date(Date.now() + 1 * 60 * 60 * 1000).toISOString();
+            // Extract payment intent ID — handle both string ID and expanded object
+            const paymentIntentId = typeof session.payment_intent === "string"
+              ? session.payment_intent
+              : (session.payment_intent as any)?.id ?? null;
+
             const { error: updateError } = await supabaseClient
               .from("jobs")
               .update({
-                stripe_visit_payment_intent_id: session.payment_intent as string,
+                stripe_visit_payment_intent_id: paymentIntentId,
                 status: "searching",
                 visit_fee_paid: true,
                 assignment_deadline: assignmentDeadline,
@@ -194,10 +203,10 @@ serve(async (req) => {
               .eq("id", jobId);
 
             if (updateError) {
-              logStep("Failed to update job", { error: updateError.message });
-            } else {
-              logStep("Job updated - visit fee paid, status → searching", { jobId });
+              // Throw so Stripe retries — do NOT return 200 on DB failure
+              throw new Error(`Failed to update job ${jobId}: ${updateError.message}`);
             }
+            logStep("Job updated - visit fee paid, status → searching", { jobId });
 
             // Record in payments ledger — $406 MXN ($350 + IVA 16%)
             // SYNC WITH src/utils/pricingConfig.ts PRICING.VISIT_FEE
@@ -206,7 +215,7 @@ serve(async (req) => {
               .insert({
                 job_id: jobId,
                 provider_id: null,
-                stripe_payment_intent_id: session.payment_intent as string,
+                stripe_payment_intent_id: paymentIntentId,
                 stripe_checkout_session_id: session.id,
                 amount: 406,
                 currency: "mxn",
