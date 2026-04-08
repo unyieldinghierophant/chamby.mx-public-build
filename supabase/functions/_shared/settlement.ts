@@ -41,7 +41,7 @@ export async function settleJobCompletion(
       .select("stripe_payment_intent_id")
       .eq("job_id", jobId)
       .eq("type", "visit_fee")
-      .eq("status", "succeeded")
+      .in("status", ["authorized", "succeeded"])
       .maybeSingle();
 
     if (visitFeePayment?.stripe_payment_intent_id) {
