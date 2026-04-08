@@ -37,7 +37,7 @@ function loadGoogleMaps(): Promise<void> {
     const existing = document.querySelector(`script[src*="maps.googleapis.com"]`);
     if (existing) { existing.addEventListener("load", () => resolve()); return; }
     const s = document.createElement("script");
-    s.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,directions,marker`;
+    s.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,marker`;
     s.async = true; s.defer = true;
     s.onload = () => resolve();
     s.onerror = () => reject(new Error("Google Maps failed"));
@@ -254,6 +254,7 @@ const EsperandoProveedor = () => {
       const map = new google.maps.Map(mapContainerRef.current, {
         center: GDL_CENTER,
         zoom: 14,
+        mapId: 'DEMO_MAP_ID',
         disableDefaultUI: true,
         zoomControl: false,
         gestureHandling: "none",
