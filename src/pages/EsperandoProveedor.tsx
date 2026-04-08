@@ -17,6 +17,14 @@ const CYCLE_INTERVAL_MS = 3800;
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 const GDL_CENTER = { lat: 20.6597, lng: -103.3496 };
 
+const MOCK_OFFSETS = [
+  { dLat:  0.0049, dLng: -0.0053, display_name: 'Jorge R.',   rating: 4.9 },
+  { dLat: -0.0041, dLng:  0.0082, display_name: 'Carlos V.',  rating: 4.7 },
+  { dLat:  0.0032, dLng: -0.0128, display_name: 'María G.',   rating: 4.8 },
+  { dLat: -0.0077, dLng: -0.0011, display_name: 'Roberto M.', rating: 4.6 },
+  { dLat:  0.0078, dLng:  0.0062, display_name: 'Ana L.',     rating: 4.9 },
+];
+
 interface NearbyProvider {
   user_id: string;
   display_name: string | null;
@@ -177,13 +185,29 @@ const EsperandoProveedor = () => {
       .not("current_latitude", "is", null)
       .not("current_longitude", "is", null);
 
-    if (data) {
+    if (data && data.length > 0) {
       const category = job.category?.toLowerCase() || "";
       const filtered = data.filter((p: any) => {
         if (!p.skills || p.skills.length === 0) return true;
         return p.skills.some((s: string) => s.toLowerCase().includes(category) || category.includes(s.toLowerCase()));
       });
       setProviders(filtered.length > 0 ? (filtered as NearbyProvider[]) : (data as NearbyProvider[]));
+    } else {
+      // No real providers with coordinates — use mock positions relative to GDL_CENTER
+      // (will be repositioned relative to actual home once geocoding completes)
+      const base = homePosRef.current
+        ? { lat: homePosRef.current.lat(), lng: homePosRef.current.lng() }
+        : GDL_CENTER;
+      const mocks: NearbyProvider[] = MOCK_OFFSETS.map((o, i) => ({
+        user_id: `mock-${i}`,
+        display_name: o.display_name,
+        rating: o.rating,
+        avatar_url: null,
+        current_latitude: base.lat + o.dLat,
+        current_longitude: base.lng + o.dLng,
+        skills: [],
+      }));
+      setProviders(mocks);
     }
   }, [job]);
 
@@ -215,6 +239,18 @@ const EsperandoProveedor = () => {
       }).subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [jobId, fetchJob, navigate]);
+
+  // ══════════════════════════════════════════════════════════════
+  // BLOCK BACK NAVIGATION TO STRIPE
+  // Pressing back from this page would return the user to the Stripe
+  // checkout session. Instead, intercept popstate and send them home.
+  // ══════════════════════════════════════════════════════════════
+  useEffect(() => {
+    window.history.pushState(null, '', window.location.href);
+    const handlePop = () => navigate('/user-landing', { replace: true });
+    window.addEventListener('popstate', handlePop);
+    return () => window.removeEventListener('popstate', handlePop);
+  }, [navigate]);
 
   // ══════════════════════════════════════════════════════════════
   // COUNTDOWN / EXPIRY
@@ -258,7 +294,7 @@ const EsperandoProveedor = () => {
         disableDefaultUI: true,
         zoomControl: false,
         gestureHandling: "none",
-        styles: MAP_STYLES,
+        clickableIcons: false,
         backgroundColor: "#f0efe8",
       });
       mapRef.current = map;
@@ -280,6 +316,22 @@ const EsperandoProveedor = () => {
               position: { lat: loc.lat(), lng: loc.lng() },
               content: homeEl,
               zIndex: 10,
+            });
+
+            // Reposition mock providers relative to actual home
+            setProviders(prev => {
+              if (prev.length > 0 && prev[0].user_id.startsWith('mock-')) {
+                return MOCK_OFFSETS.map((o, i) => ({
+                  user_id: `mock-${i}`,
+                  display_name: o.display_name,
+                  rating: o.rating,
+                  avatar_url: null,
+                  current_latitude: loc.lat() + o.dLat,
+                  current_longitude: loc.lng() + o.dLng,
+                  skills: [],
+                }));
+              }
+              return prev;
             });
           }
         });

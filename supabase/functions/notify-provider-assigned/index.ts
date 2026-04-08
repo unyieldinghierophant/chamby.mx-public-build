@@ -87,36 +87,48 @@ serve(async (req) => {
         To: clientUser.email,
         Subject: `✅ Proveedor asignado — ${job.category}`,
         HtmlBody: `
-          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto;">
-            <div style="background: #16a34a; padding: 24px; text-align: center; border-radius: 12px 12px 0 0;">
-              <h1 style="color: white; margin: 0; font-size: 22px;">¡Proveedor asignado!</h1>
-            </div>
-            <div style="padding: 24px; background: #fff; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
-              <p style="color: #374151; font-size: 16px;">
-                Hola ${clientUser.full_name || ""},
-              </p>
-              <p style="color: #374151; font-size: 16px;">
-                <strong>${providerName}</strong> ha aceptado tu solicitud de servicio.
-              </p>
-              <div style="background: #f9fafb; border-radius: 8px; padding: 16px; margin: 16px 0;">
-                <p style="margin: 4px 0; color: #6b7280; font-size: 14px;">
-                  <strong>Servicio:</strong> ${job.category} — ${job.title}
-                </p>
-                <p style="margin: 4px 0; color: #6b7280; font-size: 14px;">
-                  <strong>Fecha:</strong> ${scheduledText}
-                </p>
-              </div>
-              <p style="color: #374151; font-size: 14px;">
-                Abre la app para ver los detalles y chatear con tu proveedor.
-              </p>
-              <div style="text-align: center; margin-top: 24px;">
-                <a href="https://chambymk1.lovable.app/active-jobs" style="display: inline-block; background: #16a34a; color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600;">
-                  Ver mi trabajo
-                </a>
-              </div>
-            </div>
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;font-family:'DM Sans',Arial,sans-serif;background:#f5f4f0;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f4f0;padding:40px 20px;">
+    <tr><td align="center">
+      <table width="100%" style="max-width:520px;background:#ffffff;border-radius:16px;overflow:hidden;">
+        <tr><td style="background:#16a34a;padding:28px;text-align:center;">
+          <img src="https://chamby.mx/chamby-logo-white.png" alt="Chamby" width="120" style="display:block;margin:0 auto 12px;height:auto;" />
+          <h1 style="color:white;margin:0;font-size:20px;font-weight:700;">¡Proveedor asignado!</h1>
+        </td></tr>
+        <tr><td style="padding:28px 28px 0;">
+          <p style="margin:0 0 16px;font-size:15px;color:#374151;">
+            Hola ${clientUser.full_name || ""},
+          </p>
+          <p style="margin:0 0 16px;font-size:15px;color:#374151;">
+            <strong>${providerName}</strong> ha aceptado tu solicitud de servicio.
+          </p>
+          <div style="background:#f9fafb;border-radius:8px;padding:16px;margin:0 0 16px;">
+            <p style="margin:4px 0;color:#6b7280;font-size:14px;"><strong>Servicio:</strong> ${job.category} — ${job.title}</p>
+            <p style="margin:4px 0;color:#6b7280;font-size:14px;"><strong>Fecha:</strong> ${scheduledText}</p>
           </div>
-        `,
+          <p style="margin:0 0 24px;font-size:14px;color:#374151;">
+            Abre la app para ver los detalles y chatear con tu proveedor.
+          </p>
+        </td></tr>
+        <tr><td style="padding:0 28px 28px;" align="center">
+          <a href="https://chamby.mx/active-jobs" style="display:inline-block;background:#16a34a;color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;padding:14px 32px;border-radius:50px;">
+            Ver mi trabajo
+          </a>
+        </td></tr>
+        <tr><td style="padding:20px 28px;border-top:1px solid #eee;">
+          <p style="margin:0;font-size:12px;color:#999;text-align:center;">
+            Chamby.mx — Servicios del hogar en Guadalajara
+          </p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`,
+        TextBody: `Hola ${clientUser.full_name || ""}, ${providerName} ha aceptado tu solicitud de servicio "${job.category} — ${job.title}" para el ${scheduledText}. Abre la app para ver los detalles: https://chamby.mx/active-jobs`,
         MessageStream: "outbound",
       }),
     });

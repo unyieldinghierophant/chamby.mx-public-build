@@ -61,6 +61,9 @@ serve(async (req) => {
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f4f0;padding:40px 20px;">
     <tr><td align="center">
       <table width="100%" style="max-width:520px;background:#ffffff;border-radius:16px;overflow:hidden;">
+        <tr><td style="background:#0f0f0f;padding:28px;text-align:center;">
+          <img src="https://chamby.mx/chamby-logo-white.png" alt="Chamby" width="120" style="display:block;margin:0 auto;height:auto;" />
+        </td></tr>
         <tr><td style="padding:32px 28px 0;">
           <h1 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#0f0f0f;">
             No encontramos un Chambynauta
@@ -104,7 +107,7 @@ serve(async (req) => {
         "X-Postmark-Server-Token": POSTMARK_API_KEY,
       },
       body: JSON.stringify({
-        From: "Chamby <no-reply@chamby.mx>",
+        From: "Chamby <notificaciones@chamby.mx>",
         To: userData.email,
         Subject: "No encontramos un Chambynauta para tu solicitud",
         HtmlBody: htmlBody,

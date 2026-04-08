@@ -87,6 +87,7 @@ const AdminDisputesPage = lazy(() => import("./pages/admin/AdminDisputesPage"));
 const AdminProvidersPage = lazy(() => import("./pages/admin/AdminProvidersPage"));
 const VisitFeePaymentPage = lazy(() => import("./pages/VisitFeePaymentPage"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const Login = lazy(() => import("./pages/Login"));
 const ProviderLogin = lazy(() => import("./pages/ProviderLogin"));
 
@@ -103,6 +104,23 @@ const AnalyticsTracker = () => {
   return null;
 };
 
+
+// Redirect subdomains to their respective areas of the app.
+// admin.chamby.mx → /admin  |  proveedores.chamby.mx → /provider-portal
+const SubdomainRouter = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const subdomain = window.location.hostname.split('.')[0];
+    if (subdomain === 'admin') {
+      navigate('/admin', { replace: true });
+    } else if (subdomain === 'proveedores') {
+      navigate('/provider-landing', { replace: true });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return null;
+};
 
 // Component to handle GitHub Pages redirects
 const RedirectHandler = () => {
@@ -145,6 +163,7 @@ const App = () => {
           <BrowserRouter>
             <ScrollToTop />
             <AnalyticsTracker />
+            <SubdomainRouter />
             <RedirectHandler />
             <Suspense fallback={null}>
             <Routes>
@@ -163,6 +182,7 @@ const App = () => {
               <Route path={ROUTES.AUTH_CALLBACK} element={<AuthCallback />} />
               <Route path={ROUTES.CALLBACK} element={<AuthCallback />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path={ROUTES.DASHBOARD_USER} element={<Navigate to={ROUTES.USER_LANDING} replace />} />
               <Route path="/provider-landing-legacy" element={<ProviderLanding />} />
               <Route path="/booking/datetime/:providerId" element={<BookingDateTime />} />

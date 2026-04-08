@@ -31,7 +31,7 @@ const signupSchema = z.object({
 });
 
 const Login = () => {
-  const { signIn, signUp, signInWithGoogle, resetPassword } = useAuth();
+  const { signIn, signUp, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -46,8 +46,6 @@ const Login = () => {
   // Form states
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [signupData, setSignupData] = useState({ fullName: '', email: '', phone: '', password: '' });
-  const [resetEmail, setResetEmail] = useState('');
-  const [showResetForm, setShowResetForm] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
   
   // View state
@@ -86,7 +84,6 @@ const Login = () => {
   const toggleMode = (newMode: 'login' | 'signup') => {
     setMode(newMode);
     setShowEmailForm(false);
-    setShowResetForm(false);
     setLoginErrors({});
     setSignupErrors({});
     // Update URL without navigation
@@ -181,23 +178,6 @@ const Login = () => {
     } else {
       setVerificationEmail(signupData.email);
       setShowEmailVerification(true);
-    }
-    
-    setLoading(false);
-  };
-
-  const handleResetPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    
-    const { error } = await resetPassword(resetEmail);
-    
-    if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success('Se ha enviado un email de recuperación. Revisa tu bandeja de entrada.');
-      setShowResetForm(false);
-      setResetEmail('');
     }
     
     setLoading(false);
@@ -434,7 +414,6 @@ const Login = () => {
                       size="sm"
                       onClick={() => {
                         setShowEmailForm(false);
-                        setShowResetForm(false);
                         setLoginErrors({});
                         setSignupErrors({});
                       }}
@@ -494,17 +473,14 @@ const Login = () => {
                           )}
                         </Button>
                         
-                        {!showResetForm && (
-                          <div className="text-center">
-                            <button
-                              type="button"
-                              onClick={() => setShowResetForm(true)}
-                              className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                            >
-                              ¿Olvidaste tu contraseña?
-                            </button>
-                          </div>
-                        )}
+                                        <div className="text-center">
+                          <Link
+                            to="/forgot-password"
+                            className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                          >
+                            ¿Olvidaste tu contraseña?
+                          </Link>
+                        </div>
                       </form>
                     ) : (
                       /* Email Signup Form */
@@ -600,42 +576,6 @@ const Login = () => {
                       </form>
                     )}
 
-                    {/* Reset Password Form */}
-                    {showResetForm && (
-                      <div className="mt-4 p-4 border border-border rounded-lg bg-muted/30">
-                        <h3 className="font-semibold mb-3 text-foreground text-sm">Recuperar Contraseña</h3>
-                        <form onSubmit={handleResetPassword} className="space-y-3">
-                          <div className="space-y-2">
-                            <Label htmlFor="reset-email" className="text-sm">Email</Label>
-                            <Input
-                              id="reset-email"
-                              type="email"
-                              value={resetEmail}
-                              onChange={(e) => setResetEmail(e.target.value)}
-                              placeholder="tu@email.com"
-                              className="h-10"
-                              required
-                            />
-                          </div>
-                          <div className="flex gap-2">
-                            <Button type="submit" disabled={loading} size="sm" className="flex-1">
-                              {loading ? 'Enviando...' : 'Enviar Enlace'}
-                            </Button>
-                            <Button 
-                              type="button" 
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setShowResetForm(false);
-                                setResetEmail('');
-                              }}
-                            >
-                              Cancelar
-                            </Button>
-                          </div>
-                        </form>
-                      </div>
-                    )}
                   </>
                 )}
 

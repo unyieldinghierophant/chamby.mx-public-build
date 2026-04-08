@@ -141,7 +141,6 @@ export const SearchingForProvider = ({ job, onTransition }: Props) => {
         center: GDL_FALLBACK,
         zoom: 14,
         mapId: 'DEMO_MAP_ID',
-        styles: MAP_STYLES,
         disableDefaultUI: true,
         gestureHandling: 'none',
         keyboardShortcuts: false,
