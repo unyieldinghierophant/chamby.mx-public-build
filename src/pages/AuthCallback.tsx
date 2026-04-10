@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthSuccessOverlay } from "@/components/AuthSuccessOverlay";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +24,14 @@ const AuthCallback = () => {
   const hasOAuthParams = urlParams.has('code') || urlParams.has('access_token');
   const confirmationType = searchParams.get('type');
   const isEmailConfirmation = confirmationType === 'signup' || confirmationType === 'email';
+
+  // Intercept password recovery links — redirect to the reset-password page before
+  // any auth processing signs the user in and routes them away.
+  if (confirmationType === 'recovery' || window.location.hash.includes('type=recovery')) {
+    const params = new URLSearchParams(searchParams);
+    const dest = params.toString() ? `/reset-password?${params.toString()}` : '/reset-password';
+    return <Navigate to={dest} replace />;
+  }
 
   // Initial mount effect
   useEffect(() => {

@@ -23,7 +23,7 @@ const passwordSchema = z.object({
 type PageState = 'verifying' | 'ready' | 'error' | 'success';
 
 const ResetPassword = () => {
-  const { updatePassword } = useAuth();
+  const { updatePassword, user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -39,30 +39,51 @@ const ResetPassword = () => {
 
   // ── Verify token on mount ──
   useEffect(() => {
+    // Listen for the PASSWORD_RECOVERY event — this fires when Supabase processes
+    // the #access_token hash from the recovery email (implicit flow).
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setPageState('ready');
+      }
+    });
+
     const verify = async () => {
       try {
         const tokenHash = searchParams.get('token_hash');
         const type = searchParams.get('type');
-        const accessToken = searchParams.get('access_token');
-        const refreshToken = searchParams.get('refresh_token');
 
-        if (accessToken && refreshToken) {
-          const { error } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
-          if (error) throw error;
-        } else if (tokenHash && type === 'recovery') {
+        if (tokenHash && type === 'recovery') {
+          // PKCE flow: token_hash is in the query string
           const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'recovery' });
           if (error) throw error;
+          setPageState('ready');
         } else {
+          // Implicit flow: Supabase already processed the hash and set the session.
+          // onAuthStateChange above handles PASSWORD_RECOVERY; check session as fallback.
           const { data: { session } } = await supabase.auth.getSession();
-          if (!session) throw new Error('no session');
+          if (session) setPageState('ready');
+          // If no session yet, PASSWORD_RECOVERY event will arrive via onAuthStateChange.
+          // We only error out after a short wait if nothing arrives.
+          else {
+            setTimeout(() => {
+              setPageState(prev => {
+                if (prev === 'verifying') {
+                  setTokenError('Este enlace ya no es válido o ha expirado.');
+                  return 'error';
+                }
+                return prev;
+              });
+            }, 3000);
+          }
         }
-        setPageState('ready');
       } catch {
         setTokenError('Este enlace ya no es válido o ha expirado.');
         setPageState('error');
       }
     };
+
     verify();
+    return () => subscription.unsubscribe();
   }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -94,6 +115,23 @@ const ResetPassword = () => {
         setFieldErrors({ password: 'No se pudo actualizar la contraseña. Intenta de nuevo.' });
       }
       return;
+    }
+
+    // Resolve post-reset redirect destination by role
+    if (user) {
+      const { data: userRoles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id);
+      const roles = userRoles?.map((r: { role: string }) => r.role) ?? [];
+      if (roles.includes('admin')) {
+        navigate('/admin', { replace: true });
+        return;
+      }
+      if (roles.includes('provider')) {
+        navigate('/provider-portal', { replace: true });
+        return;
+      }
     }
 
     setPageState('success');
