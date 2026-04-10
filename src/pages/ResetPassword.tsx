@@ -23,7 +23,7 @@ const passwordSchema = z.object({
 type PageState = 'verifying' | 'ready' | 'error' | 'success';
 
 const ResetPassword = () => {
-  const { updatePassword, user } = useAuth();
+  const { updatePassword } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -117,23 +117,8 @@ const ResetPassword = () => {
       return;
     }
 
-    // Resolve post-reset redirect destination by role
-    if (user) {
-      const { data: userRoles } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id);
-      const roles = userRoles?.map((r: { role: string }) => r.role) ?? [];
-      if (roles.includes('admin')) {
-        navigate('/admin', { replace: true });
-        return;
-      }
-      if (roles.includes('provider')) {
-        navigate('/provider-portal', { replace: true });
-        return;
-      }
-    }
-
+    // Sign out so the user lands on a clean login session
+    await supabase.auth.signOut();
     setPageState('success');
   };
 
@@ -189,9 +174,9 @@ const ResetPassword = () => {
             </div>
             <Button
               className="w-full h-12 text-base font-semibold mt-2"
-              onClick={() => navigate(ROUTES.USER_LANDING)}
+              onClick={() => navigate(ROUTES.LOGIN, { replace: true })}
             >
-              Continuar
+              Iniciar sesión
             </Button>
           </CardContent>
         </Card>
