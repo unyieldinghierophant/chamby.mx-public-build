@@ -117,9 +117,24 @@ const ResetPassword = () => {
       return;
     }
 
-    // Sign out so the user lands on a clean login session
-    await supabase.auth.signOut();
-    setPageState('success');
+    // Route to correct home based on role
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: userRoles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id);
+      const roles = userRoles?.map((r: { role: string }) => r.role) ?? [];
+      if (roles.includes('admin')) {
+        navigate('/admin', { replace: true });
+        return;
+      }
+      if (roles.includes('provider')) {
+        navigate('/provider-portal', { replace: true });
+        return;
+      }
+    }
+    navigate(ROUTES.USER_LANDING, { replace: true });
   };
 
   const passwordsMatch = confirmPassword.length > 0 && password === confirmPassword;
