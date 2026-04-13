@@ -84,6 +84,7 @@ const ProviderVerification = () => {
     interview_scheduled: boolean;
   }>({ status: 'pending', admin_notes: null, interview_completed: false, interview_scheduled: false });
   const [markingScheduled, setMarkingScheduled] = useState(false);
+  const [markingCompleted, setMarkingCompleted] = useState(false);
 
   const isVerified = verificationDetails.status === 'verified';
 
@@ -218,6 +219,24 @@ const ProviderVerification = () => {
       toast.error("Error al actualizar. Intenta de nuevo.");
     } finally {
       setMarkingScheduled(false);
+    }
+  };
+
+  const handleMarkCompleted = async () => {
+    if (!user) return;
+    setMarkingCompleted(true);
+    try {
+      const { error } = await supabase
+        .from("provider_details")
+        .update({ interview_completed: true })
+        .eq("user_id", user.id);
+      if (error) throw error;
+      setVerificationDetails(prev => ({ ...prev, interview_completed: true }));
+      toast.success("¡Entrevista marcada como completada!");
+    } catch (err) {
+      toast.error("Error al actualizar. Intenta de nuevo.");
+    } finally {
+      setMarkingCompleted(false);
     }
   };
 
@@ -477,13 +496,27 @@ const ProviderVerification = () => {
                     Entrevista completada ✓
                   </Badge>
                 ) : verificationDetails.interview_scheduled ? (
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20">
                       Entrevista agendada ✓
                     </Badge>
                     <p className="text-xs text-muted-foreground">
-                      El equipo de Chamby confirmará y completará tu entrevista.
+                      ¿Ya tuviste tu entrevista? Márcala como completada para avanzar tu verificación.
                     </p>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleMarkCompleted}
+                      disabled={markingCompleted}
+                      className="gap-2"
+                    >
+                      {markingCompleted ? (
+                        <Clock className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <CheckCircle className="h-4 w-4" />
+                      )}
+                      Marcar entrevista como completada
+                    </Button>
                   </div>
                 ) : (
                   <div className="space-y-3">
