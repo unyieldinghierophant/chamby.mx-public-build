@@ -46,10 +46,12 @@ export async function settleJobCompletion(
       .maybeSingle();
 
     if (visitFeePayment?.stripe_payment_intent_id) {
-      const refund = await stripe.refunds.create({
-        payment_intent: visitFeePayment.stripe_payment_intent_id,
-        amount: PRICING.VISIT_FEE.CLIENT_TOTAL_CENTS,
-      });
+      // The visit fee hold was never captured (capture_method: manual via Checkout),
+      // so we cancel the PaymentIntent to release the hold. Refunds only work on
+      // captured charges — cancelling a requires_capture PI releases funds immediately.
+      const cancelled = await stripe.paymentIntents.cancel(
+        visitFeePayment.stripe_payment_intent_id
+      );
 
       await supabase.from("payments").insert({
         job_id: jobId,
@@ -61,12 +63,12 @@ export async function settleJobCompletion(
         vat_amount_cents: PRICING.VISIT_FEE.IVA_AMOUNT_CENTS,
         currency: "mxn",
         status: "succeeded",
-        stripe_payment_intent_id: refund.id,
+        stripe_payment_intent_id: cancelled.id,
         pricing_version: "visit_v4_fixed_406",
       });
 
-      results.visitFeeRefund = refund.id;
-      log(tag, "Visit fee refunded", { refundId: refund.id, jobId });
+      results.visitFeeRefund = cancelled.id;
+      log(tag, "Visit fee hold cancelled (released to client)", { piId: cancelled.id, jobId });
     } else {
       log(tag, "No visit fee payment found to refund", { jobId });
     }

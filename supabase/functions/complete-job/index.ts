@@ -159,8 +159,8 @@ serve(async (req) => {
       // ── Notifications ──
       // Notify client about refund
       const refundMsg = settlement.visitFeeRefund
-        ? "Tu trabajo se completó. Se procesó el reembolso de $429 de tu diagnóstico."
-        : "Tu trabajo se completó. El reembolso de $429 será procesado pronto.";
+        ? "Tu trabajo se completó. Se liberó el cargo de diagnóstico de $406."
+        : "Tu trabajo se completó. El cargo de diagnóstico de $406 será liberado pronto.";
 
       await supabase.from("notifications").insert({
         user_id: job.client_id,
