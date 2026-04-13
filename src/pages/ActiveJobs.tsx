@@ -26,6 +26,7 @@ import { RescheduleDialog } from "@/components/RescheduleDialog";
 import { RatingDialog, isDismissed } from "@/components/provider-portal/RatingDialog";
 import { useJobRating } from "@/hooks/useJobRating";
 import { useJobRealtime } from "@/hooks/useJobRealtime";
+import { useVisitFeeCheckout } from "@/hooks/useVisitFeeCheckout";
 interface ActiveJob {
   id: string;
   title: string;
@@ -90,6 +91,7 @@ const ActiveJobs = () => {
   const [rescheduleDialogOpen, setRescheduleDialogOpen] = useState(false);
   const [ratingJob, setRatingJob] = useState<ActiveJob | null>(null);
   const [showRating, setShowRating] = useState(false);
+  const { redirectToCheckout, loading: checkoutLoading } = useVisitFeeCheckout();
 
   // Handle Stripe redirect query params
   useEffect(() => {
@@ -405,6 +407,23 @@ const ActiveJobs = () => {
   // Shared job-detail sections used in both mobile and desktop layouts
   const renderJobBanners = (job: ActiveJob) => (
     <>
+      {job.status === 'draft' && !job.visit_fee_paid && (
+        <Card className="border-orange-500/50 bg-orange-500/5">
+          <CardContent className="p-4 space-y-3">
+            <h3 className="font-semibold text-foreground">💳 Pago pendiente</h3>
+            <p className="text-sm text-muted-foreground">
+              Tu solicitud está esperando el pago de la tarifa de visita. Completa el pago para que busquemos un proveedor.
+            </p>
+            <Button
+              className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+              onClick={() => redirectToCheckout(job.id)}
+              disabled={checkoutLoading}
+            >
+              {checkoutLoading ? "Redirigiendo..." : "Completar pago"}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
       {needsClientConfirmation(job) && (
         <ClientVisitConfirmation
           job={{ ...job, provider: job.provider ? { full_name: job.provider.full_name } : undefined }}
