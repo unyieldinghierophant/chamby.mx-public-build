@@ -109,6 +109,18 @@ Deno.serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+      // Must be verified
+      const { data: pd } = await supabaseAdmin
+        .from("provider_details")
+        .select("verification_status")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (!pd || pd.verification_status !== "verified") {
+        return new Response(JSON.stringify({ error: "Solo proveedores verificados pueden realizar esta acción" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     } else if (CLIENT_TRANSITIONS.includes(new_status)) {
       if (user.id !== job.client_id) {
         return new Response(JSON.stringify({ error: "Solo el cliente puede realizar esta acción" }), {

@@ -15,15 +15,39 @@ serve(async (req) => {
   }
 
   try {
-    const { jobId } = await req.json();
-    if (!jobId) {
-      return new Response(JSON.stringify({ error: "jobId required" }), { status: 400, headers: corsHeaders });
+    // Require admin auth — this function cancels payment holds and must not be publicly callable
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "No autorizado" }), { status: 401, headers: corsHeaders });
     }
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: userData, error: userError } = await supabase.auth.getUser(token);
+    if (userError || !userData.user) {
+      return new Response(JSON.stringify({ error: "No autorizado" }), { status: 401, headers: corsHeaders });
+    }
+
+    // Only admins or internal service calls
+    const { data: roleRow } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userData.user.id)
+      .eq("role", "admin")
+      .maybeSingle();
+
+    if (!roleRow) {
+      return new Response(JSON.stringify({ error: "Forbidden: admin only" }), { status: 403, headers: corsHeaders });
+    }
+
+    const { jobId } = await req.json();
+    if (!jobId) {
+      return new Response(JSON.stringify({ error: "jobId required" }), { status: 400, headers: corsHeaders });
+    }
 
     // Get job and client info
     const { data: job, error: jobError } = await supabase

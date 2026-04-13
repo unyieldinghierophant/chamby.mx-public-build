@@ -61,6 +61,16 @@ serve(async (req) => {
     if (job.status !== "on_site") throw new Error(`Job must be in on_site status (current: ${job.status})`);
     if (job.provider_id !== userId) throw new Error("Only the assigned provider can submit a quote");
 
+    // Verified providers only
+    const { data: providerDetails } = await supabase
+      .from("provider_details")
+      .select("verification_status")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (!providerDetails || providerDetails.verification_status !== "verified") {
+      throw new Error("Solo proveedores verificados pueden enviar cotizaciones");
+    }
+
     logStep("Job validated", { jobId: job.id, status: job.status });
 
     // Calculate breakdown — mirrors src/utils/pricingConfig.ts calculateJobPayment()
