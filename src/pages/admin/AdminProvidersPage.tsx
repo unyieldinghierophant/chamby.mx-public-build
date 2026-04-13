@@ -98,35 +98,42 @@ const AdminProvidersPage = () => {
     try {
       setLoading(true);
 
-      // Fetch providers + users + provider_details
+      // 1. Fetch all providers in one query
       const { data: providerData, error: pErr } = await supabase
         .from('providers')
         .select('user_id, display_name, skills, zone_served, rating, total_reviews, verified, stripe_onboarding_status, stripe_payouts_enabled, stripe_charges_enabled, stripe_disabled_reason, onboarding_complete, created_at')
         .order('created_at', { ascending: false });
 
       if (pErr) throw pErr;
+      if (!providerData?.length) { setProviders([]); return; }
 
-      const rows: ProviderRow[] = await Promise.all(
-        (providerData || []).map(async (p) => {
-          const [userRes, detailRes, jobCountRes] = await Promise.all([
-            supabase.from('users').select('full_name, email, phone').eq('id', p.user_id).maybeSingle(),
-            supabase.from('provider_details').select('verification_status, admin_notes, interview_completed, interview_scheduled').eq('user_id', p.user_id).maybeSingle(),
-            supabase.from('jobs').select('id', { count: 'exact', head: true }).eq('provider_id', p.user_id).eq('status', 'completed'),
-          ]);
+      const userIds = providerData.map(p => p.user_id);
 
-          return {
-            ...p,
-            full_name: userRes.data?.full_name ?? null,
-            email: userRes.data?.email ?? null,
-            phone: userRes.data?.phone ?? null,
-            verification_status: detailRes.data?.verification_status ?? 'pending',
-            admin_notes: detailRes.data?.admin_notes ?? null,
-            interview_completed: detailRes.data?.interview_completed ?? false,
-            interview_scheduled: detailRes.data?.interview_scheduled ?? false,
-            completed_jobs: jobCountRes.count ?? 0,
-          };
-        })
-      );
+      // 2. Batch fetch users, details, and completed job counts — 3 queries total instead of N×3
+      const [usersRes, detailsRes, jobsRes] = await Promise.all([
+        supabase.from('users').select('id, full_name, email, phone').in('id', userIds),
+        supabase.from('provider_details').select('user_id, verification_status, admin_notes, interview_completed, interview_scheduled').in('user_id', userIds),
+        supabase.from('jobs').select('provider_id').in('provider_id', userIds).eq('status', 'completed'),
+      ]);
+
+      const userMap = Object.fromEntries((usersRes.data || []).map(u => [u.id, u]));
+      const detailMap = Object.fromEntries((detailsRes.data || []).map(d => [d.user_id, d]));
+      const completedCountMap: Record<string, number> = {};
+      (jobsRes.data || []).forEach(j => {
+        completedCountMap[j.provider_id] = (completedCountMap[j.provider_id] || 0) + 1;
+      });
+
+      const rows: ProviderRow[] = providerData.map(p => ({
+        ...p,
+        full_name: userMap[p.user_id]?.full_name ?? null,
+        email: userMap[p.user_id]?.email ?? null,
+        phone: userMap[p.user_id]?.phone ?? null,
+        verification_status: detailMap[p.user_id]?.verification_status ?? 'pending',
+        admin_notes: detailMap[p.user_id]?.admin_notes ?? null,
+        interview_completed: detailMap[p.user_id]?.interview_completed ?? false,
+        interview_scheduled: detailMap[p.user_id]?.interview_scheduled ?? false,
+        completed_jobs: completedCountMap[p.user_id] ?? 0,
+      }));
 
       setProviders(rows);
     } catch (err) {
@@ -153,13 +160,18 @@ const AdminProvidersPage = () => {
 
       setDocuments(docsRes.data || []);
 
-      // Fetch client names for jobs
-      const jobsWithClients: ProviderJob[] = await Promise.all(
-        (jobsRes.data || []).map(async (j: any) => {
-          const { data: cl } = await supabase.from('users').select('full_name').eq('id', j.client_id).maybeSingle();
-          return { id: j.id, title: j.title, status: j.status, category: j.category, created_at: j.created_at, client_name: cl?.full_name ?? null };
-        })
-      );
+      // Batch fetch client names — 1 query instead of N
+      const clientIds = [...new Set((jobsRes.data || []).map((j: any) => j.client_id).filter(Boolean))];
+      const clientMap: Record<string, string> = {};
+      if (clientIds.length > 0) {
+        const { data: clientData } = await supabase.from('users').select('id, full_name').in('id', clientIds);
+        (clientData || []).forEach(c => { clientMap[c.id] = c.full_name; });
+      }
+
+      const jobsWithClients: ProviderJob[] = (jobsRes.data || []).map((j: any) => ({
+        id: j.id, title: j.title, status: j.status, category: j.category,
+        created_at: j.created_at, client_name: clientMap[j.client_id] ?? null,
+      }));
       setJobs(jobsWithClients);
     } catch (err) {
       console.error('Error loading provider detail:', err);

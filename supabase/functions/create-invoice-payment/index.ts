@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -38,6 +39,13 @@ serve(async (req) => {
     if (userError || !userData.user) throw new Error("Authentication failed");
     const user = userData.user;
     logStep("User authenticated", { userId: user.id });
+
+    // Rate limit: 10 invoice checkout attempts per user per 10 minutes
+    const rl = await checkRateLimit(supabaseClient, `create-invoice-payment:${user.id}`, 10, 600);
+    if (!rl.allowed) {
+      logStep("Rate limit exceeded", { userId: user.id });
+      return rateLimitResponse(rl.resetInSeconds, corsHeaders);
+    }
 
     // Get invoice_id from body
     const body = await req.json();
