@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import Stripe from "https://esm.sh/stripe@18.5.0";
 
 const POSTMARK_API_KEY = Deno.env.get("POSTMARK_API_KEY") as string;
 
@@ -34,6 +35,26 @@ serve(async (req) => {
     if (jobError || !job) {
       console.error("Job not found:", jobError?.message);
       return new Response(JSON.stringify({ error: "Job not found" }), { status: 404, headers: corsHeaders });
+    }
+
+    // Cancel the visit fee hold in Stripe
+    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") ?? "", { apiVersion: "2025-03-31.basil" });
+
+    const { data: visitFeePayment } = await supabase
+      .from("payments")
+      .select("stripe_payment_intent_id, id")
+      .eq("job_id", jobId)
+      .eq("type", "visit_fee")
+      .eq("status", "authorized")
+      .maybeSingle();
+
+    if (visitFeePayment?.stripe_payment_intent_id) {
+      await stripe.paymentIntents.cancel(visitFeePayment.stripe_payment_intent_id);
+
+      await supabase
+        .from("payments")
+        .update({ status: "cancelled" })
+        .eq("id", visitFeePayment.id);
     }
 
     // Get client email

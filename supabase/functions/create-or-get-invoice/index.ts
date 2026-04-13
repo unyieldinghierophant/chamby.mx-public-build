@@ -17,6 +17,11 @@ const CUSTOMER_FEE_RATE = 0.10; // 10% from customer
 // Total Chamby commission = 20% (10% + 10%)
 
 serve(async (req) => {
+  return new Response(
+    JSON.stringify({ error: "This function is deprecated and no longer in use." }),
+    { status: 410, headers: { "Content-Type": "application/json" } }
+  );
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }

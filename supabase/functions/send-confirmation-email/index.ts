@@ -76,7 +76,9 @@ serve(async (req) => {
     let textContent: string;
     let tag: string;
 
-    const confirmationUrl = `${Deno.env.get("SUPABASE_URL")}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(redirect_to)}`;
+    const recoveryRedirect = 'https://chamby.mx/reset-password';
+    const resolvedRedirect = email_action_type === 'recovery' ? recoveryRedirect : (redirect_to || Deno.env.get("SUPABASE_URL") || '');
+    const confirmationUrl = `${Deno.env.get("SUPABASE_URL")}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(resolvedRedirect)}`;
 
     switch (email_action_type) {
       case 'recovery':

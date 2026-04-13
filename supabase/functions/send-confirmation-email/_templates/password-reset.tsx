@@ -71,19 +71,11 @@ export const PasswordResetEmail = ({
           
           <Section style={buttonSection}>
             <Link
-              href={`${supabase_url}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(redirect_to)}`}
+              href={`${supabase_url}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent('https://chamby.mx/reset-password')}`}
               style={button}
             >
               Restablecer mi contraseña
             </Link>
-          </Section>
-          
-          <Text style={orText}>
-            o usa este código de verificación:
-          </Text>
-          
-          <Section style={codeSection}>
-            <Text style={code}>{token}</Text>
           </Section>
           
           <Text style={expiryText}>

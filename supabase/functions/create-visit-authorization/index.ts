@@ -13,6 +13,11 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
 };
 
 serve(async (req) => {
+  return new Response(
+    JSON.stringify({ error: "This function is deprecated and no longer in use." }),
+    { status: 410, headers: { "Content-Type": "application/json" } }
+  );
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }

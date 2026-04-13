@@ -3,6 +3,7 @@
  * Used by complete-job and auto-complete-jobs edge functions.
  */
 import Stripe from "https://esm.sh/stripe@18.5.0";
+import { PRICING } from "../../../src/utils/pricingConfig.ts";
 
 const log = (tag: string, step: string, details?: Record<string, unknown>) => {
   console.log(`[${tag}] ${step}${details ? ` - ${JSON.stringify(details)}` : ""}`);
@@ -45,24 +46,23 @@ export async function settleJobCompletion(
       .maybeSingle();
 
     if (visitFeePayment?.stripe_payment_intent_id) {
-      // SYNC WITH src/utils/pricingConfig.ts PRICING.VISIT_FEE.CLIENT_TOTAL_CENTS
       const refund = await stripe.refunds.create({
         payment_intent: visitFeePayment.stripe_payment_intent_id,
-        amount: 42900,
+        amount: PRICING.VISIT_FEE.CLIENT_TOTAL_CENTS,
       });
 
       await supabase.from("payments").insert({
         job_id: jobId,
         provider_id: null,
         type: "visit_fee_refund",
-        amount: 429,
-        total_amount_cents: 42900,
-        base_amount_cents: 35000,
-        vat_amount_cents: 5600,
+        amount: PRICING.VISIT_FEE.CLIENT_TOTAL_CENTS / 100,
+        total_amount_cents: PRICING.VISIT_FEE.CLIENT_TOTAL_CENTS,
+        base_amount_cents: PRICING.VISIT_FEE.BASE_AMOUNT_CENTS,
+        vat_amount_cents: PRICING.VISIT_FEE.IVA_AMOUNT_CENTS,
         currency: "mxn",
         status: "succeeded",
         stripe_payment_intent_id: refund.id,
-        pricing_version: "visit_v4_fixed_429",
+        pricing_version: "visit_v4_fixed_406",
       });
 
       results.visitFeeRefund = refund.id;
@@ -245,6 +245,23 @@ export async function settleVisitFeeToProvider(
       provider.stripe_payouts_enabled;
 
     if (canPayout) {
+      const { data: visitFeePayment } = await supabase
+        .from("payments")
+        .select("stripe_payment_intent_id, id")
+        .eq("job_id", jobId)
+        .eq("type", "visit_fee")
+        .eq("status", "authorized")
+        .maybeSingle();
+
+      if (visitFeePayment?.stripe_payment_intent_id) {
+        await stripe.paymentIntents.capture(visitFeePayment.stripe_payment_intent_id);
+
+        await supabase
+          .from("payments")
+          .update({ status: "succeeded" })
+          .eq("id", visitFeePayment.id);
+      }
+
       const transfer = await stripe.transfers.create({
         amount: PROVIDER_SHARE_CENTS,
         currency: "mxn",

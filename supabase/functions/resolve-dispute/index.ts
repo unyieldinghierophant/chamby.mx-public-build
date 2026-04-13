@@ -247,7 +247,7 @@ async function performEscrowRelease(
   if (!stripeKey) return;
 
   const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
-  const amountCentavos = Math.round(invoice.subtotal_provider * 100);
+  const amountCentavos = Math.round(invoice.provider_payout_amount * 100);
 
   const transfer = await stripe.transfers.create({
     amount: amountCentavos,
