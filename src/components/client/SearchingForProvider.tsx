@@ -9,25 +9,24 @@ const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
 const GDL_FALLBACK = { lat: 20.6597, lng: -103.3496 };
 const CYCLE_MS = 3800;
 
-// Mock provider offsets (applied to the geocoded home position)
-const MOCK_OFFSETS = [
-  { dLat:  0.0049, dLng: -0.0053, name: 'Jorge R.',   stars: '★★★★★', rating: '4.9', spec: 'Técnico',    eta: '8 min'  },
-  { dLat: -0.0041, dLng:  0.0082, name: 'Carlos V.',  stars: '★★★★☆', rating: '4.7', spec: 'Técnico',    eta: '13 min' },
-  { dLat:  0.0032, dLng: -0.0128, name: 'María G.',   stars: '★★★★★', rating: '4.8', spec: 'Técnica',    eta: '11 min' },
-  { dLat: -0.0077, dLng: -0.0011, name: 'Roberto M.', stars: '★★★★☆', rating: '4.6', spec: 'Técnico',    eta: '17 min' },
-  { dLat:  0.0078, dLng:  0.0062, name: 'Ana L.',     stars: '★★★★★', rating: '4.9', spec: 'Técnica',    eta: '19 min' },
+// Fallback offsets used when providers have no location data
+const FALLBACK_OFFSETS = [
+  { dLat:  0.0049, dLng: -0.0053 },
+  { dLat: -0.0041, dLng:  0.0082 },
+  { dLat:  0.0032, dLng: -0.0128 },
+  { dLat: -0.0077, dLng: -0.0011 },
+  { dLat:  0.0078, dLng:  0.0062 },
 ];
 
-const MESSAGES = [
-  { text: 'Notificando técnicos cercanos…',   sub: '5 disponibles en tu zona ahora',         amber: false },
-  { text: 'Jorge revisó tu solicitud',         sub: 'Evaluando disponibilidad · 8 min',        amber: false },
-  { text: 'Tiempo promedio de respuesta',      sub: 'Los técnicos aceptan en ~4 minutos',      amber: true  },
-  { text: 'Carlos está revisando tu pedido',   sub: 'Técnico verificado · 13 min',             amber: false },
-  { text: '3 técnicos notificados',            sub: 'Esperando confirmación…',                 amber: false },
-  { text: 'María vio tu solicitud',            sub: 'Proveedora con 98 % de aceptación',       amber: false },
-  { text: 'Tu pago está seguro',               sub: '$406 MXN en escrow · sin cargos aún',    amber: true  },
-  { text: 'Casi listo…',                       sub: 'Los técnicos suelen confirmar en <5 min', amber: false },
-];
+interface NearbyProvider {
+  user_id: string;
+  name: string;
+  rating: number;
+  reviews: number;
+  specialty: string;
+  lat: number;
+  lng: number;
+}
 
 const MAP_STYLES: google.maps.MapTypeStyle[] = [
   { featureType: 'all',           elementType: 'labels.icon',       stylers: [{ visibility: 'off' }] },
@@ -46,7 +45,7 @@ const MAP_STYLES: google.maps.MapTypeStyle[] = [
   { featureType: 'water',          elementType: 'geometry',          stylers: [{ color: '#dce8f0' }] },
 ];
 
-// ─── Singleton loader (shared with EsperandoProveedor) ───────
+// ─── Singleton loader ─────────────────────────────────────────
 let _mapsPromise: Promise<void> | null = null;
 function loadGoogleMaps(): Promise<void> {
   if ((window as any).google?.maps) return Promise.resolve();
@@ -94,6 +93,13 @@ function providerMarkerHtml(active: boolean, idx: number) {
 </div>`;
 }
 
+function starsFromRating(rating: number): string {
+  const full  = Math.floor(rating);
+  const half  = rating - full >= 0.5 ? 1 : 0;
+  const empty = 5 - full - half;
+  return '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(empty);
+}
+
 // ─── Component ────────────────────────────────────────────────
 interface Props {
   job: {
@@ -113,13 +119,15 @@ export const SearchingForProvider = ({ job, onTransition }: Props) => {
   const markerObjsRef    = useRef<any[]>([]);
   const activeRouteRef   = useRef<google.maps.Polyline | null>(null);
   const cycleTimerRef    = useRef<ReturnType<typeof setInterval> | null>(null);
+  const providersRef     = useRef<NearbyProvider[]>([]);
 
   const [mapReady,         setMapReady        ] = useState(false);
   const [activeIdx,        setActiveIdx       ] = useState(0);
   const [msgIdx,           setMsgIdx          ] = useState(0);
   const [msgVisible,       setMsgVisible      ] = useState(false);
   const [focusCardVisible, setFocusCardVisible] = useState(false);
-  const [focusedProvider,  setFocusedProvider ] = useState(MOCK_OFFSETS[0]);
+  const [providers,        setProviders       ] = useState<NearbyProvider[]>([]);
+  const [focusedProvider,  setFocusedProvider ] = useState<NearbyProvider | null>(null);
   const [etaText,          setEtaText         ] = useState<string | null>(null);
   const [notifyOpen,       setNotifyOpen      ] = useState(false);
   const [notifyPhone,      setNotifyPhone     ] = useState('');
@@ -128,6 +136,86 @@ export const SearchingForProvider = ({ job, onTransition }: Props) => {
 
   const isAccepted = job.status === 'assigned';
   const jobShortId = job.id.slice(0, 8).toUpperCase();
+
+  // ── Fetch real nearby providers ───────────────────────────
+  useEffect(() => {
+    const fetchProviders = async () => {
+      const { data } = await supabase
+        .from('providers')
+        .select('user_id, display_name, rating, total_reviews, specialty, current_latitude, current_longitude')
+        .not('current_latitude', 'is', null)
+        .not('current_longitude', 'is', null)
+        .eq('verified', true)
+        .limit(8);
+
+      if (data && data.length > 0) {
+        const mapped: NearbyProvider[] = data.map((p) => ({
+          user_id: p.user_id,
+          name: p.display_name || 'Técnico verificado',
+          rating: p.rating ?? 4.8,
+          reviews: p.total_reviews ?? 0,
+          specialty: p.specialty || 'Técnico',
+          lat: p.current_latitude!,
+          lng: p.current_longitude!,
+        }));
+        providersRef.current = mapped;
+        setProviders(mapped);
+        setFocusedProvider(mapped[0]);
+      }
+      // If no real data, providers stays [] and we use fallback offsets
+    };
+
+    fetchProviders();
+  }, []);
+
+  // ── Realtime: detect when job is accepted ────────────────
+  useEffect(() => {
+    if (isAccepted) return;
+
+    const channel = supabase
+      .channel(`sfp-job-${job.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'jobs', filter: `id=eq.${job.id}` },
+        (payload) => {
+          const newStatus = (payload.new as any)?.status;
+          if (newStatus && newStatus !== job.status) {
+            onTransition(newStatus);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => { channel.unsubscribe(); };
+  }, [job.id, job.status, isAccepted, onTransition]);
+
+  // ── Build dynamic messages from real provider names ───────
+  const buildMessages = useCallback((ps: NearbyProvider[]) => {
+    if (ps.length === 0) {
+      return [
+        { text: 'Notificando técnicos cercanos…',   sub: 'Buscando proveedores en tu zona',          amber: false },
+        { text: 'Tiempo promedio de respuesta',      sub: 'Los técnicos aceptan en ~4 minutos',       amber: true  },
+        { text: 'Técnicos notificados',              sub: 'Esperando confirmación…',                  amber: false },
+        { text: 'Tu pago está seguro',               sub: '$406 MXN en escrow · sin cargos aún',     amber: true  },
+        { text: 'Casi listo…',                       sub: 'Los técnicos suelen confirmar en <5 min',  amber: false },
+      ];
+    }
+    const msgs = [
+      { text: 'Notificando técnicos cercanos…',          sub: `${ps.length} disponibles en tu zona ahora`,   amber: false },
+      { text: `${ps[0].name} revisó tu solicitud`,       sub: `Técnico verificado · ${ps[0].specialty}`,     amber: false },
+      { text: 'Tiempo promedio de respuesta',            sub: 'Los técnicos aceptan en ~4 minutos',          amber: true  },
+    ];
+    if (ps.length > 1) msgs.push({ text: `${ps[1].name} está revisando tu pedido`, sub: `⭐ ${ps[1].rating.toFixed(1)} · ${ps[1].specialty}`, amber: false });
+    msgs.push({ text: 'Tu pago está seguro', sub: '$406 MXN en escrow · sin cargos aún', amber: true });
+    if (ps.length > 2) msgs.push({ text: `${ps[2].name} vio tu solicitud`, sub: `${ps[2].reviews > 0 ? `${ps[2].reviews} trabajos completados` : 'Proveedor verificado'}`, amber: false });
+    msgs.push({ text: 'Casi listo…', sub: 'Los técnicos suelen confirmar en <5 min', amber: false });
+    return msgs;
+  }, []);
+
+  const messagesRef = useRef(buildMessages([]));
+  useEffect(() => {
+    messagesRef.current = buildMessages(providers);
+  }, [providers, buildMessages]);
 
   // ── Init map ─────────────────────────────────────────────
   useEffect(() => {
@@ -148,7 +236,7 @@ export const SearchingForProvider = ({ job, onTransition }: Props) => {
       });
       mapRef.current = map;
 
-      const placeHome = (pos: { lat: number; lng: number }) => {
+      const placeHome = (pos: { lat: number; lng: number }, nearbyProviders: NearbyProvider[]) => {
         homePosRef.current = pos;
         map.setCenter(pos);
         map.setZoom(15);
@@ -157,37 +245,67 @@ export const SearchingForProvider = ({ job, onTransition }: Props) => {
         el.innerHTML = homeMarkerHtml;
         new (google.maps.marker as any).AdvancedMarkerElement({ map, position: pos, content: el, zIndex: 10 });
 
-        // Place mock provider markers
-        const mockProviders = MOCK_OFFSETS.map((o, i) => ({
-          ...o,
-          lat: pos.lat + o.dLat,
-          lng: pos.lng + o.dLng,
-        }));
+        // Use real provider positions, or fallback offsets if none available
+        let displayProviders: NearbyProvider[];
+        if (nearbyProviders.length > 0) {
+          // Take up to 5 nearest providers (already fetched with real coords)
+          displayProviders = nearbyProviders.slice(0, 5);
+        } else {
+          // Fallback: place generic markers at offset positions
+          displayProviders = FALLBACK_OFFSETS.map((o, i) => ({
+            user_id: `fallback-${i}`,
+            name: 'Técnico disponible',
+            rating: 4.7,
+            reviews: 0,
+            specialty: 'Técnico',
+            lat: pos.lat + o.dLat,
+            lng: pos.lng + o.dLng,
+          }));
+        }
 
-        markerObjsRef.current = mockProviders.map((p, i) => {
+        if (providersRef.current.length === 0) {
+          providersRef.current = displayProviders;
+          setProviders(displayProviders);
+        }
+        setFocusedProvider(displayProviders[0]);
+
+        markerObjsRef.current = displayProviders.map((p, i) => {
           const el = document.createElement('div');
           el.innerHTML = providerMarkerHtml(i === 0, i);
           return new (google.maps.marker as any).AdvancedMarkerElement({
-            map, position: { lat: p.lat, lng: p.lng }, content: el, zIndex: i === 0 ? 20 : 5,
+            map,
+            position: { lat: p.lat, lng: p.lng },
+            content: el,
+            zIndex: i === 0 ? 20 : 5,
           });
         });
 
         setMapReady(true);
       };
 
-      if (job.location) {
-        const geocoder = new google.maps.Geocoder();
-        geocoder.geocode({ address: job.location }, (results, status) => {
-          if (status === 'OK' && results?.[0]) {
-            const loc = results[0].geometry.location;
-            placeHome({ lat: loc.lat(), lng: loc.lng() });
-          } else {
-            placeHome(GDL_FALLBACK);
-          }
-        });
-      } else {
-        placeHome(GDL_FALLBACK);
-      }
+      // Geocode the job address, then place markers using providersRef (avoids stale closure)
+      const geocodeAndPlace = () => {
+        if (cancelled) return;
+        const ps = providersRef.current;
+        if (job.location) {
+          const geocoder = new google.maps.Geocoder();
+          geocoder.geocode({ address: job.location }, (results, status) => {
+            if (cancelled) return;
+            if (status === 'OK' && results?.[0]) {
+              const loc = results[0].geometry.location;
+              placeHome({ lat: loc.lat(), lng: loc.lng() }, ps);
+            } else {
+              placeHome(GDL_FALLBACK, ps);
+            }
+          });
+        } else {
+          placeHome(GDL_FALLBACK, ps);
+        }
+      };
+
+      // Wait 400ms for the providers fetch to complete before placing markers
+      setTimeout(geocodeAndPlace, 400);
+
     }).catch(console.error);
 
     return () => { cancelled = true; };
@@ -197,18 +315,26 @@ export const SearchingForProvider = ({ job, onTransition }: Props) => {
   const focusProvider = useCallback((idx: number) => {
     if (!mapRef.current) return;
     const home = homePosRef.current;
-    const offset = MOCK_OFFSETS[idx];
-    const provPos = { lat: home.lat + offset.dLat, lng: home.lng + offset.dLng };
+
+    // Get current provider list from marker objects length
+    const count = markerObjsRef.current.length;
+    if (count === 0) return;
+    const safeIdx = idx % count;
+
+    // Get position from the actual marker
+    const marker = markerObjsRef.current[safeIdx];
+    const provPos = marker?.position as { lat: number; lng: number } | null;
+    if (!provPos) return;
 
     // Update all marker visuals
     markerObjsRef.current.forEach((m, i) => {
       const el = document.createElement('div');
-      el.innerHTML = providerMarkerHtml(i === idx, i);
+      el.innerHTML = providerMarkerHtml(i === safeIdx, i);
       m.content = el;
-      m.zIndex  = i === idx ? 20 : 5;
+      m.zIndex  = i === safeIdx ? 20 : 5;
     });
 
-    // Fit bounds to show home + provider
+    // Fit bounds
     const bounds = new google.maps.LatLngBounds();
     bounds.extend(home);
     bounds.extend(provPos);
@@ -219,41 +345,46 @@ export const SearchingForProvider = ({ job, onTransition }: Props) => {
 
     // Draw dashed route
     const ds = new google.maps.DirectionsService();
-    ds.route({ origin: provPos, destination: home, travelMode: google.maps.TravelMode.DRIVING }, (result, status) => {
-      if (status === 'OK' && result) {
-        activeRouteRef.current = new google.maps.Polyline({
-          path: result.routes[0].overview_path,
-          strokeColor: '#0D9E6A',
-          strokeOpacity: 0,
-          strokeWeight: 3,
-          icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 0.7, scale: 3 }, offset: '0', repeat: '12px' }],
-          map: mapRef.current!,
-        });
-        const dur = result.routes[0]?.legs[0]?.duration;
-        if (dur) setEtaText(dur.text);
+    ds.route(
+      { origin: provPos, destination: home, travelMode: google.maps.TravelMode.DRIVING },
+      (result, status) => {
+        if (status === 'OK' && result) {
+          activeRouteRef.current = new google.maps.Polyline({
+            path: result.routes[0].overview_path,
+            strokeColor: '#0D9E6A',
+            strokeOpacity: 0,
+            strokeWeight: 3,
+            icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 0.7, scale: 3 }, offset: '0', repeat: '12px' }],
+            map: mapRef.current!,
+          });
+          const dur = result.routes[0]?.legs[0]?.duration;
+          if (dur) setEtaText(dur.text);
+        }
       }
-    });
+    );
 
-    // Update focus card
-    setFocusedProvider(MOCK_OFFSETS[idx]);
+    // Update focus card with real provider data
+    setProviders(current => {
+      const p = current[safeIdx];
+      if (p) setFocusedProvider(p);
+      return current;
+    });
     setFocusCardVisible(false);
     setTimeout(() => setFocusCardVisible(true), 80);
-    setMsgIdx(idx % MESSAGES.length);
+    setMsgIdx(safeIdx % messagesRef.current.length);
   }, []);
 
   useEffect(() => {
     if (!mapReady || isAccepted) return;
 
-    // Show first message
     setTimeout(() => {
       setMsgVisible(true);
       focusProvider(0);
     }, 600);
 
-    // Cycle every CYCLE_MS
     let cycleIdx = 0;
     cycleTimerRef.current = setInterval(() => {
-      cycleIdx = (cycleIdx + 1) % MOCK_OFFSETS.length;
+      cycleIdx = (cycleIdx + 1) % Math.max(markerObjsRef.current.length, 1);
       setActiveIdx(cycleIdx);
       focusProvider(cycleIdx);
     }, CYCLE_MS);
@@ -290,8 +421,8 @@ export const SearchingForProvider = ({ job, onTransition }: Props) => {
     setNotifyOpen(false);
   };
 
-  const msg = MESSAGES[msgIdx];
-  const provider = MOCK_OFFSETS[activeIdx];
+  const msg = messagesRef.current[msgIdx] ?? messagesRef.current[0];
+  const providerCount = Math.max(providers.length, 1);
 
   return (
     <div
@@ -320,7 +451,7 @@ export const SearchingForProvider = ({ job, onTransition }: Props) => {
         {/* Floating message bar */}
         <div className="absolute top-3 left-3 right-3 z-[15] pointer-events-none">
           <AnimatePresence mode="wait">
-            {msgVisible && !isAccepted && (
+            {msgVisible && !isAccepted && msg && (
               <motion.div
                 key={msgIdx}
                 initial={{ opacity: 0, y: -6 }}
@@ -347,7 +478,7 @@ export const SearchingForProvider = ({ job, onTransition }: Props) => {
 
         {/* Provider focus card */}
         <AnimatePresence>
-          {focusCardVisible && !isAccepted && (
+          {focusCardVisible && !isAccepted && focusedProvider && (
             <motion.div
               key="focusCard"
               initial={{ opacity: 0, y: 10 }}
@@ -357,7 +488,7 @@ export const SearchingForProvider = ({ job, onTransition }: Props) => {
               className="absolute z-[15] left-3 right-3 flex items-center gap-3 bg-white rounded-2xl px-3.5 py-3 shadow-[0_6px_24px_rgba(0,0,0,0.16)] border border-black/[0.06] pointer-events-none"
               style={{ bottom: 88 }}
             >
-              <div className="w-10 h-10 rounded-full bg-[#E6F7F1] flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 rounded-full bg-[#E6F7F1] flex items-center justify-content:center flex-shrink-0 flex items-center justify-center">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#0D9E6A" strokeWidth="1.8" strokeLinecap="round">
                   <circle cx="10" cy="6.5" r="3.5"/><path d="M3 18c0-3.9 3.1-7 7-7s7 3.1 7 7"/>
                 </svg>
@@ -365,12 +496,14 @@ export const SearchingForProvider = ({ job, onTransition }: Props) => {
               <div className="flex-1 min-w-0">
                 <div className="text-[13px] font-bold text-[#0F0F0E]">{focusedProvider.name}</div>
                 <div className="text-[11px] text-[#686860] mt-px">
-                  {focusedProvider.stars} {focusedProvider.rating} · {focusedProvider.spec}
+                  {starsFromRating(focusedProvider.rating)} {focusedProvider.rating.toFixed(1)} · {focusedProvider.specialty}
                 </div>
               </div>
-              <div className="ml-auto flex-shrink-0 bg-[#E6F7F1] text-[#0A7A52] rounded-full px-2.5 py-1 text-[12px] font-bold">
-                {etaText ?? focusedProvider.eta}
-              </div>
+              {etaText && (
+                <div className="ml-auto flex-shrink-0 bg-[#E6F7F1] text-[#0A7A52] rounded-full px-2.5 py-1 text-[12px] font-bold">
+                  {etaText}
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -423,7 +556,9 @@ export const SearchingForProvider = ({ job, onTransition }: Props) => {
               className="w-2 h-2 rounded-full bg-[#0D9E6A] flex-shrink-0"
               style={{ animation: 'sfp-pulse 1.4s ease-in-out infinite' }}
             />
-            <span className="text-[12px] font-semibold text-[#0A7A52]">5 técnicos en tu zona</span>
+            <span className="text-[12px] font-semibold text-[#0A7A52]">
+              {providerCount} técnico{providerCount !== 1 ? 's' : ''} en tu zona
+            </span>
           </div>
 
           <div className="text-[20px] font-bold text-[#0F0F0E] mb-1">Buscando tu técnico</div>
@@ -466,7 +601,9 @@ export const SearchingForProvider = ({ job, onTransition }: Props) => {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-[13px] font-semibold text-[#0F0F0E]">Notificando técnicos</div>
-                <div className="text-[11px] text-[#A0A098] mt-px">5 proveedores cerca</div>
+                <div className="text-[11px] text-[#A0A098] mt-px">
+                  {providerCount} proveedor{providerCount !== 1 ? 'es' : ''} cerca
+                </div>
               </div>
               <div className="text-[11px] font-semibold text-[#E8A020] flex-shrink-0">En curso</div>
             </div>

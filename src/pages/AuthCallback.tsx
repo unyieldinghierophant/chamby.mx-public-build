@@ -330,6 +330,15 @@ const AuthCallback = () => {
         return;
       }
 
+      // If the user came from the booking flow (auth_return was set but lost), send them back
+      const wasBookingReturn = localStorage.getItem('booking_auth_return') === 'true';
+      if (wasBookingReturn) {
+        localStorage.removeItem('booking_auth_return');
+        console.log('[AuthCallback] Booking auth return detected, redirecting to book-job');
+        navigate('/book-job?checkout=1', { replace: true });
+        return;
+      }
+
       // Default: clients go to user landing
       console.log('[AuthCallback] Redirecting to user landing');
       navigate('/user-landing', { replace: true });

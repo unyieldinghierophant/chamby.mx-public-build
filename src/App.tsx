@@ -13,6 +13,7 @@ import {
 } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { useEffect, lazy, Suspense } from "react";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ROUTES } from "@/constants/routes";
 import { trackPageView, isGALoaded } from "@/lib/analytics";
 
@@ -165,6 +166,7 @@ const App = () => {
             <AnalyticsTracker />
             <SubdomainRouter />
             <RedirectHandler />
+            <ErrorBoundary>
             <Suspense fallback={null}>
             <Routes>
               <Route path={ROUTES.HOME} element={<Index />} />
@@ -473,6 +475,7 @@ const App = () => {
               <Route path="*" element={<NotFound />} />
             </Routes>
             </Suspense>
+            </ErrorBoundary>
             <CookieConsent />
             <Analytics />
           </BrowserRouter>

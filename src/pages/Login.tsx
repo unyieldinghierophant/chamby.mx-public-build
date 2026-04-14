@@ -152,13 +152,15 @@ const Login = () => {
     
     setLoading(true);
     const formattedPhone = formatPhoneForStorage(signupData.phone);
+    const urlReturnTo = searchParams.get('return_to') || localStorage.getItem('auth_return_to') || undefined;
     const { error } = await signUp(
       signupData.email,
       signupData.password,
       signupData.fullName,
       formattedPhone,
       false, // isProvider = false for clients
-      'client'
+      'client',
+      urlReturnTo,
     );
     
     if (error) {
@@ -192,9 +194,17 @@ const Login = () => {
     localStorage.removeItem('selected_role');
     localStorage.setItem('login_context', 'client');
 
-    // Encode return_to directly in the callback URL — survives full OAuth redirect chain
-    // without depending on localStorage/sessionStorage (which may be cleared on mobile or cross-origin).
-    const urlReturnTo = searchParams.get('return_to');
+    // Encode return_to directly in the callback URL — survives full OAuth redirect chain.
+    // Also write to localStorage as a fallback: Supabase doesn't always preserve query params
+    // in the redirectTo URL across the full Google OAuth cycle.
+    const urlReturnTo = searchParams.get('return_to')
+      || localStorage.getItem('auth_return_to')
+      || undefined;
+
+    if (urlReturnTo) {
+      localStorage.setItem('auth_return_to', urlReturnTo);
+    }
+
     const callbackUrl = urlReturnTo
       ? `${window.location.origin}/auth/callback?return_to=${encodeURIComponent(urlReturnTo)}`
       : `${window.location.origin}/auth/callback`;

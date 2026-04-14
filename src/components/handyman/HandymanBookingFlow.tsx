@@ -231,7 +231,7 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
       if (currentSessionId) {
         bookingSessionId.current = currentSessionId;
       } else {
-        const newId = crypto.randomUUID();
+        const newId = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
         sessionStorage.setItem('booking_session_id', newId);
         bookingSessionId.current = newId;
       }
@@ -254,7 +254,7 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
     // Clear any stale data so it doesn't accumulate.
     clearFormData();
     localStorage.removeItem('booking_show_summary');
-    const newId = crypto.randomUUID();
+    const newId = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
     sessionStorage.setItem('booking_session_id', newId);
     bookingSessionId.current = newId;
     setIsLoading(false);

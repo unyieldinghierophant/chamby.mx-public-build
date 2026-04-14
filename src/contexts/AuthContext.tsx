@@ -6,7 +6,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string, phone?: string, isProvider?: boolean, role?: string) => Promise<{ error: any; data?: any }>;
+  signUp: (email: string, password: string, fullName: string, phone?: string, isProvider?: boolean, role?: string, returnTo?: string) => Promise<{ error: any; data?: any }>;
   signIn: (email: string, password: string, loginContext?: 'client' | 'provider') => Promise<{ error: any }>;
   signInWithGoogle: (isProvider?: boolean, loginContext?: 'client' | 'provider') => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -61,13 +61,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => clearInterval(refreshInterval);
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string, phone?: string, isProvider?: boolean, role?: string) => {
+  const signUp = async (email: string, password: string, fullName: string, phone?: string, isProvider?: boolean, role?: string, returnTo?: string) => {
     // Store login context for post-verification routing
     const loginContext = isProvider ? 'provider' : 'client';
     localStorage.setItem('login_context', loginContext);
-    
-    // Include login_context in redirect URL so it persists across browser/device changes
-    const redirectUrl = `${window.location.origin}/auth/callback?login_context=${loginContext}`;
+
+    // Include login_context AND return_to in redirect URL so both survive the email confirmation link click
+    // (sessionStorage dies in a new tab; encoding in the URL is the only reliable mechanism)
+    const returnToParam = returnTo ? `&return_to=${encodeURIComponent(returnTo)}` : '';
+    const redirectUrl = `${window.location.origin}/auth/callback?login_context=${loginContext}${returnToParam}`;
     
     const { data, error } = await supabase.auth.signUp({
       email,
