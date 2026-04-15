@@ -159,6 +159,7 @@ interface SkillsSelectionContentProps {
   selectedSkills: string[];
   onToggleSkill: (skill: string) => void;
   onRemoveSkill: (skill: string) => void;
+  onAddCustomSkill: (skill: string) => void;
 }
 
 function SkillsSelectionContent({
@@ -167,6 +168,7 @@ function SkillsSelectionContent({
   selectedSkills,
   onToggleSkill,
   onRemoveSkill,
+  onAddCustomSkill,
 }: SkillsSelectionContentProps) {
   const searchQuery = customSkill.toLowerCase().trim();
   const filteredCategories = searchQuery
@@ -175,6 +177,26 @@ function SkillsSelectionContent({
         skills: cat.skills.filter((s) => s.toLowerCase().includes(searchQuery)),
       })).filter((cat) => cat.skills.length > 0)
     : CURATED_SKILL_CATEGORIES;
+
+  const trimmed = customSkill.trim();
+  const exactCuratedMatch = ALL_CURATED_SKILLS.some(
+    (s) => s.toLowerCase() === searchQuery
+  );
+  const alreadySelected = selectedSkills.some(
+    (s) => s.toLowerCase() === searchQuery
+  );
+  const canAddCustom =
+    trimmed.length > 0 &&
+    !exactCuratedMatch &&
+    !alreadySelected &&
+    selectedSkills.length < MAX_SKILLS;
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && canAddCustom) {
+      e.preventDefault();
+      onAddCustomSkill(trimmed);
+    }
+  };
 
   return (
     <div className="space-y-5">
@@ -187,12 +209,25 @@ function SkillsSelectionContent({
         </p>
       </div>
 
-      <Input
-        placeholder="Buscar habilidad…"
-        value={customSkill}
-        onChange={(e) => onCustomSkillChange(e.target.value)}
-        className="h-12 text-base border-2 rounded-xl"
-      />
+      <div className="space-y-2">
+        <Input
+          placeholder="Buscar o agregar habilidad…"
+          value={customSkill}
+          onChange={(e) => onCustomSkillChange(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className="h-12 text-base border-2 rounded-xl"
+        />
+        {canAddCustom && (
+          <button
+            type="button"
+            onClick={() => onAddCustomSkill(trimmed)}
+            className="flex items-center gap-1.5 text-sm text-primary font-medium hover:underline px-1"
+          >
+            <Plus className="w-4 h-4" />
+            Agregar "{trimmed}" como habilidad
+          </button>
+        )}
+      </div>
 
       <p className={cn(
         'text-sm font-medium text-center',
@@ -236,7 +271,7 @@ function SkillsSelectionContent({
           </div>
         ))}
 
-        {filteredCategories.length === 0 && (
+        {filteredCategories.length === 0 && !canAddCustom && (
           <p className="text-sm text-muted-foreground text-center py-4">
             No se encontraron habilidades con "{customSkill}"
           </p>
@@ -652,8 +687,9 @@ export default function ProviderOnboardingWizard() {
     // Empty identities WITHOUT confirmed_at = repeated signup of unconfirmed user (allow to proceed)
     if (identities?.length === 0 && userConfirmedAt) {
       console.log('[Onboarding Signup] Branch: already confirmed account (identities=0, confirmed_at set)');
-      toast.error('Este correo ya tiene cuenta verificada', {
-        description: 'Inicia sesión con tu contraseña.',
+      setSignupErrors({ email: 'Este correo ya está en uso' });
+      toast.error('Este correo ya está en uso', {
+        description: 'Ya existe una cuenta verificada con este correo. Inicia sesión con tu contraseña.',
         duration: 8000,
         action: {
           label: 'Iniciar sesión',
@@ -667,12 +703,26 @@ export default function ProviderOnboardingWizard() {
       return;
     }
 
-    // If identities is empty but not confirmed, this is a repeated unconfirmed signup — proceed normally
+    // If identities is empty but not confirmed, this is a repeated signup of an unconfirmed user
     if (identities?.length === 0 && !userConfirmedAt) {
-      console.log('[Onboarding Signup] Branch: repeated signup of unconfirmed user — proceeding to verification');
-    } else {
-      console.log('[Onboarding Signup] Branch: new signup — proceeding to verification');
+      console.log('[Onboarding Signup] Branch: repeated signup of unconfirmed user — showing error');
+      setSignupErrors({ email: 'Este correo ya está en uso' });
+      toast.error('Este correo ya está en uso', {
+        description: 'Ya existe una cuenta con este correo. Revisa tu bandeja de entrada para el correo de verificación o inicia sesión.',
+        duration: 10000,
+        action: {
+          label: 'Iniciar sesión',
+          onClick: () => {
+            setAuthMode('login');
+            setLoginData({ email: signupData.email, password: '' });
+          }
+        }
+      });
+      setSaving(false);
+      return;
     }
+
+    console.log('[Onboarding Signup] Branch: new signup — proceeding to verification');
 
     // Send confirmation email directly via edge function (bypasses unconfigured Auth Hook)
     console.log('[Onboarding] Sending confirmation email via send-signup-confirmation edge function');
@@ -1897,6 +1947,13 @@ export default function ProviderOnboardingWizard() {
           selectedSkills={sanitizeSkills(selectedSkills)}
           onToggleSkill={toggleSkill}
           onRemoveSkill={removeSkill}
+          onAddCustomSkill={(skill) => {
+            const sanitized = sanitizeSkills(selectedSkills);
+            if (!sanitized.includes(skill) && sanitized.length < MAX_SKILLS) {
+              setSelectedSkills([...sanitized, skill]);
+            }
+            setCustomSkill('');
+          }}
         />
       </SkillsStepBoundary>
     );
