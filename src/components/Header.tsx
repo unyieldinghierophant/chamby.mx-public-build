@@ -142,7 +142,7 @@ const Header = () => {
                   <Link to={ROUTES.LOGIN} className="text-foreground/70 hover:text-foreground transition-colors text-sm font-medium whitespace-nowrap">
                     Iniciar sesión
                   </Link>
-                  <Link to={ROUTES.CHAMBYNAUTA} className="text-primary hover:text-primary/80 transition-colors text-sm font-semibold whitespace-nowrap">
+                  <Link to={ROUTES.PROVIDER_LANDING} className="text-primary hover:text-primary/80 transition-colors text-sm font-semibold whitespace-nowrap">
                     Ser Chambynauta
                   </Link>
                 </>
@@ -223,7 +223,7 @@ const Header = () => {
                     Registrarse
                   </Link>
                    <Link 
-                     to={ROUTES.CHAMBYNAUTA} 
+                     to={ROUTES.PROVIDER_LANDING} 
                      className="block py-3 text-lg font-medium text-foreground hover:text-primary transition-colors"
                      onClick={() => setIsMenuOpen(false)}
                    >
