@@ -957,7 +957,7 @@ export default function ProviderOnboardingWizard() {
       if (stepNum === 3) {
         const { error: userError } = await supabase
           .from('users')
-          .update({ full_name: profileData.displayName, phone: profileData.phone, bio: profileData.bio })
+          .update({ full_name: profileData.displayName, phone: signupData.phone || profileData.phone, bio: profileData.bio })
           .eq('id', user.id);
         if (userError) {
           console.error('[Onboarding] Error persisting user data:', userError);
@@ -1149,7 +1149,7 @@ export default function ProviderOnboardingWizard() {
         .from('users')
         .update({
           full_name: profileData.displayName,
-          phone: profileData.phone,
+          phone: signupData.phone || profileData.phone,
           bio: profileData.bio
         })
         .eq('id', user.id);
@@ -1194,7 +1194,7 @@ export default function ProviderOnboardingWizard() {
         }
         return true;
       case 2:
-        return (profileData.avatarUrl || '').length > 0 && (profileData.bio || '').trim().length > 0 && isValidMexicanPhone(profileData.phone);
+        return (profileData.avatarUrl || '').length > 0 && (profileData.bio || '').trim().length > 0;
       case 3:
         return selectedSkills.length >= ONBOARDING_MIN_SKILLS && selectedSkills.length <= MAX_SKILLS;
       case 4:
@@ -1217,7 +1217,6 @@ export default function ProviderOnboardingWizard() {
         const errors: Record<string, string> = {};
         if (!profileData.avatarUrl) errors.photo = 'Sube una foto de perfil para continuar';
         if (!profileData.bio.trim()) errors.bio = 'Describe tu experiencia para continuar';
-        if (!isValidMexicanPhone(profileData.phone)) errors.phone = 'Ingresa un número mexicano válido de 10 dígitos';
         setProfileErrors(errors);
         if (Object.keys(errors).length > 0) {
           toast.error('Completa los campos obligatorios', {
@@ -1879,30 +1878,6 @@ export default function ProviderOnboardingWizard() {
           )}
         </div>
 
-        {/* Phone Number - Mandatory */}
-        <div className="space-y-2">
-          <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
-            TELÉFONO <span className="text-destructive">*</span>
-          </Label>
-          <PhoneInput
-            value={profileData.phone}
-            onChange={(val) => {
-              setProfileData(prev => ({ ...prev, phone: val }));
-              if (profileErrors.phone) setProfileErrors(prev => ({ ...prev, phone: '' }));
-            }}
-            error={(profileData.phone.length > 0 && !isValidMexicanPhone(profileData.phone)) || !!profileErrors.phone}
-          />
-          {profileErrors.phone && !isValidMexicanPhone(profileData.phone) ? (
-            <p className="text-sm text-destructive">{profileErrors.phone}</p>
-          ) : profileData.phone.length > 0 && !isValidMexicanPhone(profileData.phone) ? (
-            <p className="text-xs text-destructive">
-              Ingresa un número mexicano válido de 10 dígitos
-            </p>
-          ) : null}
-          <p className="text-[11px] text-muted-foreground">
-            Número mexicano de 10 dígitos (obligatorio)
-          </p>
-        </div>
       </div>
     );
   }
