@@ -251,6 +251,17 @@ const JobTimelinePage = () => {
         table: 'jobs',
         filter: `id=eq.${jobId}`,
       }, (payload) => {
+        const oldStatus = (payload.old as any)?.status;
+        const newStatus = (payload.new as any)?.status;
+        if (oldStatus && newStatus && oldStatus !== newStatus) {
+          const clientTriggeredEvents: Record<string, string> = {
+            quote_accepted: '✅ El cliente aceptó tu cotización',
+            job_paid: '💳 El cliente pagó — ¡puedes comenzar el trabajo!',
+            completed: '🎉 Trabajo confirmado como completado',
+          };
+          const msg = clientTriggeredEvents[newStatus];
+          if (msg) toast.success(msg, { duration: 6000 });
+        }
         setJob(prev => prev ? { ...prev, ...payload.new } as JobDetail : null);
       })
       .on('postgres_changes', {
@@ -402,6 +413,36 @@ const JobTimelinePage = () => {
           {getStatusLabel(currentStatus)}
         </Badge>
       </div>
+
+      {/* Live Status Bar */}
+      {!isTerminal && (
+        <div className="bg-background border-b border-border/50 px-4 py-2.5">
+          <div className="flex items-center gap-0.5 mb-1.5">
+            {STATUS_ORDER.map((step, i) => {
+              const isPast = currentIndex >= i;
+              const isCurrent = currentStatus === step;
+              return (
+                <div key={step} className={cn(
+                  "h-1.5 rounded-full flex-1 transition-all duration-500",
+                  isCurrent ? "bg-primary" : isPast ? "bg-primary/50" : "bg-border/50"
+                )} />
+              );
+            })}
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+              </span>
+              <span className="text-xs font-medium text-foreground">{getStatusLabel(currentStatus)}</span>
+            </div>
+            <span className="text-[11px] text-muted-foreground">
+              Paso {currentIndex + 1} de {STATUS_ORDER.length}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Tab Switcher */}
       <div className="px-4 pt-3 pb-1 flex gap-2">
@@ -665,7 +706,6 @@ const JobTimelinePage = () => {
                 {STATUS_ORDER.map((step, i) => {
                   const isPast = currentIndex >= i;
                   const isCurrent = currentStatus === step;
-                  const stepConfig = JOB_STATUS_CONFIG[step];
 
                   return (
                     <div key={step} className="relative pb-5 last:pb-0">
@@ -675,14 +715,17 @@ const JobTimelinePage = () => {
                           isPast ? "bg-primary/40" : "bg-border"
                         )} />
                       )}
-                      <div className={cn(
-                        "absolute left-[-18px] top-1 w-2.5 h-2.5 rounded-full border-2",
-                        isCurrent
-                          ? "bg-primary border-primary ring-4 ring-primary/20"
-                          : isPast
-                            ? "bg-primary/60 border-primary/60"
-                            : "bg-muted border-border"
-                      )} />
+                      {isCurrent ? (
+                        <span className="absolute left-[-20px] top-0.5 flex h-3.5 w-3.5">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-50" />
+                          <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-primary" />
+                        </span>
+                      ) : (
+                        <div className={cn(
+                          "absolute left-[-18px] top-1 w-2.5 h-2.5 rounded-full border-2",
+                          isPast ? "bg-primary/60 border-primary/60" : "bg-muted border-border"
+                        )} />
+                      )}
                       <div className={cn(
                         "text-sm",
                         isCurrent ? "font-semibold text-foreground" : isPast ? "text-foreground/70" : "text-muted-foreground/50"
@@ -996,6 +1039,26 @@ const JobTimelinePage = () => {
               {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </Button>
           </div>
+        </div>
+      )}
+
+      {/* Sticky Primary CTA */}
+      {activeTab === 'timeline' && actions.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 z-20 bg-background/95 backdrop-blur border-t border-border/50 px-4 py-3 safe-area-bottom">
+          {actions.map((action) => (
+            <Button
+              key={action.nextStatus}
+              className="w-full h-12 text-sm font-semibold gap-2"
+              onClick={() => handleTransition(action.nextStatus)}
+              disabled={transitioning}
+            >
+              {transitioning
+                ? <Loader2 className="w-4 h-4 animate-spin" />
+                : <action.icon className="w-4 h-4" />
+              }
+              {action.label}
+            </Button>
+          ))}
         </div>
       )}
     </div>

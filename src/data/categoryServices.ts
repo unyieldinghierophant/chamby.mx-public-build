@@ -30,6 +30,9 @@ export const categoryServicesMap: Record<string, ServiceOption[]> = {
     { name: "Lavado Premium", description: "Lavado completo exterior e interior" },
     { name: "Pulido y Encerado", description: "Pulido y protección de pintura" },
     { name: "Limpieza de Tapicería", description: "Limpieza profunda de asientos y tapiz" },
+    { name: "Lavado de Auto", description: "Lavado a domicilio de tu vehículo" },
+    { name: "Pasar Corriente", description: "Arranque con corriente para batería descargada" },
+    { name: "Cambio de Llanta de Repuesto", description: "Cambio de llanta ponchada por la de repuesto" },
     { name: "Otros Servicios", description: "Describe el servicio que necesitas" }
   ],
   "Limpieza": [

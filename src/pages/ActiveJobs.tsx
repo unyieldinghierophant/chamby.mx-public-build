@@ -85,6 +85,7 @@ const ActiveJobs = () => {
   const [selectedJob, setSelectedJob] = useState<ActiveJob | null>(null);
   // Capture job_id from Stripe redirect before params are cleaned up
   const returnJobIdRef = useRef<string | null>(searchParams.get("job_id"));
+  const prevJobStatusesRef = useRef<Record<string, string>>({});
   const [confirmingCompletion, setConfirmingCompletion] = useState(false);
   const [clientTransitioning, setClientTransitioning] = useState(false);
   const [disputeModalOpen, setDisputeModalOpen] = useState(false);
@@ -221,6 +222,31 @@ const ActiveJobs = () => {
     user ? { column: 'client_id', value: user.id } : undefined,
     !!user,
   );
+
+  // Toast notifications when provider triggers status changes
+  useEffect(() => {
+    const prevStatuses = prevJobStatusesRef.current;
+    const isInitialLoad = Object.keys(prevStatuses).length === 0;
+    if (!isInitialLoad) {
+      const providerTriggeredEvents: Record<string, string> = {
+        assigned: '🔧 ¡Proveedor asignado! Llegará pronto.',
+        on_site: '📍 Tu proveedor llegó al sitio de trabajo',
+        quoted: '📋 Tu proveedor envió una cotización — revísala',
+        in_progress: '⚙️ El proveedor comenzó el trabajo',
+        provider_done: '🎉 El proveedor terminó — ¡confirma para liberar el pago!',
+      };
+      jobs.forEach((job) => {
+        const prevStatus = prevStatuses[job.id];
+        if (prevStatus && prevStatus !== job.status) {
+          const msg = providerTriggeredEvents[job.status];
+          if (msg) toast.success(msg, { duration: 6000 });
+        }
+      });
+    }
+    const next: Record<string, string> = {};
+    jobs.forEach((job) => { next[job.id] = job.status; });
+    prevJobStatusesRef.current = next;
+  }, [jobs]);
 
   const handleCancelJob = async (jobId: string) => {
     if (!confirm("¿Estás seguro de que quieres cancelar este trabajo?")) return;

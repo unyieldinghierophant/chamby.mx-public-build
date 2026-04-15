@@ -174,6 +174,13 @@ const SUGGESTIONS: TaggedSuggestion[] = [
   { text: "Detallado automotriz", category: "auto" },
   { text: "Cambiar batería de carro", category: "auto" },
   { text: "Cambiar llanta", category: "auto" },
+  { text: "Lavado de auto a domicilio", category: "auto" },
+  { text: "Pasar corriente al carro", category: "auto" },
+  { text: "Batería descargada", category: "auto" },
+  { text: "Carro no arranca", category: "auto" },
+  { text: "Cambio de llanta ponchada", category: "auto" },
+  { text: "Llanta ponchada", category: "auto" },
+  { text: "Cambio de llanta de repuesto", category: "auto" },
 ];
 
 // ── Generic high-conversion fallbacks ────────────────────────────────────────
