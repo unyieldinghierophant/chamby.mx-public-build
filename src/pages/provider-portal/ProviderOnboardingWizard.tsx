@@ -989,7 +989,7 @@ export default function ProviderOnboardingWizard() {
 
       console.log('[Onboarding] persistStepToDB payload:', JSON.stringify(providerUpdate));
 
-      const { error: provError, count } = await supabase
+      const { error: provError } = await supabase
         .from('providers')
         .update(providerUpdate)
         .eq('user_id', user.id);
@@ -1064,24 +1064,7 @@ export default function ProviderOnboardingWizard() {
     });
   };
 
-  const addCustomSkill = () => {
-    const nextSkill = customSkill.trim();
-    if (!nextSkill) return;
-
-    setSelectedSkills((prevState) => {
-      const prev = sanitizeSkills(prevState);
-      if (prev.includes(nextSkill) || prev.length >= MAX_SKILLS) {
-        return prev;
-      }
-
-      const next = [...prev, nextSkill];
-      console.log('[ProviderOnboarding][Skills] Custom skill added', { nextSkill, next, count: next.length });
-      return next;
-    });
-    setCustomSkill('');
-  };
-
-  const removeSkill = (skill: string) => {
+const removeSkill = (skill: string) => {
     console.log('[ProviderOnboarding][Skills] Removing skill', { skill, userId: user?.id ?? null });
     setSelectedSkills((prevState) => {
       const prev = sanitizeSkills(prevState);
@@ -1227,38 +1210,7 @@ export default function ProviderOnboardingWizard() {
     }
   };
 
-  const canGoNext = () => {
-    switch (currentStep) {
-      case 1:
-        if (!user) {
-          if (authMode === 'signup') {
-            return signupData.fullName.trim().length > 0 &&
-                   signupData.email.trim().length > 0 &&
-                   signupData.phone.trim().length > 0 &&
-                   signupData.password.length >= 8 &&
-                   signupData.password === signupData.confirmPassword;
-          } else {
-            return loginData.email.trim().length > 0 &&
-                   loginData.password.length > 0;
-          }
-        }
-        return true;
-      case 2:
-        return (profileData.avatarUrl || '').length > 0 && (profileData.bio || '').trim().length > 0;
-      case 3:
-        return selectedSkills.length >= ONBOARDING_MIN_SKILLS && selectedSkills.length <= MAX_SKILLS;
-      case 4:
-        // Allow advancing if we have valid coordinates (zone name is optional - geocoding may fail)
-        return workZoneCoords !== null && (workZoneCoords.lat !== 0 || workZoneCoords.lng !== 0);
-      case 5:
-        // Documents step is optional, always allow to proceed
-        return true;
-      default:
-        return true;
-    }
-  };
-
-  const validateCurrentStep = (): boolean => {
+const validateCurrentStep = (): boolean => {
     switch (currentStep) {
       case 1:
         // Step 1 runs handleSignup/handleLogin which validate internally
