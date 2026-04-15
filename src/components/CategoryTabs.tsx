@@ -65,6 +65,7 @@ const SLUG_ICON_MAP: Record<string, string> = {
   pintura: categoryPintura,
   albanileria: categoryAlbanileria,
   electrodomesticos: categoryElectrodomesticos,
+  auto: categoryAuto,
 };
 
 
@@ -77,6 +78,7 @@ const VISIBLE_SLUGS_ORDERED = [
   { slug: 'pintura', label: null },
   { slug: 'aire-acondicionado', label: 'Electrodomésticos' },
   { slug: 'limpieza', label: 'Limpieza' },
+  { slug: 'auto', label: 'Auto y Lavado' },
 ];
 
 // Hardcoded fallback if DB fetch fails

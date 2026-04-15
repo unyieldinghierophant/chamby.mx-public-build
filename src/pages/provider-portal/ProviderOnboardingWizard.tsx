@@ -308,6 +308,8 @@ export default function ProviderOnboardingWizard() {
     confirmPassword: ''
   });
   const [signupErrors, setSignupErrors] = useState<Record<string, string>>({});
+  const [profileErrors, setProfileErrors] = useState<Record<string, string>>({});
+  const [zoneError, setZoneError] = useState('');
 
   // Login data
   const [loginData, setLoginData] = useState({
@@ -401,6 +403,7 @@ export default function ProviderOnboardingWizard() {
     setWorkZoneCoords({ lat, lng });
     setWorkZoneRadius(radiusKm);
     setWorkZone(zoneName);
+    setZoneError('');
   }, []);
 
   useEffect(() => {
@@ -1205,6 +1208,38 @@ export default function ProviderOnboardingWizard() {
     }
   };
 
+  const validateCurrentStep = (): boolean => {
+    switch (currentStep) {
+      case 1:
+        // Step 1 runs handleSignup/handleLogin which validate internally
+        return true;
+      case 2: {
+        const errors: Record<string, string> = {};
+        if (!profileData.avatarUrl) errors.photo = 'Sube una foto de perfil para continuar';
+        if (!profileData.bio.trim()) errors.bio = 'Describe tu experiencia para continuar';
+        if (!isValidMexicanPhone(profileData.phone)) errors.phone = 'Ingresa un número mexicano válido de 10 dígitos';
+        setProfileErrors(errors);
+        if (Object.keys(errors).length > 0) {
+          toast.error('Completa los campos obligatorios', {
+            description: Object.values(errors)[0],
+          });
+          return false;
+        }
+        return true;
+      }
+      case 4:
+        if (!workZoneCoords || (workZoneCoords.lat === 0 && workZoneCoords.lng === 0)) {
+          setZoneError('Ubica tu zona de trabajo en el mapa para continuar');
+          toast.error('Selecciona tu zona de trabajo en el mapa');
+          return false;
+        }
+        setZoneError('');
+        return true;
+      default:
+        return true;
+    }
+  };
+
   const GoogleIcon = () => (
     <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
       <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -1593,7 +1628,8 @@ export default function ProviderOnboardingWizard() {
                   onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
                   className={cn(
                     "h-14 text-base border-2 rounded-xl px-4 pr-12",
-                    signupErrors.confirmPassword && 'border-destructive'
+                    (signupErrors.confirmPassword || (signupData.confirmPassword.length > 0 && signupData.password !== signupData.confirmPassword)) && 'border-destructive',
+                    signupData.confirmPassword.length > 0 && signupData.password === signupData.confirmPassword && 'border-green-500'
                   )}
                 />
                 <button
@@ -1604,9 +1640,13 @@ export default function ProviderOnboardingWizard() {
                   {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
-              {signupErrors.confirmPassword && (
+              {signupErrors.confirmPassword ? (
                 <p className="text-destructive text-sm">{signupErrors.confirmPassword}</p>
-              )}
+              ) : signupData.confirmPassword.length > 0 && signupData.password !== signupData.confirmPassword ? (
+                <p className="text-destructive text-sm">Las contraseñas no coinciden</p>
+              ) : signupData.confirmPassword.length > 0 && signupData.password === signupData.confirmPassword ? (
+                <p className="text-green-600 text-sm">Las contraseñas coinciden ✓</p>
+              ) : null}
             </div>
           </div>
         )}
@@ -1791,6 +1831,9 @@ export default function ProviderOnboardingWizard() {
           <p className="text-xs text-muted-foreground">
             Foto de perfil <span className="text-destructive">*</span> obligatoria
           </p>
+          {profileErrors.photo && (
+            <p className="text-destructive text-sm font-medium">{profileErrors.photo}</p>
+          )}
           <div className="bg-muted/50 border border-border rounded-lg p-3 max-w-xs text-left">
             <p className="text-xs font-medium text-foreground mb-1">📸 Requisitos de la foto:</p>
             <ul className="text-[11px] text-muted-foreground space-y-0.5 list-disc list-inside">
@@ -1820,13 +1863,20 @@ export default function ProviderOnboardingWizard() {
           <Textarea
             placeholder="Describe tu experiencia: ¿Qué tipo de trabajos has realizado? ¿Cuántos años de experiencia tienes?"
             value={profileData.bio}
-            onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
-            className="text-base border-2 rounded-xl px-4 py-3 resize-none min-h-[120px]"
+            onChange={(e) => {
+              setProfileData({ ...profileData, bio: e.target.value });
+              if (profileErrors.bio) setProfileErrors(prev => ({ ...prev, bio: '' }));
+            }}
+            className={cn("text-base border-2 rounded-xl px-4 py-3 resize-none min-h-[120px]", profileErrors.bio && "border-destructive")}
             rows={4}
           />
-          <p className="text-[11px] text-muted-foreground">
-            Esto ayudará a los clientes a conocer tu trabajo
-          </p>
+          {profileErrors.bio ? (
+            <p className="text-destructive text-sm">{profileErrors.bio}</p>
+          ) : (
+            <p className="text-[11px] text-muted-foreground">
+              Esto ayudará a los clientes a conocer tu trabajo
+            </p>
+          )}
         </div>
 
         {/* Phone Number - Mandatory */}
@@ -1836,14 +1886,19 @@ export default function ProviderOnboardingWizard() {
           </Label>
           <PhoneInput
             value={profileData.phone}
-            onChange={(val) => setProfileData(prev => ({ ...prev, phone: val }))}
-            error={profileData.phone.length > 0 && !isValidMexicanPhone(profileData.phone)}
+            onChange={(val) => {
+              setProfileData(prev => ({ ...prev, phone: val }));
+              if (profileErrors.phone) setProfileErrors(prev => ({ ...prev, phone: '' }));
+            }}
+            error={(profileData.phone.length > 0 && !isValidMexicanPhone(profileData.phone)) || !!profileErrors.phone}
           />
-          {profileData.phone.length > 0 && !isValidMexicanPhone(profileData.phone) && (
+          {profileErrors.phone && !isValidMexicanPhone(profileData.phone) ? (
+            <p className="text-sm text-destructive">{profileErrors.phone}</p>
+          ) : profileData.phone.length > 0 && !isValidMexicanPhone(profileData.phone) ? (
             <p className="text-xs text-destructive">
               Ingresa un número mexicano válido de 10 dígitos
             </p>
-          )}
+          ) : null}
           <p className="text-[11px] text-muted-foreground">
             Número mexicano de 10 dígitos (obligatorio)
           </p>
@@ -1890,12 +1945,15 @@ export default function ProviderOnboardingWizard() {
           </p>
         </div>
 
-        <WorkZonePicker 
+        <WorkZonePicker
           initialLat={workZoneCoords?.lat}
           initialLng={workZoneCoords?.lng}
           initialRadius={workZoneRadius}
           onZoneChange={handleWorkZoneChange}
         />
+        {zoneError && (
+          <p className="text-destructive text-sm font-medium mt-2">{zoneError}</p>
+        )}
       </div>
     );
   }
@@ -2022,7 +2080,9 @@ export default function ProviderOnboardingWizard() {
             handleLogin();
           }
         } else {
-          goToNext();
+          if (validateCurrentStep()) {
+            goToNext();
+          }
         }
       };
 
@@ -2038,7 +2098,7 @@ export default function ProviderOnboardingWizard() {
         <div className={cn("flex flex-col gap-2", isMobile ? "w-full" : "")}>
           <Button
             onClick={handleClick}
-            disabled={!canGoNext() || saving}
+            disabled={saving}
             className={cn(
               "font-semibold shadow-lg bg-primary text-primary-foreground hover:bg-primary/90",
               isMobile ? "w-full py-4 text-base rounded-xl" : ""
