@@ -189,8 +189,8 @@ export const CleaningBookingFlow = ({ intentText = "" }: { intentText?: string }
   };
 
   const handleShowSummary = () => {
-    if (!user) { setShowAuthModal(true); return; }
     localStorage.setItem('booking_show_summary', 'true');
+    if (!user) { setShowAuthModal(true); return; }
     setShowSummary(true);
   };
 
@@ -364,10 +364,9 @@ export const CleaningBookingFlow = ({ intentText = "" }: { intentText?: string }
       .map(f => ({ file: null, url: f.url, uploaded: true }));
     saveFormData({ cleaningFormData: { ...formData, photos: persistablePhotos }, currentStep });
     const returnPath = '/book-job?category=Limpieza';
-    sessionStorage.setItem('auth_return_to', returnPath);
     localStorage.setItem('auth_return_to', returnPath);
     localStorage.setItem('booking_category', 'Limpieza');
-    navigate('/login', { state: { returnTo: returnPath } });
+    navigate(`/login?return_to=${encodeURIComponent(returnPath)}`);
   };
 
   // DEPRECATED: Authorization handlers removed in favor of Checkout flow. See Phase 4 S5.

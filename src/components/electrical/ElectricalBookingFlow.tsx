@@ -239,8 +239,8 @@ export const ElectricalBookingFlow = ({ intentText = "" }: ElectricalBookingFlow
   };
 
   const handleShowSummary = () => {
-    if (!user) { setShowAuthModal(true); return; }
     localStorage.setItem('booking_show_summary', 'true');
+    if (!user) { setShowAuthModal(true); return; }
     setShowSummary(true);
   };
 
@@ -415,10 +415,9 @@ export const ElectricalBookingFlow = ({ intentText = "" }: ElectricalBookingFlow
       .map(f => ({ file: null, url: f.url, uploaded: true }));
     saveFormData({ electricalFormData: { ...formData, photos: persistablePhotos }, currentStep });
     const returnPath = '/book-job?category=Electricidad';
-    sessionStorage.setItem('auth_return_to', returnPath);
     localStorage.setItem('auth_return_to', returnPath);
     localStorage.setItem('booking_category', 'Electricidad');
-    navigate('/login', { state: { returnTo: returnPath } });
+    navigate(`/login?return_to=${encodeURIComponent(returnPath)}`);
   };
 
   // DEPRECATED: Authorization handlers removed in favor of Checkout flow. See Phase 4 S5.
