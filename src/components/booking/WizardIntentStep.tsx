@@ -17,14 +17,21 @@ interface WizardIntentStepProps {
 /** Map URL category params → categoryServicesMap keys */
 const CATEGORY_KEY_MAP: Record<string, string> = {
   handyman: "Handyman",
+  general: "Handyman",
   electricidad: "Electricidad",
   "fontanería": "Fontanería",
   fontaneria: "Fontanería",
+  plomeria: "Fontanería",
   limpieza: "Limpieza",
   "jardinería": "Jardinería",
   jardineria: "Jardinería",
   "auto & lavado": "Auto y Lavado",
   "auto y lavado": "Auto y Lavado",
+  auto: "Auto y Lavado",
+  pintura: "Pintura",
+  "aire-acondicionado": "Electrodomésticos",
+  electrodomesticos: "Electrodomésticos",
+  "electrodomésticos": "Electrodomésticos",
 };
 
 function getCategorySuggestions(category: string): string[] {
