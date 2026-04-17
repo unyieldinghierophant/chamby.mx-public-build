@@ -124,31 +124,29 @@ const SubdomainRouter = () => {
 
 // Component to handle GitHub Pages redirects
 const RedirectHandler = () => {
-  const navigate = useNavigate();
   const location = useRouterLocation();
 
   useEffect(() => {
     console.log("App mounted, current location:", location.pathname);
 
-    // Don't interfere with auth callback - let it process OAuth first
-    if (location.pathname === ROUTES.AUTH_CALLBACK || location.pathname === ROUTES.CALLBACK) {
-      console.log("Auth callback detected, skipping redirect handler");
-      return;
-    }
-
     // Check for stored redirect from 404.html
     const redirectPath = sessionStorage.getItem("redirect");
-    if (redirectPath && redirectPath !== location.pathname) {
+    if (redirectPath && redirectPath !== location.pathname + location.search) {
       console.log("Found redirect path in sessionStorage:", redirectPath);
       sessionStorage.removeItem("redirect");
 
-      // Navigate to the stored path
       if (redirectPath.startsWith("/")) {
-        console.log("Navigating to:", redirectPath);
-        navigate(redirectPath, { replace: true });
+        // Use a hard reload (window.location.replace) instead of React Router navigate().
+        // This ensures:
+        // 1. Supabase can process OAuth auth codes from the URL on page initialization
+        //    (Supabase only detects codes at page load, not on history.pushState changes)
+        // 2. Index.tsx's logged-in redirect cannot race and override the intended destination
+        console.log("Redirecting (hard) to:", redirectPath);
+        window.location.replace(redirectPath);
       }
     }
-  }, [navigate, location]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return null;
 };

@@ -40,6 +40,9 @@ const Index = () => {
   };
   useEffect(() => {
     if (!loading && user) {
+      // Don't redirect if RedirectHandler has a pending deep link to restore —
+      // window.location.replace() will fire first on the next tick.
+      if (sessionStorage.getItem('redirect')) return;
       navigate("/user-landing");
     }
   }, [user, loading, navigate]);
