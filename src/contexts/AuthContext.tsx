@@ -142,6 +142,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Always clear local state regardless of API response
       setSession(null);
       setUser(null);
+
+      // Clear booking flow state so a fresh session never sees a previous user's in-progress form
+      localStorage.removeItem('booking_show_summary');
+      localStorage.removeItem('booking_auth_return');
+      localStorage.removeItem('booking_checkout_path');
+      localStorage.removeItem('auth_return_to');
+      localStorage.removeItem('booking_category');
+      localStorage.removeItem('login_context');
+      localStorage.removeItem('selected_role');
+      sessionStorage.removeItem('auth_return_to');
+      sessionStorage.removeItem('booking_session_id');
+      // Clear any persisted form data (prefix: chamby_form_)
+      Object.keys(localStorage)
+        .filter(k => k.startsWith('chamby_form_'))
+        .forEach(k => localStorage.removeItem(k));
     }
   };
 
