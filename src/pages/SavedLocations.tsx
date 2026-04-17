@@ -29,7 +29,7 @@ const SavedLocations = () => {
   });
 
   if (!user) {
-    return <Navigate to="/auth/user" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   if (loading) {

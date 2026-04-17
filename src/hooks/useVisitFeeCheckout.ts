@@ -17,10 +17,25 @@ export const useVisitFeeCheckout = () => {
     setError(null);
 
     try {
+      // Ensure a valid session token exists before invoking — after a failed signOut the
+      // Supabase client may have cleared its local tokens even though the server rejected
+      // the logout (403). Try refreshing first; if still missing, ask user to log in again.
+      let { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        const { data: refreshed } = await supabase.auth.refreshSession();
+        session = refreshed.session;
+      }
+      if (!session?.access_token) {
+        throw new Error('Tu sesión expiró. Por favor inicia sesión de nuevo.');
+      }
+
       console.log('[redirectToCheckout] invoking create-visit-payment for job:', jobId);
       const { data, error: invokeError } = await supabase.functions.invoke(
         'create-visit-payment',
-        { body: { jobId } }
+        {
+          body: { jobId },
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        }
       );
 
       console.log('[redirectToCheckout] response:', { data, invokeError });

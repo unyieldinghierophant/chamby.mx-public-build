@@ -39,7 +39,7 @@ const SecuritySettings = () => {
   };
 
   if (!user) {
-    return <Navigate to="/auth/user" replace />;
+    return <Navigate to="/login" replace />;
   }
   const handlePasswordChange = async () => {
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {

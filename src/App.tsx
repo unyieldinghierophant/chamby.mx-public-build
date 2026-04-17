@@ -27,7 +27,6 @@ import NotFound from "./pages/NotFound";
 
 // Lazy-load everything else
 const Home = lazy(() => import("./pages/Home"));
-const UserOnboardingWizard = lazy(() => import("./pages/UserOnboardingWizard"));
 const ProviderOnboardingWizard = lazy(() => import("./pages/provider-portal/ProviderOnboardingWizard"));
 const ProviderLanding = lazy(() => import("./pages/ProviderLanding"));
 const UserLanding = lazy(() => import("./pages/UserLanding"));
@@ -175,7 +174,7 @@ const App = () => {
               <Route path={ROUTES.BOOK_JOB} element={<BookJob />} />
               <Route path={ROUTES.LOGIN} element={<Login />} />
               <Route path={ROUTES.PROVIDER_LOGIN} element={<ProviderLogin />} />
-              <Route path={ROUTES.USER_AUTH} element={<UserOnboardingWizard />} />
+              <Route path="/auth/user" element={<Navigate to="/login" replace />} />
               <Route path={ROUTES.PROVIDER_AUTH} element={<ProviderOnboardingWizard />} />
               {/* Redirect legacy auth/provider route to canonical /provider/onboarding */}
               <Route path="/auth/provider" element={<Navigate to={ROUTES.PROVIDER_AUTH} replace />} />

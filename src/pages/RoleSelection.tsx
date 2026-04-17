@@ -17,7 +17,7 @@ const RoleSelection = () => {
   useEffect(() => {
     const fetchUserRoles = async () => {
       if (!user) {
-        navigate('/auth/user');
+        navigate('/login');
         return;
       }
 

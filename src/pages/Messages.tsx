@@ -19,7 +19,7 @@ const Messages = () => {
   const { conversations, loading } = useJobConversations();
 
   if (!user) {
-    return <Navigate to="/auth/user" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   const openChat = (jobId: string) => {
