@@ -98,7 +98,7 @@ serve(async (req) => {
       }
     }
 
-    const origin = req.headers.get("origin") || "https://chambymk1.lovable.app";
+    const origin = req.headers.get("origin") || "https://chamby.mx";
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
