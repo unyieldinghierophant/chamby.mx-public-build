@@ -477,6 +477,8 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
       const returnPath = `/book-job?category=${categorySlug}&checkout=1`;
       sessionStorage.setItem('auth_return_to', returnPath);
       localStorage.setItem('auth_return_to', returnPath);
+      // Dedicated key so AuthCallback can find the exact path even if return_to URL param is stripped
+      localStorage.setItem('booking_checkout_path', returnPath);
       setShowAuthModal(true);
       return;
     }

@@ -274,19 +274,24 @@ const AuthCallback = () => {
       // Check for stored return path AFTER role is determined.
       // Priority: URL param (survives OAuth redirect) > sessionStorage > localStorage
       const returnPathFromUrl = searchParams.get('return_to');
-      const returnTo = returnPathFromUrl || sessionStorage.getItem('auth_return_to') || localStorage.getItem('auth_return_to');
-      
+      const returnTo = returnPathFromUrl
+        || sessionStorage.getItem('auth_return_to')
+        || localStorage.getItem('auth_return_to')
+        || localStorage.getItem('booking_checkout_path'); // last-resort: set by booking flow before auth
+
       // Clear stored values (after reading them)
       sessionStorage.removeItem('auth_return_to');
       localStorage.removeItem('auth_return_to');
+      localStorage.removeItem('booking_checkout_path');
       localStorage.removeItem('auth_source'); // Clean up debug flag
       sessionStorage.removeItem('pending_oauth');
       sessionStorage.removeItem('oauth_retry_count');
       localStorage.removeItem('login_context');
-      
+
       if (returnTo) {
         console.log('[AuthCallback] Redirecting to stored path:', returnTo);
         localStorage.removeItem('new_provider_signup');
+        // Keep booking_auth_return — the booking flow reads it on mount to restore the summary
         navigate(returnTo, { replace: true });
         return;
       }
@@ -330,10 +335,10 @@ const AuthCallback = () => {
         return;
       }
 
-      // If the user came from the booking flow (auth_return was set but lost), send them back
+      // If the user came from the booking flow (auth_return was set but lost), send them back.
+      // Do NOT clear booking_auth_return here — HandymanBookingFlow reads it on mount to restore the form.
       const wasBookingReturn = localStorage.getItem('booking_auth_return') === 'true';
       if (wasBookingReturn) {
-        localStorage.removeItem('booking_auth_return');
         console.log('[AuthCallback] Booking auth return detected, redirecting to book-job');
         navigate('/book-job?checkout=1', { replace: true });
         return;

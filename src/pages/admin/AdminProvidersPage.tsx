@@ -379,7 +379,7 @@ const AdminProvidersPage = () => {
                             {p.created_at ? format(new Date(p.created_at), 'dd MMM yyyy', { locale: es }) : '—'}
                           </TableCell>
                           <TableCell>
-                            <Button variant="ghost" size="sm"><Eye className="h-4 w-4" /></Button>
+                            <Button variant="ghost" size="sm" onClick={() => openDetail(p)}><Eye className="h-4 w-4" /></Button>
                           </TableCell>
                         </TableRow>
                       ))}
