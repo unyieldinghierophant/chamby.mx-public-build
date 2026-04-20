@@ -56,6 +56,16 @@ serve(async (req) => {
     }
     logStep("Request parsed", { jobId });
 
+    // Block providers from paying for jobs
+    const { data: providerRecord } = await supabaseClient
+      .from("providers")
+      .select("id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (providerRecord) {
+      throw new Error("Provider accounts cannot request services");
+    }
+
     // Fetch the job — verify ownership and status
     const { data: job, error: jobError } = await supabaseClient
       .from("jobs")
