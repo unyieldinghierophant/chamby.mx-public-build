@@ -94,6 +94,17 @@ const UserLanding = () => {
       });
     }
   }, [role, roleLoading, navigate]);
+
+  // Safety-net: if auth returned here from a booking flow, redirect to checkout
+  useEffect(() => {
+    const bookingAuthReturn = localStorage.getItem('booking_auth_return');
+    const checkoutPath = localStorage.getItem('booking_checkout_path');
+    if (bookingAuthReturn === 'true') {
+      navigate(checkoutPath || '/book-job?checkout=1', { replace: true });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   if (authLoading || roleLoading) {
     return <FullPageSkeleton />;
   }
