@@ -59,7 +59,7 @@ export const categoryServicesMap: Record<string, ServiceOption[]> = {
   ],
   "Electrodomésticos": [
     { name: "Mantenimiento e instalación de Aire Acondicionado", description: "Servicio, instalación y mantenimiento de aires acondicionados" },
-    { name: "Reparación de licuadoras", description: "Diagnóstico y reparación de licuadoras y electrodomésticos de cocina" },
+    { name: "Reparación de electrodomésticos", description: "Diagnóstico y reparación de electrodomésticos del hogar" },
     { name: "Instalación de electrodomésticos", description: "Instalación de lavadoras, secadoras, estufas y más" },
     { name: "Reparación de lavadoras y secadoras", description: "Diagnóstico y reparación de lavadoras y secadoras" },
     { name: "Reparación de microondas", description: "Diagnóstico y reparación de microondas" },
