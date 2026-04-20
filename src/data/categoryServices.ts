@@ -33,16 +33,6 @@ export const categoryServicesMap: Record<string, ServiceOption[]> = {
     { name: "Reparación de sistemas de agua (bombas, tinacos)", description: "Mantenimiento y reparación de bombas y tinacos" },
     { name: "Otros Servicios", description: "Describe el servicio que necesitas" }
   ],
-  "Auto y Lavado": [
-    { name: "Lavado Básico", description: "Lavado exterior del vehículo" },
-    { name: "Lavado Premium", description: "Lavado completo exterior e interior" },
-    { name: "Pulido y Encerado", description: "Pulido y protección de pintura" },
-    { name: "Limpieza de Tapicería", description: "Limpieza profunda de asientos y tapiz" },
-    { name: "Lavado de Auto", description: "Lavado a domicilio de tu vehículo" },
-    { name: "Pasar Corriente", description: "Arranque con corriente para batería descargada" },
-    { name: "Cambio de Llanta de Repuesto", description: "Cambio de llanta ponchada por la de repuesto" },
-    { name: "Otros Servicios", description: "Describe el servicio que necesitas" }
-  ],
   "Limpieza": [
     { name: "Limpieza General", description: "Limpieza completa de hogar u oficina" },
     { name: "Limpieza Profunda", description: "Limpieza a detalle de espacios" },
@@ -53,9 +43,9 @@ export const categoryServicesMap: Record<string, ServiceOption[]> = {
   ],
   "Jardinería": [
     { name: "Corte de Césped", description: "Corte y mantenimiento de pasto" },
-    { name: "Poda de Árboles", description: "Poda y recorte de árboles y arbustos" },
+    { name: "Poda de plantas y árboles", description: "Poda y recorte de plantas, árboles y arbustos" },
     { name: "Limpieza de jardín", description: "Limpieza y retiro de maleza, hojas y residuos" },
-    { name: "Mantenimiento de áreas verdes", description: "Cuidado integral y mantenimiento de jardines" },
+    { name: "Mantenimiento de áreas verdes", description: "Cuidado integral y mantenimiento de jardines y áreas verdes" },
     { name: "Diseño de Jardín", description: "Diseño y plantación de jardines" },
     { name: "Sistema de Riego", description: "Instalación de sistemas de riego" },
     { name: "Otros Servicios", description: "Describe el servicio que necesitas" }
@@ -68,10 +58,11 @@ export const categoryServicesMap: Record<string, ServiceOption[]> = {
     { name: "Otros Servicios", description: "Describe el servicio que necesitas" }
   ],
   "Electrodomésticos": [
-    { name: "Reparación de lavadoras y secadoras", description: "Diagnóstico y reparación de lavadoras y secadoras" },
-    { name: "Reparación de refrigeradores", description: "Servicio y reparación de refrigeradores" },
-    { name: "Reparación y mantenimiento de aire acondicionado", description: "Servicio, limpieza y reparación de aire acondicionado" },
+    { name: "Mantenimiento e instalación de Aire Acondicionado", description: "Servicio, instalación y mantenimiento de aires acondicionados" },
+    { name: "Reparación de licuadoras", description: "Diagnóstico y reparación de licuadoras y electrodomésticos de cocina" },
     { name: "Instalación de electrodomésticos", description: "Instalación de lavadoras, secadoras, estufas y más" },
+    { name: "Reparación de lavadoras y secadoras", description: "Diagnóstico y reparación de lavadoras y secadoras" },
+    { name: "Reparación de microondas", description: "Diagnóstico y reparación de microondas" },
     { name: "Otros Servicios", description: "Describe el servicio que necesitas" }
   ]
 };

@@ -78,7 +78,6 @@ const VISIBLE_SLUGS_ORDERED = [
   { slug: 'pintura', label: null },
   { slug: 'aire-acondicionado', label: 'Electrodomésticos' },
   { slug: 'limpieza', label: 'Limpieza' },
-  { slug: 'auto', label: 'Auto y Lavado' },
 ];
 
 // Hardcoded fallback if DB fetch fails
