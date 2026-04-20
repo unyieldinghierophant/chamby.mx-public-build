@@ -98,9 +98,28 @@ const ActiveJobs = () => {
   useEffect(() => {
     if (searchParams.get("visit_fee_paid") === "true") {
       toast.success("¡Pago de visita procesado! Estamos buscando un proveedor.", { duration: 6000 });
+      const paidJobId = searchParams.get("job_id");
       searchParams.delete("visit_fee_paid");
       searchParams.delete("job_id");
       setSearchParams(searchParams, { replace: true });
+
+      // Poll until webhook updates job status from draft → searching (up to 30s)
+      if (paidJobId) {
+        let attempts = 0;
+        const maxAttempts = 10;
+        const poll = setInterval(async () => {
+          attempts++;
+          const { data } = await supabase
+            .from("jobs")
+            .select("status, visit_fee_paid")
+            .eq("id", paidJobId)
+            .single();
+          if (data?.status === "searching" || data?.visit_fee_paid === true || attempts >= maxAttempts) {
+            clearInterval(poll);
+            fetchActiveJobs();
+          }
+        }, 3000);
+      }
     }
     if (searchParams.get("invoice_paid") === "true") {
       toast.success("Pago realizado con éxito. Tu proveedor será notificado.", { duration: 5000 });
