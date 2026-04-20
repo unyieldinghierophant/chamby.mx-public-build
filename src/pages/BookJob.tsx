@@ -18,8 +18,8 @@ const BookJob = () => {
   // Block providers from requesting jobs
   useEffect(() => {
     if (!roleLoading && role === 'provider') {
-      toast.error('Las cuentas de proveedor no pueden solicitar servicios. Inicia sesión con una cuenta de cliente.', { duration: 6000 });
-      navigate('/provider-portal', { replace: true });
+      toast.error('Las cuentas de proveedor no pueden solicitar servicios. Inicia sesión con una cuenta de cliente.', { duration: 8000 });
+      navigate('/login', { replace: true });
     }
   }, [role, roleLoading, navigate]);
 
