@@ -25,3 +25,10 @@ dist-ssr
 
 # Supabase temp files
 supabase/.temp/
+
+# Environment variables — NEVER commit these
+.env
+.env.local
+.env.*.local
+.env.production
+.env.test
