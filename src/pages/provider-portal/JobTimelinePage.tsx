@@ -127,7 +127,8 @@ const JobTimelinePage = () => {
   const [transitioning, setTransitioning] = useState(false);
   const [sending, setSending] = useState(false);
   const [activeTab, setActiveTab] = useState<'timeline' | 'chat'>('timeline');
-  const [showCancelSummary, setShowCancelSummary] = useState(false);
+  const [cancelStep, setCancelStep] = useState<'idle' | 'reason' | 'confirm'>('idle');
+  const [cancelReason, setCancelReason] = useState('');
   const [ratingDismissed, setRatingDismissed] = useState(() => isDismissed(jobId || "", "provider"));
   const [chatDebug, setChatDebug] = useState<{ selectError: string | null; insertError: string | null; realtimeStatus: string }>({ selectError: null, insertError: null, realtimeStatus: 'connecting' });
   const [showDebug, setShowDebug] = useState(false);
@@ -306,24 +307,54 @@ const JobTimelinePage = () => {
 
   const handleCancel = async () => {
     if (!job) return;
-    if (!showCancelSummary) {
-      setShowCancelSummary(true);
+
+    // Step 1: show reason selector
+    if (cancelStep === 'idle') {
+      setCancelStep('reason');
       return;
     }
+
+    // Step 2: require a reason before proceeding to confirm
+    if (cancelStep === 'reason') {
+      if (!cancelReason.trim()) {
+        toast.error('Por favor selecciona o escribe un motivo de cancelación.');
+        return;
+      }
+      setCancelStep('confirm');
+      return;
+    }
+
+    // Step 3: confirmed — execute cancellation
     setTransitioning(true);
 
-    // Calculate compensation and add to cancel message
     const afterOnSite = ["on_site", "quoted", "in_progress"].includes(job.status);
     const compensation = afterOnSite ? 250 : 0;
-    const cancelMsg = compensation > 0
-      ? `❌ Trabajo cancelado. El proveedor recibirá $${compensation} MXN por compensación.`
-      : '❌ Trabajo cancelado.';
 
     const result = await transitionStatus(job.id, 'cancelled', job.client_id);
     setTransitioning(false);
 
     if (result.success) {
-      // Send compensation system message (extra detail beyond the default)
+      // Notify the client with the cancellation reason
+      await supabase.from('notifications').insert({
+        user_id: job.client_id,
+        type: 'job_cancelled_by_provider',
+        title: 'Tu proveedor canceló el trabajo',
+        message: `El proveedor canceló el servicio. Motivo: ${cancelReason}. Nos pondremos en contacto contigo.`,
+        link: `/active-jobs?job_id=${job.id}`,
+        data: { jobId: job.id, reason: cancelReason },
+      });
+
+      // System message in the chat with reason
+      await supabase.from('messages').insert({
+        job_id: job.id,
+        sender_id: user!.id,
+        receiver_id: job.client_id,
+        message_text: `❌ El proveedor canceló el trabajo.\nMotivo: ${cancelReason}`,
+        is_system_message: true,
+        system_event_type: 'provider_cancellation',
+        read: false,
+      });
+
       if (compensation > 0) {
         await supabase.from('messages').insert({
           job_id: job.id,
@@ -335,6 +366,7 @@ const JobTimelinePage = () => {
           read: false,
         });
       }
+
       toast.success('Trabajo cancelado');
       navigate('/provider-portal/jobs');
     } else {
@@ -817,23 +849,97 @@ const JobTimelinePage = () => {
           {/* Cancel section */}
           {!isTerminal && (
             <div className="space-y-2">
-              {showCancelSummary && (
+              {/* Step 1: reason selector */}
+              {cancelStep === 'reason' && (
+                <Card className="border-destructive/30 bg-destructive/5">
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-center gap-2 text-sm font-medium text-destructive">
+                      <AlertTriangle className="w-4 h-4" />
+                      ¿Por qué quieres cancelar?
+                    </div>
+                    <div className="space-y-2">
+                      {[
+                        'No puedo llegar a tiempo',
+                        'Tuve una emergencia personal',
+                        'El cliente no está disponible',
+                        'El trabajo es diferente a lo descrito',
+                        'Problemas con el acceso al lugar',
+                      ].map((reason) => (
+                        <button
+                          key={reason}
+                          onClick={() => setCancelReason(reason)}
+                          className={cn(
+                            'w-full text-left text-sm px-3 py-2 rounded-lg border transition-colors',
+                            cancelReason === reason
+                              ? 'border-destructive bg-destructive/10 text-destructive font-medium'
+                              : 'border-border hover:border-destructive/50 text-foreground'
+                          )}
+                        >
+                          {reason}
+                        </button>
+                      ))}
+                      <input
+                        type="text"
+                        placeholder="Otro motivo..."
+                        value={['No puedo llegar a tiempo','Tuve una emergencia personal','El cliente no está disponible','El trabajo es diferente a lo descrito','Problemas con el acceso al lugar'].includes(cancelReason) ? '' : cancelReason}
+                        onChange={(e) => setCancelReason(e.target.value)}
+                        className="w-full text-sm px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:border-destructive/50"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Step 2: confirmation with summary */}
+              {cancelStep === 'confirm' && (
                 <CancellationSummary
                   jobStatus={currentStatus}
                   visitFeeAmount={job.visit_fee_amount || 350}
                 />
               )}
-              <Button
-                variant="ghost"
-                className="w-full text-destructive hover:text-destructive gap-2 text-sm"
-                onClick={handleCancel}
-                disabled={transitioning}
-              >
-                {transitioning ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
-                {showCancelSummary ? 'Confirmar cancelación' : 'Cancelar trabajo'}
-              </Button>
-              {showCancelSummary && (
-                <Button variant="ghost" className="w-full text-muted-foreground text-xs" onClick={() => setShowCancelSummary(false)}>
+
+              {cancelStep === 'idle' && (
+                <Button
+                  variant="ghost"
+                  className="w-full text-destructive hover:text-destructive gap-2 text-sm"
+                  onClick={handleCancel}
+                  disabled={transitioning}
+                >
+                  <XCircle className="w-4 h-4" />
+                  Cancelar trabajo
+                </Button>
+              )}
+
+              {cancelStep === 'reason' && (
+                <Button
+                  variant="ghost"
+                  className="w-full text-destructive hover:text-destructive gap-2 text-sm"
+                  onClick={handleCancel}
+                  disabled={!cancelReason.trim()}
+                >
+                  Continuar
+                </Button>
+              )}
+
+              {cancelStep === 'confirm' && (
+                <Button
+                  variant="ghost"
+                  className="w-full text-destructive hover:text-destructive gap-2 text-sm"
+                  onClick={handleCancel}
+                  disabled={transitioning}
+                >
+                  {transitioning ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                  Confirmar cancelación
+                </Button>
+              )}
+
+              {cancelStep !== 'idle' && (
+                <Button
+                  variant="ghost"
+                  className="w-full text-muted-foreground text-xs"
+                  onClick={() => { setCancelStep('idle'); setCancelReason(''); }}
+                  disabled={transitioning}
+                >
                   Volver
                 </Button>
               )}
