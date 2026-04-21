@@ -44,13 +44,15 @@ const ProviderAccountDeletion = () => {
     if (!canDelete()) return;
 
     setIsDeleting(true);
-    const { error } = await supabase.rpc('delete_user_account', { p_user_id: user.id });
+    const { error, data } = await supabase.functions.invoke('delete-user-account', {
+      body: { p_user_id: user.id },
+    });
 
-    if (error) {
-      const msg = error.message || '';
-      if (msg.includes('active job')) {
+    const errCode = (data as any)?.error || error?.message || '';
+    if (error || errCode) {
+      if (errCode.includes('active_job') || errCode.includes('active job')) {
         toast.error('Tienes trabajos activos. Complétalos o cancélalos antes de eliminar tu cuenta.');
-      } else if (msg.includes('open dispute')) {
+      } else if (errCode.includes('open_dispute') || errCode.includes('open dispute')) {
         toast.error('Tienes disputas abiertas. Resuélvelas antes de eliminar tu cuenta.');
       } else {
         toast.error('Error al eliminar la cuenta. Intenta nuevamente.');

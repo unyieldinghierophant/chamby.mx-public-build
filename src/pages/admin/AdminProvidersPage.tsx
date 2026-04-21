@@ -279,17 +279,19 @@ const AdminProvidersPage = () => {
     if (!window.confirm(`¿Eliminar permanentemente la cuenta de ${name}? Esta acción no se puede deshacer.`)) return;
 
     setActionLoading(true);
-    const { error } = await supabase.rpc('delete_user_account', { p_user_id: selectedProvider.user_id });
+    const { error, data } = await supabase.functions.invoke('delete-user-account', {
+      body: { p_user_id: selectedProvider.user_id },
+    });
     setActionLoading(false);
 
-    if (error) {
-      const msg = error.message || '';
-      if (msg.includes('active job')) {
+    const errCode = (data as any)?.error || error?.message || '';
+    if (error || errCode) {
+      if (errCode.includes('active_job') || errCode.includes('active job')) {
         toast.error('No se puede eliminar: el proveedor tiene trabajos activos.');
-      } else if (msg.includes('open dispute')) {
+      } else if (errCode.includes('open_dispute') || errCode.includes('open dispute')) {
         toast.error('No se puede eliminar: el proveedor tiene disputas abiertas.');
       } else {
-        toast.error(msg || 'Error al eliminar proveedor');
+        toast.error(errCode || 'Error al eliminar proveedor');
       }
       return;
     }

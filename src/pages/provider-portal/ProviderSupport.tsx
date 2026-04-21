@@ -49,10 +49,10 @@ const ProviderSupport = () => {
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => window.open("tel:+523325520551")}>
+        <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => window.open("https://wa.me/523325520551", "_blank")}>
           <CardContent className="pt-6 text-center space-y-2">
             <Phone className="h-8 w-8 mx-auto text-primary" />
-            <h3 className="font-medium">Teléfono</h3>
+            <h3 className="font-medium">WhatsApp</h3>
             <p className="text-sm text-muted-foreground">+52 33 2552 0551</p>
             <p className="text-xs text-muted-foreground">o +52 33 1987 8496</p>
           </CardContent>
