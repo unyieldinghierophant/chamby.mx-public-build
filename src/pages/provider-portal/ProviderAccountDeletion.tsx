@@ -37,7 +37,7 @@ const ProviderAccountDeletion = () => {
   };
 
   const canDelete = () =>
-    confirmText.toLowerCase() === 'eliminar mi cuenta' &&
+    confirmText.toLowerCase() === 'borrar tu cuenta' &&
     Object.values(confirmChecks).every(Boolean);
 
   const handleDeleteAccount = async () => {
@@ -228,14 +228,14 @@ const ProviderAccountDeletion = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="confirm-text" className="text-sm">
-                    Para confirmar, escribe <strong>"eliminar mi cuenta"</strong> a continuación:
+                    Para confirmar, escribe <strong>"borrar tu cuenta"</strong> a continuación:
                   </Label>
                   <Input
                     id="confirm-text"
                     type="text"
                     value={confirmText}
                     onChange={(e) => setConfirmText(e.target.value)}
-                    placeholder="eliminar mi cuenta"
+                    placeholder="borrar tu cuenta"
                     className="font-mono"
                   />
                 </div>

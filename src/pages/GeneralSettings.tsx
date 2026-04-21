@@ -86,10 +86,10 @@ const GeneralSettings = () => {
                     <div className="flex items-center justify-between p-3 border rounded-lg">
                       <div>
                         <Label htmlFor="new-bookings" className="font-medium cursor-pointer">
-                          Nuevas reservas
+                          Actualizaciones de tus servicios
                         </Label>
                         <p className="text-sm text-muted-foreground">
-                          Cuando alguien reserve tus servicios
+                          Cuando haya cambios en los servicios que solicitaste
                         </p>
                       </div>
                       <Switch
