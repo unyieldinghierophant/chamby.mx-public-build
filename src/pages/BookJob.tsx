@@ -39,9 +39,15 @@ const BookJob = () => {
   if (roleLoading) return null;
   if (role === 'provider') return null;
 
+  // Force remount on category change or new-booking flag so the form
+  // React state (description, photos, etc.) resets instead of carrying
+  // over from the previous category. localStorage is cleared by the
+  // useEffect above; this handles the in-memory state.
+  const flowKey = `${categoryParam || 'general'}-${newParam || 'persist'}`;
+
   return (
     <div className="bg-gradient-to-br from-blue-50 via-background to-blue-50/30 dark:from-blue-950/20 dark:via-background dark:to-blue-950/10 pb-12 px-4 md:px-8 pt-3 md:pt-6">
-      <HandymanBookingFlow intentText={intentParam} categorySlug={categoryParam || 'general'} />
+      <HandymanBookingFlow key={flowKey} intentText={intentParam} categorySlug={categoryParam || 'general'} />
     </div>
   );
 };

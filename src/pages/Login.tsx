@@ -279,7 +279,17 @@ const Login = () => {
   // Email verification / OTP screen
   if (showEmailVerification) {
     return (
-      <div className="min-h-screen bg-gradient-main bg-gradient-mesh flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-main bg-gradient-mesh flex flex-col">
+        <header className="p-4">
+          <Link
+            to="/"
+            className="inline-flex items-center text-primary hover:text-primary/80 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5 mr-2" />
+            Volver
+          </Link>
+        </header>
+        <div className="flex-1 flex items-center justify-center p-4">
         <Card className="w-full max-w-md bg-card/95 backdrop-blur-sm shadow-raised border-border/20">
           <CardHeader className="text-center">
             <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
@@ -329,6 +339,7 @@ const Login = () => {
             </Button>
           </CardContent>
         </Card>
+        </div>
       </div>
     );
   }
