@@ -32,9 +32,9 @@ BEGIN
       open_dispute_count USING ERRCODE = 'restrict_violation';
   END IF;
 
-  DELETE FROM storage.objects
-  WHERE bucket_id IN ('user-documents', 'avatars')
-    AND (storage.foldername(name))[1] = OLD.id::text;
+  -- Storage cleanup intentionally omitted: Supabase's storage.protect_delete
+  -- trigger blocks direct DELETE FROM storage.objects. Orphaned files should
+  -- be purged via an edge function that uses the Storage API.
 
   RETURN OLD;
 END;
