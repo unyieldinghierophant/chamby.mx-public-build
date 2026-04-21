@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Search, Loader2, Eye, ShieldCheck, ShieldX, Star, MapPin, Mail, Phone, Wrench, Calendar, CalendarCheck, MessageSquare, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Search, Loader2, Eye, ShieldCheck, ShieldX, Star, MapPin, Mail, Phone, Wrench, Calendar, CalendarCheck, MessageSquare, ExternalLink, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -271,6 +271,32 @@ const AdminProvidersPage = () => {
     if (!selectedProvider || !user) return;
     // Create or navigate to support thread
     navigate(`/admin/support?provider=${selectedProvider.user_id}`);
+  };
+
+  const handleDeleteProvider = async () => {
+    if (!selectedProvider) return;
+    const name = selectedProvider.display_name || selectedProvider.full_name || 'este proveedor';
+    if (!window.confirm(`¿Eliminar permanentemente la cuenta de ${name}? Esta acción no se puede deshacer.`)) return;
+
+    setActionLoading(true);
+    const { error } = await supabase.rpc('delete_user_account', { p_user_id: selectedProvider.user_id });
+    setActionLoading(false);
+
+    if (error) {
+      const msg = error.message || '';
+      if (msg.includes('active job')) {
+        toast.error('No se puede eliminar: el proveedor tiene trabajos activos.');
+      } else if (msg.includes('open dispute')) {
+        toast.error('No se puede eliminar: el proveedor tiene disputas abiertas.');
+      } else {
+        toast.error(msg || 'Error al eliminar proveedor');
+      }
+      return;
+    }
+
+    toast.success('Proveedor eliminado');
+    setDetailOpen(false);
+    setProviders(prev => prev.filter(p => p.user_id !== selectedProvider.user_id));
   };
 
   // Filtering
@@ -559,6 +585,10 @@ const AdminProvidersPage = () => {
                     )}
                     <Button variant="outline" onClick={handleSendMessage} className="gap-1">
                       <MessageSquare className="h-4 w-4" /> Enviar Mensaje
+                    </Button>
+                    <Button variant="destructive" onClick={handleDeleteProvider} disabled={actionLoading} className="gap-1">
+                      {actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                      Eliminar Cuenta
                     </Button>
                   </div>
                 </CardContent>

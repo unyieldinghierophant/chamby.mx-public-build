@@ -16,6 +16,7 @@ import {
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const AccountDeletion = () => {
   const { user, signOut } = useAuth();
@@ -50,18 +51,25 @@ const AccountDeletion = () => {
     if (!canDelete()) return;
 
     setIsDeleting(true);
-    
-    try {
-      // Simulate account deletion process
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      toast.success('Tu cuenta ha sido eliminada exitosamente');
-      await signOut();
-      navigate('/');
-    } catch (error) {
-      toast.error('Error al eliminar la cuenta. Intenta nuevamente.');
+
+    const { error } = await supabase.rpc('delete_user_account', { p_user_id: user.id });
+
+    if (error) {
+      const msg = error.message || '';
+      if (msg.includes('active job')) {
+        toast.error('Tienes trabajos activos. Complétalos o cancélalos antes de eliminar tu cuenta.');
+      } else if (msg.includes('open dispute')) {
+        toast.error('Tienes disputas abiertas. Resuélvelas antes de eliminar tu cuenta.');
+      } else {
+        toast.error('Error al eliminar la cuenta. Intenta nuevamente.');
+      }
       setIsDeleting(false);
+      return;
     }
+
+    toast.success('Tu cuenta ha sido eliminada');
+    await signOut();
+    navigate('/');
   };
 
   return (

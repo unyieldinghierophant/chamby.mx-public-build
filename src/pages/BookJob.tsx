@@ -18,6 +18,10 @@ const BookJob = () => {
   // Block providers from requesting jobs
   useEffect(() => {
     if (!roleLoading && role === 'provider') {
+      // Clear booking-return flags so UserLanding's safety-net doesn't
+      // bounce the provider back here and trap them in a /login loop.
+      localStorage.removeItem('booking_auth_return');
+      localStorage.removeItem('booking_checkout_path');
       toast.error('Las cuentas de proveedor no pueden solicitar servicios. Inicia sesión con una cuenta de cliente.', { duration: 8000 });
       navigate('/login', { replace: true });
     }
