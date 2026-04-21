@@ -61,6 +61,7 @@ const ProviderSkillsSelection = lazy(() => import("./pages/provider-portal/Provi
 const ProviderMessages = lazy(() => import("./pages/provider-portal/ProviderMessages"));
 const ProviderCreateHub = lazy(() => import("./pages/provider-portal/ProviderCreateHub"));
 const ProviderAccount = lazy(() => import("./pages/provider-portal/ProviderAccount"));
+const ProviderAccountDeletion = lazy(() => import("./pages/provider-portal/ProviderAccountDeletion"));
 const RescheduleRequest = lazy(() => import("./pages/provider-portal/RescheduleRequest"));
 const AvailableJobs = lazy(() => import("./pages/provider-portal/AvailableJobs"));
 const RoleSelection = lazy(() => import("./pages/RoleSelection"));
@@ -222,6 +223,7 @@ const App = () => {
                 <Route path="messages" element={<ProviderMessages />} />
                 <Route path="create" element={<ProviderCreateHub />} />
                 <Route path="account" element={<ProviderAccount />} />
+                <Route path="account/delete" element={<ProviderAccountDeletion />} />
                 <Route path="calendar" element={<ProviderCalendar />} />
                 <Route path="map" element={<ProviderMap />} />
                 <Route path="verification" element={<ProviderVerification />} />

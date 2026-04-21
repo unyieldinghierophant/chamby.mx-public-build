@@ -15,6 +15,7 @@ import {
   ChevronRight,
   BadgeCheck,
   LogOut,
+  Trash2,
 } from "lucide-react";
 
 interface MenuItem {
@@ -96,6 +97,17 @@ const ProviderAccount = () => {
           label: "Cerrar Sesión",
           icon: LogOut,
           onClick: handleSignOut,
+          destructive: true,
+        },
+      ],
+    },
+    {
+      title: "Zona de Peligro",
+      items: [
+        {
+          label: "Eliminar mi cuenta",
+          icon: Trash2,
+          path: "/provider-portal/account/delete",
           destructive: true,
         },
       ],
