@@ -157,11 +157,19 @@ const HelpCenter = () => {
                   </a>
                 </Button>
               </div>
-              <div className="mt-6 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                <span>📞 Llámanos:</span>
-                <a href="tel:+523325438136" className="text-primary hover:underline">
-                  +52 33 2543 8136
-                </a>
+              <div className="mt-6 flex flex-col items-center justify-center gap-2 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <span>📞 Llámanos:</span>
+                  <a href="tel:+523325520551" className="text-primary hover:underline">
+                    +52 33 2552 0551
+                  </a>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span>o al</span>
+                  <a href="tel:+523319878496" className="text-primary hover:underline">
+                    +52 33 1987 8496
+                  </a>
+                </div>
               </div>
             </CardContent>
           </Card>

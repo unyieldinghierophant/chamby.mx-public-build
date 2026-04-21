@@ -39,7 +39,7 @@ const ChatBot = () => {
   }, [messages]);
 
   const handleWhatsAppRedirect = () => {
-    const phoneNumber = "523325438136"; // Formato internacional con código de país
+    const phoneNumber = "523325520551"; // Formato internacional con código de país
     const message = encodeURIComponent("Hola, vengo del chatbot de Chamby y necesito ayuda");
     window.open(`https://wa.me/${phoneNumber}?text=${message}`, "_blank");
   };

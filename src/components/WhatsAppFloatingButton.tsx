@@ -6,8 +6,7 @@ const preloadHelper = new window.Image();
 preloadHelper.src = whatsappHelper;
 const WhatsAppFloatingButton = () => {
   const handleWhatsAppClick = () => {
-    // Replace with your WhatsApp number (format: country code + number without + or spaces)
-    const phoneNumber = "5215512345678"; // Example: Mexico number
+    const phoneNumber = "523325520551";
     const message = encodeURIComponent("Hola! Necesito ayuda con Chamby");
     window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
   };
