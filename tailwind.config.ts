@@ -14,6 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
+        'dm-sans': ['DM Sans', 'sans-serif'],
+        'dm-mono': ['DM Mono', 'monospace'],
         'dillan': ['Made Dillan', 'sans-serif'],
         'hero': ['Outfit', 'sans-serif'],
         'urbanist': ['Urbanist', 'sans-serif'],
