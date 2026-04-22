@@ -36,7 +36,7 @@ export default function AdminJobDetail() {
   const { bookingId } = useParams<{ bookingId: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
   const disputeSectionRef = useRef<HTMLDivElement>(null);
 
   const [job, setJob] = useState<Job | null>(null);
@@ -71,10 +71,7 @@ export default function AdminJobDetail() {
   const [acting, setActing] = useState(false);
   const [rescheduleActing, setRescheduleActing] = useState(false);
 
-  // Auth guard
-  useEffect(() => {
-    if (!authLoading && (!user || user.id !== ADMIN_ID)) navigate('/', { replace: true });
-  }, [user, authLoading, navigate]);
+  // ProtectedRoute requireAdmin already guards this route
 
   useEffect(() => {
     if (user?.id === ADMIN_ID && bookingId) fetchAll();
@@ -298,7 +295,7 @@ export default function AdminJobDetail() {
     </div>
   );
 
-  if (!authLoading && (!user || user.id !== ADMIN_ID)) return null;
+  if (!user) return null;
 
   const visitFeePayment = payments.find(p => p.type === 'visit_fee');
   const invoicePayment = payments.find(p => ['invoice_payment', 'invoice'].includes(p.type));

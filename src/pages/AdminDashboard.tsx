@@ -48,7 +48,7 @@ const todayLabel = () => {
 };
 
 export default function AdminDashboard() {
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [activeView, setActiveView] = useState<AdminView>('resumen');
   const [searchQuery, setSearchQuery] = useState('');
@@ -56,17 +56,11 @@ export default function AdminDashboard() {
   const [adminName, setAdminName] = useState('Admin');
   const [badges, setBadges] = useState({ disputes: 0, reschedules: 0 });
   const searchTimer = useRef<NodeJS.Timeout>();
-
-  // Auth guard
-  useEffect(() => {
-    if (!authLoading && (!user || user.id !== ADMIN_ID)) {
-      navigate('/', { replace: true });
-    }
-  }, [user, authLoading, navigate]);
+  // ProtectedRoute requireAdmin already guards this route — no inline redirect needed
 
   useEffect(() => {
-    if (user?.id !== ADMIN_ID) return;
-    supabase.from('users').select('full_name').eq('id', ADMIN_ID).maybeSingle()
+    if (!user) return;
+    supabase.from('users').select('full_name').eq('id', user.id).maybeSingle()
       .then(({ data }) => { if (data?.full_name) setAdminName(data.full_name); });
     fetchBadges();
   }, [user]);
@@ -85,7 +79,7 @@ export default function AdminDashboard() {
     searchTimer.current = setTimeout(() => setSearchQuery(val), 300);
   };
 
-  if (authLoading || !user || user.id !== ADMIN_ID) return null;
+  if (!user) return null;
 
   const sidebarW = 240;
   const topbarH = 64;
