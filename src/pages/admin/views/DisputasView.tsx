@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { A, fmtDate, relativeTime, statusPill } from '../adminTokens';
 import { toast } from 'sonner';
@@ -21,6 +22,7 @@ const DISPUTE_STATUS: Record<string, { bg: string; text: string; dot: string; la
 };
 
 export function DisputasView() {
+  const navigate = useNavigate();
   const [disputes, setDisputes] = useState<Dispute[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Dispute | null>(null);
@@ -209,7 +211,7 @@ export function DisputasView() {
                   <td style={{ ...td, fontFamily: A.fontMono }}>{d.evidenceCount ?? 0}</td>
                   <td style={td}>{pill(d.status)}</td>
                   <td style={{ ...td, fontFamily: A.fontMono, fontSize: 12 }}>{fmtDate(d.created_at)}</td>
-                  <td style={td}><button onClick={() => openDetail(d)} style={{ padding: '5px 12px', border: `1px solid ${A.border}`, borderRadius: 6, fontSize: 12, fontFamily: A.fontSans, fontWeight: 500, background: '#FBF0EE', color: '#922E24', cursor: 'pointer' }}>Revisar</button></td>
+                  <td style={td}><button onClick={() => navigate(`/admin/jobs/${d.job_id}?section=disputas`)} style={{ padding: '5px 12px', border: `1px solid ${A.border}`, borderRadius: 6, fontSize: 12, fontFamily: A.fontSans, fontWeight: 500, background: '#FBF0EE', color: '#922E24', cursor: 'pointer' }}>Revisar</button></td>
                 </tr>
               ))}
           </tbody>

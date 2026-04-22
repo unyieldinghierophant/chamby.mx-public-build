@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { A, statusPill, fmtDate, fmtMXN } from '../adminTokens';
 
@@ -37,6 +38,7 @@ interface Props {
 const PAGE_SIZE = 10;
 
 export function JobsTable({ searchQuery = '', defaultTab = 'todos', onSelectJob, compact }: Props) {
+  const navigate = useNavigate();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<TabFilter>(defaultTab);
@@ -223,7 +225,7 @@ export function JobsTable({ searchQuery = '', defaultTab = 'todos', onSelectJob,
                 <td style={tdStyle}>{pill(j.has_open_dispute ? 'disputed' : j.status)}</td>
                 <td style={tdStyle}>
                   <button
-                    onClick={() => onSelectJob?.(j.id)}
+                    onClick={() => { if (onSelectJob) onSelectJob(j.id); else navigate(`/admin/jobs/${j.id}`); }}
                     style={{ padding: '5px 12px', fontSize: 12, fontWeight: 500, fontFamily: A.fontSans, border, borderRadius: 6, background: j.has_open_dispute ? '#FBF0EE' : A.surface, color: j.has_open_dispute ? '#922E24' : A.textPrimary, cursor: 'pointer' }}>
                     {j.has_open_dispute ? 'Revisar' : 'Ver detalle'}
                   </button>

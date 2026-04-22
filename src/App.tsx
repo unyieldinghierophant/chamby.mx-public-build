@@ -87,6 +87,7 @@ const AdminSupportInbox = lazy(() => import("./pages/admin/AdminSupportInbox"));
 const AdminDisputesPage = lazy(() => import("./pages/admin/AdminDisputesPage"));
 const AdminProvidersPage = lazy(() => import("./pages/admin/AdminProvidersPage"));
 const AdminConsolePage = lazy(() => import("./pages/admin/AdminConsolePage"));
+const AdminJobDetail = lazy(() => import("./pages/admin/AdminJobDetail"));
 const VisitFeePaymentPage = lazy(() => import("./pages/VisitFeePaymentPage"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
@@ -468,6 +469,16 @@ const App = () => {
             element={
               <ProtectedRoute requireAdmin>
                 <AdminConsolePage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Admin Job Detail */}
+          <Route
+            path="/admin/jobs/:bookingId"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AdminJobDetail />
               </ProtectedRoute>
             }
           />
