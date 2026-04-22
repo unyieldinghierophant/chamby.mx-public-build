@@ -19,6 +19,8 @@ import {
 import { InvoiceCard } from "@/components/provider-portal/InvoiceCard";
 import { JobInvoiceSection } from "@/components/JobInvoiceSection";
 import { CancellationSummary } from "@/components/provider-portal/CancellationSummary";
+import { RescheduleDialog } from "@/components/RescheduleDialog";
+import { DisputeStatusCard } from "@/components/DisputeStatusCard";
 import { RatingDialog, isDismissed } from "@/components/provider-portal/RatingDialog";
 import { useJobRating } from "@/hooks/useJobRating";
 import { JobTimelineSkeleton } from "@/components/skeletons";
@@ -81,6 +83,18 @@ interface JobDetail {
   dispute_status: string | null;
   followup_scheduled_at: string | null;
   followup_status: string | null;
+  // Reschedule request
+  reschedule_requested_by: string | null;
+  reschedule_requested_at: string | null;
+  reschedule_proposed_datetime: string | null;
+  reschedule_agreed: boolean | null;
+  // Geolocation check-in
+  job_address_lat: number | null;
+  job_address_lng: number | null;
+  arrived_lat: number | null;
+  arrived_lng: number | null;
+  arrived_at: string | null;
+  geolocation_mismatch: boolean | null;
 }
 
 interface ChatMessage {
@@ -115,7 +129,7 @@ const JobTimelinePage = () => {
   const { jobId } = useParams<{ jobId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { transitionStatus } = useJobStatusTransition();
+  useJobStatusTransition(); // kept for hook side-effects
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const [job, setJob] = useState<JobDetail | null>(null);
@@ -129,11 +143,16 @@ const JobTimelinePage = () => {
   const [activeTab, setActiveTab] = useState<'timeline' | 'chat'>('timeline');
   const [cancelStep, setCancelStep] = useState<'idle' | 'reason' | 'confirm'>('idle');
   const [cancelReason, setCancelReason] = useState('');
+  const [cancelIsLate, setCancelIsLate] = useState(false);
   const [ratingDismissed, setRatingDismissed] = useState(() => isDismissed(jobId || "", "provider"));
   const [chatDebug, setChatDebug] = useState<{ selectError: string | null; insertError: string | null; realtimeStatus: string }>({ selectError: null, insertError: null, realtimeStatus: 'connecting' });
   const [showDebug, setShowDebug] = useState(false);
   const [markingDone, setMarkingDone] = useState(false);
   const [disputeModalOpen, setDisputeModalOpen] = useState(false);
+  const [rescheduleDialogOpen, setRescheduleDialogOpen] = useState(false);
+  const [respondingReschedule, setRespondingReschedule] = useState(false);
+  const [checkingIn, setCheckingIn] = useState(false);
+  const [geoModal, setGeoModal] = useState<{ distance: number; coords: { lat: number; lng: number } } | null>(null);
 
   // Rating hook - must be called unconditionally (Rules of Hooks)
   const { canRate, hasRated, myReview, refetch: refetchRating } = useJobRating(jobId, job?.status ?? undefined);
@@ -305,11 +324,130 @@ const JobTimelinePage = () => {
     }
   };
 
+  // ── Geolocation check-in ────────────────────────────────────────────────────
+  const haversineMeters = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+    const R = 6371000;
+    const toRad = (d: number) => (d * Math.PI) / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLng = toRad(lng2 - lng1);
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  };
+
+  const saveCheckInCoords = async (lat: number, lng: number, mismatch: boolean) => {
+    await supabase.from("jobs").update({
+      arrived_lat: lat,
+      arrived_lng: lng,
+      arrived_at: new Date().toISOString(),
+      ...(mismatch ? { geolocation_mismatch: true } : {}),
+    }).eq("id", job!.id);
+  };
+
+  const completeCheckIn = async (coords: { lat: number; lng: number } | null, mismatch = false) => {
+    await handleTransition("on_site");
+    if (coords) await saveCheckInCoords(coords.lat, coords.lng, mismatch);
+  };
+
+  const handleCheckIn = () => {
+    if (!job) return;
+    setCheckingIn(true);
+
+    if (!navigator.geolocation) {
+      toast.info("No pudimos verificar tu ubicación. El check-in se registrará sin verificación GPS.");
+      handleTransition("on_site").finally(() => setCheckingIn(false));
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+
+        if (job.job_address_lat != null && job.job_address_lng != null) {
+          const dist = Math.round(haversineMeters(coords.lat, coords.lng, job.job_address_lat, job.job_address_lng));
+          if (dist > 300) {
+            setGeoModal({ distance: dist, coords });
+            setCheckingIn(false);
+            return;
+          }
+        }
+
+        await completeCheckIn(coords, false);
+        setCheckingIn(false);
+      },
+      async () => {
+        toast.info("No pudimos verificar tu ubicación. El check-in se registrará sin verificación GPS.");
+        await handleTransition("on_site");
+        setCheckingIn(false);
+      },
+      { timeout: 10000, maximumAge: 60000 }
+    );
+  };
+
+  const confirmCheckInDespiteMismatch = async () => {
+    if (!geoModal) return;
+    setGeoModal(null);
+    setCheckingIn(true);
+    await completeCheckIn(geoModal.coords, true);
+    setCheckingIn(false);
+  };
+
+  const handleRescheduleResponse = async (accept: boolean) => {
+    if (!job) return;
+    setRespondingReschedule(true);
+    try {
+      if (accept) {
+        await supabase.from("jobs").update({
+          scheduled_at: job.reschedule_proposed_datetime,
+          reschedule_agreed: true,
+          reschedule_requested_by: null,
+          reschedule_requested_at: null,
+          reschedule_proposed_datetime: null,
+        }).eq("id", job.id);
+
+        await supabase.from("notifications").insert({
+          user_id: job.client_id,
+          type: "reschedule_accepted",
+          title: "Reagendamiento aceptado",
+          message: "El proveedor aceptó el nuevo horario.",
+          link: `/active-jobs`,
+          data: { job_id: job.id },
+        });
+        toast.success("Reagendamiento aceptado. La fecha del trabajo fue actualizada.");
+      } else {
+        await supabase.from("jobs").update({
+          reschedule_requested_by: null,
+          reschedule_requested_at: null,
+          reschedule_proposed_datetime: null,
+          reschedule_agreed: false,
+        }).eq("id", job.id);
+
+        await supabase.from("notifications").insert({
+          user_id: job.client_id,
+          type: "reschedule_rejected",
+          title: "Reagendamiento rechazado",
+          message: "El proveedor rechazó el cambio de horario. El trabajo continúa en su fecha original.",
+          link: `/active-jobs`,
+          data: { job_id: job.id },
+        });
+        toast.success("Reagendamiento rechazado. El trabajo continúa en su fecha original.");
+      }
+      await fetchAll();
+    } catch (err) {
+      toast.error("Error al responder la solicitud");
+    } finally {
+      setRespondingReschedule(false);
+    }
+  };
+
   const handleCancel = async () => {
     if (!job) return;
 
-    // Step 1: show reason selector
+    // Step 1: show reason selector + compute timing
     if (cancelStep === 'idle') {
+      const isLate = job.scheduled_at
+        ? new Date(job.scheduled_at).getTime() - Date.now() < 2 * 60 * 60 * 1000
+        : false;
+      setCancelIsLate(isLate);
       setCancelStep('reason');
       return;
     }
@@ -324,53 +462,24 @@ const JobTimelinePage = () => {
       return;
     }
 
-    // Step 3: confirmed — execute cancellation
+    // Step 3: confirmed — call cancel-job edge function
     setTransitioning(true);
-
-    const afterOnSite = ["on_site", "quoted", "in_progress"].includes(job.status);
-    const compensation = afterOnSite ? 250 : 0;
-
-    const result = await transitionStatus(job.id, 'cancelled', job.client_id);
-    setTransitioning(false);
-
-    if (result.success) {
-      // Notify the client with the cancellation reason
-      await supabase.from('notifications').insert({
-        user_id: job.client_id,
-        type: 'job_cancelled_by_provider',
-        title: 'Tu proveedor canceló el trabajo',
-        message: `El proveedor canceló el servicio. Motivo: ${cancelReason}. Nos pondremos en contacto contigo.`,
-        link: `/active-jobs?job_id=${job.id}`,
-        data: { jobId: job.id, reason: cancelReason },
+    try {
+      const { data, error: fnErr } = await supabase.functions.invoke('cancel-job', {
+        body: { job_id: job.id, cancelled_by: 'provider', cancel_reason: cancelReason },
       });
 
-      // System message in the chat with reason
-      await supabase.from('messages').insert({
-        job_id: job.id,
-        sender_id: user!.id,
-        receiver_id: job.client_id,
-        message_text: `❌ El proveedor canceló el trabajo.\nMotivo: ${cancelReason}`,
-        is_system_message: true,
-        system_event_type: 'provider_cancellation',
-        read: false,
-      });
-
-      if (compensation > 0) {
-        await supabase.from('messages').insert({
-          job_id: job.id,
-          sender_id: user!.id,
-          receiver_id: job.client_id,
-          message_text: `💰 Compensación registrada: $${compensation} MXN para el proveedor`,
-          is_system_message: true,
-          system_event_type: 'cancellation_compensation',
-          read: false,
-        });
+      if (fnErr || data?.error) {
+        toast.error(data?.error || fnErr?.message || 'Error al cancelar');
+        return;
       }
 
       toast.success('Trabajo cancelado');
       navigate('/provider-portal/jobs');
-    } else {
-      toast.error(result.error || 'Error al cancelar');
+    } catch (err: any) {
+      toast.error(err.message || 'Error inesperado');
+    } finally {
+      setTransitioning(false);
     }
   };
 
@@ -427,6 +536,7 @@ const JobTimelinePage = () => {
   const statusConfig = JOB_STATUS_CONFIG[currentStatus] || JOB_STATUS_CONFIG.active;
   const currentIndex = STATUS_ORDER.indexOf(currentStatus);
   const isTerminal = currentStatus === 'completed' || currentStatus === 'cancelled';
+  const isPostPayment = ['job_paid', 'in_progress', 'provider_done'].includes(currentStatus);
   const actions = isTerminal ? [] : (STATUS_ACTIONS[currentStatus] || []);
 
 
@@ -803,28 +913,18 @@ const JobTimelinePage = () => {
 
           {/* Dispute banner */}
           {job.has_open_dispute && (
-            <Card className="border-destructive/30 bg-destructive/5">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-1">
-                  <AlertTriangle className="h-4 w-4 text-destructive" />
-                  <p className="text-sm font-medium text-foreground">Disputa abierta</p>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  El pago está congelado hasta que un administrador resuelva la disputa.
-                </p>
-              </CardContent>
-            </Card>
+            <DisputeStatusCard jobId={job.id} role="provider" onUpdate={fetchAll} />
           )}
 
           {/* Dispute button */}
-          {invoice && ["paid", "ready_to_release"].includes(invoice.status) && !job.has_open_dispute && (
+          {["cancelled", "completed", "in_progress"].includes(job.status) && !job.has_open_dispute && (
             <Button
               variant="outline"
               className="w-full border-destructive/30 text-destructive hover:bg-destructive/5 text-sm"
               onClick={() => setDisputeModalOpen(true)}
             >
               <AlertTriangle className="w-4 h-4 mr-2" />
-              Iniciar disputa
+              Abrir disputa
             </Button>
           )}
 
@@ -833,6 +933,16 @@ const JobTimelinePage = () => {
             onOpenChange={setDisputeModalOpen}
             jobId={job.id}
             onDisputeOpened={fetchAll}
+          />
+
+          <RescheduleDialog
+            open={rescheduleDialogOpen}
+            onOpenChange={setRescheduleDialogOpen}
+            jobId={job.id}
+            currentScheduledAt={job.scheduled_at}
+            providerId={user?.id || null}
+            clientId={job.client_id}
+            onRescheduleComplete={fetchAll}
           />
 
           {/* Pago liberado */}
@@ -846,102 +956,201 @@ const JobTimelinePage = () => {
             </Card>
           )}
 
+          {/* Reschedule section */}
+          {!isTerminal && (() => {
+            const hasPending = !!(job.reschedule_requested_at && !job.reschedule_agreed);
+            const iAmRequester = job.reschedule_requested_by === 'provider';
+            const iAmResponder = hasPending && !iAmRequester;
+            return (
+              <div className="space-y-2">
+                {hasPending && iAmRequester && (
+                  <Card className="border-blue-500/30 bg-blue-500/5">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Clock className="h-4 w-4 text-blue-600" />
+                        <p className="text-sm font-semibold text-foreground">Reagendamiento pendiente</p>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Esperando respuesta del cliente para el{" "}
+                        {job.reschedule_proposed_datetime
+                          ? new Date(job.reschedule_proposed_datetime).toLocaleString("es-MX", { dateStyle: "medium", timeStyle: "short" })
+                          : "nuevo horario propuesto"}.
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
+                {iAmResponder && (
+                  <Card className="border-primary/50 bg-primary/5">
+                    <CardContent className="p-4 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-primary" />
+                        <p className="text-sm font-semibold text-foreground">Solicitud de reagendamiento</p>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        El cliente propuso cambiar la fecha al{" "}
+                        <span className="font-medium text-foreground">
+                          {job.reschedule_proposed_datetime
+                            ? new Date(job.reschedule_proposed_datetime).toLocaleString("es-MX", { dateStyle: "long", timeStyle: "short" })
+                            : "—"}
+                        </span>. ¿Aceptas el nuevo horario?
+                      </p>
+                      <div className="flex gap-2">
+                        <Button size="sm" className="flex-1" onClick={() => handleRescheduleResponse(true)} disabled={respondingReschedule}>
+                          Aceptar reagendamiento
+                        </Button>
+                        <Button size="sm" variant="outline" className="flex-1" onClick={() => handleRescheduleResponse(false)} disabled={respondingReschedule}>
+                          Rechazar
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+                {!hasPending && (
+                  <Button
+                    variant="ghost"
+                    className="w-full gap-2 text-sm text-muted-foreground hover:text-foreground"
+                    onClick={() => setRescheduleDialogOpen(true)}
+                  >
+                    <Calendar className="w-4 h-4" />
+                    Solicitar reagendamiento
+                  </Button>
+                )}
+              </div>
+            );
+          })()}
+
           {/* Cancel section */}
           {!isTerminal && (
             <div className="space-y-2">
-              {/* Step 1: reason selector */}
-              {cancelStep === 'reason' && (
-                <Card className="border-destructive/30 bg-destructive/5">
-                  <CardContent className="p-4 space-y-3">
-                    <div className="flex items-center gap-2 text-sm font-medium text-destructive">
-                      <AlertTriangle className="w-4 h-4" />
-                      ¿Por qué quieres cancelar?
-                    </div>
-                    <div className="space-y-2">
-                      {[
-                        'No puedo llegar a tiempo',
-                        'Tuve una emergencia personal',
-                        'El cliente no está disponible',
-                        'El trabajo es diferente a lo descrito',
-                        'Problemas con el acceso al lugar',
-                      ].map((reason) => (
-                        <button
-                          key={reason}
-                          onClick={() => setCancelReason(reason)}
-                          className={cn(
-                            'w-full text-left text-sm px-3 py-2 rounded-lg border transition-colors',
-                            cancelReason === reason
-                              ? 'border-destructive bg-destructive/10 text-destructive font-medium'
-                              : 'border-border hover:border-destructive/50 text-foreground'
-                          )}
-                        >
-                          {reason}
-                        </button>
-                      ))}
-                      <input
-                        type="text"
-                        placeholder="Otro motivo..."
-                        value={['No puedo llegar a tiempo','Tuve una emergencia personal','El cliente no está disponible','El trabajo es diferente a lo descrito','Problemas con el acceso al lugar'].includes(cancelReason) ? '' : cancelReason}
-                        onChange={(e) => setCancelReason(e.target.value)}
-                        className="w-full text-sm px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:border-destructive/50"
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Step 2: confirmation with summary */}
-              {cancelStep === 'confirm' && (
-                <CancellationSummary
-                  jobStatus={currentStatus}
-                  visitFeeAmount={job.visit_fee_amount || 350}
-                />
-              )}
-
-              {cancelStep === 'idle' && (
+              {isPostPayment ? (
+                /* After client has paid — self-cancel disabled, contact admin via WhatsApp */
                 <Button
-                  variant="ghost"
-                  className="w-full text-destructive hover:text-destructive gap-2 text-sm"
-                  onClick={handleCancel}
-                  disabled={transitioning}
+                  variant="outline"
+                  className="w-full gap-2 text-sm border-green-600/40 text-green-700 hover:bg-green-50"
+                  onClick={() => {
+                    const msg = encodeURIComponent(`Hola, necesito cancelar el trabajo #${job.id}. Motivo: `);
+                    window.open(`https://wa.me/523325520551?text=${msg}`, '_blank');
+                  }}
                 >
-                  <XCircle className="w-4 h-4" />
-                  Cancelar trabajo
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                  </svg>
+                  Solicitar cancelación
                 </Button>
-              )}
+              ) : (
+                <>
+                  {/* Step 1: reason selector */}
+                  {cancelStep === 'reason' && (
+                    <Card className="border-destructive/30 bg-destructive/5">
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex items-center gap-2 text-sm font-medium text-destructive">
+                          <AlertTriangle className="w-4 h-4" />
+                          ¿Por qué quieres cancelar?
+                        </div>
+                        <div className="space-y-2">
+                          {[
+                            'No puedo llegar a tiempo',
+                            'Tuve una emergencia personal',
+                            'El cliente no está disponible',
+                            'El trabajo es diferente a lo descrito',
+                            'Problemas con el acceso al lugar',
+                          ].map((reason) => (
+                            <button
+                              key={reason}
+                              onClick={() => setCancelReason(reason)}
+                              className={cn(
+                                'w-full text-left text-sm px-3 py-2 rounded-lg border transition-colors',
+                                cancelReason === reason
+                                  ? 'border-destructive bg-destructive/10 text-destructive font-medium'
+                                  : 'border-border hover:border-destructive/50 text-foreground'
+                              )}
+                            >
+                              {reason}
+                            </button>
+                          ))}
+                          <input
+                            type="text"
+                            placeholder="Otro motivo..."
+                            value={['No puedo llegar a tiempo','Tuve una emergencia personal','El cliente no está disponible','El trabajo es diferente a lo descrito','Problemas con el acceso al lugar'].includes(cancelReason) ? '' : cancelReason}
+                            onChange={(e) => setCancelReason(e.target.value)}
+                            className="w-full text-sm px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:border-destructive/50"
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
 
-              {cancelStep === 'reason' && (
-                <Button
-                  variant="ghost"
-                  className="w-full text-destructive hover:text-destructive gap-2 text-sm"
-                  onClick={handleCancel}
-                  disabled={!cancelReason.trim()}
-                >
-                  Continuar
-                </Button>
-              )}
+                  {/* Step 2: confirmation with penalty warning */}
+                  {cancelStep === 'confirm' && (
+                    <>
+                      {cancelIsLate ? (
+                        <Card className="border-destructive/30 bg-destructive/5">
+                          <CardContent className="p-4 space-y-2">
+                            <div className="flex items-center gap-2 text-sm font-semibold text-destructive">
+                              <AlertTriangle className="w-4 h-4" />
+                              Cancelación tardía
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              Faltan menos de 2 horas para este trabajo. Si cancelas: no recibirás pago por la visita y se aplicará un cargo de{" "}
+                              <span className="font-semibold text-foreground">$100 MXN</span> a tu próximo pago. Tu cuenta recibirá una advertencia.
+                            </p>
+                          </CardContent>
+                        </Card>
+                      ) : (
+                        <CancellationSummary
+                          jobStatus={currentStatus}
+                          visitFeeAmount={job.visit_fee_amount || 350}
+                        />
+                      )}
+                    </>
+                  )}
 
-              {cancelStep === 'confirm' && (
-                <Button
-                  variant="ghost"
-                  className="w-full text-destructive hover:text-destructive gap-2 text-sm"
-                  onClick={handleCancel}
-                  disabled={transitioning}
-                >
-                  {transitioning ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
-                  Confirmar cancelación
-                </Button>
-              )}
+                  {cancelStep === 'idle' && (
+                    <Button
+                      variant="ghost"
+                      className="w-full text-destructive hover:text-destructive gap-2 text-sm"
+                      onClick={handleCancel}
+                      disabled={transitioning}
+                    >
+                      <XCircle className="w-4 h-4" />
+                      Cancelar trabajo
+                    </Button>
+                  )}
 
-              {cancelStep !== 'idle' && (
-                <Button
-                  variant="ghost"
-                  className="w-full text-muted-foreground text-xs"
-                  onClick={() => { setCancelStep('idle'); setCancelReason(''); }}
-                  disabled={transitioning}
-                >
-                  Volver
-                </Button>
+                  {cancelStep === 'reason' && (
+                    <Button
+                      variant="ghost"
+                      className="w-full text-destructive hover:text-destructive gap-2 text-sm"
+                      onClick={handleCancel}
+                      disabled={!cancelReason.trim()}
+                    >
+                      Continuar
+                    </Button>
+                  )}
+
+                  {cancelStep === 'confirm' && (
+                    <Button
+                      variant="ghost"
+                      className="w-full text-destructive hover:text-destructive gap-2 text-sm"
+                      onClick={handleCancel}
+                      disabled={transitioning}
+                    >
+                      {transitioning ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                      {cancelIsLate ? 'Sí, cancelar de todas formas' : 'Confirmar cancelación'}
+                    </Button>
+                  )}
+
+                  {cancelStep !== 'idle' && (
+                    <Button
+                      variant="ghost"
+                      className="w-full text-muted-foreground text-xs"
+                      onClick={() => { setCancelStep('idle'); setCancelReason(''); setCancelIsLate(false); }}
+                      disabled={transitioning}
+                    >
+                      Volver
+                    </Button>
+                  )}
+                </>
               )}
             </div>
           )}
@@ -1148,23 +1357,53 @@ const JobTimelinePage = () => {
         </div>
       )}
 
+      {/* Geolocation mismatch warning modal */}
+      {geoModal && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 px-4 pb-6 sm:pb-0">
+          <div className="bg-background rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <MapPin className="h-6 w-6 text-yellow-500 flex-shrink-0" />
+              <h3 className="font-semibold text-foreground">Ubicación lejana</h3>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Tu ubicación parece estar lejos del domicilio registrado (aproximadamente{" "}
+              <span className="font-semibold text-foreground">{geoModal.distance.toLocaleString()} metros</span>{" "}
+              de distancia). ¿Confirmas que llegaste al trabajo?
+            </p>
+            <div className="flex flex-col gap-2">
+              <Button className="w-full" onClick={confirmCheckInDespiteMismatch} disabled={checkingIn}>
+                {checkingIn ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Sí, confirmar llegada
+              </Button>
+              <Button variant="outline" className="w-full" onClick={() => setGeoModal(null)} disabled={checkingIn}>
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Sticky Primary CTA */}
       {activeTab === 'timeline' && actions.length > 0 && (
         <div className="fixed bottom-0 left-0 right-0 z-20 bg-background/95 backdrop-blur border-t border-border/50 px-4 py-3 safe-area-bottom">
-          {actions.map((action) => (
-            <Button
-              key={action.nextStatus}
-              className="w-full h-12 text-sm font-semibold gap-2"
-              onClick={() => handleTransition(action.nextStatus)}
-              disabled={transitioning}
-            >
-              {transitioning
-                ? <Loader2 className="w-4 h-4 animate-spin" />
-                : <action.icon className="w-4 h-4" />
-              }
-              {action.label}
-            </Button>
-          ))}
+          {actions.map((action) => {
+            const isCheckIn = action.nextStatus === "on_site";
+            const busy = isCheckIn ? (checkingIn || transitioning) : transitioning;
+            return (
+              <Button
+                key={action.nextStatus}
+                className="w-full h-12 text-sm font-semibold gap-2"
+                onClick={() => isCheckIn ? handleCheckIn() : handleTransition(action.nextStatus)}
+                disabled={busy}
+              >
+                {busy
+                  ? <Loader2 className="w-4 h-4 animate-spin" />
+                  : <action.icon className="w-4 h-4" />
+                }
+                {action.label}
+              </Button>
+            );
+          })}
         </div>
       )}
     </div>

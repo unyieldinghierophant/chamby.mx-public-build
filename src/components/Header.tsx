@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useAdminNotifications } from "@/hooks/useAdminNotifications";
 import { Menu, X, LogOut, User, Settings, CreditCard, Users, ShieldCheck } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import ChambyLogoText from "@/components/ChambyLogoText";
@@ -22,6 +23,7 @@ const Header = () => {
   const [categoriesDialogOpen, setCategoriesDialogOpen] = useState(false);
   const { user, signOut } = useAuth();
   const { role, isAdmin } = useUserRole();
+  const { unreadCount, markAllRead } = useAdminNotifications(isAdmin);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -122,10 +124,21 @@ const Header = () => {
                       </DropdownMenuItem>
                     )}
                     {isAdmin && (
-                      <DropdownMenuItem onClick={() => navigate('/admin')}>
-                        <ShieldCheck className="mr-2 h-4 w-4" />
-                        <span>Panel Admin</span>
-                      </DropdownMenuItem>
+                      <>
+                        <DropdownMenuItem onClick={() => navigate('/admin')}>
+                          <ShieldCheck className="mr-2 h-4 w-4" />
+                          <span>Panel Admin</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => { markAllRead(); navigate('/admin/console'); }}>
+                          <span className="mr-2 flex h-4 w-4 items-center justify-center">⚖️</span>
+                          <span className="flex-1">Conflictos</span>
+                          {unreadCount > 0 && (
+                            <span className="ml-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                              {unreadCount > 99 ? "99+" : unreadCount}
+                            </span>
+                          )}
+                        </DropdownMenuItem>
+                      </>
                     )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut} disabled={isLoggingOut}>

@@ -37,65 +37,86 @@ export function RescheduleDialog({
   const [submitting, setSubmitting] = useState(false);
 
   const hours = Array.from({ length: 12 }, (_, i) => {
-    const h = i + 7; // 7am to 6pm
+    const h = i + 7;
     return { value: String(h), label: `${h}:00` };
   });
 
   const handleSubmit = async () => {
     if (!selectedDate || !selectedHour || !user) return;
 
-    const newDate = setMinutes(setHours(selectedDate, parseInt(selectedHour)), 0);
+    const newDatetime = setMinutes(setHours(selectedDate, parseInt(selectedHour)), 0);
+    const isClient = user.id === clientId;
+    const requestedBy = isClient ? "client" : "provider";
+    const receiverId = isClient ? providerId : clientId;
 
     setSubmitting(true);
     try {
-      // Set reschedule request fields and deadline (48h)
-      const deadline = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+      // Fetch requester's name for the notification
+      const { data: requesterUser } = await supabase
+        .from("users")
+        .select("full_name")
+        .eq("id", user.id)
+        .maybeSingle();
+      const requesterName = requesterUser?.full_name || (isClient ? "El cliente" : "El proveedor");
 
+      // Write reschedule request fields onto the job
       const { error: jobError } = await supabase
         .from("jobs")
         .update({
-          reschedule_requested_date: newDate.toISOString(),
-          original_scheduled_date: currentScheduledAt,
+          reschedule_requested_by: requestedBy,
           reschedule_requested_at: new Date().toISOString(),
-          reschedule_response_deadline: deadline,
+          reschedule_proposed_datetime: newDatetime.toISOString(),
+          reschedule_agreed: false,
+          // Keep legacy columns in sync
+          reschedule_requested_date: newDatetime.toISOString(),
+          original_scheduled_date: currentScheduledAt,
         })
         .eq("id", jobId);
 
       if (jobError) throw jobError;
 
-      // Send system message in chat
-      if (providerId) {
-        const isClient = user.id === clientId;
-        const receiverId = isClient ? providerId : clientId;
+      // In-app notification to other party
+      if (receiverId) {
+        await supabase.from("notifications").insert({
+          user_id: receiverId,
+          type: "reschedule_request",
+          title: "Solicitud de reagendamiento",
+          message: `${requesterName} ha solicitado reagendar tu trabajo para el ${format(newDatetime, "PPP 'a las' p", { locale: es })}. ¿Aceptas el nuevo horario?`,
+          link: isClient ? `/provider-portal/jobs/${jobId}` : `/active-jobs`,
+          data: { job_id: jobId, proposed_datetime: newDatetime.toISOString() },
+        });
+      }
 
+      // System message in chat
+      if (receiverId) {
         await supabase.from("messages").insert({
           job_id: jobId,
           sender_id: user.id,
           receiver_id: receiverId,
-          message_text: `📅 Solicitud de reprogramación: nueva fecha propuesta ${format(newDate, "PPP 'a las' p", { locale: es })}`,
+          message_text: `📅 Solicitud de reagendamiento: nueva fecha propuesta para el ${format(newDatetime, "PPP 'a las' p", { locale: es })}`,
           is_system_message: true,
           system_event_type: "reschedule_requested",
-        });
-
-        // Notify the other party
-        await supabase.from("notifications").insert({
-          user_id: receiverId,
-          type: "reschedule_request",
-          title: "Solicitud de reprogramación",
-          message: `Se ha solicitado cambiar la fecha del trabajo al ${format(newDate, "PPP", { locale: es })}`,
-          link: isClient
-            ? `/provider-portal/reschedule/${jobId}`
-            : `/active-jobs`,
-          data: { job_id: jobId },
+          read: false,
         });
       }
 
-      toast.success("Solicitud de reprogramación enviada");
+      // Admin notification (cast: table added via direct migration, types not regenerated yet)
+      await (supabase as any).from("admin_notifications").insert({
+        type: "reschedule_request",
+        booking_id: jobId,
+        triggered_by_user_id: user.id,
+        message: `${requesterName} (${requestedBy}) solicitó reagendar el trabajo ${jobId} para el ${format(newDatetime, "PPP 'a las' p", { locale: es })}.`,
+        is_read: false,
+      });
+
+      toast.success("Solicitud de reagendamiento enviada");
       onOpenChange(false);
+      setSelectedDate(undefined);
+      setSelectedHour("");
       onRescheduleComplete?.();
     } catch (error) {
       console.error("Error requesting reschedule:", error);
-      toast.error("No se pudo enviar la solicitud de reprogramación");
+      toast.error("No se pudo enviar la solicitud de reagendamiento");
     } finally {
       setSubmitting(false);
     }
@@ -105,9 +126,9 @@ export function RescheduleDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Reagendar trabajo</DialogTitle>
+          <DialogTitle>Solicitar reagendamiento</DialogTitle>
           <DialogDescription>
-            Selecciona una nueva fecha y hora para este trabajo.
+            Propón una nueva fecha y hora. El otro lado deberá aceptar antes de que cambie.
             {currentScheduledAt && (
               <span className="block mt-1 font-medium text-foreground">
                 Fecha actual: {format(new Date(currentScheduledAt), "PPP 'a las' p", { locale: es })}
@@ -118,15 +139,12 @@ export function RescheduleDialog({
 
         <div className="space-y-4 py-2">
           <div>
-            <label className="text-sm font-medium mb-1.5 block">Nueva fecha</label>
+            <label className="text-sm font-medium mb-1.5 block">Nueva fecha propuesta</label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !selectedDate && "text-muted-foreground"
-                  )}
+                  className={cn("w-full justify-start text-left font-normal", !selectedDate && "text-muted-foreground")}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {selectedDate ? format(selectedDate, "PPP", { locale: es }) : "Selecciona una fecha"}
@@ -153,9 +171,7 @@ export function RescheduleDialog({
               </SelectTrigger>
               <SelectContent>
                 {hours.map((h) => (
-                  <SelectItem key={h.value} value={h.value}>
-                    {h.label}
-                  </SelectItem>
+                  <SelectItem key={h.value} value={h.value}>{h.label}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -168,10 +184,7 @@ export function RescheduleDialog({
           </Button>
           <Button onClick={handleSubmit} disabled={!selectedDate || !selectedHour || submitting}>
             {submitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Enviando...
-              </>
+              <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Enviando...</>
             ) : (
               "Enviar solicitud"
             )}

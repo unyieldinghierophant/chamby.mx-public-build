@@ -6,146 +6,140 @@ const log = (step: string, details?: Record<string, unknown>) => {
   console.log(`[OPEN-DISPUTE] ${step}${details ? ` - ${JSON.stringify(details)}` : ""}`);
 };
 
+const VALID_REASON_CODES = ["no_show", "incomplete", "bad_work", "client_not_home", "payment_issue", "other"];
+const ALLOWED_STATUSES = ["cancelled", "completed", "in_progress"];
+
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  const respond = (status: number, data: Record<string, unknown>) =>
+    new Response(JSON.stringify(data), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   try {
-    log("Function started");
-
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Authenticate caller
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header");
+    if (!authHeader) return respond(401, { error: "No authorization header" });
     const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: userError } = await supabase.auth.getUser(token);
-    if (userError || !userData.user) throw new Error("Authentication failed");
-
+    const { data: userData, error: userErr } = await supabase.auth.getUser(token);
+    if (userErr || !userData.user) return respond(401, { error: "Authentication failed" });
     const userId = userData.user.id;
-    const { job_id, reason_code, reason_text } = await req.json();
 
-    if (!job_id) throw new Error("job_id is required");
-    if (!reason_code) throw new Error("reason_code is required");
+    const { job_id, reason_code, description } = await req.json();
 
-    const validCodes = ["no_show", "bad_service", "pricing_dispute", "damage", "other"];
-    if (!validCodes.includes(reason_code)) {
-      throw new Error(`Invalid reason_code. Must be one of: ${validCodes.join(", ")}`);
+    if (!job_id) return respond(400, { error: "job_id is required" });
+    if (!reason_code || !VALID_REASON_CODES.includes(reason_code)) {
+      return respond(400, { error: `reason_code must be one of: ${VALID_REASON_CODES.join(", ")}` });
+    }
+    if (!description || description.trim().length < 20) {
+      return respond(400, { error: "description must be at least 20 characters" });
     }
 
     log("Request", { job_id, reason_code, userId });
 
-    // Fetch job
     const { data: job, error: jobErr } = await supabase
       .from("jobs")
-      .select("id, status, client_id, provider_id, has_open_dispute")
+      .select("id, status, client_id, provider_id, has_open_dispute, title")
       .eq("id", job_id)
       .single();
 
-    if (jobErr || !job) throw new Error("Job not found");
+    if (jobErr || !job) return respond(404, { error: "Job not found" });
 
-    // Check if user is part of the job
     let role: string;
-    if (job.client_id === userId) {
-      role = "client";
-    } else if (job.provider_id === userId) {
-      role = "provider";
-    } else {
-      throw new Error("You are not part of this job");
+    if (job.client_id === userId) role = "client";
+    else if (job.provider_id === userId) role = "provider";
+    else return respond(403, { error: "You are not part of this job" });
+
+    if (!ALLOWED_STATUSES.includes(job.status)) {
+      return respond(400, { error: `Disputes can only be opened on jobs with status: ${ALLOWED_STATUSES.join(", ")}` });
     }
 
-    // Check no existing open dispute
     if (job.has_open_dispute) {
-      throw new Error("There is already an open dispute for this job");
+      return respond(400, { error: "There is already an open dispute for this job" });
     }
 
-    // Check invoice is paid and not yet released
     const { data: invoice } = await supabase
       .from("invoices")
-      .select("id, status")
+      .select("id")
       .eq("job_id", job_id)
-      .in("status", ["paid", "ready_to_release"])
+      .not("status", "eq", "cancelled")
       .maybeSingle();
 
-    if (!invoice) {
-      throw new Error("No eligible invoice found. Invoice must be paid and not yet released.");
-    }
-
-    // Insert dispute
     const { data: dispute, error: insertErr } = await supabase
       .from("disputes")
       .insert({
         job_id,
-        invoice_id: invoice.id,
+        invoice_id: invoice?.id ?? null,
         opened_by_user_id: userId,
         opened_by_role: role,
+        opened_by: role,
         reason_code,
-        reason_text: reason_text || null,
+        reason: reason_code,
+        reason_text: description,
+        description,
+        status: "open",
       })
       .select("id")
       .single();
 
     if (insertErr) throw new Error(insertErr.message);
 
-    // Update job
-    await supabase
-      .from("jobs")
-      .update({
-        has_open_dispute: true,
-        dispute_status: "open",
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", job_id);
+    await supabase.from("jobs").update({
+      has_open_dispute: true,
+      dispute_status: "open",
+      updated_at: new Date().toISOString(),
+    }).eq("id", job_id);
 
-    // Notify other party
     const otherPartyId = role === "client" ? job.provider_id : job.client_id;
     if (otherPartyId) {
       await supabase.from("notifications").insert({
         user_id: otherPartyId,
         type: "dispute_opened",
         title: "Disputa abierta",
-        message: `Se abrió una disputa para el trabajo. Razón: ${reason_code}`,
-        link: role === "client" ? "/provider-portal/jobs" : "/active-jobs",
+        message: `Se abrió una disputa en el trabajo "${job.title || job_id.slice(0, 8)}". Un administrador la revisará pronto.`,
+        link: role === "client" ? `/provider-portal/jobs/${job_id}` : `/active-jobs`,
         data: { job_id, dispute_id: dispute.id },
       });
     }
 
-    // Notify admins — find admin user IDs
+    await (supabase as any).from("admin_notifications").insert({
+      type: "dispute_opened",
+      booking_id: job_id,
+      triggered_by_user_id: userId,
+      message: `Nueva disputa abierta por ${role} en trabajo ${job_id.slice(0, 8)}. Motivo: ${reason_code}.`,
+      is_read: false,
+    });
+
     const { data: adminRoles } = await supabase
       .from("user_roles")
       .select("user_id")
       .eq("role", "admin");
 
-    if (adminRoles) {
-      for (const admin of adminRoles) {
-        await supabase.from("notifications").insert({
-          user_id: admin.user_id,
+    if (adminRoles?.length) {
+      await supabase.from("notifications").insert(
+        adminRoles.map((a: { user_id: string }) => ({
+          user_id: a.user_id,
           type: "dispute_opened",
-          title: "Nueva disputa abierta",
-          message: `Disputa en trabajo ${job_id.slice(0, 8)}. Razón: ${reason_code}`,
-          link: "/admin",
+          title: "Nueva disputa — acción requerida",
+          message: `Disputa en trabajo ${job_id.slice(0, 8)} (${role}). Motivo: ${reason_code}.`,
+          link: "/admin/console",
           data: { job_id, dispute_id: dispute.id },
-        });
-      }
+        }))
+      );
     }
 
     log("Dispute opened", { dispute_id: dispute.id, role });
 
-    return new Response(
-      JSON.stringify({ success: true, dispute_id: dispute.id }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    log("ERROR", { message: msg });
-    return new Response(
-      JSON.stringify({ error: msg }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
-    );
+    return respond(200, { success: true, dispute_id: dispute.id, role });
+  } catch (e: any) {
+    log("ERROR", { message: e.message });
+    return new Response(JSON.stringify({ error: e.message }), {
+      status: 400,
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+    });
   }
 });

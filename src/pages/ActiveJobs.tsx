@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ChevronLeft, Calendar, XCircle, Plus, MessageCircle, MapPin, Clock, AlertTriangle } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { getStatusLabel, getStatusColor, JOB_STATUS_CONFIG, CLIENT_ACTIVE_STATES } from "@/utils/jobStateMachine";
 import { InvoiceCard } from "@/components/provider-portal/InvoiceCard";
 import { JobInvoiceSection } from "@/components/JobInvoiceSection";
@@ -12,6 +13,7 @@ import { ClientQuoteReview } from "@/components/quotes/ClientQuoteReview";
 import { QuotePaymentCard } from "@/components/payments/QuotePaymentCard";
 import { ClientStatusSections } from "@/components/client/ClientStatusSections";
 import { DisputeModal } from "@/components/DisputeModal";
+import { DisputeStatusCard } from "@/components/DisputeStatusCard";
 import { JobTrackingMap } from "@/components/JobTrackingMap";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -46,6 +48,11 @@ interface ActiveJob {
   visit_confirmation_deadline: string | null;
   visit_dispute_status: string | null;
   visit_dispute_reason: string | null;
+  // Reschedule request
+  reschedule_requested_by: string | null;
+  reschedule_requested_at: string | null;
+  reschedule_proposed_datetime: string | null;
+  reschedule_agreed: boolean | null;
   // Completion handshake
   completion_status: string | null;
   completion_marked_at: string | null;
@@ -92,6 +99,9 @@ const ActiveJobs = () => {
   const [rescheduleDialogOpen, setRescheduleDialogOpen] = useState(false);
   const [ratingJob, setRatingJob] = useState<ActiveJob | null>(null);
   const [showRating, setShowRating] = useState(false);
+  const [cancelModal, setCancelModal] = useState<{ open: boolean; job: ActiveJob; isLate: boolean } | null>(null);
+  const [cancelling, setCancelling] = useState(false);
+  const [respondingReschedule, setRespondingReschedule] = useState(false);
   const { redirectToCheckout, loading: checkoutLoading } = useVisitFeeCheckout();
 
   // Handle Stripe redirect query params
@@ -267,22 +277,85 @@ const ActiveJobs = () => {
     prevJobStatusesRef.current = next;
   }, [jobs]);
 
-  const handleCancelJob = async (jobId: string) => {
-    if (!confirm("¿Estás seguro de que quieres cancelar este trabajo?")) return;
+  const handleCancelJob = (job: ActiveJob) => {
+    const isLate = job.scheduled_at
+      ? new Date(job.scheduled_at).getTime() - Date.now() < 2 * 60 * 60 * 1000
+      : false;
+    setCancelModal({ open: true, job, isLate });
+  };
 
+  const handleRescheduleResponse = async (job: ActiveJob, accept: boolean) => {
+    if (!user) return;
+    setRespondingReschedule(true);
     try {
-      const { error } = await supabase
-        .from("jobs")
-        .update({ status: "cancelled" })
-        .eq("id", jobId);
+      if (accept) {
+        await supabase.from("jobs").update({
+          scheduled_at: job.reschedule_proposed_datetime,
+          reschedule_agreed: true,
+          reschedule_requested_by: null,
+          reschedule_requested_at: null,
+          reschedule_proposed_datetime: null,
+        }).eq("id", job.id);
 
-      if (error) throw error;
+        // Notify requester (provider)
+        if (job.provider_id) {
+          await supabase.from("notifications").insert({
+            user_id: job.provider_id,
+            type: "reschedule_accepted",
+            title: "Reagendamiento aceptado",
+            message: "El cliente aceptó el nuevo horario.",
+            link: `/provider-portal/jobs/${job.id}`,
+            data: { job_id: job.id },
+          });
+        }
+        toast.success("Reagendamiento aceptado. La fecha del trabajo fue actualizada.");
+      } else {
+        await supabase.from("jobs").update({
+          reschedule_requested_by: null,
+          reschedule_requested_at: null,
+          reschedule_proposed_datetime: null,
+          reschedule_agreed: false,
+        }).eq("id", job.id);
 
-      toast.success("Trabajo cancelado exitosamente");
+        // Notify requester (provider)
+        if (job.provider_id) {
+          await supabase.from("notifications").insert({
+            user_id: job.provider_id,
+            type: "reschedule_rejected",
+            title: "Reagendamiento rechazado",
+            message: "El cliente rechazó el cambio de horario. El trabajo continúa en su fecha original.",
+            link: `/provider-portal/jobs/${job.id}`,
+            data: { job_id: job.id },
+          });
+        }
+        toast.success("Reagendamiento rechazado. El trabajo continúa en su fecha original.");
+      }
       fetchActiveJobs();
-    } catch (error) {
-      console.error("Error cancelling job:", error);
-      toast.error("Error al cancelar el trabajo");
+    } catch (err) {
+      toast.error("Error al responder la solicitud");
+    } finally {
+      setRespondingReschedule(false);
+    }
+  };
+
+  const confirmCancelJob = async () => {
+    if (!cancelModal) return;
+    setCancelling(true);
+    try {
+      const { data, error: fnErr } = await supabase.functions.invoke("cancel-job", {
+        body: { job_id: cancelModal.job.id, cancelled_by: "client" },
+      });
+      if (fnErr || data?.error) {
+        toast.error(data?.error || fnErr?.message || "Error al cancelar");
+        return;
+      }
+      toast.success("Trabajo cancelado");
+      setCancelModal(null);
+      fetchActiveJobs();
+    } catch (err: any) {
+      toast.error("Error inesperado al cancelar");
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -491,16 +564,66 @@ const ActiveJobs = () => {
           </CardContent>
         </Card>
       )}
+      {/* Reschedule pending / respond banner */}
+      {job.reschedule_requested_at && !job.reschedule_agreed && (
+        job.reschedule_requested_by === 'client' ? (
+          // Client requested — show waiting banner
+          <Card className="border-blue-500/30 bg-blue-500/5">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <Clock className="h-4 w-4 text-blue-600" />
+                <h3 className="font-semibold text-sm text-foreground">Reagendamiento pendiente</h3>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Esperando respuesta del proveedor para el{" "}
+                {job.reschedule_proposed_datetime
+                  ? new Date(job.reschedule_proposed_datetime).toLocaleString("es-MX", { dateStyle: "medium", timeStyle: "short" })
+                  : "nuevo horario propuesto"}.
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          // Provider requested — client must respond
+          <Card className="border-primary/50 bg-primary/5">
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-primary" />
+                <h3 className="font-semibold text-sm text-foreground">Solicitud de reagendamiento</h3>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Tu proveedor propuso cambiar la fecha al{" "}
+                <span className="font-medium text-foreground">
+                  {job.reschedule_proposed_datetime
+                    ? new Date(job.reschedule_proposed_datetime).toLocaleString("es-MX", { dateStyle: "long", timeStyle: "short" })
+                    : "—"}
+                </span>. ¿Aceptas el nuevo horario?
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => handleRescheduleResponse(job, true)}
+                  disabled={respondingReschedule}
+                >
+                  Aceptar reagendamiento
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => handleRescheduleResponse(job, false)}
+                  disabled={respondingReschedule}
+                >
+                  Rechazar
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )
+      )}
+
       {job.has_open_dispute && (
-        <Card className="border-destructive/50 bg-destructive/5">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-1">
-              <AlertTriangle className="h-4 w-4 text-destructive" />
-              <h3 className="font-semibold text-foreground text-sm">Disputa abierta</h3>
-            </div>
-            <p className="text-xs text-muted-foreground">El pago está congelado hasta que un administrador resuelva la disputa.</p>
-          </CardContent>
-        </Card>
+        <DisputeStatusCard jobId={job.id} role="client" onUpdate={fetchActiveJobs} />
       )}
       {job.invoice?.status === 'released' && (
         <Card className="border-emerald-500/30 bg-emerald-500/5">
@@ -589,7 +712,12 @@ const ActiveJobs = () => {
         <CardContent className="p-6">
           <h3 className="font-semibold mb-4">Acciones</h3>
           <div className="grid grid-cols-2 gap-3">
-            <Button variant="outline" onClick={() => setRescheduleDialogOpen(true)}>
+            <Button
+              variant="outline"
+              onClick={() => setRescheduleDialogOpen(true)}
+              disabled={!!(job.reschedule_requested_at && !job.reschedule_agreed)}
+              title={job.reschedule_requested_at && !job.reschedule_agreed ? "Ya hay una solicitud de reagendamiento pendiente" : undefined}
+            >
               <Calendar className="mr-2 h-4 w-4" />
               Reagendar
             </Button>
@@ -597,8 +725,7 @@ const ActiveJobs = () => {
               <Plus className="mr-2 h-4 w-4" />
               Agregar servicios
             </Button>
-            {job.invoice &&
-              ["paid", "ready_to_release"].includes(job.invoice.status) &&
+            {["cancelled", "completed", "in_progress"].includes(job.status) &&
               !job.has_open_dispute && (
                 <Button
                   variant="outline"
@@ -606,10 +733,10 @@ const ActiveJobs = () => {
                   onClick={() => setDisputeModalOpen(true)}
                 >
                   <AlertTriangle className="mr-2 h-4 w-4" />
-                  Iniciar disputa
+                  Abrir disputa
                 </Button>
               )}
-            <Button variant="destructive" className="col-span-2" onClick={() => handleCancelJob(job.id)}>
+            <Button variant="destructive" className="col-span-2" onClick={() => handleCancelJob(job)}>
               <XCircle className="mr-2 h-4 w-4" />
               Cancelar trabajo
             </Button>
@@ -855,6 +982,50 @@ const ActiveJobs = () => {
           />
         </>
       )}
+      {/* ── Cancel modals ──────────────────────────────────────────────────────── */}
+      {cancelModal?.isLate ? (
+        <Dialog open={cancelModal.open} onOpenChange={(open) => !open && setCancelModal(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Cancelación tardía</DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-muted-foreground">
+              Faltan menos de 2 horas para tu visita. Si cancelas ahora se te cobrará una penalización de{" "}
+              <span className="font-semibold text-foreground">$200 MXN</span> y recibirás un reembolso de{" "}
+              <span className="font-semibold text-foreground">$206 MXN</span>. Tu cuenta recibirá una advertencia.
+            </p>
+            <DialogFooter className="flex-col sm:flex-row gap-2 mt-2">
+              <Button variant="outline" className="flex-1" onClick={() => setCancelModal(null)} disabled={cancelling}>
+                No, mantener cita
+              </Button>
+              <Button variant="destructive" className="flex-1" onClick={confirmCancelJob} disabled={cancelling}>
+                {cancelling ? "Cancelando..." : "Sí, cancelar"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      ) : cancelModal ? (
+        <Dialog open={cancelModal.open} onOpenChange={(open) => !open && setCancelModal(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Cancelar trabajo</DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-muted-foreground">
+              ¿Estás seguro que deseas cancelar? Recibirás un reembolso completo de{" "}
+              <span className="font-semibold text-foreground">$406 MXN</span>.
+            </p>
+            <DialogFooter className="flex-col sm:flex-row gap-2 mt-2">
+              <Button variant="outline" className="flex-1" onClick={() => setCancelModal(null)} disabled={cancelling}>
+                No, regresar
+              </Button>
+              <Button variant="destructive" className="flex-1" onClick={confirmCancelJob} disabled={cancelling}>
+                {cancelling ? "Cancelando..." : "Sí, cancelar"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      ) : null}
+
       {showRating && ratingJob && ratingJob.provider_id && (
         <RatingDialog
           jobId={ratingJob.id}

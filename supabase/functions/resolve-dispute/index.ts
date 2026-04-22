@@ -1,288 +1,174 @@
+import { getCorsHeaders } from "../_shared/cors.ts";
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
 
 const log = (step: string, details?: Record<string, unknown>) => {
   console.log(`[RESOLVE-DISPUTE] ${step}${details ? ` - ${JSON.stringify(details)}` : ""}`);
 };
 
+const ADMIN_ID = "30c2aa13-4338-44ca-8c74-d60421ed9bfc";
+
+const RULING_LABELS: Record<string, { client: string; provider: string }> = {
+  client_wins: {
+    client: "El administrador resolvió a tu favor. Recibirás un reembolso completo.",
+    provider: "El administrador resolvió a favor del cliente. No se procesará pago.",
+  },
+  provider_wins: {
+    client: "El administrador resolvió a favor del proveedor. No se procesará reembolso.",
+    provider: "El administrador resolvió a tu favor. Recibirás el pago completo.",
+  },
+  split: {
+    client: "El administrador resolvió con división de fondos. Recibirás un reembolso parcial.",
+    provider: "El administrador resolvió con división de fondos. Recibirás un pago parcial.",
+  },
+};
+
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsHeaders = getCorsHeaders(req);
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  const respond = (status: number, data: Record<string, unknown>) =>
+    new Response(JSON.stringify(data), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   try {
-    log("Function started");
-
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Authenticate caller
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header");
+    if (!authHeader) return respond(401, { error: "No authorization header" });
     const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: userError } = await supabase.auth.getUser(token);
-    if (userError || !userData.user) throw new Error("Authentication failed");
+    const { data: userData, error: userErr } = await supabase.auth.getUser(token);
+    if (userErr || !userData.user) return respond(401, { error: "Authentication failed" });
+    if (userData.user.id !== ADMIN_ID) return respond(403, { error: "Admin only" });
 
-    const adminId = userData.user.id;
-
-    // Verify admin role
-    const { data: isAdmin } = await supabase.rpc("is_admin", { _user_id: adminId });
-    if (!isAdmin) throw new Error("Admin access required");
-
-    const { dispute_id, resolution_action, resolution_notes } = await req.json();
-
-    if (!dispute_id) throw new Error("dispute_id is required");
-    if (!resolution_action || !["release", "refund", "cancel"].includes(resolution_action)) {
-      throw new Error("resolution_action must be 'release', 'refund', or 'cancel'");
+    const { dispute_id, admin_ruling, split_percentage_client, admin_notes } = await req.json();
+    if (!dispute_id || !admin_ruling) return respond(400, { error: "dispute_id and admin_ruling are required" });
+    if (!["client_wins", "provider_wins", "split"].includes(admin_ruling)) {
+      return respond(400, { error: "admin_ruling must be client_wins, provider_wins, or split" });
+    }
+    if (admin_ruling === "split" && (split_percentage_client == null || split_percentage_client < 0 || split_percentage_client > 100)) {
+      return respond(400, { error: "split_percentage_client must be 0–100 for split ruling" });
     }
 
-    log("Request", { dispute_id, resolution_action, adminId });
-
-    // Fetch dispute
-    const { data: dispute, error: disputeErr } = await supabase
+    const { data: dispute } = await (supabase as any)
       .from("disputes")
       .select("*")
       .eq("id", dispute_id)
       .single();
 
-    if (disputeErr || !dispute) throw new Error("Dispute not found");
-    if (dispute.status !== "open") throw new Error("Dispute is not open");
+    if (!dispute) return respond(404, { error: "Dispute not found" });
 
-    // Fetch job
     const { data: job } = await supabase
       .from("jobs")
-      .select("id, client_id, provider_id")
+      .select("id, client_id, provider_id, title")
       .eq("id", dispute.job_id)
       .single();
 
-    if (!job) throw new Error("Job not found");
+    if (!job) return respond(404, { error: "Job not found" });
 
-    // Fetch invoice only if dispute has one
-    let invoice: { id: string; subtotal_provider: number; status: string; stripe_payment_intent_id: string | null } | null = null;
-    if (dispute.invoice_id) {
-      const { data: inv } = await supabase
-        .from("invoices")
-        .select("id, subtotal_provider, status, stripe_payment_intent_id")
-        .eq("id", dispute.invoice_id)
-        .single();
-      invoice = inv;
-    }
+    log("Resolving", { dispute_id, admin_ruling, job_id: dispute.job_id });
 
-    const now = new Date().toISOString();
-    let disputeStatus: string;
+    // ── Stripe actions (best-effort) ───────────────────────────────────────────
+    const stripeErrors: string[] = [];
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
 
-    if (resolution_action === "release") {
-      if (!invoice) throw new Error("Cannot release: no invoice associated with this dispute");
-      disputeStatus = "resolved_release";
+    if (stripeKey && dispute.invoice_id) {
+      try {
+        const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
-      // Perform escrow release (same logic as complete-job)
-      await performEscrowRelease(supabase, job.id, job.provider_id!, invoice);
-
-      log("Escrow released via dispute resolution");
-
-    } else if (resolution_action === "refund") {
-      disputeStatus = "resolved_refund";
-
-      // Find the payment intent to refund
-      let paymentIntentId = invoice?.stripe_payment_intent_id || null;
-
-      if (!paymentIntentId) {
-        // Look in payments ledger for any succeeded payment on this job
-        const { data: payment } = await supabase
+        const { data: invoicePayment } = await supabase
           .from("payments")
-          .select("stripe_payment_intent_id, stripe_checkout_session_id")
-          .eq("job_id", job.id)
-          .in("type", ["job_invoice", "visit_fee", "visit_fee_authorization"])
+          .select("stripe_payment_intent_id, total_amount_cents, amount")
+          .eq("job_id", dispute.job_id)
+          .in("type", ["invoice_payment", "invoice", "checkout"])
           .eq("status", "succeeded")
-          .order("created_at", { ascending: false })
-          .limit(1)
           .maybeSingle();
 
-        if (payment?.stripe_payment_intent_id) {
-          paymentIntentId = payment.stripe_payment_intent_id;
-        } else if (payment?.stripe_checkout_session_id) {
-          const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-          if (stripeKey) {
-            const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
-            const session = await stripe.checkout.sessions.retrieve(payment.stripe_checkout_session_id);
-            paymentIntentId = session.payment_intent as string;
+        if (invoicePayment?.stripe_payment_intent_id) {
+          const pi = await stripe.paymentIntents.retrieve(invoicePayment.stripe_payment_intent_id);
+          const totalCents = invoicePayment.total_amount_cents || Math.round((invoicePayment.amount || 0) * 100);
+
+          if (admin_ruling === "client_wins" && pi.latest_charge) {
+            await stripe.refunds.create({ charge: pi.latest_charge as string });
+            log("Full refund issued to client");
+
+          } else if (admin_ruling === "provider_wins") {
+            const { data: provider } = await supabase
+              .from("providers").select("stripe_account_id, stripe_payouts_enabled").eq("user_id", job.provider_id).maybeSingle();
+            if (provider?.stripe_account_id && provider.stripe_payouts_enabled) {
+              await stripe.transfers.create({
+                amount: totalCents, currency: "mxn", destination: provider.stripe_account_id,
+                metadata: { dispute_id, ruling: admin_ruling },
+              });
+              log("Full payout to provider");
+            } else stripeErrors.push("Provider not payout-enabled");
+
+          } else if (admin_ruling === "split") {
+            const clientCents = Math.round(totalCents * (split_percentage_client / 100));
+            const providerCents = totalCents - clientCents;
+            if (clientCents > 0 && pi.latest_charge) {
+              await stripe.refunds.create({ charge: pi.latest_charge as string, amount: clientCents });
+            }
+            if (providerCents > 0) {
+              const { data: provider } = await supabase
+                .from("providers").select("stripe_account_id, stripe_payouts_enabled").eq("user_id", job.provider_id).maybeSingle();
+              if (provider?.stripe_account_id && provider.stripe_payouts_enabled) {
+                await stripe.transfers.create({
+                  amount: providerCents, currency: "mxn", destination: provider.stripe_account_id,
+                  metadata: { dispute_id, ruling: admin_ruling, split_pct: split_percentage_client },
+                });
+              } else stripeErrors.push("Provider not payout-enabled for split payout");
+            }
           }
+        } else {
+          stripeErrors.push("No invoice payment record found — manual Stripe action needed");
         }
+      } catch (stripeErr: any) {
+        log("Stripe error (non-fatal)", { error: stripeErr.message });
+        stripeErrors.push(stripeErr.message);
       }
-
-      if (!paymentIntentId) {
-        // No payments found — just close the dispute without refunding
-        log("No payments found to refund, closing dispute as cancelled instead");
-        disputeStatus = "resolved_cancelled";
-      } else {
-        // Create Stripe refund
-        const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-        if (!stripeKey) throw new Error("STRIPE_SECRET_KEY not configured");
-
-        const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
-        const refund = await stripe.refunds.create({
-          payment_intent: paymentIntentId,
-        });
-
-        log("Stripe refund created", { refundId: refund.id });
-
-        // Update invoice if exists
-        if (invoice) {
-          await supabase
-            .from("invoices")
-            .update({ status: "refunded", updated_at: now })
-            .eq("id", invoice.id);
-        }
-
-        // Update payments ledger
-        await supabase
-          .from("payments")
-          .update({ status: "refunded" })
-          .eq("stripe_payment_intent_id", paymentIntentId);
-      }
-
-    } else {
-      // cancel — close dispute, allow normal flow
-      disputeStatus = "resolved_cancelled";
     }
 
-    // Update dispute
-    await supabase
-      .from("disputes")
-      .update({
-        status: disputeStatus,
-        resolution_notes: resolution_notes || null,
-        resolved_by_admin_id: adminId,
-        resolved_at: now,
-      })
-      .eq("id", dispute_id);
+    // ── DB updates ─────────────────────────────────────────────────────────────
+    await (supabase as any).from("disputes").update({
+      admin_ruling,
+      split_percentage_client: admin_ruling === "split" ? split_percentage_client : null,
+      admin_notes: admin_notes || null,
+      status: "resolved",
+      resolved_at: new Date().toISOString(),
+      resolved_by_admin_id: ADMIN_ID,
+      resolution_notes: admin_notes || null,
+    }).eq("id", dispute_id);
 
-    // Update job
-    await supabase
-      .from("jobs")
-      .update({
-        has_open_dispute: false,
-        dispute_status: disputeStatus,
-        updated_at: now,
-      })
-      .eq("id", job.id);
+    await supabase.from("jobs").update({
+      has_open_dispute: false,
+      dispute_status: "resolved",
+      updated_at: new Date().toISOString(),
+    }).eq("id", dispute.job_id);
 
-    // Notify both parties
-    const outcomeLabels: Record<string, string> = {
-      resolved_release: "Pago liberado al proveedor",
-      resolved_refund: "Reembolso procesado al cliente",
-      resolved_cancelled: "Disputa cerrada sin acción",
-    };
-    const outcomeMsg = outcomeLabels[disputeStatus] || "Disputa resuelta";
+    // ── Notify both parties ────────────────────────────────────────────────────
+    const labels = RULING_LABELS[admin_ruling];
+    const short = dispute_id.slice(0, 8);
+    const notifs = [
+      { user_id: job.client_id, type: "dispute_resolved", title: `Disputa #${short} resuelta`, message: labels.client, link: `/active-jobs`, data: { dispute_id } },
+      ...(job.provider_id ? [{
+        user_id: job.provider_id, type: "dispute_resolved", title: `Disputa #${short} resuelta`,
+        message: labels.provider, link: `/provider-portal/jobs/${dispute.job_id}`, data: { dispute_id },
+      }] : []),
+    ];
+    await supabase.from("notifications").insert(notifs);
 
-    for (const uid of [job.client_id, job.provider_id].filter(Boolean)) {
-      await supabase.from("notifications").insert({
-        user_id: uid!,
-        type: "dispute_resolved",
-        title: "Disputa resuelta",
-        message: outcomeMsg,
-        link: uid === job.client_id ? "/active-jobs" : "/provider-portal/jobs",
-        data: { job_id: job.id, dispute_id, resolution: disputeStatus },
-      });
-    }
+    log("Resolved", { dispute_id, admin_ruling, stripeErrors });
 
-    log("Dispute resolved", { dispute_id, disputeStatus });
-
-    return new Response(
-      JSON.stringify({ success: true, status: disputeStatus }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    log("ERROR", { message: msg });
-    return new Response(
-      JSON.stringify({ error: msg }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
-    );
+    return respond(200, { success: true, dispute_id, admin_ruling, stripe_errors: stripeErrors });
+  } catch (e: any) {
+    log("ERROR", { message: e.message });
+    return new Response(JSON.stringify({ error: e.message }), {
+      status: 500,
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+    });
   }
 });
-
-async function performEscrowRelease(
-  supabase: ReturnType<typeof createClient>,
-  jobId: string,
-  providerId: string,
-  invoice: { id: string; subtotal_provider: number; status: string }
-) {
-  const { data: provider } = await supabase
-    .from("providers")
-    .select("stripe_account_id, stripe_onboarding_status")
-    .eq("user_id", providerId)
-    .single();
-
-  if (!provider?.stripe_account_id || provider.stripe_onboarding_status !== "enabled") {
-    await supabase
-      .from("invoices")
-      .update({ status: "ready_to_release", updated_at: new Date().toISOString() })
-      .eq("id", invoice.id);
-    return;
-  }
-
-  const { data: payout } = await supabase
-    .from("payouts")
-    .insert({
-      invoice_id: invoice.id,
-      provider_id: providerId,
-      amount: invoice.subtotal_provider,
-      status: "pending",
-    })
-    .select("id")
-    .single();
-
-  if (!payout) return;
-
-  const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-  if (!stripeKey) return;
-
-  const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
-  const amountCentavos = Math.round(invoice.provider_payout_amount * 100);
-
-  const transfer = await stripe.transfers.create({
-    amount: amountCentavos,
-    currency: "mxn",
-    destination: provider.stripe_account_id,
-    metadata: { payout_id: payout.id, job_id: jobId, provider_id: providerId },
-  });
-
-  await supabase
-    .from("payouts")
-    .update({ stripe_transfer_id: transfer.id, status: "paid", paid_at: new Date().toISOString() })
-    .eq("id", payout.id);
-
-  await supabase
-    .from("invoices")
-    .update({ status: "released", updated_at: new Date().toISOString() })
-    .eq("id", invoice.id);
-
-  // Update job to completed
-  await supabase
-    .from("jobs")
-    .update({
-      status: "completed",
-      completion_status: "completed",
-      completion_confirmed_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", jobId);
-
-  await supabase.from("notifications").insert({
-    user_id: providerId,
-    type: "payout_released",
-    title: "¡Pago liberado!",
-    message: `Se depositaron $${invoice.subtotal_provider} MXN a tu cuenta (disputa resuelta).`,
-    link: "/provider-portal/account",
-    data: { job_id: jobId, payout_id: payout.id },
-  });
-}

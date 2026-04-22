@@ -86,6 +86,7 @@ const AdminPayoutDetailPage = lazy(() => import("./pages/admin/AdminPayoutDetail
 const AdminSupportInbox = lazy(() => import("./pages/admin/AdminSupportInbox"));
 const AdminDisputesPage = lazy(() => import("./pages/admin/AdminDisputesPage"));
 const AdminProvidersPage = lazy(() => import("./pages/admin/AdminProvidersPage"));
+const AdminConsolePage = lazy(() => import("./pages/admin/AdminConsolePage"));
 const VisitFeePaymentPage = lazy(() => import("./pages/VisitFeePaymentPage"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
@@ -457,6 +458,16 @@ const App = () => {
             element={
               <ProtectedRoute requireAdmin>
                 <AdminProvidersPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Admin Conflict Resolution Console */}
+          <Route
+            path="/admin/console"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AdminConsolePage />
               </ProtectedRoute>
             }
           />
