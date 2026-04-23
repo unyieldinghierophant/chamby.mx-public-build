@@ -1,75 +1,226 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useProfile } from "@/hooks/useProfile";
-import { useScrollParallax } from "@/hooks/useScrollParallax";
-import Footer from "@/components/Footer";
+import { supabase } from "@/integrations/supabase/client";
 import MobileBottomNav from "@/components/MobileBottomNav";
-import InteractiveHeroBackground from "@/components/provider-portal/InteractiveHeroBackground";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { TrendingUp, LogOut, User, Settings, CreditCard, Shield, LayoutDashboard, Plus, CheckCircle } from "lucide-react";
-import { 
-  Accordion, 
-  AccordionContent, 
-  AccordionItem, 
-  AccordionTrigger 
-} from "@/components/ui/accordion";
-import { ROUTES } from "@/constants/routes";
-import { startBooking } from "@/lib/booking";
-import { CatalogSearchBar } from "@/components/CatalogSearchBar";
 import ChambyLogoText from "@/components/ChambyLogoText";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { CategoryTabs } from "@/components/CategoryTabs";
-import { SearchingJobBanner } from "@/components/SearchingJobBanner";
-import { ClientActiveJobBanner } from "@/components/ClientActiveJobBanner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import {
+  Search,
+  ChevronRight,
+  LogOut,
+  User,
+  Settings,
+  CreditCard,
+  Shield,
+  LayoutDashboard,
+  TrendingUp,
+  ShieldCheck,
+  Sparkles,
+  Star,
+} from "lucide-react";
 import { FullPageSkeleton } from "@/components/skeletons";
-const faqs = [
-  {
-    question: "¿Cómo funciona Chamby?",
-    answer: "Chamby te conecta con profesionales verificados para todo tipo de servicios del hogar. Simplemente describe lo que necesitas, recibe cotizaciones y elige al mejor proveedor."
-  },
-  {
-    question: "¿Cómo se garantiza la calidad del servicio?",
-    answer: "Todos nuestros proveedores pasan por un proceso de verificación. Además, puedes ver las reseñas y calificaciones de otros usuarios antes de contratar."
-  },
-  {
-    question: "¿Cuáles son los métodos de pago aceptados?",
-    answer: "Aceptamos tarjetas de crédito, débito y otros métodos de pago electrónico para tu comodidad y seguridad."
-  },
-  {
-    question: "¿Qué pasa si no estoy satisfecho con el servicio?",
-    answer: "Tu satisfacción es nuestra prioridad. Si tienes algún problema, nuestro equipo de soporte está disponible para ayudarte a resolverlo."
-  }
-];
+import { ROUTES } from "@/constants/routes";
+import { CLIENT_ACTIVE_STATES } from "@/utils/jobStateMachine";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+
+import categoryHandyman from "@/assets/category-handyman.webp";
+import categoryElectrician from "@/assets/category-electrician.webp";
+import categoryPlumbing from "@/assets/category-plumbing.webp";
+import categoryAuto from "@/assets/category-auto.webp";
+import categoryCleaning from "@/assets/category-cleaning.webp";
+import categoryGardening from "@/assets/category-gardening.webp";
+import categoryAC from "@/assets/category-ac.webp";
+import categoryAlbanileria from "@/assets/category-albanileria.webp";
+import categoryPintura from "@/assets/category-pintura.webp";
+import categoryElectrodomesticos from "@/assets/category-electrodomesticos.webp";
+
+const BRAND = {
+  primary: "#1456DB",
+  primaryDark: "#0F47B8",
+  accent: "#E86C25",
+  bg: "#F7F7F5",
+  card: "#FFFFFF",
+  border: "#EEEDE9",
+  text: "#1A1A18",
+  textMuted: "#6B6A66",
+  textSubtle: "#9C9B97",
+  green: "#16A34A",
+  amber: "#D97706",
+  red: "#DC2626",
+};
+
+const HERO_CATEGORIES = [
+  { slug: "plomeria", label: "Fontanería", icon: categoryPlumbing, serviceSlug: "plomeria-reparacion" },
+  { slug: "electricidad", label: "Electricidad", icon: categoryElectrician, serviceSlug: "electricidad-general" },
+  { slug: "limpieza", label: "Limpieza", icon: categoryCleaning, serviceSlug: "limpieza-hogar" },
+  { slug: "jardineria", label: "Jardinería", icon: categoryGardening, serviceSlug: "jardineria-mantenimiento" },
+] as const;
+
+const ALL_CATEGORIES = [
+  { slug: "plomeria", label: "Fontanería", icon: categoryPlumbing },
+  { slug: "electricidad", label: "Electricidad", icon: categoryElectrician },
+  { slug: "general", label: "Arreglos", icon: categoryHandyman },
+  { slug: "limpieza", label: "Limpieza", icon: categoryCleaning },
+  { slug: "jardineria", label: "Jardinería", icon: categoryGardening },
+  { slug: "pintura", label: "Pintura", icon: categoryPintura },
+  { slug: "albanileria", label: "Albañilería", icon: categoryAlbanileria },
+  { slug: "aire-acondicionado", label: "A/C", icon: categoryAC },
+  { slug: "electrodomesticos", label: "Electrodom.", icon: categoryElectrodomesticos },
+  { slug: "auto", label: "Automotriz", icon: categoryAuto },
+] as const;
+
+const RECOMMENDED = [
+  { slug: "limpieza", label: "Limpieza profunda", subtitle: "Casas y departamentos", icon: categoryCleaning },
+  { slug: "electricidad", label: "Revisión eléctrica", subtitle: "Diagnóstico completo", icon: categoryElectrician },
+  { slug: "plomeria", label: "Fugas y drenajes", subtitle: "Reparación urgente", icon: categoryPlumbing },
+] as const;
+
+interface ActiveJob {
+  id: string;
+  title: string;
+  status: string;
+  scheduled_at: string | null;
+  provider_name: string | null;
+}
+
+interface LastJob {
+  id: string;
+  title: string;
+  completed_at: string | null;
+  provider_name: string | null;
+  category: string | null;
+}
 
 const UserLanding = () => {
-  const {
-    user,
-    loading: authLoading,
-    signOut
-  } = useAuth();
-  const {
-    role,
-    isAdmin,
-    loading: roleLoading
-  } = useUserRole();
-  const {
-    profile
-  } = useProfile();
+  const { user, loading: authLoading, signOut } = useAuth();
+  const { role, isAdmin, loading: roleLoading } = useUserRole();
+  const { profile } = useProfile();
   const navigate = useNavigate();
+
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [ctaPulse, setCtaPulse] = useState(false);
-  
-  const { scrollY, parallaxOffset, dotOpacity, cardOpacity, mapOpacity, heroOpacity } = useScrollParallax(500);
-  
-  const handleJobCardVisible = useCallback((visible: boolean) => {
-    setCtaPulse(visible);
-  }, []);
-  
+  const [searchText, setSearchText] = useState("");
+  const [activeJob, setActiveJob] = useState<ActiveJob | null>(null);
+  const [lastJob, setLastJob] = useState<LastJob | null>(null);
+
+  useEffect(() => {
+    if (!authLoading && !user) navigate("/", { replace: true });
+  }, [user, authLoading, navigate]);
+
+  useEffect(() => {
+    if (!roleLoading && role === "provider") navigate("/provider-portal", { replace: true });
+  }, [role, roleLoading, navigate]);
+
+  // Safety-net: return-from-auth during booking flow
+  useEffect(() => {
+    const ret = localStorage.getItem("booking_auth_return");
+    const checkoutPath = localStorage.getItem("booking_checkout_path");
+    if (ret === "true") navigate(checkoutPath || "/book-job?checkout=1", { replace: true });
+  }, [navigate]);
+
+  // Active job + last completed job
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+
+    const fetchJobs = async () => {
+      // Active
+      const { data: active } = await supabase
+        .from("jobs")
+        .select("id, title, status, scheduled_at, provider_id")
+        .eq("client_id", user.id)
+        .in("status", CLIENT_ACTIVE_STATES as unknown as string[])
+        .neq("status", "cancelled")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!cancelled) {
+        if (active) {
+          let providerName: string | null = null;
+          if (active.provider_id) {
+            const { data: p } = await supabase
+              .from("users")
+              .select("full_name")
+              .eq("id", active.provider_id)
+              .maybeSingle();
+            providerName = p?.full_name ?? null;
+          }
+          setActiveJob({
+            id: active.id,
+            title: active.title,
+            status: active.status,
+            scheduled_at: active.scheduled_at,
+            provider_name: providerName,
+          });
+        } else {
+          setActiveJob(null);
+        }
+      }
+
+      // Last completed
+      const { data: last } = await supabase
+        .from("jobs")
+        .select("id, title, updated_at, provider_id, category")
+        .eq("client_id", user.id)
+        .eq("status", "completed")
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!cancelled) {
+        if (last) {
+          let providerName: string | null = null;
+          if (last.provider_id) {
+            const { data: p } = await supabase
+              .from("users")
+              .select("full_name")
+              .eq("id", last.provider_id)
+              .maybeSingle();
+            providerName = p?.full_name ?? null;
+          }
+          setLastJob({
+            id: last.id,
+            title: last.title,
+            completed_at: last.updated_at,
+            provider_name: providerName,
+            category: last.category ?? null,
+          });
+        } else {
+          setLastJob(null);
+        }
+      }
+    };
+
+    fetchJobs();
+
+    const channel = supabase
+      .channel("user-landing-jobs")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "jobs", filter: `client_id=eq.${user.id}` },
+        () => fetchJobs()
+      )
+      .subscribe();
+
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
   const handleSignOut = async () => {
     setIsLoggingOut(true);
     await signOut();
@@ -77,320 +228,352 @@ const UserLanding = () => {
     navigate("/");
   };
 
-  // Redirect non-authenticated users to public landing
-  useEffect(() => {
-    if (!authLoading && !user) {
-      navigate("/", {
-        replace: true
-      });
-    }
-  }, [user, authLoading, navigate]);
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = searchText.trim();
+    if (!q) return;
+    navigate(`/book-job?intent=${encodeURIComponent(q)}&source=home_search&new=${Date.now()}`);
+  };
 
-  // Redirect providers to provider portal
-  useEffect(() => {
-    if (!roleLoading && role === "provider") {
-      navigate("/provider-portal", {
-        replace: true
-      });
-    }
-  }, [role, roleLoading, navigate]);
+  const goToCategory = (slug: string) => {
+    navigate(`/book-job?category=${slug}&source=home_category&new=${Date.now()}`);
+  };
 
-  // Safety-net: if auth returned here from a booking flow, redirect to checkout
-  useEffect(() => {
-    const bookingAuthReturn = localStorage.getItem('booking_auth_return');
-    const checkoutPath = localStorage.getItem('booking_checkout_path');
-    if (bookingAuthReturn === 'true') {
-      navigate(checkoutPath || '/book-job?checkout=1', { replace: true });
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  if (authLoading || roleLoading) return <FullPageSkeleton />;
+  if (!user) return null;
 
-  if (authLoading || roleLoading) {
-    return <FullPageSkeleton />;
-  }
-  if (!user) {
-    return null;
-  }
-  return <div className="min-h-screen bg-gradient-subtle">
-      {/* Simple Header matching home page */}
-      <header className="fixed top-0 left-0 right-0 bg-background border-b border-border z-50">
-        <div className="relative flex h-16 md:h-20 w-full items-center px-4 md:px-8">
-          {/* Logo - centered on mobile, left-aligned on desktop */}
-          <div className="absolute left-1/2 -translate-x-[calc(50%+10px)] md:static md:translate-x-0 flex items-center">
-            <ChambyLogoText onClick={() => navigate('/user-landing')} size="lg" />
-          </div>
+  const firstName = profile?.full_name?.split(" ")[0] ?? "";
+  const initial = (profile?.full_name || user.email || "U").charAt(0).toUpperCase();
 
-          {/* Right */}
-          <div className="ml-auto flex items-center">
-          
-          {/* Desktop Profile Menu */}
-          <div className="hidden md:block">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={user?.user_metadata?.avatar_url} />
-                    <AvatarFallback>
-                      {(profile?.full_name || user?.email || "U").charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      {profile?.full_name || "Usuario"}
+  return (
+    <div className="min-h-screen font-jakarta" style={{ background: BRAND.bg, color: BRAND.text }}>
+      <div className="mx-auto w-full max-w-[500px] pb-28">
+        {/* ── 1. Sticky header ───────────────────────────────── */}
+        <header
+          className="sticky top-0 z-40 flex items-center justify-between px-5 py-3.5"
+          style={{ background: BRAND.bg, borderBottom: `1px solid ${BRAND.border}` }}
+        >
+          <ChambyLogoText onClick={() => navigate(ROUTES.DASHBOARD_USER)} size="md" />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="relative h-10 w-10 rounded-full focus:outline-none">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={user?.user_metadata?.avatar_url} />
+                  <AvatarFallback
+                    className="text-sm font-semibold"
+                    style={{ background: BRAND.primary, color: "#fff" }}
+                  >
+                    {initial}
+                  </AvatarFallback>
+                </Avatar>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56 font-jakarta" align="end">
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-semibold leading-none">{profile?.full_name || "Usuario"}</p>
+                  <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate(ROUTES.PROFILE)}>
+                <User className="mr-2 h-4 w-4" /> Perfil
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate(ROUTES.PROFILE_SETTINGS)}>
+                <Settings className="mr-2 h-4 w-4" /> Configuración
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/profile/payment-settings")}>
+                <CreditCard className="mr-2 h-4 w-4" /> Pagos
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate(ROUTES.PROFILE_SECURITY)}>
+                <Shield className="mr-2 h-4 w-4" /> Seguridad
+              </DropdownMenuItem>
+              {role === "provider" && (
+                <DropdownMenuItem onClick={() => navigate(ROUTES.PROVIDER_PORTAL)}>
+                  <TrendingUp className="mr-2 h-4 w-4" /> Portal de Proveedores
+                </DropdownMenuItem>
+              )}
+              {isAdmin && (
+                <DropdownMenuItem onClick={() => navigate("/admin")}>
+                  <LayoutDashboard className="mr-2 h-4 w-4" /> Admin
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleSignOut} disabled={isLoggingOut}>
+                <LogOut className="mr-2 h-4 w-4" />
+                {isLoggingOut ? "Saliendo…" : "Cerrar sesión"}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </header>
+
+        <main className="px-5 pt-5 space-y-7">
+          {/* ── 2. Greeting + search ─────────────────────────── */}
+          <section className="space-y-3 animate-fade-in">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.14em] font-semibold" style={{ color: BRAND.textSubtle }}>
+                ¡Hola{firstName ? `, ${firstName}` : ""}!
+              </p>
+              <h1 className="text-[26px] font-bold leading-tight mt-1" style={{ color: BRAND.text }}>
+                ¿Qué necesitas hoy?
+              </h1>
+            </div>
+            <form onSubmit={handleSearch} className="relative">
+              <Search
+                className="absolute left-4 top-1/2 -translate-y-1/2 h-[18px] w-[18px]"
+                style={{ color: BRAND.textMuted }}
+              />
+              <input
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                placeholder="Buscar un servicio…"
+                className="w-full rounded-[16px] py-3.5 pl-12 pr-4 text-[15px] outline-none transition-colors focus:border-[color:var(--brand-primary)]"
+                style={{
+                  background: BRAND.card,
+                  border: `1.5px solid ${BRAND.border}`,
+                  color: BRAND.text,
+                  ["--brand-primary" as string]: BRAND.primary,
+                }}
+              />
+            </form>
+          </section>
+
+          {/* ── 3. Hero category cards (2-col) ────────────────── */}
+          <section className="animate-fade-in" style={{ animationDelay: "60ms" }}>
+            <SectionHeading title="Categorías populares" />
+            <div className="grid grid-cols-2 gap-3 mt-3">
+              {HERO_CATEGORIES.map((c) => (
+                <button
+                  key={c.slug}
+                  onClick={() => goToCategory(c.slug)}
+                  className="group relative overflow-hidden rounded-[18px] p-4 text-left transition-all active:scale-[0.98]"
+                  style={{
+                    background: BRAND.card,
+                    border: `1.5px solid ${BRAND.border}`,
+                    minHeight: 132,
+                  }}
+                >
+                  <img
+                    src={c.icon}
+                    alt={c.label}
+                    className="absolute -right-2 -bottom-2 w-[92px] h-[92px] object-contain transition-transform group-hover:scale-110"
+                    style={{ imageRendering: "auto" }}
+                  />
+                  <div className="relative z-10">
+                    <p className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: BRAND.textMuted }}>
+                      Servicio
                     </p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {user?.email}
+                    <p className="text-[17px] font-bold mt-1 leading-snug" style={{ color: BRAND.text }}>
+                      {c.label}
                     </p>
                   </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate("/profile")}>
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Perfil</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/profile/settings")}>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Configuración</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/profile/payment-settings")}>
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  <span>Pagos</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/profile/security")}>
-                  <Shield className="mr-2 h-4 w-4" />
-                  <span>Seguridad</span>
-                </DropdownMenuItem>
-                {role === 'provider' && (
-                  <DropdownMenuItem onClick={() => navigate("/provider-portal")}>
-                    <TrendingUp className="mr-2 h-4 w-4" />
-                    <span>Portal de Proveedores</span>
-                  </DropdownMenuItem>
-                )}
-                {isAdmin && (
-                  <DropdownMenuItem onClick={() => navigate("/admin")}>
-                    <LayoutDashboard className="mr-2 h-4 w-4" />
-                    <span>Admin Dashboard</span>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} disabled={isLoggingOut}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>{isLoggingOut ? 'Saliendo...' : 'Cerrar Sesión'}</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+                </button>
+              ))}
+            </div>
+          </section>
 
-          {/* Mobile Profile Avatar */}
-          <div className="md:hidden">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={user?.user_metadata?.avatar_url} />
-                    <AvatarFallback>
-                      {(profile?.full_name || user?.email || "U").charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      {profile?.full_name || "Usuario"}
-                    </p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {user?.email}
-                    </p>
+          {/* ── 4. Horizontal categories scroll ──────────────── */}
+          <section className="animate-fade-in" style={{ animationDelay: "120ms" }}>
+            <SectionHeading title="Todas las categorías" action={{ label: "Ver todas", onClick: () => navigate("/book-job") }} />
+            <div className="-mx-5 px-5 mt-3 flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+              {ALL_CATEGORIES.map((c) => (
+                <button
+                  key={c.slug}
+                  onClick={() => goToCategory(c.slug)}
+                  className="flex flex-col items-center gap-2 flex-shrink-0 rounded-2xl px-3 py-3 transition-all active:scale-95"
+                  style={{
+                    background: BRAND.card,
+                    border: `1.5px solid ${BRAND.border}`,
+                    minWidth: 88,
+                  }}
+                >
+                  <div className="w-12 h-12 flex items-center justify-center">
+                    <img src={c.icon} alt={c.label} className="w-12 h-12 object-contain" style={{ transform: "scale(1.7)" }} />
                   </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate("/profile")}>
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Perfil</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/profile/settings")}>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Configuración</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/profile/payment-settings")}>
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  <span>Pagos</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/profile/security")}>
-                  <Shield className="mr-2 h-4 w-4" />
-                  <span>Seguridad</span>
-                </DropdownMenuItem>
-                {role === 'provider' && (
-                  <DropdownMenuItem onClick={() => navigate("/provider-portal")}>
-                    <TrendingUp className="mr-2 h-4 w-4" />
-                    <span>Portal de Proveedores</span>
-                  </DropdownMenuItem>
-                )}
-                {isAdmin && (
-                  <DropdownMenuItem onClick={() => navigate("/admin")}>
-                    <LayoutDashboard className="mr-2 h-4 w-4" />
-                    <span>Admin Dashboard</span>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} disabled={isLoggingOut}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>{isLoggingOut ? 'Saliendo...' : 'Cerrar Sesión'}</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Active Job Banner - in flow, below header */}
-      <div className="fixed top-[4.5rem] md:top-[5.5rem] left-0 right-0 px-4 space-y-2 z-40 pointer-events-none [&>*]:pointer-events-auto">
-        <ClientActiveJobBanner />
-        <SearchingJobBanner />
-      </div>
-      
-      {/* Hero Section with Interactive Background - matching Provider Landing */}
-      <section className="relative min-h-[70vh] md:min-h-[80vh] lg:min-h-[90vh] flex items-center justify-center pt-16 md:pt-20 pb-12 overflow-hidden">
-        {/* Interactive animated background with parallax */}
-        <InteractiveHeroBackground 
-          onJobCardVisible={handleJobCardVisible}
-          scrollY={scrollY}
-          parallaxOffset={parallaxOffset}
-          dotOpacity={dotOpacity}
-          cardOpacity={cardOpacity}
-          mapOpacity={mapOpacity}
-        />
-        
-        {/* Hero content with fade effect on scroll */}
-        <div 
-          className="absolute inset-0 pointer-events-none"
-          style={{ 
-            opacity: heroOpacity,
-            transition: 'opacity 0.1s ease-out'
-          }}
-        />
-        
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-5xl mx-auto text-center space-y-8">
-            <Badge className="bg-white/10 text-white border-white/20 text-sm font-medium px-4 py-2 inline-flex items-center gap-2 backdrop-blur-sm">
-              👋 ¡Hola{profile?.full_name ? `, ${profile.full_name.split(' ')[0]}` : ''}!
-            </Badge>
-            
-            <h1 className="font-jakarta font-medium text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white leading-[1.3] tracking-tight drop-shadow-lg">
-              SOLUCIONA EN
-              <span className="block">MINUTOS NO</span>
-              <span className="block">EN DÍAS.</span>
-            </h1>
-            
-            <p className="text-lg md:text-xl text-white/90 leading-relaxed max-w-2xl mx-auto drop-shadow-md">
-              Conectamos contigo a los mejores profesionales verificados
-            </p>
-            {/* Location Chip + Search Bar */}
-            <div className="w-full max-w-xl mx-auto px-4 relative z-20">
-              <CatalogSearchBar className="w-full" />
+                  <span className="text-[11px] font-semibold text-center leading-tight" style={{ color: BRAND.text }}>
+                    {c.label}
+                  </span>
+                </button>
+              ))}
             </div>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 text-sm text-white/90">
-              <div className="flex items-center space-x-2">
-                <CheckCircle className="h-5 w-5 text-white" />
-                <span>Proveedores verificados</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <CheckCircle className="h-5 w-5 text-white" />
-                <span>Pagos seguros</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <CheckCircle className="h-5 w-5 text-white" />
-                <span>Garantía de calidad</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+          </section>
 
-      <main className="container mx-auto px-4 pb-24">
-
-        {/* Category Tabs - Using shared component */}
-        <div className="mb-8 md:mb-12 mt-4 md:mt-6">
-          <CategoryTabs />
-        </div>
-
-        {/* Recent Activity Section */}
-        <div className="mb-6 md:mb-8">
-          <h2 className="text-lg md:text-2xl font-semibold text-foreground mb-3 md:mb-4">
-            Actividad Reciente
-          </h2>
-          <Card className="bg-gradient-card border-white/20">
-            <CardContent className="py-8 md:py-12 text-center">
-              <TrendingUp className="w-10 h-10 md:w-12 md:h-12 text-muted-foreground mx-auto mb-3 md:mb-4" />
-              <p className="text-sm md:text-base text-muted-foreground">
-                No tienes actividad reciente todavía
-              </p>
-              <Button onClick={() => startBooking(navigate, { entrySource: 'recent_activity_cta' })} className="mt-3 md:mt-4 bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant text-sm md:text-base">
-                Buscar Servicios
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Become Provider CTA */}
-        {role === "client" && <Card className="bg-gradient-to-br from-primary/10 to-purple-500/10 border-primary/20 mb-4">
-            <CardContent className="py-6 md:py-8 text-center">
-              <h3 className="text-base md:text-xl font-semibold text-foreground mb-1.5 md:mb-2">
-                ¿Quieres ofrecer tus servicios?
-              </h3>
-              <p className="text-sm md:text-base text-muted-foreground mb-3 md:mb-4">
-                Únete como proveedor y empieza a ganar dinero
-              </p>
-              <Button onClick={() => navigate(ROUTES.PROVIDER_AUTH)} className="bg-gradient-button text-primary-foreground shadow-glow hover:shadow-elegant text-sm md:text-base">
-                Convertirse en Proveedor
-              </Button>
-            </CardContent>
-          </Card>}
-
-        {/* FAQ Section */}
-        <section className="py-12 md:py-16">
-          <div className="text-center mb-8 md:mb-12">
-            <h2 className="font-['Made_Dillan'] text-2xl sm:text-3xl md:text-4xl text-foreground mb-3">
-              PREGUNTAS FRECUENTES
-            </h2>
-            <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
-              Resolvemos tus dudas más comunes
-            </p>
-          </div>
-
-          <Accordion type="single" collapsible className="max-w-3xl mx-auto space-y-3">
-            {faqs.map((faq, index) => (
-              <AccordionItem 
-                key={index} 
-                value={`faq-${index}`}
-                className="group bg-card border border-border/50 rounded-xl px-6 overflow-hidden data-[state=open]:shadow-lg transition-all duration-300"
+          {/* ── 5. Active job banner (conditional) ───────────── */}
+          {activeJob && (
+            <section className="animate-fade-in" style={{ animationDelay: "180ms" }}>
+              <button
+                onClick={() => navigate("/active-jobs")}
+                className="w-full flex items-center gap-3 rounded-[18px] p-4 text-left transition-all active:scale-[0.99]"
+                style={{ background: BRAND.primary, color: "#fff" }}
               >
-                <AccordionTrigger className="text-base sm:text-lg font-semibold text-foreground hover:no-underline py-5 [&>svg]:hidden">
-                  <span className="text-left flex-1 pr-4">{faq.question}</span>
-                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 shrink-0">
-                    <Plus className="h-4 w-4 text-primary transition-transform duration-300 group-data-[state=open]:rotate-45" />
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="text-sm sm:text-base text-muted-foreground leading-relaxed pb-5">
-                  {faq.answer}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </section>
-      </main>
+                <span className="relative flex-shrink-0 w-3 h-3">
+                  <span className="absolute inset-0 rounded-full bg-white motion-safe:animate-ping opacity-60" />
+                  <span className="relative block w-3 h-3 rounded-full bg-white" />
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] uppercase tracking-wider font-semibold text-white/70">
+                    Trabajo en curso
+                  </p>
+                  <p className="text-[15px] font-bold truncate">{activeJob.title}</p>
+                  {(activeJob.provider_name || activeJob.scheduled_at) && (
+                    <p className="text-[12px] text-white/75 truncate mt-0.5">
+                      {activeJob.provider_name}
+                      {activeJob.provider_name && activeJob.scheduled_at ? " · " : ""}
+                      {activeJob.scheduled_at &&
+                        format(new Date(activeJob.scheduled_at), "d MMM, HH:mm", { locale: es })}
+                    </p>
+                  )}
+                </div>
+                <ChevronRight className="w-5 h-5 flex-shrink-0" />
+              </button>
+            </section>
+          )}
 
-      <Footer />
-      <div className="desktop-only">
-        <MobileBottomNav />
+          {/* ── 6. Verified technicians banner ───────────────── */}
+          <section className="animate-fade-in" style={{ animationDelay: "240ms" }}>
+            <div
+              className="flex items-center gap-4 rounded-[18px] p-4"
+              style={{ background: BRAND.card, border: `1.5px solid ${BRAND.border}` }}
+            >
+              <div
+                className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
+                style={{ background: `${BRAND.primary}14` }}
+              >
+                <ShieldCheck className="w-6 h-6" style={{ color: BRAND.primary }} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[14px] font-bold leading-snug" style={{ color: BRAND.text }}>
+                  Técnicos verificados
+                </p>
+                <p className="text-[12px] mt-0.5 leading-snug" style={{ color: BRAND.textMuted }}>
+                  Identidad confirmada, experiencia comprobada.
+                </p>
+              </div>
+              <button
+                onClick={() => navigate("/how-it-works")}
+                className="flex-shrink-0 rounded-full text-[12px] font-semibold px-3 py-2 transition-colors"
+                style={{ background: BRAND.primary, color: "#fff" }}
+              >
+                Saber más
+              </button>
+            </div>
+          </section>
+
+          {/* ── 7. Recommended services ──────────────────────── */}
+          <section className="animate-fade-in" style={{ animationDelay: "300ms" }}>
+            <SectionHeading title="Servicios recomendados" icon={<Sparkles className="w-4 h-4" style={{ color: BRAND.accent }} />} />
+            <div className="space-y-2.5 mt-3">
+              {RECOMMENDED.map((r) => (
+                <button
+                  key={r.slug + r.label}
+                  onClick={() => goToCategory(r.slug)}
+                  className="w-full flex items-center gap-3 rounded-[16px] p-3 text-left transition-all active:scale-[0.99]"
+                  style={{ background: BRAND.card, border: `1.5px solid ${BRAND.border}` }}
+                >
+                  <div
+                    className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: BRAND.bg }}
+                  >
+                    <img src={r.icon} alt={r.label} className="w-10 h-10 object-contain" style={{ transform: "scale(1.5)" }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[14px] font-bold leading-snug" style={{ color: BRAND.text }}>
+                      {r.label}
+                    </p>
+                    <p className="text-[12px] leading-snug mt-0.5" style={{ color: BRAND.textMuted }}>
+                      {r.subtitle}
+                    </p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: BRAND.textSubtle }} />
+                </button>
+              ))}
+            </div>
+          </section>
+
+          {/* ── 8. Last booking (conditional) ────────────────── */}
+          {lastJob && (
+            <section className="animate-fade-in" style={{ animationDelay: "360ms" }}>
+              <SectionHeading title="Tu última chamba" />
+              <div
+                className="rounded-[18px] p-4 mt-3"
+                style={{ background: BRAND.card, border: `1.5px solid ${BRAND.border}` }}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0"
+                    style={{ background: `${BRAND.green}18` }}
+                  >
+                    <Star className="w-5 h-5" style={{ color: BRAND.green }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[14px] font-bold leading-snug truncate" style={{ color: BRAND.text }}>
+                      {lastJob.title}
+                    </p>
+                    <p className="text-[12px] leading-snug mt-0.5" style={{ color: BRAND.textMuted }}>
+                      {lastJob.provider_name || "Proveedor Chamby"}
+                      {lastJob.completed_at
+                        ? ` · ${format(new Date(lastJob.completed_at), "d MMM yyyy", { locale: es })}`
+                        : ""}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2 mt-3">
+                  <Button
+                    onClick={() => navigate(`/active-jobs?job_id=${lastJob.id}`)}
+                    variant="outline"
+                    className="flex-1 font-jakarta font-semibold text-[13px] rounded-full h-10"
+                    style={{ borderColor: BRAND.border, color: BRAND.text }}
+                  >
+                    Ver detalles
+                  </Button>
+                  <Button
+                    onClick={() => lastJob.category && goToCategory(lastJob.category)}
+                    className="flex-1 font-jakarta font-semibold text-[13px] rounded-full h-10"
+                    style={{ background: BRAND.primary, color: "#fff" }}
+                  >
+                    Repetir servicio
+                  </Button>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* ── 9. Bottom spacer (covered by MobileBottomNav) ── */}
+          <div className="h-2" />
+        </main>
       </div>
-    </div>;
+
+      <MobileBottomNav />
+    </div>
+  );
 };
+
+function SectionHeading({
+  title,
+  action,
+  icon,
+}: {
+  title: string;
+  action?: { label: string; onClick: () => void };
+  icon?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between">
+      <h2 className="text-[15px] font-bold flex items-center gap-2" style={{ color: BRAND.text }}>
+        {icon}
+        {title}
+      </h2>
+      {action && (
+        <button
+          onClick={action.onClick}
+          className="text-[12px] font-semibold transition-colors"
+          style={{ color: BRAND.primary }}
+        >
+          {action.label}
+        </button>
+      )}
+    </div>
+  );
+}
+
 export default UserLanding;
