@@ -3,15 +3,10 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { ArrowLeft, MapPin, Calendar, Clock, Camera, Plus, Lock, RotateCcw } from "lucide-react";
 import { PRICING, formatMXN } from "@/utils/pricingConfig";
-
-const workTypeLabels: Record<string, string> = {
-  reparacion: "Reparación", instalacion: "Instalación", armado: "Armado", ajuste: "Ajuste / Mantenimiento"
-};
-const jobSizeLabels: Record<string, string> = {
-  small: "Pequeño · ≤ 1 hora", medium: "Mediano · 1–3 horas", large: "Grande · 3+ horas"
-};
+import type { BookingFlowConfig } from "./BookingFlowConfig";
 
 interface Props {
+  config: BookingFlowConfig;
   formData: {
     description: string;
     workType: string | null;
@@ -46,8 +41,8 @@ const baseCents = PRICING.VISIT_FEE.BASE_AMOUNT_CENTS;
 const ivaCents = PRICING.VISIT_FEE.IVA_AMOUNT_CENTS;
 const totalCents = PRICING.VISIT_FEE.CLIENT_TOTAL_CENTS;
 
-export const HandymanSummary = ({
-  formData, onConfirm, onGoBack, onAddPhoto, onRetryPhoto, onNavigateToStep, isSubmitting
+export const BookingSummary = ({
+  config, formData, onConfirm, onGoBack, onAddPhoto, onRetryPhoto, onNavigateToStep, isSubmitting
 }: Props) => {
   const photoInputRef = useRef<HTMLInputElement>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -108,14 +103,16 @@ export const HandymanSummary = ({
   };
 
   const getTimeDisplay = () => {
-    const map: Record<string, string> = {
-      morning: "Mañana (8–12)", midday: "Mediodía (12–15)", afternoon: "Tarde (15–19)", night: "Noche (19–21)"
-    };
-    return formData.timeWindow ? map[formData.timeWindow] || formData.timeWindow : null;
+    return formData.timeWindow
+      ? config.labels.timeWindow[formData.timeWindow] || formData.timeWindow
+      : null;
   };
 
   const timeDisplay = getTimeDisplay();
-  const categoryLabel = formData.workType ? workTypeLabels[formData.workType] || formData.workType : "Servicio general";
+  const categoryLabel = formData.workType
+    ? config.labels.workType[formData.workType] || formData.workType
+    : config.fallbackCategoryLabel;
+  const jobSizeDisplay = config.labels.jobSizeSummary[formData.jobSize || ''] || config.labels.jobSizeSummaryDefault;
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-[hsl(40,10%,97%)] font-['DM_Sans',sans-serif]">
@@ -157,7 +154,7 @@ export const HandymanSummary = ({
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-[16px] font-semibold text-[hsl(0,0%,6%)]">{formData.description || categoryLabel}</div>
-              <div className="text-[12px] text-[hsl(0,0%,40%)] mt-0.5">{categoryLabel} · {jobSizeLabels[formData.jobSize || ''] || '1–3 horas'}</div>
+              <div className="text-[12px] text-[hsl(0,0%,40%)] mt-0.5">{categoryLabel} · {jobSizeDisplay}</div>
             </div>
           </div>
         </div>
@@ -295,7 +292,7 @@ export const HandymanSummary = ({
             </div>
             <div className="flex-1">
               <div className="text-[11px] text-[hsl(40,4%,65%)] font-medium mb-[3px]">Duración estimada</div>
-              <div className="text-[13px] font-medium text-[hsl(0,0%,6%)]">{jobSizeLabels[formData.jobSize || ''] || 'Mediano · 1–3 horas'}</div>
+              <div className="text-[13px] font-medium text-[hsl(0,0%,6%)]">{jobSizeDisplay}</div>
             </div>
           </div>
         </div>

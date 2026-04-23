@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
 
-const stepLabels = [
+const DEFAULT_LABELS = [
   "Servicio",
   "Ubicación",
   "Tamaño",
@@ -13,12 +13,13 @@ const stepLabels = [
 interface Props {
   currentStep: number;
   totalSteps: number;
+  labels?: string[];
 }
 
-export const HandymanStepIndicator = ({ currentStep, totalSteps }: Props) => {
+export const StepIndicator = ({ currentStep, totalSteps, labels = DEFAULT_LABELS }: Props) => {
   return (
     <div className="hidden lg:flex items-center gap-2 mb-2 flex-wrap">
-      {stepLabels.map((label, i) => {
+      {labels.map((label, i) => {
         const stepNum = i + 1;
         const isActive = currentStep === stepNum;
         const isDone = currentStep > stepNum;

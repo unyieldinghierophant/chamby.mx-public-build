@@ -24,21 +24,20 @@ import { JobSuccessScreen } from "@/components/JobSuccessScreen";
 // DEPRECATED: Authorization flow disabled in favor of Checkout flow. See Phase 4 S5.
 // import { VisitFeeAuthorizationSection } from "@/components/payments/VisitFeeAuthorizationSection";
 import { useVisitFeeCheckout } from "@/hooks/useVisitFeeCheckout";
-import { HandymanSummary } from "./HandymanSummary";
-import { HandymanStepIndicator } from "./HandymanStepIndicator";
+import { BookingSummary } from "./BookingSummary";
+import { StepIndicator } from "./StepIndicator";
 import { useGlobalLocation } from "@/hooks/useGlobalLocation";
 import { useServiceCatalog, getSubcategoriesForCategory } from "@/hooks/useServiceCatalog";
 import { ROUTES } from "@/constants/routes";
+import type { BookingFlowConfig } from "./BookingFlowConfig";
 
 // ---- Types ----
-type WorkType = "reparacion" | "instalacion" | "armado" | "ajuste";
+// Service-specific values (workType, materialsProvider, toolsAvailable,
+// importantDetails, accessTypes) come from the config — typed as string here
+// rather than strict unions so different configs can use different keys.
 type JobSize = "small" | "medium" | "large";
-type MaterialsProvider = "client" | "provider" | "unsure";
-type ToolsAvailability = "yes" | "no" | "unsure";
 type ScheduleMode = "asap" | "today" | "date";
 type TimeWindow = "morning" | "midday" | "afternoon" | "night";
-type ImportantDetail = "perforate" | "measure" | "height" | "tight_space" | "move_furniture";
-type AccessType = "apartment" | "house" | "ground_floor" | "stairs" | "elevator" | "restricted_hours";
 
 interface UploadedFile {
   file: File | null;
@@ -48,9 +47,9 @@ interface UploadedFile {
   errorMessage?: string;
 }
 
-interface HandymanFormData {
+export interface BookingFormData {
   description: string;
-  workType: WorkType | null;
+  workType: string | null;
   serviceAddress: string;
   serviceLatitude: number | null;
   serviceLongitude: number | null;
@@ -59,69 +58,46 @@ interface HandymanFormData {
   scheduledDate: Date | null;
   timeWindow: TimeWindow | null;
   jobSize: JobSize | null;
-  materialsProvider: MaterialsProvider | null;
-  toolsAvailable: ToolsAvailability | null;
-  importantDetails: ImportantDetail[];
+  materialsProvider: string | null;
+  toolsAvailable: string | null;
+  importantDetails: string[];
   photos: UploadedFile[];
-  accessTypes: AccessType[];
+  accessTypes: string[];
   additionalNotes: string;
 }
 
-// ---- Rotating placeholder ----
-const placeholders = [
-  "Colgar una TV en la pared",
-  "Armar un mueble de IKEA",
-  "Reparar una puerta que no cierra",
-  "Instalar repisas flotantes",
-  "Ajustar cerraduras de la casa",
-];
-
-// ---- Autofill suggestions ----
-const handymanSuggestions = [
-  "Colgar una TV", "Armar un mueble", "Reparar una puerta",
-  "Instalar repisas", "Ajustar cerraduras", "Colgar cuadros",
-  "Armar estante", "Reparar closet", "Instalar cortinas",
-  "Cambiar chapas", "Instalar espejos", "Reparar bisagras",
-  "Instalar barras de cortina", "Armar gabinetes", "Reparar cajones",
-  "Instalar mosquiteros", "Parchear agujeros en pared", "Cambiar manijas",
-  "Instalar ganchos y organizadores", "Reparar molduras",
-  "Instalar persianas", "Armar escritorio", "Reparar sillas",
-  "Instalar repisas flotantes", "Reparar ventanas",
-];
-
 const TOTAL_STEPS = 5;
 
-// ---- Keyword → WorkType mapping ----
-const WORK_TYPE_KEYWORDS: Record<WorkType, string[]> = {
-  armado: ["armar", "ensamblar", "montar", "mueble", "muebles", "cama", "escritorio", "librero", "estante", "gabinete"],
-  reparacion: ["reparar", "arreglar", "componer", "ajustar", "bisagra", "manija", "puerta", "ventana", "cajón", "cajones", "silla"],
-  instalacion: ["instalar", "colgar", "colocar", "poner", "cortina", "persiana", "repisa", "espejo", "cuadro", "tv", "televisión", "barra", "mosquitero", "gancho"],
-  ajuste: ["ajustar", "manteni", "calibrar", "chapa", "cerradura"],
-};
-
-function detectWorkType(text: string): WorkType | null {
-  const normalized = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  let best: WorkType | null = null;
+/**
+ * Detects which work type a description matches best based on
+ * config.workTypeKeywords. Returns null if the config has no keywords,
+ * or no keyword matched.
+ */
+function detectWorkType(text: string, keywords: Record<string, string[]> | undefined): string | null {
+  if (!keywords) return null;
+  const normalized = text.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  let best: string | null = null;
   let bestCount = 0;
-  for (const [type, keywords] of Object.entries(WORK_TYPE_KEYWORDS) as [WorkType, string[]][]) {
-    const count = keywords.filter(k => normalized.includes(k)).length;
+  for (const [type, keys] of Object.entries(keywords)) {
+    const count = keys.filter(k => normalized.includes(k)).length;
     if (count > bestCount) { best = type; bestCount = count; }
   }
   return best;
 }
 
-interface HandymanBookingFlowProps {
+interface BookingFlowProps {
+  config: BookingFlowConfig;
   intentText?: string;
   categorySlug?: string;
 }
 
-export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: HandymanBookingFlowProps) => {
+export const BookingFlow = ({ config, intentText, categorySlug = 'general' }: BookingFlowProps) => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const checkoutParam = searchParams.get('checkout');
   const { toast } = useToast();
-  const { saveFormData, loadFormData, clearFormData } = useFormPersistence('handyman-booking');
+  const { saveFormData, loadFormData, clearFormData } = useFormPersistence(config.persistenceKey);
   const { location: globalLocation } = useGlobalLocation();
   const { categories, subcategories, loading: catalogLoading } = useServiceCatalog();
   const categorySubs = getSubcategoriesForCategory(categorySlug, subcategories, categories);
@@ -133,7 +109,7 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
   const [selectedSubService, setSelectedSubService] = useState<string | null>(null);
 
   const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState<HandymanFormData>({
+  const [formData, setFormData] = useState<BookingFormData>({
     description: "",
     workType: null,
     serviceAddress: "",
@@ -172,10 +148,10 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
   // Rotate placeholder
   useEffect(() => {
     const interval = setInterval(() => {
-      setPlaceholderIndex((i) => (i + 1) % placeholders.length);
+      setPlaceholderIndex((i) => (i + 1) % config.descriptionPlaceholders.length);
     }, 3000);
     return () => clearInterval(interval);
-  }, []);
+  }, [config.descriptionPlaceholders.length]);
 
   // Auto-submit to checkout when returning from login with ?checkout=1
   useEffect(() => {
@@ -319,17 +295,17 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
   useEffect(() => {
     const q = formData.description.toLowerCase().trim();
     const filtered = q === ""
-      ? handymanSuggestions.slice(0, 10)
-      : handymanSuggestions.filter(s => s.toLowerCase().includes(q)).slice(0, 10);
+      ? config.suggestions.slice(0, 10)
+      : config.suggestions.filter(s => s.toLowerCase().includes(q)).slice(0, 10);
     setFilteredSuggestions(filtered);
-  }, [formData.description]);
+  }, [formData.description, config.suggestions]);
 
   // ---- Helpers ----
-  const update = <K extends keyof HandymanFormData>(key: K, value: HandymanFormData[K]) => {
+  const update = <K extends keyof BookingFormData>(key: K, value: BookingFormData[K]) => {
     setFormData(prev => ({ ...prev, [key]: value }));
   };
 
-  const toggleDetail = (detail: ImportantDetail) => {
+  const toggleDetail = (detail: string) => {
     setFormData(prev => ({
       ...prev,
       importantDetails: prev.importantDetails.includes(detail)
@@ -338,7 +314,7 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
     }));
   };
 
-  const toggleAccess = (access: AccessType) => {
+  const toggleAccess = (access: string) => {
     setFormData(prev => ({
       ...prev,
       accessTypes: prev.accessTypes.includes(access)
@@ -486,41 +462,29 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
     console.log('[handleSubmit] user confirmed, starting job insert');
 
     try {
-      const workTypeLabels: Record<WorkType, string> = {
-        reparacion: "Reparación", instalacion: "Instalación", armado: "Armado", ajuste: "Ajuste / Mantenimiento"
-      };
+      // Resolve labels from the active config. Falls back to raw value if a
+      // config map doesn't have the key (so new option keys render something).
+      const labelOrKey = (map: Record<string, string>, key: string | null) =>
+        key ? (map[key] ?? key) : "N/A";
+
       const jobSizeLabels: Record<JobSize, string> = {
         small: "Pequeño (≤ 1 hora)", medium: "Mediano (1–3 horas)", large: "Grande (3+ horas)"
-      };
-      const materialsLabels: Record<MaterialsProvider, string> = {
-        client: "Cliente tiene materiales", provider: "Proveedor trae materiales", unsure: "No está seguro"
-      };
-      const toolsLabels: Record<ToolsAvailability, string> = {
-        yes: "Sí tiene herramientas", no: "No tiene herramientas", unsure: "No sabe cuáles se necesitan"
-      };
-      const detailLabels: Record<ImportantDetail, string> = {
-        perforate: "Requiere perforar pared", measure: "Requiere medir/nivelar",
-        height: "Trabajo en altura", tight_space: "Espacio reducido", move_furniture: "Requiere mover muebles"
-      };
-      const accessLabels: Record<AccessType, string> = {
-        apartment: "Departamento", house: "Casa", ground_floor: "Planta baja",
-        stairs: "Escaleras", elevator: "Elevador", restricted_hours: "Horarios restringidos"
       };
 
       // Build rich description
       const parts = [
         `📋 ${formData.description}`,
-        `\n🔧 Tipo: ${formData.workType ? workTypeLabels[formData.workType] : "N/A"}`,
+        `\n🔧 Tipo: ${labelOrKey(config.labels.workType, formData.workType)}`,
         `📏 Tamaño: ${formData.jobSize ? jobSizeLabels[formData.jobSize] : "N/A"}`,
-        `🧱 Materiales: ${formData.materialsProvider ? materialsLabels[formData.materialsProvider] : "N/A"}`,
-        `🛠️ Herramientas: ${formData.toolsAvailable ? toolsLabels[formData.toolsAvailable] : "N/A"}`,
+        `🧱 Materiales: ${labelOrKey(config.labels.materials, formData.materialsProvider)}`,
+        `🛠️ Herramientas: ${labelOrKey(config.labels.tools, formData.toolsAvailable)}`,
       ];
 
       if (formData.importantDetails.length > 0) {
-        parts.push(`\n⚠️ Detalles importantes:\n${formData.importantDetails.map(d => `  • ${detailLabels[d]}`).join('\n')}`);
+        parts.push(`\n⚠️ Detalles importantes:\n${formData.importantDetails.map(d => `  • ${config.labels.importantDetails[d] ?? d}`).join('\n')}`);
       }
       if (formData.accessTypes.length > 0) {
-        parts.push(`\n🏠 Acceso:\n${formData.accessTypes.map(a => `  • ${accessLabels[a]}`).join('\n')}`);
+        parts.push(`\n🏠 Acceso:\n${formData.accessTypes.map(a => `  • ${config.labels.access[a] ?? a}`).join('\n')}`);
       }
       if (formData.additionalNotes.trim()) {
         parts.push(`\n📝 Notas adicionales: ${formData.additionalNotes}`);
@@ -529,9 +493,6 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
       const richDescription = parts.join('\n');
 
       // Compute scheduled_at from scheduling step
-      const timeWindowLabels: Record<TimeWindow, string> = {
-        morning: "Mañana (8–12)", midday: "Mediodía (12–15)", afternoon: "Tarde (15–19)", night: "Noche (19–21)"
-      };
       let scheduledAt: string;
       if (formData.scheduleMode === 'asap' || formData.scheduleMode === 'today') {
         scheduledAt = new Date().toISOString();
@@ -549,7 +510,9 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
         scheduledAt = new Date().toISOString();
       }
 
-      const timePreference = formData.timeWindow ? timeWindowLabels[formData.timeWindow] : (formData.scheduleMode === 'asap' ? 'Lo antes posible' : '');
+      const timePreference = formData.timeWindow
+        ? (config.labels.timeWindow[formData.timeWindow] ?? formData.timeWindow)
+        : (formData.scheduleMode === 'asap' ? 'Lo antes posible' : '');
 
       // Ensure auth session is fresh before DB insert
       const { data: { session: freshSession } } = await supabase.auth.getSession();
@@ -681,7 +644,8 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
           showGuestOption={false}
           message="Crea una cuenta para confirmar y pagar tu solicitud. Tu progreso está guardado."
         />
-        <HandymanSummary
+        <BookingSummary
+          config={config}
           formData={formData}
           onConfirm={handleSubmit}
           onGoBack={handleBack}
@@ -756,7 +720,7 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
       </div>
 
       {/* Step Indicator — desktop only */}
-      <HandymanStepIndicator currentStep={showSummary ? 6 : currentStep} totalSteps={6} />
+      <StepIndicator currentStep={showSummary ? 6 : currentStep} totalSteps={6} />
 
       {/* Step Content */}
       <div className="md:mt-4 space-y-6 animate-fade-in" key={currentStep}>
@@ -816,7 +780,7 @@ export const HandymanBookingFlow = ({ intentText, categorySlug = 'general' }: Ha
                 id="handyman-description"
                 value={formData.description}
                 onChange={(e) => update("description", e.target.value.slice(0, 300))}
-                placeholder="Ej: Necesito colgar una TV de 55 pulgadas en pared de concreto..."
+                placeholder={config.descriptionInputPlaceholder}
                 className="min-h-[100px] text-base resize-none"
                 maxLength={300}
               />

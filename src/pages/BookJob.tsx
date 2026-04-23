@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { HandymanBookingFlow } from "@/components/handyman/HandymanBookingFlow";
+import { BookingFlow } from "@/components/booking/BookingFlow";
+import { getBookingConfig } from "@/components/booking/BookingFlowConfig";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
 import { toast } from "sonner";
@@ -43,11 +44,13 @@ const BookJob = () => {
   // React state (description, photos, etc.) resets instead of carrying
   // over from the previous category. localStorage is cleared by the
   // useEffect above; this handles the in-memory state.
-  const flowKey = `${categoryParam || 'general'}-${newParam || 'persist'}`;
+  const resolvedCategory = categoryParam || 'general';
+  const flowKey = `${resolvedCategory}-${newParam || 'persist'}`;
+  const bookingConfig = getBookingConfig(resolvedCategory);
 
   return (
     <div className="bg-gradient-to-br from-blue-50 via-background to-blue-50/30 dark:from-blue-950/20 dark:via-background dark:to-blue-950/10 pb-12 px-4 md:px-8 pt-3 md:pt-6">
-      <HandymanBookingFlow key={flowKey} intentText={intentParam} categorySlug={categoryParam || 'general'} />
+      <BookingFlow key={flowKey} config={bookingConfig} intentText={intentParam} categorySlug={resolvedCategory} />
     </div>
   );
 };
