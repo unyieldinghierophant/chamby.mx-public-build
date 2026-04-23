@@ -36,6 +36,9 @@ const infoRow = (label: string, value: React.ReactNode) => (
 );
 const pill = (status: string) => { const s = statusPill(status); return <span style={{ background: s.bg, color: s.text, fontSize: 12, fontWeight: 500, fontFamily: A.fontSans, borderRadius: 100, padding: '2px 10px', display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 5, height: 5, borderRadius: '50%', background: s.dot }} />{s.label}</span>; };
 const haversineM = (lat1: number, lng1: number, lat2: number, lng2: number) => { const R = 6371000, r = (d: number) => d * Math.PI / 180, dL = r(lat2 - lat1), dG = r(lng2 - lng1); const a = Math.sin(dL/2)**2 + Math.cos(r(lat1))*Math.cos(r(lat2))*Math.sin(dG/2)**2; return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))); };
+const fmtStamp = (iso: string | null | undefined) => iso
+  ? new Date(iso).toLocaleString('es-MX', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+  : '—';
 
 // ── Component ──────────────────────────────────────────────────────────────────
 export default function AdminJobDetail() {
@@ -67,15 +70,26 @@ export default function AdminJobDetail() {
   const [statusModal, setStatusModal] = useState(false);
   const [pendingStatus, setPendingStatus] = useState('');
   const [refundAmount, setRefundAmount] = useState('');
-  const [refundModal, setRefundModal] = useState<'full' | 'partial' | 'payout' | null>(null);
+  const [payoutOverride, setPayoutOverride] = useState('');
+  const [refundModal, setRefundModal] = useState<'full' | 'partial' | 'payout' | 'capture' | 'release_hold' | null>(null);
   const [flagModal, setFlagModal] = useState<'client' | 'provider' | null>(null);
   const [dangerModal, setDangerModal] = useState<'cancel' | 'suspend_client' | 'suspend_provider' | null>(null);
   const [dangerStep, setDangerStep] = useState(1);
   const [ruling, setRuling] = useState('');
   const [splitPct, setSplitPct] = useState('50');
   const [adminNotes, setAdminNotes] = useState('');
+  const [disputeQuickConfirm, setDisputeQuickConfirm] = useState<'client_wins' | 'provider_wins' | null>(null);
+  const [chatTab, setChatTab] = useState<'client' | 'provider'>('client');
+  const [isNarrow, setIsNarrow] = useState(typeof window !== 'undefined' ? window.innerWidth < 900 : false);
   const [acting, setActing] = useState(false);
   const [rescheduleActing, setRescheduleActing] = useState(false);
+
+  // Responsive: stack the split layout + chat panels below 900px.
+  useEffect(() => {
+    const onResize = () => setIsNarrow(window.innerWidth < 900);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   // ProtectedRoute requireAdmin already guards this route
 
@@ -312,11 +326,18 @@ export default function AdminJobDetail() {
           )}</>}
           {isProvider && providerDetails && infoRow('Verificación', providerDetails.verification_status ?? '—')}
         </div>
-        {u.phone && (
-          <button onClick={() => whatsapp(u.phone, u.full_name ?? '')} style={{ marginTop: 12, width: '100%', padding: '7px', border: `1px solid #25D366`, borderRadius: 8, fontSize: 13, fontFamily: A.fontSans, fontWeight: 500, background: '#F0FBF4', color: '#1A7A3A', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-            <MessageCircle size={14} strokeWidth={1.75} /> WhatsApp
+        <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
+          <button
+            onClick={() => navigate(`/admin?view=${isProvider ? 'proveedores' : 'usuarios'}&user=${u.id}`)}
+            style={{ flex: 1, padding: '7px', border: `1px solid ${A.border}`, borderRadius: 8, fontSize: 12, fontFamily: A.fontSans, fontWeight: 500, background: A.surface, color: A.textPrimary, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            <ExternalLink size={12} strokeWidth={1.75} /> Ver perfil
           </button>
-        )}
+          {u.phone && (
+            <button onClick={() => whatsapp(u.phone, u.full_name ?? '')} style={{ flex: 1, padding: '7px', border: `1px solid #25D366`, borderRadius: 8, fontSize: 12, fontFamily: A.fontSans, fontWeight: 500, background: '#F0FBF4', color: '#1A7A3A', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+              <MessageCircle size={12} strokeWidth={1.75} /> WhatsApp
+            </button>
+          )}
+        </div>
       </div>
     );
   };
@@ -373,15 +394,26 @@ export default function AdminJobDetail() {
       ) : !job ? (
         <div style={{ padding: 40, textAlign: 'center', color: '#C4473A', fontFamily: A.fontSans }}>Trabajo no encontrado</div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: '60% 40%', gap: 0, minHeight: 'calc(100vh - 56px)' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isNarrow ? '1fr' : '60% 40%',
+          gap: 0,
+          minHeight: 'calc(100vh - 56px)',
+        }}>
 
           {/* ── LEFT COLUMN ─────────────────────────────────────────────────── */}
-          <div style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 20, borderRight: `1px solid ${A.border}` }}>
+          <div style={{
+            padding: isNarrow ? 16 : 28,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 20,
+            borderRight: isNarrow ? 'none' : `1px solid ${A.border}`,
+          }}>
 
             {/* SECTION 1 — Personas */}
             <section>
               {sectionTitle('Personas')}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isNarrow ? '1fr' : '1fr 1fr', gap: 14 }}>
                 <PersonCard u={client} />
                 <PersonCard u={provider} data={providerData} isProvider />
               </div>
@@ -421,17 +453,23 @@ export default function AdminJobDetail() {
                   <LeafletMap center={[job.job_address_lat, job.job_address_lng]} markers={[{ lat: job.job_address_lat, lng: job.job_address_lng, color: A.accent, label: 'Domicilio del trabajo' }]} height={200} />
                 </div>
               )}
-              {/* Status timeline from system messages */}
+              {/* Status timeline — every status change with exact timestamp, oldest → newest.
+                  `messages` is already ordered by created_at ascending (fetchAll line 137). */}
               {messages.filter(m => m.is_system_message).length > 0 && (
                 <div style={{ ...card(), marginTop: 12 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: A.textTertiary, marginBottom: 12, fontFamily: A.fontSans }}>Historial de estado</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    {messages.filter(m => m.is_system_message).map(m => (
-                      <div key={m.id} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: A.accent, marginTop: 5, flexShrink: 0 }} />
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: 12, color: A.textPrimary, fontFamily: A.fontSans }}>{m.message_text}</div>
-                          <div style={{ fontSize: 11, color: A.textTertiary, fontFamily: A.fontMono, marginTop: 2 }}>{relativeTime(m.created_at)}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: A.textTertiary, marginBottom: 12, fontFamily: A.fontSans }}>Línea de tiempo</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {messages.filter(m => m.is_system_message).map((m, idx, arr) => (
+                      <div key={m.id} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', position: 'relative' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
+                          <div style={{ width: 10, height: 10, borderRadius: '50%', background: A.accent }} />
+                          {idx < arr.length - 1 && <div style={{ width: 2, flex: 1, minHeight: 18, background: A.border, marginTop: 2 }} />}
+                        </div>
+                        <div style={{ flex: 1, paddingBottom: idx < arr.length - 1 ? 4 : 0 }}>
+                          <div style={{ fontSize: 13, color: A.textPrimary, fontFamily: A.fontSans, fontWeight: 500 }}>{m.message_text}</div>
+                          <div style={{ fontSize: 11, color: A.textTertiary, fontFamily: A.fontMono, marginTop: 3 }}>
+                            {fmtStamp(m.created_at)} · {relativeTime(m.created_at)}
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -564,34 +602,88 @@ export default function AdminJobDetail() {
               </div>
             </section>
 
-            {/* SECTION 6.5 — Comunicación (dispute dual chat) */}
+            {/* SECTION 6.5 — Comunicación (dispute dual chat).
+                Side-by-side on desktop, tabbed on mobile so each panel gets full width. */}
             {dispute && (
               <section>
                 {sectionTitle('Comunicación')}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                  <ChatPanel
-                    conversationId={`dispute_${dispute.id}_client`}
-                    title={client?.full_name ?? 'Cliente'}
-                    subtitle="Thread privado admin ↔ cliente"
-                    participantInitial={client?.full_name?.[0] ?? 'C'}
-                    participantRoleLabel="Cliente"
-                    height={440}
-                  />
-                  {job.provider_id ? (
+                {isNarrow ? (
+                  <>
+                    <div style={{ display: 'flex', gap: 4, marginBottom: 10, borderBottom: `1px solid ${A.border}` }}>
+                      {(['client', 'provider'] as const).map(tab => {
+                        const active = chatTab === tab;
+                        const disabled = tab === 'provider' && !job.provider_id;
+                        return (
+                          <button
+                            key={tab}
+                            onClick={() => !disabled && setChatTab(tab)}
+                            disabled={disabled}
+                            style={{
+                              flex: 1, padding: '8px 10px', border: 'none',
+                              background: 'transparent',
+                              borderBottom: `2px solid ${active ? A.accent : 'transparent'}`,
+                              color: active ? A.accent : A.textSecondary,
+                              fontSize: 13, fontFamily: A.fontSans,
+                              fontWeight: active ? 600 : 500,
+                              cursor: disabled ? 'not-allowed' : 'pointer',
+                              opacity: disabled ? 0.4 : 1,
+                            }}
+                          >
+                            {tab === 'client' ? 'Cliente' : 'Proveedor'}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {chatTab === 'client' ? (
+                      <ChatPanel
+                        conversationId={`dispute_${dispute.id}_client`}
+                        title={client?.full_name ?? 'Cliente'}
+                        subtitle="Thread privado admin ↔ cliente"
+                        participantInitial={client?.full_name?.[0] ?? 'C'}
+                        participantRoleLabel="Cliente"
+                        height={440}
+                      />
+                    ) : job.provider_id ? (
+                      <ChatPanel
+                        conversationId={`dispute_${dispute.id}_provider`}
+                        title={provider?.full_name ?? 'Proveedor'}
+                        subtitle="Thread privado admin ↔ proveedor"
+                        participantInitial={provider?.full_name?.[0] ?? 'P'}
+                        participantRoleLabel="Proveedor"
+                        height={440}
+                      />
+                    ) : (
+                      <div style={{ background: A.surface, border: `1px solid ${A.border}`, borderRadius: 14, padding: 24, color: A.textTertiary, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        Sin proveedor asignado
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                     <ChatPanel
-                      conversationId={`dispute_${dispute.id}_provider`}
-                      title={provider?.full_name ?? 'Proveedor'}
-                      subtitle="Thread privado admin ↔ proveedor"
-                      participantInitial={provider?.full_name?.[0] ?? 'P'}
-                      participantRoleLabel="Proveedor"
+                      conversationId={`dispute_${dispute.id}_client`}
+                      title={client?.full_name ?? 'Cliente'}
+                      subtitle="Thread privado admin ↔ cliente"
+                      participantInitial={client?.full_name?.[0] ?? 'C'}
+                      participantRoleLabel="Cliente"
                       height={440}
                     />
-                  ) : (
-                    <div style={{ background: A.surface, border: `1px solid ${A.border}`, borderRadius: 14, padding: 24, color: A.textTertiary, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      Sin proveedor asignado
-                    </div>
-                  )}
-                </div>
+                    {job.provider_id ? (
+                      <ChatPanel
+                        conversationId={`dispute_${dispute.id}_provider`}
+                        title={provider?.full_name ?? 'Proveedor'}
+                        subtitle="Thread privado admin ↔ proveedor"
+                        participantInitial={provider?.full_name?.[0] ?? 'P'}
+                        participantRoleLabel="Proveedor"
+                        height={440}
+                      />
+                    ) : (
+                      <div style={{ background: A.surface, border: `1px solid ${A.border}`, borderRadius: 14, padding: 24, color: A.textTertiary, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        Sin proveedor asignado
+                      </div>
+                    )}
+                  </div>
+                )}
               </section>
             )}
 
@@ -657,8 +749,17 @@ export default function AdminJobDetail() {
             )}
           </div>
 
-          {/* ── RIGHT COLUMN (sticky) ────────────────────────────────────────── */}
-          <div style={{ position: 'sticky', top: 56, height: 'calc(100vh - 56px)', overflowY: 'auto', padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* ── RIGHT COLUMN (sticky on desktop, inline on mobile) ───────────── */}
+          <div style={{
+            position: isNarrow ? 'static' : 'sticky',
+            top: isNarrow ? undefined : 56,
+            height: isNarrow ? 'auto' : 'calc(100vh - 56px)',
+            overflowY: isNarrow ? 'visible' : 'auto',
+            padding: isNarrow ? 16 : 24,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 16,
+          }}>
 
             {/* Status management */}
             <div style={card()}>
@@ -676,15 +777,27 @@ export default function AdminJobDetail() {
             <div style={card()}>
               <div style={{ fontSize: 12, fontWeight: 700, color: A.textTertiary, textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: A.fontSans, marginBottom: 12 }}>Acciones de pago</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {/* Capture / release only shown while the hold is uncaptured (status = authorized). */}
                 {visitFeePayment?.status === 'authorized' && (
-                  <button onClick={() => setRefundModal('full')} style={{ padding: '8px', border: `1px solid ${A.border}`, borderRadius: 8, fontSize: 13, fontFamily: A.fontSans, fontWeight: 500, background: A.surface, cursor: 'pointer' }}>Capturar pago de visita</button>
+                  <>
+                    <button onClick={() => setRefundModal('capture')} style={{ padding: '8px', border: `1px solid ${A.accent}`, borderRadius: 8, fontSize: 13, fontFamily: A.fontSans, fontWeight: 600, background: A.accentLight, color: A.accentText, cursor: 'pointer' }}>Capturar pago de visita</button>
+                    <button onClick={() => setRefundModal('release_hold')} style={{ padding: '8px', border: `1px solid ${A.border}`, borderRadius: 8, fontSize: 13, fontFamily: A.fontSans, fontWeight: 500, background: A.surface, cursor: 'pointer' }}>Liberar retención / cancelar autorización</button>
+                  </>
                 )}
-                <button onClick={() => setRefundModal('full')} style={{ padding: '8px', border: `1px solid ${A.border}`, borderRadius: 8, fontSize: 13, fontFamily: A.fontSans, fontWeight: 500, background: A.surface, cursor: 'pointer' }}>Reembolso completo</button>
+                <button onClick={() => setRefundModal('full')} style={{ padding: '8px', border: `1px solid ${A.border}`, borderRadius: 8, fontSize: 13, fontFamily: A.fontSans, fontWeight: 500, background: A.surface, cursor: 'pointer' }}>Reembolso completo al cliente</button>
                 <div style={{ display: 'flex', gap: 6 }}>
                   <input type="number" placeholder="Monto MXN" value={refundAmount} onChange={e => setRefundAmount(e.target.value)} style={{ flex: 1, padding: '7px 10px', border: `1px solid ${A.border}`, borderRadius: 8, fontSize: 13, fontFamily: A.fontMono }} />
                   <button onClick={() => paymentAction('partial_refund', Math.round(parseFloat(refundAmount) * 100))} disabled={!refundAmount} style={{ padding: '7px 12px', border: `1px solid ${A.border}`, borderRadius: 8, fontSize: 13, fontFamily: A.fontSans, cursor: 'pointer', background: A.surface, opacity: !refundAmount ? 0.5 : 1 }}>Reembolso parcial</button>
                 </div>
-                <button onClick={() => setRefundModal('payout')} style={{ padding: '8px', border: `1px solid ${A.accent}`, borderRadius: 8, fontSize: 13, fontFamily: A.fontSans, fontWeight: 500, background: A.accentLight, color: A.accentText, cursor: 'pointer' }}>Enviar pago a proveedor</button>
+                {job.provider_id && (
+                  <>
+                    <button onClick={() => setRefundModal('payout')} style={{ padding: '8px', border: `1px solid ${A.accent}`, borderRadius: 8, fontSize: 13, fontFamily: A.fontSans, fontWeight: 500, background: A.accentLight, color: A.accentText, cursor: 'pointer' }}>Enviar pago a proveedor (automático)</button>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <input type="number" placeholder="Override MXN" value={payoutOverride} onChange={e => setPayoutOverride(e.target.value)} style={{ flex: 1, padding: '7px 10px', border: `1px solid ${A.border}`, borderRadius: 8, fontSize: 13, fontFamily: A.fontMono }} />
+                      <button onClick={() => paymentAction('payout_provider', Math.round(parseFloat(payoutOverride) * 100))} disabled={!payoutOverride} style={{ padding: '7px 12px', border: `1px solid ${A.border}`, borderRadius: 8, fontSize: 13, fontFamily: A.fontSans, cursor: 'pointer', background: A.surface, opacity: !payoutOverride ? 0.5 : 1 }}>Payout override</button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
@@ -708,6 +821,23 @@ export default function AdminJobDetail() {
               <div style={card()}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: A.textTertiary, textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: A.fontSans, marginBottom: 12 }}>Resolver disputa</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {/* Quick-resolve buttons. Each opens a confirm dialog before firing. */}
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button
+                      onClick={() => setDisputeQuickConfirm('client_wins')}
+                      disabled={acting}
+                      style={{ flex: 1, padding: '9px', border: `1px solid ${A.accent}`, borderRadius: 8, fontSize: 13, fontFamily: A.fontSans, fontWeight: 600, background: A.accentLight, color: A.accentText, cursor: 'pointer', opacity: acting ? 0.5 : 1 }}>
+                      Favor cliente
+                    </button>
+                    <button
+                      onClick={() => setDisputeQuickConfirm('provider_wins')}
+                      disabled={acting}
+                      style={{ flex: 1, padding: '9px', border: `1px solid ${A.accent}`, borderRadius: 8, fontSize: 13, fontFamily: A.fontSans, fontWeight: 600, background: A.accentLight, color: A.accentText, cursor: 'pointer', opacity: acting ? 0.5 : 1 }}>
+                      Favor proveedor
+                    </button>
+                  </div>
+                  {/* Full ruling picker (kept for split resolutions and notes). */}
+                  <div style={{ fontSize: 11, color: A.textTertiary, fontFamily: A.fontSans, marginTop: 4 }}>O resolución manual con notas:</div>
                   <select value={ruling} onChange={e => setRuling(e.target.value)} style={{ width: '100%', border: `1px solid ${A.border}`, borderRadius: 8, padding: '8px 10px', fontSize: 13, fontFamily: A.fontSans, cursor: 'pointer', background: A.surface }}>
                     <option value="">Seleccionar fallo…</option>
                     <option value="client_wins">Cliente gana</option>
@@ -775,13 +905,39 @@ export default function AdminJobDetail() {
 
       {refundModal && (
         <ConfirmModal
-          title={refundModal === 'full' ? 'Reembolso completo' : refundModal === 'payout' ? 'Pago al proveedor' : 'Reembolso parcial'}
-          message="¿Estás seguro? Esta acción ejecuta una operación de Stripe y no se puede deshacer."
+          title={
+            refundModal === 'full' ? 'Reembolso completo'
+            : refundModal === 'payout' ? 'Pago al proveedor'
+            : refundModal === 'capture' ? 'Capturar pago de visita'
+            : refundModal === 'release_hold' ? 'Liberar retención'
+            : 'Reembolso parcial'
+          }
+          message={
+            refundModal === 'capture' ? 'Esto captura el hold de Stripe y cobra al cliente. Irreversible.'
+            : refundModal === 'release_hold' ? 'Esto cancela la autorización y libera la retención sin cobrar al cliente. Irreversible.'
+            : '¿Estás seguro? Esta acción ejecuta una operación de Stripe y no se puede deshacer.'
+          }
           onConfirm={() => {
             if (refundModal === 'full') paymentAction('full_refund');
             else if (refundModal === 'payout') paymentAction('payout_provider');
+            else if (refundModal === 'capture') paymentAction('capture');
+            else if (refundModal === 'release_hold') paymentAction('full_refund'); // admin-payment-action's full_refund cancels uncaptured holds
           }}
           onCancel={() => setRefundModal(null)}
+          destructive={refundModal !== 'capture'}
+        />
+      )}
+
+      {disputeQuickConfirm && (
+        <ConfirmModal
+          title={disputeQuickConfirm === 'client_wins' ? 'Resolver a favor del cliente' : 'Resolver a favor del proveedor'}
+          message="Se ejecutará la liquidación en Stripe (reembolso o payout según corresponda). Irreversible."
+          onConfirm={() => {
+            // resolveDispute reads from `ruling` state — set and fire.
+            setRuling(disputeQuickConfirm);
+            setTimeout(() => { resolveDispute(); setDisputeQuickConfirm(null); }, 0);
+          }}
+          onCancel={() => setDisputeQuickConfirm(null)}
           destructive
         />
       )}
