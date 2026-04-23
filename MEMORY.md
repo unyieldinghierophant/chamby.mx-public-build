@@ -34,19 +34,34 @@
 | Edge functions | `supabase/functions/` |
 | Shared edge utils | `supabase/functions/_shared/` |
 | Payment edge functions | `supabase/functions/create-visit-authorization/` `supabase/functions/create-visit-payment/` `supabase/functions/complete-first-visit/` `supabase/functions/stripe-webhook/` |
+| Payout + settlement edge functions | `supabase/functions/_shared/settlement.ts` `supabase/functions/complete-job/` `supabase/functions/auto-complete-jobs/` (dual pass: 24h auto-completion + 5-day hold release) `supabase/functions/release-provider-payout/` (manual admin release) `supabase/functions/admin-payment-action/` |
 
 ---
 
 ## Payment architecture (FINALIZED — do not redesign)
 
+### Visit fee
 - Visit fee: **$406 MXN** ($350 base + $56 IVA)
 - Stripe receives: **40600 centavos** (all Stripe amounts in MXN centavos)
 - Chamby absorbs: ~$18 Stripe fee
 - Flow: `PaymentIntent` with `capture_method: manual` → hold created at booking
 - Hold released on job completion (client confirms)
 - Quote rejected: hold released → $250 to provider + $100 to Chamby
-- Cron: `supabase/functions/auto-complete-jobs/` auto-releases expired holds every 2h
+- Cron: `supabase/functions/auto-complete-jobs/` auto-completes after 24h without client confirm and releases the visit-fee hold
 - No charge unless work is complete and client confirms
+
+### Provider payout (5-day hold, as of 2026-04-23)
+- Provider receives **90%** of the invoice `total_customer_amount`. Chamby keeps **10%** on each side (20% total spread).
+- All Stripe amounts in MXN centavos.
+- Flow at completion: `settleJobCompletion` inserts a `payouts` row with `status='holding'` and `release_after = now() + 5 days`. **No Stripe transfer runs at completion time.**
+- Auto-release: `auto-complete-jobs` has a second pass that queries `payouts` where `status='holding' AND release_after <= now()`, runs the Stripe transfer, and promotes to `status='released'` (with `released_at` set).
+- Manual early release: admin UI "Liberar ahora" button → `release-provider-payout` edge function. Unchanged by the hold.
+- Cancel during hold: admin UI "Cancelar" sets `status='cancelled'` on the payout row (no Stripe call).
+- Payout status vocabulary: `pending | holding | released | failed | cancelled`. Legacy `paid` ≡ `released`; legacy `awaiting_provider_onboarding` still emitted by some paths — treat as holding.
+- Provider not Stripe-onboarded at release time: cron skips (row stays `holding`) — they can still finish onboarding during the 5-day window.
+
+### Visit fee vs provider payout — KEY DISTINCTION
+These are **separate money flows**. The visit fee hold is cancelled/released to the client on completion (they never paid it for real). The provider payout comes from the invoice (a different PaymentIntent the client paid for the quoted work) and is subject to the 5-day hold. Do not conflate them when editing edge functions or dashboards.
 
 ---
 
@@ -115,5 +130,8 @@ Location: Google Cloud Console → APIs & Services → OAuth consent screen
 
 <!-- Append new entries at the top. Format: [YYYY-MM-DD] Short description -->
 
+[2026-04-23] 5-day automated provider-payout hold shipped. Completion no longer transfers to Stripe — payouts land as `holding` with `release_after = +5d`; `auto-complete-jobs` cron auto-releases them. Admin PagosView gets a payout dashboard (summary cards, filter tabs, Liberar ahora / Cancelar actions). Provider earnings page shows held balance + per-row countdown.
+[2026-04-23] AdminJobDetail god-mode gaps closed: capture-button bug fix, release-hold + payout override actions, chronological status timeline, Ver perfil links, Favor cliente/proveedor quick-resolve buttons, mobile layout stacking, tabbed chat.
+[2026-04-23] `open-dispute` aligned with state machine — cancelled jobs now rejected with Spanish error; client hides dispute button + shows inline notice; DisputeModal extracts 4xx body so edge-function errors actually surface.
 [2026-03-27] Payment audit complete. 7 critical bugs identified and fixed. Phase 1 (visit fee hold) queued for implementation.
 [2026-03] Migrated codebase from Lovable to Claude Code. DNS moved to Spaceship + Vercel. Postmark SMTP reconnected.
