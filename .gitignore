@@ -32,3 +32,11 @@ supabase/.temp/
 .env.*.local
 .env.production
 .env.test
+
+# Local tool / agent state (not shared)
+.agents/
+.claude/
+skills-lock.json
+
+# Stray / one-off files
+chamby_pill_nav_fix*.html
