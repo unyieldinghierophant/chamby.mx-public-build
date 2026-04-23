@@ -1,11 +1,12 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import ProviderStripePayoutStatusCard from "@/components/provider-portal/ProviderStripePayoutStatusCard";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   User,
@@ -16,6 +17,7 @@ import {
   BadgeCheck,
   LogOut,
   Trash2,
+  Loader2,
 } from "lucide-react";
 
 interface MenuItem {
@@ -34,14 +36,45 @@ const ProviderAccount = () => {
   const { profile: providerProfile, refetch } = useProviderProfile(user?.id);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const [verifyingStripe, setVerifyingStripe] = useState(false);
 
-  // Detect Stripe return
+  // On return from Stripe: call sync-stripe-status, refresh the provider
+  // profile, then strip the `stripe_connected` query param so a browser
+  // back/forward doesn't retrigger the sync. useRef-style guard prevents
+  // double-fire under React 18 StrictMode.
   useEffect(() => {
-    if (searchParams.get("stripe_connected") === "true") {
-      toast.success("¡Stripe conectado! Tu estado se actualizará en breve.");
-      refetch();
-    }
-  }, [searchParams, refetch]);
+    if (searchParams.get("stripe_connected") !== "true") return;
+    let cancelled = false;
+    setVerifyingStripe(true);
+
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("sync-stripe-status");
+        if (cancelled) return;
+        if (error) {
+          toast.error(error.message || "No se pudo verificar el estado de tu cuenta de Stripe.");
+        } else if (data?.payouts_enabled) {
+          toast.success("¡Pagos activados! Ya puedes recibir transferencias.");
+        } else {
+          toast.warning("Stripe requiere información adicional para activar tu cuenta.");
+        }
+        await refetch();
+      } catch (e: any) {
+        if (!cancelled) toast.error(e?.message || "Error al verificar tu cuenta de Stripe.");
+      } finally {
+        if (!cancelled) {
+          setVerifyingStripe(false);
+          // Remove ?stripe_connected=true from the URL without a page reload.
+          const url = new URL(window.location.href);
+          url.searchParams.delete("stripe_connected");
+          window.history.replaceState({}, "", url.toString());
+        }
+      }
+    })();
+
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const getInitials = (name: string) =>
     name
@@ -116,6 +149,15 @@ const ProviderAccount = () => {
 
   return (
     <div className="px-4 py-6 max-w-lg mx-auto pb-28">
+      {/* Full-page overlay while we re-sync with Stripe after OAuth return. */}
+      {verifyingStripe && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-3 bg-background/80 backdrop-blur-sm">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm font-medium text-foreground">
+            Verificando tu cuenta de Stripe...
+          </p>
+        </div>
+      )}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}

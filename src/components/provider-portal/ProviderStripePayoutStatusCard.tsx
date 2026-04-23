@@ -25,10 +25,30 @@ import {
   ExternalLink,
   AlertTriangle,
   HelpCircle,
+  RefreshCw,
+  FlaskConical,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+
+/**
+ * Narrow the (status, payouts_enabled) pair down to a single UI state.
+ * Keeps rendering simple and makes each case easy to reason about.
+ */
+type UiState = "not_started" | "onboarding" | "enabled_active" | "enabled_requires_info";
+
+function resolveUiState(status: string, payoutsEnabled: boolean): UiState {
+  if (status === "enabled") return payoutsEnabled ? "enabled_active" : "enabled_requires_info";
+  if (status === "onboarding") return "onboarding";
+  return "not_started";
+}
+
+/** Is the loaded Stripe publishable key in test mode? */
+const IS_STRIPE_TEST_MODE = (() => {
+  const key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string | undefined;
+  return typeof key === "string" && key.startsWith("pk_test_");
+})();
 
 /* ── Human-friendly mapping of Stripe requirement keys ── */
 const REQUIREMENT_LABELS: Record<string, string> = {
@@ -120,8 +140,30 @@ const ProviderStripePayoutStatusCard = ({
     }
   };
 
+  /** Manual "Verificar estado" — re-queries Stripe and refreshes the card. */
+  const handleManualSync = async () => {
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("sync-stripe-status");
+      if (error) throw new Error(error.message);
+      if (data?.payouts_enabled) {
+        toast.success("Tu cuenta está activa para recibir pagos.");
+      } else if (data?.onboarding_status === "enabled") {
+        toast.warning("Stripe requiere información adicional para activar tus pagos.");
+      } else {
+        toast.message("Estado actualizado. Completa la verificación para recibir pagos.");
+      }
+      onStatusChange?.();
+    } catch (err: any) {
+      toast.error(err.message || "No se pudo verificar el estado en Stripe.");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const status = stripeOnboardingStatus || "not_started";
   const hasRequirements = stripeCurrentlyDue.length > 0;
+  const uiState = resolveUiState(status, stripePayoutsEnabled);
 
   /* ── Compact card ── */
   if (compact) {
@@ -205,79 +247,106 @@ const ProviderStripePayoutStatusCard = ({
   }
 
   /* ── Full card ── */
+  // Per-state palette — see resolveUiState() above.
+  const palette: Record<UiState, {
+    border: string;
+    iconBg: string;
+    iconColor: string;
+    icon: typeof CheckCircle;
+    title: string;
+    subtitle: string;
+    badgeLabel?: string;
+    badgeClass?: string;
+    primaryLabel: string;
+    primaryAction: () => void | Promise<void>;
+  }> = {
+    not_started: {
+      border: "border-border",
+      iconBg: "bg-muted",
+      iconColor: "text-muted-foreground",
+      icon: CreditCard,
+      title: "Activa tus pagos",
+      subtitle: "Configura tu cuenta de pagos para recibir transferencias.",
+      primaryLabel: "Configurar pagos",
+      primaryAction: handleConnectStripe,
+    },
+    onboarding: {
+      border: "border-amber-200 dark:border-amber-800/50",
+      iconBg: "bg-amber-100 dark:bg-amber-900/30",
+      iconColor: "text-amber-600 dark:text-amber-400",
+      icon: AlertTriangle,
+      title: "Configuración en progreso",
+      subtitle: "Tu cuenta está siendo verificada.",
+      primaryLabel: hasRequirements ? "Completar verificación" : "Continuar configuración",
+      primaryAction: handleConnectStripe,
+    },
+    enabled_active: {
+      border: "border-emerald-200 dark:border-emerald-800/50",
+      iconBg: "bg-emerald-100 dark:bg-emerald-900/30",
+      iconColor: "text-emerald-600 dark:text-emerald-400",
+      icon: CheckCircle,
+      title: "Pagos activos",
+      subtitle: "Los fondos se depositan automáticamente en tu cuenta bancaria registrada.",
+      badgeLabel: "Conectado",
+      badgeClass: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400",
+      primaryLabel: "Ver detalles",
+      primaryAction: () => setShowInfoModal(true),
+    },
+    enabled_requires_info: {
+      border: "border-amber-200 dark:border-amber-800/50",
+      iconBg: "bg-amber-100 dark:bg-amber-900/30",
+      iconColor: "text-amber-600 dark:text-amber-400",
+      icon: AlertTriangle,
+      title: "Stripe requiere información adicional",
+      subtitle: "Completa los datos pendientes para activar tus pagos.",
+      primaryLabel: "Completar verificación",
+      primaryAction: handleConnectStripe,
+    },
+  };
+  const p = palette[uiState];
+  const PrimaryIcon = p.icon;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
+      className="space-y-3"
     >
-      <Card
-        className={cn(
-          "border overflow-hidden",
-          status === "enabled"
-            ? "border-emerald-200 dark:border-emerald-800/50"
-            : hasRequirements
-            ? "border-orange-200 dark:border-orange-800/50"
-            : "border-amber-200 dark:border-amber-800/50"
-        )}
-      >
+      {/* Test-mode banner — only shows when the Vite key starts with pk_test_ */}
+      {IS_STRIPE_TEST_MODE && (
+        <div className="flex items-start gap-2 rounded-lg border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-900/10 p-3">
+          <FlaskConical className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-amber-800 dark:text-amber-200 leading-relaxed">
+            Stripe está en modo de prueba. Los pagos reales no serán procesados hasta activar modo producción.
+          </p>
+        </div>
+      )}
+
+      <Card className={cn("border overflow-hidden", p.border)}>
         <CardContent className="p-5">
-          {/* Icon + Title Row */}
+          {/* Icon + title row */}
           <div className="flex items-start gap-3 mb-3">
-            <div
-              className={cn(
-                "w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0",
-                status === "enabled"
-                  ? "bg-emerald-100 dark:bg-emerald-900/30"
-                  : hasRequirements
-                  ? "bg-orange-100 dark:bg-orange-900/30"
-                  : "bg-amber-100 dark:bg-amber-900/30"
-              )}
-            >
-              {status === "enabled" ? (
-                <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-              ) : hasRequirements ? (
-                <AlertTriangle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-              ) : (
-                <CreditCard className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-              )}
+            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0", p.iconBg)}>
+              <PrimaryIcon className={cn("w-5 h-5", p.iconColor)} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-foreground">
-                  {status === "enabled"
-                    ? "Listo para recibir pagos"
-                    : hasRequirements
-                    ? "Verificación pendiente"
-                    : status === "onboarding"
-                    ? "Configuración en progreso"
-                    : "Activa tus pagos"}
-                </h3>
-                {status === "enabled" && (
-                  <Badge
-                    variant="secondary"
-                    className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 text-[10px]"
-                  >
-                    Conectado
+                <h3 className="text-sm font-bold text-foreground">{p.title}</h3>
+                {p.badgeLabel && (
+                  <Badge variant="secondary" className={cn("text-[10px]", p.badgeClass)}>
+                    {p.badgeLabel}
                   </Badge>
                 )}
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {syncing
-                  ? "Actualizando estatus de Stripe…"
-                  : status === "enabled"
-                  ? "Ya puedes recibir depósitos automáticos."
-                  : hasRequirements
-                  ? "Stripe necesita los siguientes datos para activar tus pagos."
-                  : status === "onboarding"
-                  ? "Completa Stripe para activar depósitos."
-                  : "Conecta Stripe para recibir depósitos automáticos."}
+                {syncing ? "Actualizando estatus de Stripe…" : p.subtitle}
               </p>
             </div>
           </div>
 
-          {/* Requirements list */}
-          {hasRequirements && status !== "enabled" && (
+          {/* Requirements list — only meaningful when not yet enabled */}
+          {hasRequirements && uiState !== "enabled_active" && (
             <div className="mb-3 rounded-lg bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800/30 p-3">
               <div className="flex items-center gap-1.5 mb-2">
                 <span className="text-xs font-semibold text-orange-700 dark:text-orange-400">
@@ -304,53 +373,55 @@ const ProviderStripePayoutStatusCard = ({
             </div>
           )}
 
-          {/* Actions */}
-          {status === "enabled" ? (
+          {/* Actions — primary + always-visible "Verificar estado" */}
+          <div className="space-y-2">
             <Button
-              variant="outline"
               size="sm"
               className="w-full text-xs"
-              onClick={() => setShowInfoModal(true)}
+              variant={uiState === "enabled_active" ? "outline" : "default"}
+              onClick={() => p.primaryAction()}
+              disabled={loading}
             >
-              <Info className="w-3.5 h-3.5 mr-1.5" />
-              Ver detalles
+              {loading ? (
+                <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+              ) : uiState === "enabled_active" ? (
+                <Info className="w-3.5 h-3.5 mr-1.5" />
+              ) : (
+                <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
+              )}
+              {p.primaryLabel}
             </Button>
-          ) : (
-            <div className="space-y-2">
-              <Button
-                size="sm"
-                className="w-full text-xs"
-                onClick={handleConnectStripe}
-                disabled={loading}
+
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full text-xs"
+              onClick={handleManualSync}
+              disabled={syncing}
+            >
+              {syncing ? (
+                <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+              ) : (
+                <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+              )}
+              Verificar estado
+            </Button>
+
+            {uiState === "onboarding" && !hasRequirements && (
+              <p className="text-[10px] text-muted-foreground text-center">
+                En algunos casos Stripe puede tardar en verificar tu información.
+              </p>
+            )}
+
+            {uiState === "not_started" && (
+              <button
+                onClick={() => setShowInfoModal(true)}
+                className="w-full text-[11px] text-muted-foreground hover:text-foreground transition-colors text-center py-1"
               >
-                {loading ? (
-                  <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                ) : (
-                  <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
-                )}
-                {hasRequirements
-                  ? "Completar verificación"
-                  : status === "onboarding"
-                  ? "Continuar configuración"
-                  : "Conectar Stripe"}
-              </Button>
-
-              {status === "onboarding" && !hasRequirements && (
-                <p className="text-[10px] text-muted-foreground text-center">
-                  En algunos casos Stripe puede tardar en verificar tu información.
-                </p>
-              )}
-
-              {status === "not_started" && (
-                <button
-                  onClick={() => setShowInfoModal(true)}
-                  className="w-full text-[11px] text-muted-foreground hover:text-foreground transition-colors text-center py-1"
-                >
-                  ¿Por qué es necesario?
-                </button>
-              )}
-            </div>
-          )}
+                ¿Por qué es necesario?
+              </button>
+            )}
+          </div>
         </CardContent>
       </Card>
 
