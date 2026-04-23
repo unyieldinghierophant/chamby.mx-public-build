@@ -67,7 +67,18 @@ export const DisputeModal = ({ open, onOpenChange, jobId, onDisputeOpened }: Dis
         body: { job_id: jobId, reason_code: reason, description: description.trim() },
       });
       if (fnErr || data?.error) {
-        toast.error(data?.error || fnErr?.message || "Error al abrir disputa");
+        // Supabase's functions.invoke returns a bare "non-2xx" message for 4xx
+        // responses and doesn't parse the body — pull the error out of the
+        // raw Response so users see the edge function's Spanish message.
+        let message = data?.error;
+        if (!message && fnErr) {
+          try {
+            const body = await (fnErr as any)?.context?.json?.();
+            if (body?.error) message = body.error;
+          } catch { /* fallthrough */ }
+          message ||= fnErr.message;
+        }
+        toast.error(message || "Error al abrir disputa");
         return;
       }
       const disputeId: string = data.dispute_id;

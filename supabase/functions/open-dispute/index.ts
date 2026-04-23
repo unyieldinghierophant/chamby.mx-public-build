@@ -7,7 +7,11 @@ const log = (step: string, details?: Record<string, unknown>) => {
 };
 
 const VALID_REASON_CODES = ["no_show", "incomplete", "bad_work", "client_not_home", "payment_issue", "other"];
-const ALLOWED_STATUSES = ["cancelled", "completed", "in_progress"];
+// Matches the client-side state machine (src/utils/jobStateMachine.ts):
+// `cancelled` is terminal — `cancelled: []` — so no dispute can be opened
+// once a job has been cancelled. `completed` is also terminal but is kept
+// here so post-job quality complaints can still be raised.
+const ALLOWED_STATUSES = ["completed", "in_progress"];
 
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -64,12 +68,19 @@ serve(async (req) => {
     else if (job.provider_id === userId) role = "provider";
     else return respond(403, { error: "You are not part of this job" });
 
+    // Cancelled jobs are terminal in the state machine — surface a clear
+    // Spanish message here (was previously a generic "non-2xx" error on the
+    // client because the DB trigger rejected the dispute insert downstream).
+    if (job.status === "cancelled") {
+      return respond(400, { error: "No es posible abrir una disputa en un trabajo cancelado." });
+    }
+
     if (!ALLOWED_STATUSES.includes(job.status)) {
-      return respond(400, { error: `Disputes can only be opened on jobs with status: ${ALLOWED_STATUSES.join(", ")}` });
+      return respond(400, { error: `Las disputas solo pueden abrirse en trabajos con estado: ${ALLOWED_STATUSES.join(", ")}.` });
     }
 
     if (job.has_open_dispute) {
-      return respond(400, { error: "There is already an open dispute for this job" });
+      return respond(400, { error: "Ya hay una disputa abierta para este trabajo." });
     }
 
     const { data: invoice } = await supabase

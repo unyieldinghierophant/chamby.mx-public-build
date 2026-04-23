@@ -917,7 +917,7 @@ const JobTimelinePage = () => {
           )}
 
           {/* Dispute button */}
-          {["cancelled", "completed", "in_progress"].includes(job.status) && !job.has_open_dispute && (
+          {["completed", "in_progress"].includes(job.status) && !job.has_open_dispute && (
             <Button
               variant="outline"
               className="w-full border-destructive/30 text-destructive hover:bg-destructive/5 text-sm"
@@ -926,6 +926,12 @@ const JobTimelinePage = () => {
               <AlertTriangle className="w-4 h-4 mr-2" />
               Abrir disputa
             </Button>
+          )}
+          {job.status === "cancelled" && !job.has_open_dispute && (
+            <p className="text-sm text-muted-foreground bg-muted/40 rounded-md px-3 py-2 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+              No es posible abrir una disputa en un trabajo cancelado
+            </p>
           )}
 
           <DisputeModal

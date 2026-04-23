@@ -725,7 +725,7 @@ const ActiveJobs = () => {
               <Plus className="mr-2 h-4 w-4" />
               Agregar servicios
             </Button>
-            {["cancelled", "completed", "in_progress"].includes(job.status) &&
+            {["completed", "in_progress"].includes(job.status) &&
               !job.has_open_dispute && (
                 <Button
                   variant="outline"
@@ -736,6 +736,12 @@ const ActiveJobs = () => {
                   Abrir disputa
                 </Button>
               )}
+            {job.status === "cancelled" && !job.has_open_dispute && (
+              <p className="col-span-2 text-sm text-muted-foreground bg-muted/40 rounded-md px-3 py-2 flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+                No es posible abrir una disputa en un trabajo cancelado
+              </p>
+            )}
             <Button variant="destructive" className="col-span-2" onClick={() => handleCancelJob(job)}>
               <XCircle className="mr-2 h-4 w-4" />
               Cancelar trabajo
