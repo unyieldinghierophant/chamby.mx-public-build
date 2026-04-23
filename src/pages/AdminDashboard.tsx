@@ -267,8 +267,11 @@ export default function AdminDashboard() {
 
   return (
     <div style={{ minHeight: '100vh', background: A.bg, fontFamily: A.fontSans }}>
-      <Sidebar />
-      <Topbar />
+      {/* Rendered as function calls, NOT <Sidebar /> / <Topbar />, so React
+          doesn't treat each render as a new component type and unmount the
+          inputs — that was making the topbar search lose focus every keystroke. */}
+      {Sidebar()}
+      {Topbar()}
       <main style={{ marginLeft: sidebarW, paddingTop: topbarH, minHeight: '100vh' }}>
         <div style={{ padding: 28 }}>
           {renderView()}
