@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { A, fmtDate, fmtMXN } from '../adminTokens';
+import { AlertTriangle } from 'lucide-react';
 
 interface CancelledJob {
   id: string; title: string; client_id: string; provider_id: string | null;
@@ -104,7 +105,9 @@ export function CancelacionesView() {
                 : filtered.map(j => (
                   <tr key={j.id} onMouseEnter={e => (e.currentTarget.style.background = A.rowHover)} onMouseLeave={e => (e.currentTarget.style.background = '')}>
                     <td style={{ ...td, fontFamily: A.fontMono, fontSize: 12 }}>
-                      {j.geolocation_mismatch && <span title="GPS sospechoso" style={{ marginRight: 4 }}>⚠️</span>}
+                      {j.geolocation_mismatch && (
+                        <AlertTriangle size={13} strokeWidth={2} style={{ color: '#C4473A', display: 'inline-block', verticalAlign: 'text-bottom', marginRight: 4 }} />
+                      )}
                       {j.id.slice(0, 8)}
                     </td>
                     <td style={td}>{j.title}</td>

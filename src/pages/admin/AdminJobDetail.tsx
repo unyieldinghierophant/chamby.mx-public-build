@@ -4,7 +4,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { A, ADMIN_ID, statusPill, fmtDate, fmtMXN, relativeTime } from './adminTokens';
 import { LeafletMap } from './components/LeafletMap';
+import { ChatPanel } from './chat/ChatPanel';
+import { ensureConversation } from './chat/useChat';
 import { toast } from 'sonner';
+import {
+  ArrowLeft, AlertTriangle, Check, X,
+  Star, MessageCircle, ExternalLink,
+} from 'lucide-react';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 interface Job { id: string; title: string; category: string; service_type: string | null; description: string | null; problem: string | null; location: string | null; scheduled_at: string | null; status: string; created_at: string; updated_at: string; client_id: string; provider_id: string | null; photos: string[] | null; total_amount: number | null; stripe_visit_payment_intent_id: string | null; visit_fee_amount: number | null; visit_fee_paid: boolean | null; cancellation_requested_by: string | null; cancellation_requested_at: string | null; late_cancellation_penalty_applied: boolean | null; arrived_lat: number | null; arrived_lng: number | null; arrived_at: string | null; job_address_lat: number | null; job_address_lng: number | null; geolocation_mismatch: boolean | null; has_open_dispute: boolean | null; dispute_status: string | null; reschedule_requested_by: string | null; reschedule_proposed_datetime: string | null; reschedule_agreed: boolean | null }
@@ -82,6 +88,32 @@ export default function AdminJobDetail() {
       setTimeout(() => disputeSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 500);
     }
   }, [searchParams, dispute]);
+
+  // Ensure the two dispute conversations exist the first time admin opens this view.
+  // This is a failsafe — open-dispute creates them server-side.
+  useEffect(() => {
+    if (!dispute || !job?.client_id) return;
+    ensureConversation({
+      id: `dispute_${dispute.id}_client`,
+      type: 'dispute_client',
+      booking_id: job.id,
+      dispute_id: dispute.id,
+      participant_user_id: job.client_id,
+      participant_name: client?.full_name ?? null,
+      participant_role: 'client',
+    });
+    if (job.provider_id) {
+      ensureConversation({
+        id: `dispute_${dispute.id}_provider`,
+        type: 'dispute_provider',
+        booking_id: job.id,
+        dispute_id: dispute.id,
+        participant_user_id: job.provider_id,
+        participant_name: provider?.full_name ?? null,
+        participant_role: 'provider',
+      });
+    }
+  }, [dispute?.id, job?.client_id, job?.provider_id, client?.full_name, provider?.full_name]);
 
   const fetchAll = async () => {
     if (!bookingId) return;
@@ -255,7 +287,12 @@ export default function AdminJobDetail() {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 15, fontWeight: 600, color: A.textPrimary, fontFamily: A.fontSans }}>{u.full_name ?? '—'}</div>
             <div style={{ fontSize: 12, color: A.textTertiary, fontFamily: A.fontSans }}>{isProvider ? 'Proveedor' : 'Cliente'}</div>
-            {u.flag_count > 0 && <div style={{ fontSize: 12, color: '#A67B1A', fontFamily: A.fontSans, marginTop: 4 }}>⚠ {u.flag_count} advertencia{u.flag_count > 1 ? 's' : ''}</div>}
+            {u.flag_count > 0 && (
+              <div style={{ fontSize: 12, color: '#A67B1A', fontFamily: A.fontSans, marginTop: 4, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <AlertTriangle size={12} strokeWidth={2} />
+                {u.flag_count} advertencia{u.flag_count > 1 ? 's' : ''}
+              </div>
+            )}
           </div>
           {pill(u.account_status)}
         </div>
@@ -264,12 +301,20 @@ export default function AdminJobDetail() {
           {infoRow('Teléfono', u.phone ? <a href={`tel:${u.phone}`} style={{ color: A.accent }}>{u.phone}</a> : '—')}
           {infoRow('Miembro desde', fmtDate(u.created_at))}
           {infoRow('Trabajos completados', isProvider ? providerJobCount : clientJobCount)}
-          {isProvider && data && <>{infoRow('Calificación', data.rating ? `⭐ ${Number(data.rating).toFixed(1)} (${data.total_reviews ?? 0})` : 'Sin calificaciones')}</>}
+          {isProvider && data && <>{infoRow(
+            'Calificación',
+            data.rating
+              ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <Star size={13} strokeWidth={1.75} style={{ color: '#D97706', fill: '#D97706' }} />
+                  {Number(data.rating).toFixed(1)} ({data.total_reviews ?? 0})
+                </span>
+              : 'Sin calificaciones'
+          )}</>}
           {isProvider && providerDetails && infoRow('Verificación', providerDetails.verification_status ?? '—')}
         </div>
         {u.phone && (
-          <button onClick={() => whatsapp(u.phone, u.full_name ?? '')} style={{ marginTop: 12, width: '100%', padding: '7px', border: `1px solid #25D366`, borderRadius: 8, fontSize: 13, fontFamily: A.fontSans, fontWeight: 500, background: '#F0FBF4', color: '#1A7A3A', cursor: 'pointer' }}>
-            WhatsApp →
+          <button onClick={() => whatsapp(u.phone, u.full_name ?? '')} style={{ marginTop: 12, width: '100%', padding: '7px', border: `1px solid #25D366`, borderRadius: 8, fontSize: 13, fontFamily: A.fontSans, fontWeight: 500, background: '#F0FBF4', color: '#1A7A3A', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            <MessageCircle size={14} strokeWidth={1.75} /> WhatsApp
           </button>
         )}
       </div>
@@ -278,7 +323,8 @@ export default function AdminJobDetail() {
 
   const DocBadge = ({ label, ok }: { label: string; ok: boolean }) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontFamily: A.fontSans, color: ok ? A.accentText : '#922E24' }}>
-      <span>{ok ? '✓' : '✕'}</span>{label}
+      {ok ? <Check size={13} strokeWidth={2.25} /> : <X size={13} strokeWidth={2.25} />}
+      {label}
     </div>
   );
 
@@ -309,7 +355,9 @@ export default function AdminJobDetail() {
     <div style={{ minHeight: '100vh', background: A.bg, fontFamily: A.fontSans }}>
       {/* Top bar */}
       <div style={{ position: 'sticky', top: 0, zIndex: 30, background: A.surface, borderBottom: `1px solid ${A.border}`, padding: '0 28px', height: 56, display: 'flex', alignItems: 'center', gap: 16 }}>
-        <button onClick={() => navigate('/admin')} style={{ background: 'none', border: 'none', fontSize: 14, color: A.textSecondary, fontFamily: A.fontSans, cursor: 'pointer', padding: '6px 0', display: 'flex', alignItems: 'center', gap: 6 }}>← Volver a trabajos</button>
+        <button onClick={() => navigate('/admin')} style={{ background: 'none', border: 'none', fontSize: 14, color: A.textSecondary, fontFamily: A.fontSans, cursor: 'pointer', padding: '6px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <ArrowLeft size={14} strokeWidth={1.75} /> Volver a trabajos
+        </button>
         {job && (
           <>
             <span style={{ color: A.border }}>|</span>
@@ -398,8 +446,9 @@ export default function AdminJobDetail() {
                 {sectionTitle('Geolocalización del check-in')}
                 <div style={card()}>
                   {job.geolocation_mismatch && geoDistance !== null && (
-                    <div style={{ background: '#FDF6E8', border: '1px solid #E8C94A', borderRadius: 8, padding: '10px 14px', marginBottom: 14, fontSize: 13, color: '#7A5A12', fontFamily: A.fontSans }}>
-                      ⚠ El proveedor registró check-in a <strong>{geoDistance} metros</strong> del domicilio
+                    <div style={{ background: '#FDF6E8', border: '1px solid #E8C94A', borderRadius: 8, padding: '10px 14px', marginBottom: 14, fontSize: 13, color: '#7A5A12', fontFamily: A.fontSans, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <AlertTriangle size={14} strokeWidth={2} style={{ flexShrink: 0 }} />
+                      <span>El proveedor registró check-in a <strong>{geoDistance} metros</strong> del domicilio</span>
                     </div>
                   )}
                   {job.arrived_lat && job.arrived_lng && (
@@ -449,7 +498,11 @@ export default function AdminJobDetail() {
                     <div style={{ fontSize: 12, fontWeight: 600, color: A.textTertiary, marginBottom: 8, fontFamily: A.fontSans }}>Pago de factura</div>
                     {infoRow('Monto', <span style={{ fontFamily: A.fontMono }}>{fmtMXN(invoicePayment.total_amount_cents ?? invoicePayment.amount * 100)}</span>)}
                     {infoRow('Estado', pill(invoicePayment.status))}
-                    {invoicePayment.stripe_payment_intent_id && infoRow('Ver en Stripe', <a href={`https://dashboard.stripe.com/payments/${invoicePayment.stripe_payment_intent_id}`} target="_blank" style={{ color: A.accent, fontSize: 12 }}>Abrir →</a>)}
+                    {invoicePayment.stripe_payment_intent_id && infoRow('Ver en Stripe', (
+                      <a href={`https://dashboard.stripe.com/payments/${invoicePayment.stripe_payment_intent_id}`} target="_blank" rel="noopener noreferrer" style={{ color: A.accent, fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        Abrir <ExternalLink size={11} strokeWidth={2} />
+                      </a>
+                    ))}
                   </div>
                 )}
 
@@ -511,6 +564,37 @@ export default function AdminJobDetail() {
               </div>
             </section>
 
+            {/* SECTION 6.5 — Comunicación (dispute dual chat) */}
+            {dispute && (
+              <section>
+                {sectionTitle('Comunicación')}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                  <ChatPanel
+                    conversationId={`dispute_${dispute.id}_client`}
+                    title={client?.full_name ?? 'Cliente'}
+                    subtitle="Thread privado admin ↔ cliente"
+                    participantInitial={client?.full_name?.[0] ?? 'C'}
+                    participantRoleLabel="Cliente"
+                    height={440}
+                  />
+                  {job.provider_id ? (
+                    <ChatPanel
+                      conversationId={`dispute_${dispute.id}_provider`}
+                      title={provider?.full_name ?? 'Proveedor'}
+                      subtitle="Thread privado admin ↔ proveedor"
+                      participantInitial={provider?.full_name?.[0] ?? 'P'}
+                      participantRoleLabel="Proveedor"
+                      height={440}
+                    />
+                  ) : (
+                    <div style={{ background: A.surface, border: `1px solid ${A.border}`, borderRadius: 14, padding: 24, color: A.textTertiary, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      Sin proveedor asignado
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+
             {/* SECTION 7 — Historial cancelación / reagendamiento */}
             {hasCancelHistory && (
               <section>
@@ -518,7 +602,12 @@ export default function AdminJobDetail() {
                 <div style={card()}>
                   {infoRow('Cancelado por', job.cancellation_requested_by ?? '—')}
                   {infoRow('Fecha de cancelación', fmtDate(job.cancellation_requested_at))}
-                  {infoRow('Tipo', job.late_cancellation_penalty_applied ? '🔴 Tardía (<2h)' : '🟢 Temprana')}
+                  {infoRow('Tipo', (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: job.late_cancellation_penalty_applied ? '#C4473A' : '#2B5A3D' }} />
+                      {job.late_cancellation_penalty_applied ? 'Tardía (<2h)' : 'Temprana'}
+                    </span>
+                  ))}
                   {infoRow('Penalización', job.late_cancellation_penalty_applied ? (job.cancellation_requested_by === 'client' ? '$200 MXN' : '$100 MXN') : 'No')}
                 </div>
               </section>

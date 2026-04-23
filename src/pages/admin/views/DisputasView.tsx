@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { A, fmtDate, relativeTime, statusPill } from '../adminTokens';
 import { toast } from 'sonner';
+import { ArrowLeft, AlertTriangle } from 'lucide-react';
 
 interface Dispute {
   id: string; job_id: string; opened_by_role: string; reason_code: string;
   status: string; created_at: string; description: string | null;
   admin_ruling: string | null; admin_notes: string | null; split_percentage_client: number | null;
-  evidenceCount?: number; jobTitle?: string; openerName?: string;
+  evidenceCount?: number; jobTitle?: string; openerName?: string; geoMismatch?: boolean;
 }
 interface Evidence { id: string; file_url: string; file_type: string; description: string | null; uploaded_by_role: string }
 
@@ -112,7 +113,9 @@ export function DisputasView() {
   if (selected) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <button onClick={() => setSelected(null)} style={{ ...btnStyle(), width: 'fit-content' }}>← Volver a disputas</button>
+        <button onClick={() => setSelected(null)} style={{ ...btnStyle(), width: 'fit-content', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <ArrowLeft size={14} strokeWidth={1.75} /> Volver a disputas
+        </button>
 
         {/* Job info */}
         <div style={{ ...card, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
@@ -205,7 +208,12 @@ export function DisputasView() {
               : disputes.map(d => (
                 <tr key={d.id} onMouseEnter={e => (e.currentTarget.style.background = A.rowHover)} onMouseLeave={e => (e.currentTarget.style.background = '')}>
                   <td style={{ ...td, fontFamily: A.fontMono, fontSize: 12 }}>{d.id.slice(0, 8)}</td>
-                  <td style={{ ...td, maxWidth: 160 }}>{d.geoMismatch ? '⚠️ ' : ''}{d.jobTitle}</td>
+                  <td style={{ ...td, maxWidth: 160 }}>
+                    {d.geoMismatch && (
+                      <AlertTriangle size={13} strokeWidth={2} style={{ color: '#C4473A', display: 'inline-block', verticalAlign: 'text-bottom', marginRight: 4 }} />
+                    )}
+                    {d.jobTitle}
+                  </td>
                   <td style={td}>{d.openerName}</td>
                   <td style={td}>{d.reason_code}</td>
                   <td style={{ ...td, fontFamily: A.fontMono }}>{d.evidenceCount ?? 0}</td>

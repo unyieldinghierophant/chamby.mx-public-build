@@ -47,6 +47,16 @@ serve(async (req) => {
       .eq("id", job_id)
       .single();
 
+    // We'll need names for the chat conversations we seed below.
+    const { data: clientUser } = await supabase
+      .from("users")
+      .select("id, full_name")
+      .eq("id", job?.client_id ?? "")
+      .maybeSingle();
+    const { data: providerUser } = job?.provider_id
+      ? await supabase.from("users").select("id, full_name").eq("id", job.provider_id).maybeSingle()
+      : { data: null as { id: string; full_name: string | null } | null };
+
     if (jobErr || !job) return respond(404, { error: "Job not found" });
 
     let role: string;
@@ -93,6 +103,36 @@ serve(async (req) => {
       dispute_status: "open",
       updated_at: new Date().toISOString(),
     }).eq("id", job_id);
+
+    // Seed the two dispute chat conversations (admin ↔ client, admin ↔ provider).
+    // These are private threads; the client cannot see the provider thread and vice versa.
+    const convRows: Array<Record<string, unknown>> = [];
+    if (job.client_id) {
+      convRows.push({
+        id: `dispute_${dispute.id}_client`,
+        type: "dispute_client",
+        booking_id: job_id,
+        dispute_id: dispute.id,
+        participant_user_id: job.client_id,
+        participant_name: clientUser?.full_name ?? null,
+        participant_role: "client",
+      });
+    }
+    if (job.provider_id) {
+      convRows.push({
+        id: `dispute_${dispute.id}_provider`,
+        type: "dispute_provider",
+        booking_id: job_id,
+        dispute_id: dispute.id,
+        participant_user_id: job.provider_id,
+        participant_name: providerUser?.full_name ?? null,
+        participant_role: "provider",
+      });
+    }
+    if (convRows.length) {
+      const { error: convErr } = await supabase.from("conversations").upsert(convRows, { onConflict: "id" });
+      if (convErr) log("WARN conversations upsert failed", { message: convErr.message });
+    }
 
     const otherPartyId = role === "client" ? job.provider_id : job.client_id;
     if (otherPartyId) {

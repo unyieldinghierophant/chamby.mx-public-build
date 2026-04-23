@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { A, dotColor, relativeTime } from '../adminTokens';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Entry { id: string; type: string; message: string; booking_id: string | null; is_read: boolean; created_at: string }
 const PAGE_SIZE = 20;
@@ -61,8 +62,16 @@ export function RegistroView() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, paddingTop: 16, borderTop: `1px solid ${A.border}` }}>
           <span style={{ fontSize: 12, color: A.textTertiary, fontFamily: A.fontSans }}>Página {page} de {totalPages}</span>
           <div style={{ display: 'flex', gap: 4 }}>
-            {page > 1 && <button onClick={() => setPage(p => p - 1)} style={{ padding: '5px 12px', border: `1px solid ${A.border}`, borderRadius: 6, fontSize: 13, fontFamily: A.fontSans, cursor: 'pointer', background: A.surface }}>← Anterior</button>}
-            {page < totalPages && <button onClick={() => setPage(p => p + 1)} style={{ padding: '5px 12px', border: `1px solid ${A.border}`, borderRadius: 6, fontSize: 13, fontFamily: A.fontSans, cursor: 'pointer', background: A.surface }}>Siguiente →</button>}
+            {page > 1 && (
+              <button onClick={() => setPage(p => p - 1)} style={{ padding: '5px 12px', border: `1px solid ${A.border}`, borderRadius: 6, fontSize: 13, fontFamily: A.fontSans, cursor: 'pointer', background: A.surface, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <ChevronLeft size={14} strokeWidth={1.75} /> Anterior
+              </button>
+            )}
+            {page < totalPages && (
+              <button onClick={() => setPage(p => p + 1)} style={{ padding: '5px 12px', border: `1px solid ${A.border}`, borderRadius: 6, fontSize: 13, fontFamily: A.fontSans, cursor: 'pointer', background: A.surface, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                Siguiente <ChevronRight size={14} strokeWidth={1.75} />
+              </button>
+            )}
           </div>
         </div>
       )}

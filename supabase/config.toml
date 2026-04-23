@@ -137,3 +137,6 @@ verify_jwt = false
 
 [functions.notify-no-provider]
 verify_jwt = false
+
+[functions.notify-admin-chat]
+verify_jwt = false

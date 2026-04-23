@@ -1,4 +1,5 @@
-// Chamby admin design tokens
+// Chamby admin design tokens — matches the Chamby brand palette
+// (primary blue #1456DB, secondary orange #E86C25).
 export const A = {
   bg: '#FAFAF8',
   surface: '#FFFFFF',
@@ -7,9 +8,10 @@ export const A = {
   textPrimary: '#1A1A18',
   textSecondary: '#6B6A66',
   textTertiary: '#9C9B97',
-  accent: '#2B5A3D',
-  accentLight: '#E8F0EB',
-  accentText: '#1E4A2F',
+  accent: '#1456DB',        // Chamby primary blue
+  accentLight: '#E6EEFB',   // light blue surface for selected rows / chips
+  accentText: '#0F47B8',    // readable blue for text on accentLight
+  brandOrange: '#E86C25',   // Chamby secondary, reserved for hero accents
   rowHover: '#F5F5F2',
   fontSans: "'DM Sans', sans-serif",
   fontMono: "'DM Mono', monospace",
@@ -20,7 +22,7 @@ export const ADMIN_ID = '30c2aa13-4338-44ca-8c74-d60421ed9bfc';
 export type AdminView =
   | 'resumen' | 'trabajos' | 'reagendamientos'
   | 'disputas' | 'cancelaciones'
-  | 'usuarios' | 'proveedores' | 'pagos'
+  | 'usuarios' | 'proveedores' | 'pagos' | 'soporte'
   | 'registro' | 'configuracion';
 
 // Status pill config
