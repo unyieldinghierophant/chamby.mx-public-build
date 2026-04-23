@@ -57,3 +57,48 @@ Assets: `src/assets/category-{slug}.png` / `.webp`
 
 ## Before you touch payments
 Read MEMORY.md → "Payment architecture" section. The visit fee model is finalized. Do not redesign it.
+
+## Skills
+
+Skills live in `.agents/skills/`. Claude Code reads and applies them automatically based on context. Never skip them.
+
+### Core rule
+Before ANY UI work: read `.agents/skills/impeccable/` first. It contains the master design principles everything else builds on.
+
+### Always apply automatically
+
+| Trigger | Skill |
+|---|---|
+| Any UI work (always) | `impeccable` |
+| Building or editing any UI component | `design-taste-frontend` |
+| Final pass before committing UI changes | `polish` |
+| Any new page or feature being built | `redesign-existing-projects` |
+
+### Apply when relevant
+
+| Situation | Skill |
+|---|---|
+| Mobile/responsive issues, breakpoints | `adapt` |
+| Adding animations or transitions | `animate` |
+| Quality check before shipping | `audit` |
+| UI looks bland, generic, safe | `bolder` |
+| Confusing copy, error messages, labels | `clarify` |
+| UI needs more color or warmth | `colorize` |
+| UI feels too busy or overwhelming | `quieter` |
+| Spacing, layout, visual hierarchy issues | `layout` |
+| Slow, janky, large bundle | `optimize` |
+| UI too cluttered or complex | `distill` |
+| Typography looks off or generic | `typeset` |
+| Adding micro-interactions or motion | `delight` |
+| Building a landing page or marketing site | `high-end-visual-design` |
+| Redesigning an existing screen | `redesign-existing-projects` |
+| Clean minimal aesthetic needed | `minimalist-ui` |
+| Raw/industrial aesthetic requested | `industrial-brutalist-ui` |
+| Premium design system needed | `stitch-design-taste` |
+| Working with images or visual assets | `image-taste-frontend` |
+
+### Never do
+- Ship UI without running `polish`
+- Build a new component without reading `impeccable` + `design-taste-frontend`
+- Use Inter, generic gradients, purple/blue AI aesthetic, pure black, emoji in UI
+- Use 3-column equal card layouts, centered hero layouts, or unstyled shadcn defaults
