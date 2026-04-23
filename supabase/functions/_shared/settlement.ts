@@ -110,78 +110,87 @@ export async function settleJobCompletion(
       provider.stripe_onboarding_status === "enabled" &&
       provider.stripe_payouts_enabled;
 
+    // Check for existing payout (idempotency) — whether we can Stripe-transfer
+    // yet or not, never double-create a payout row for the same job.
+    const { data: existingPayout } = await supabase
+      .from("payouts")
+      .select("id, status")
+      .eq("job_id", jobId)
+      .eq("payout_type", "job_completion")
+      .maybeSingle();
+
+    if (existingPayout) {
+      log(tag, "Payout already exists, skipping", { jobId, payoutId: existingPayout.id });
+      results.payoutStatus = "already_exists";
+      return results;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // 5-day hold: we DO NOT transfer to the provider at job-completion time.
+    // We record the payout with status='holding' and release_after=+5 days.
+    // The auto-complete-jobs cron processes `holding` payouts and promotes
+    // them to `released` once release_after has passed and the provider is
+    // payout-enabled on Stripe Connect.
+    //
+    // `canPayout` only affects notification copy here, not the flow itself
+    // — a provider who isn't yet onboarded can finish onboarding during the
+    // 5-day window and the cron will release normally. If they never
+    // onboard, the payout stays `holding` and surfaces in the admin
+    // dashboard for manual intervention.
+    // ─────────────────────────────────────────────────────────────────────
+    const HOLD_DAYS = 5;
+    const releaseAfter = new Date(Date.now() + HOLD_DAYS * 24 * 60 * 60 * 1000).toISOString();
+
+    await supabase.from("payouts").insert({
+      job_id: jobId,
+      invoice_id: invoice.id,
+      provider_id: providerId,
+      amount: providerPayoutPesos,
+      status: "holding",
+      payout_type: "job_completion",
+      release_after: releaseAfter,
+    } as any);
+
+    await supabase
+      .from("invoices")
+      .update({ status: "ready_to_release", updated_at: new Date().toISOString() })
+      .eq("id", invoice.id);
+
+    results.payoutStatus = "holding";
+    log(tag, "Provider payout queued on 5-day hold", {
+      jobId,
+      providerId,
+      amount: providerPayoutPesos,
+      releaseAfter,
+      canPayout,
+    });
+
+    // Notify provider — use their onboarding status to pick the right copy
+    const releaseDateEs = new Date(releaseAfter).toLocaleDateString("es-MX", {
+      day: "numeric", month: "long", year: "numeric",
+    });
+
     if (canPayout) {
-      // Check for existing payout (idempotency)
-      const { data: existingPayout } = await supabase
-        .from("payouts")
-        .select("id")
-        .eq("job_id", jobId)
-        .eq("payout_type", "job_completion")
-        .maybeSingle();
-
-      if (existingPayout) {
-        log(tag, "Payout already exists, skipping", { jobId, payoutId: existingPayout.id });
-        results.payoutStatus = "already_exists";
-        return results;
-      }
-
-      const transfer = await stripe.transfers.create({
-        amount: providerPayoutCents,
-        currency: "mxn",
-        destination: provider.stripe_account_id,
-        metadata: { job_id: jobId, invoice_id: invoice.id, type: "job_completion" },
+      await supabase.from("notifications").insert({
+        user_id: providerId,
+        type: "payout_holding",
+        title: "Pago en retención (5 días)",
+        message: `Tu pago de $${providerPayoutPesos.toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN se liberará automáticamente el ${releaseDateEs}.`,
+        link: "/provider/earnings",
+        data: { job_id: jobId, release_after: releaseAfter },
       });
-
-      await supabase.from("payouts").insert({
-        job_id: jobId,
-        invoice_id: invoice.id,
-        provider_id: providerId,
-        amount: providerPayoutPesos,
-        status: "paid",
-        stripe_transfer_id: transfer.id,
-        payout_type: "job_completion",
-        paid_at: new Date().toISOString(),
-      });
-
-      // Update invoice status
-      await supabase
-        .from("invoices")
-        .update({ status: "released", updated_at: new Date().toISOString() })
-        .eq("id", invoice.id);
-
-      results.providerTransfer = transfer.id;
-      results.payoutStatus = "paid";
-      log(tag, "Provider transfer created", { transferId: transfer.id, amount: providerPayoutCents });
     } else {
-      // Provider not payout-enabled — hold funds
-      await supabase.from("payouts").insert({
-        job_id: jobId,
-        invoice_id: invoice.id,
-        provider_id: providerId,
-        amount: providerPayoutPesos,
-        status: "awaiting_provider_onboarding",
-        payout_type: "job_completion",
-      });
-
-      await supabase
-        .from("invoices")
-        .update({ status: "ready_to_release", updated_at: new Date().toISOString() })
-        .eq("id", invoice.id);
-
-      results.payoutStatus = "awaiting_provider_onboarding";
-      log(tag, "Provider not payout-enabled, holding funds", { providerId });
-
-      // Notify provider
+      // Onboarding incomplete — still notify but warn about the blocker
       await supabase.from("notifications").insert({
         user_id: providerId,
         type: "payout_pending_onboarding",
-        title: "Pago pendiente",
-        message: "Tu pago está listo, pero Stripe requiere verificación para liberarlo.",
+        title: "Pago listo — completa Stripe",
+        message: `Tu pago de $${providerPayoutPesos.toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN está reservado. Completa la verificación de Stripe antes del ${releaseDateEs} para recibirlo automáticamente.`,
         link: "/provider-portal/account",
-        data: { job_id: jobId },
+        data: { job_id: jobId, release_after: releaseAfter },
       });
 
-      // Notify admins
+      // Notify admins so they can help the provider onboard in time
       const currentlyDue = provider?.stripe_requirements_currently_due ?? [];
       const dueItems = Array.isArray(currentlyDue) ? currentlyDue : [];
       const topItems = dueItems.slice(0, 3).join(", ") || "N/A";
@@ -195,10 +204,10 @@ export async function settleJobCompletion(
         const adminNotifs = admins.map((a: { user_id: string }) => ({
           user_id: a.user_id,
           type: "admin_payout_blocked",
-          title: "Pago bloqueado por verificación",
+          title: "Payout bloqueado por verificación",
           message: `Proveedor ${providerId} — ${dueItems.length} requisito(s): ${topItems}`,
           link: "/admin/payouts",
-          data: { job_id: jobId, provider_id: providerId },
+          data: { job_id: jobId, provider_id: providerId, release_after: releaseAfter },
         }));
         await supabase.from("notifications").insert(adminNotifs);
       }

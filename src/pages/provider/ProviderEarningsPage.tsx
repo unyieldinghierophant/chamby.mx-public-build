@@ -1,18 +1,23 @@
 import { Link } from "react-router-dom";
-import { 
-  DollarSign, 
-  TrendingUp, 
-  Clock, 
+import { useEffect, useState } from "react";
+import {
+  DollarSign,
+  TrendingUp,
+  Clock,
   CheckCircle,
   ArrowRight,
   Loader2,
   AlertCircle,
-  BarChart3
+  BarChart3,
+  Hourglass,
+  Info,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useProviderEarnings } from "@/hooks/useProviderEarnings";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -31,8 +36,69 @@ const getMonthName = (monthKey: string) => {
   return format(date, "MMM yyyy", { locale: es });
 };
 
+interface HoldingPayout {
+  id: string;
+  amount: number;
+  release_after: string | null;
+  status: string;
+  created_at: string;
+  job_id: string | null;
+  jobTitle?: string;
+}
+
+const countdown = (iso: string | null) => {
+  if (!iso) return null;
+  const ms = new Date(iso).getTime() - Date.now();
+  if (ms <= 0) return "disponible ahora";
+  const hrs = Math.floor(ms / 3_600_000);
+  if (hrs < 24) return `en ${hrs} h`;
+  return `en ${Math.floor(hrs / 24)} d`;
+};
+
 const ProviderEarningsPage = () => {
+  const { user } = useAuth();
   const { totals, monthly, recentPaid, outstanding, loading, error, refetch } = useProviderEarnings();
+  const [holding, setHolding] = useState<HoldingPayout[]>([]);
+  const [recentReleased, setRecentReleased] = useState<HoldingPayout[]>([]);
+  const [payoutsLoading, setPayoutsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      setPayoutsLoading(true);
+      const [{ data: hold }, { data: rel }] = await Promise.all([
+        (supabase as any)
+          .from("payouts")
+          .select("id,amount,release_after,status,created_at,job_id")
+          .eq("provider_id", user.id)
+          .in("status", ["holding", "awaiting_provider_onboarding"])
+          .order("release_after", { ascending: true, nullsFirst: false }),
+        (supabase as any)
+          .from("payouts")
+          .select("id,amount,release_after,status,created_at,job_id,released_at,paid_at")
+          .eq("provider_id", user.id)
+          .in("status", ["released", "paid"])
+          .order("released_at", { ascending: false, nullsFirst: false })
+          .limit(5),
+      ]);
+
+      const allRows = [...(hold ?? []), ...(rel ?? [])];
+      const jobIds = [...new Set(allRows.map((p: any) => p.job_id).filter(Boolean))] as string[];
+      const jobTitleMap: Record<string, string> = {};
+      if (jobIds.length) {
+        const { data: jobs } = await supabase.from("jobs").select("id,title").in("id", jobIds);
+        jobs?.forEach((j: any) => { jobTitleMap[j.id] = j.title || "Trabajo"; });
+      }
+      if (cancelled) return;
+      setHolding((hold ?? []).map((p: any) => ({ ...p, jobTitle: p.job_id ? jobTitleMap[p.job_id] : undefined })));
+      setRecentReleased((rel ?? []).map((p: any) => ({ ...p, jobTitle: p.job_id ? jobTitleMap[p.job_id] : undefined })));
+      setPayoutsLoading(false);
+    })();
+    return () => { cancelled = true; };
+  }, [user]);
+
+  const pendingBalance = holding.reduce((s, p) => s + (p.amount ?? 0), 0);
 
   if (loading) {
     return (
@@ -133,18 +199,88 @@ const ProviderEarningsPage = () => {
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-blue-500/20">
-                <CheckCircle className="h-5 w-5 text-blue-600" />
+                <Hourglass className="h-5 w-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Facturas Pagadas</p>
+                <p className="text-xs text-muted-foreground">En retención</p>
                 <p className="text-xl font-bold text-foreground">
-                  {totals?.paidInvoicesCount || 0}
+                  {formatCurrency(pendingBalance)}
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  {holding.length} pago{holding.length === 1 ? "" : "s"} en espera
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Hold explainer / bank message */}
+      <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50 border border-border">
+        <Info className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Los pagos se retienen 5 días después de que el cliente confirma el trabajo. Al liberarse, se depositan automáticamente en tu cuenta bancaria registrada — no necesitas hacer nada.
+        </p>
+      </div>
+
+      {/* Pending (holding) payouts */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Hourglass className="h-5 w-5 text-blue-600" />
+            Pagos en retención
+          </CardTitle>
+          <CardDescription>
+            Cada pago se libera automáticamente 5 días después de que completes el trabajo.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {payoutsLoading ? (
+            <div className="flex items-center justify-center py-6 text-muted-foreground">
+              <Loader2 className="h-5 w-5 animate-spin" />
+            </div>
+          ) : holding.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Hourglass className="h-12 w-12 mx-auto mb-3 opacity-50" />
+              <p>No tienes pagos en retención</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {holding.map(p => {
+                const blocked = p.status === "awaiting_provider_onboarding";
+                const ms = p.release_after ? new Date(p.release_after).getTime() - Date.now() : null;
+                const urgent = ms !== null && ms > 0 && ms < 24 * 60 * 60 * 1000;
+                return (
+                  <div key={p.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-foreground truncate">
+                        {p.jobTitle ?? "Trabajo"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {blocked ? (
+                          <span className="text-amber-700">Completa la verificación de Stripe para recibir este pago</span>
+                        ) : p.release_after ? (
+                          <>Se libera {countdown(p.release_after)} · {format(new Date(p.release_after), "dd MMM yyyy", { locale: es })}</>
+                        ) : (
+                          "Pendiente"
+                        )}
+                      </p>
+                    </div>
+                    <div className="text-right flex items-center gap-2">
+                      <Badge
+                        variant="secondary"
+                        className={blocked ? "bg-amber-500/20 text-amber-700" : urgent ? "bg-green-500/20 text-green-700" : "bg-blue-500/20 text-blue-700"}
+                      >
+                        {formatCurrency(p.amount)}
+                      </Badge>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Monthly Earnings Chart */}
       <Card>

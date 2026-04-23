@@ -38,15 +38,10 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: error.message }), { status: 500 });
     }
 
-    if (!jobs || jobs.length === 0) {
-      log("No jobs to auto-complete");
-      return new Response(JSON.stringify({ processed: 0 }), { status: 200 });
-    }
-
-    log(`Found ${jobs.length} jobs to auto-complete`);
+    log(`Found ${jobs?.length ?? 0} jobs to auto-complete`);
 
     let processed = 0;
-    for (const job of jobs) {
+    for (const job of jobs ?? []) {
       try {
         const now = new Date().toISOString();
 
@@ -123,11 +118,123 @@ serve(async (req) => {
       }
     }
 
-    log(`Done`, { processed, total: jobs.length });
-    return new Response(JSON.stringify({ processed, total: jobs.length }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    log(`Auto-complete pass done`, { processed, total: jobs?.length ?? 0 });
+
+    // ────────────────────────────────────────────────────────────────────
+    // Second pass: release provider payouts whose 5-day hold has expired.
+    //
+    // At job completion, settlement.ts records the payout with
+    // status='holding' + release_after=+5 days. Here we promote ready
+    // payouts to 'released' by executing the Stripe transfer. If the
+    // provider isn't yet payout-enabled, we skip and the row stays in
+    // `holding` so it'll retry on the next cron pass.
+    // ────────────────────────────────────────────────────────────────────
+    const nowIso = new Date().toISOString();
+    const { data: readyPayouts, error: readyErr } = await (supabase as any)
+      .from("payouts")
+      .select("id, amount, provider_id, job_id, invoice_id")
+      .eq("status", "holding")
+      .not("release_after", "is", null)
+      .lte("release_after", nowIso);
+
+    let released = 0;
+    let releaseFailed = 0;
+    let releaseSkipped = 0;
+
+    if (readyErr) {
+      log("Holding-payouts query error", { error: readyErr.message });
+    } else if (!readyPayouts || readyPayouts.length === 0) {
+      log("No holding payouts ready for release");
+    } else {
+      log(`Found ${readyPayouts.length} holding payouts past release_after`);
+      for (const payout of readyPayouts as Array<{
+        id: string;
+        amount: number;
+        provider_id: string;
+        job_id: string | null;
+        invoice_id: string | null;
+      }>) {
+        try {
+          const { data: provider } = await supabase
+            .from("providers")
+            .select("stripe_account_id, stripe_payouts_enabled, stripe_onboarding_status")
+            .eq("user_id", payout.provider_id)
+            .maybeSingle();
+
+          if (!provider?.stripe_account_id || !provider.stripe_payouts_enabled) {
+            log("Provider not payout-enabled, skipping", {
+              payout_id: payout.id,
+              provider_id: payout.provider_id,
+            });
+            releaseSkipped++;
+            continue;
+          }
+
+          const transfer = await stripe.transfers.create({
+            amount: Math.round(payout.amount * 100),
+            currency: "mxn",
+            destination: provider.stripe_account_id,
+            metadata: {
+              payout_id: payout.id,
+              job_id: payout.job_id ?? "",
+              invoice_id: payout.invoice_id ?? "",
+              type: "auto_release_5day",
+            },
+          });
+
+          const releasedAt = new Date().toISOString();
+          await (supabase as any)
+            .from("payouts")
+            .update({
+              status: "released",
+              stripe_transfer_id: transfer.id,
+              released_at: releasedAt,
+              paid_at: releasedAt, // keep legacy field in sync
+              updated_at: releasedAt,
+            })
+            .eq("id", payout.id);
+
+          await supabase.from("notifications").insert({
+            user_id: payout.provider_id,
+            type: "payout_released",
+            title: "¡Pago liberado!",
+            message: `Se depositaron $${payout.amount.toLocaleString("es-MX", {
+              minimumFractionDigits: 2,
+            })} MXN a tu cuenta bancaria registrada.`,
+            link: "/provider/earnings",
+            data: { job_id: payout.job_id, payout_id: payout.id },
+          });
+
+          released++;
+          log("Payout released", { payout_id: payout.id, transfer_id: transfer.id });
+        } catch (err: any) {
+          const errorMsg = err?.message || String(err);
+          log("Payout release failed", { payout_id: payout.id, error: errorMsg });
+          await (supabase as any)
+            .from("payouts")
+            .update({
+              status: "failed",
+              notes: errorMsg.slice(0, 500),
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", payout.id);
+          releaseFailed++;
+        }
+      }
+    }
+
+    log("Auto-release pass done", { released, releaseFailed, releaseSkipped });
+
+    return new Response(
+      JSON.stringify({
+        processed,
+        total: jobs?.length ?? 0,
+        released,
+        releaseFailed,
+        releaseSkipped,
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     log("ERROR", { message: msg });

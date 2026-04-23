@@ -63,6 +63,7 @@
 | Stripe webhook silent failure | `stripe-webhook` edge fn | Pre-March |
 | Password reset role-based redirect broken | `AuthCallback.tsx` + `ResetPassword.tsx` | Pre-March |
 | Postmark SMTP disconnected from Supabase | Reconnected in Supabase dashboard | Pre-March |
+| `open-dispute` allowed `cancelled` jobs (inconsistent with state machine `cancelled: []`) — failed downstream, surfaced as generic "non-2xx" to the client | `supabase/functions/open-dispute/index.ts` + client guards in `ActiveJobs.tsx` / `JobTimelinePage.tsx` + error parsing in `DisputeModal.tsx` | 2026-04-23 |
 
 ---
 
