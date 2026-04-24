@@ -225,6 +225,76 @@ serve(async (req) => {
 
     log("Auto-release pass done", { released, releaseFailed, releaseSkipped });
 
+    // ────────────────────────────────────────────────────────────────────
+    // Third pass (Bug 9): cancel Stripe holds for `no_match` jobs whose
+    // 2-hour grace window has passed. notify-no-provider sets
+    // hold_expires_at when it flips searching→no_match but leaves the hold
+    // live so the client can retry. Here we reap the ones that never came
+    // back: cancel the PI, mark the payment cancelled, notify the client.
+    // ────────────────────────────────────────────────────────────────────
+    const { data: expiredHoldJobs, error: expiredErr } = await supabase
+      .from("jobs")
+      .select("id, client_id")
+      .eq("status", "no_match")
+      .not("hold_expires_at", "is", null)
+      .lte("hold_expires_at", nowIso);
+
+    let holdsCancelled = 0;
+    let holdsFailed = 0;
+
+    if (expiredErr) {
+      log("Expired-hold query error", { error: expiredErr.message });
+    } else if (!expiredHoldJobs || expiredHoldJobs.length === 0) {
+      log("No no_match jobs past hold_expires_at");
+    } else {
+      log(`Found ${expiredHoldJobs.length} no_match jobs past hold_expires_at`);
+      for (const ej of expiredHoldJobs as Array<{ id: string; client_id: string }>) {
+        try {
+          const { data: vfPayment } = await supabase
+            .from("payments")
+            .select("id, stripe_payment_intent_id")
+            .eq("job_id", ej.id)
+            .eq("type", "visit_fee")
+            .eq("status", "authorized")
+            .maybeSingle();
+
+          if (vfPayment?.stripe_payment_intent_id) {
+            try {
+              await stripe.paymentIntents.cancel(vfPayment.stripe_payment_intent_id);
+            } catch (err) {
+              log("PI cancel failed (may already be cancelled)", { job_id: ej.id, error: String(err) });
+            }
+            await supabase
+              .from("payments")
+              .update({ status: "cancelled" })
+              .eq("id", vfPayment.id);
+          }
+
+          // Clear hold_expires_at so we don't re-process on the next pass.
+          await supabase
+            .from("jobs")
+            .update({ hold_expires_at: null, updated_at: new Date().toISOString() })
+            .eq("id", ej.id);
+
+          await supabase.from("notifications").insert({
+            user_id: ej.client_id,
+            type: "hold_cancelled",
+            title: "Reserva cancelada",
+            message: "Tu reserva fue cancelada y el cargo fue reembolsado.",
+            link: "/user-landing",
+            data: { job_id: ej.id },
+          });
+
+          holdsCancelled++;
+        } catch (err) {
+          holdsFailed++;
+          log("Expired-hold cancel failed", { job_id: ej.id, error: String(err) });
+        }
+      }
+    }
+
+    log("Expired-hold pass done", { holdsCancelled, holdsFailed });
+
     return new Response(
       JSON.stringify({
         processed,
@@ -232,6 +302,8 @@ serve(async (req) => {
         released,
         releaseFailed,
         releaseSkipped,
+        holdsCancelled,
+        holdsFailed,
       }),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );

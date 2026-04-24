@@ -187,8 +187,11 @@ serve(async (req) => {
           if (currentJob.status !== "draft" && currentJob.status !== "pending") {
             logStep("Skipping visit_fee processing — job already processed", { jobId, currentStatus: currentJob.status });
           } else {
-            // Update job status — enters 'searching' state with 4-hour assignment window
-            const assignmentDeadline = new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString();
+            // Update job status — enters 'searching' state with 20-minute
+            // assignment window. If it expires, notify-no-provider flips to
+            // no_match and gives the client a 2-hour grace period (via
+            // hold_expires_at) to retry before the hold is cancelled.
+            const assignmentDeadline = new Date(Date.now() + 20 * 60 * 1000).toISOString();
             // Extract payment intent ID — handle both string ID and expanded object
             const paymentIntentId = typeof session.payment_intent === "string"
               ? session.payment_intent

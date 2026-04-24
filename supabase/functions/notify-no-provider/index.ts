@@ -2,24 +2,27 @@
 //
 // Two invocation modes:
 //   1. Cron mode (no body / empty body) — scans all `searching` jobs whose
-//      `assignment_deadline` has passed, cancels each Stripe visit-fee hold,
-//      moves the job to `no_match`, emails the client.
+//      `assignment_deadline` has passed, moves each to `no_match`, sets a
+//      2-hour grace window (hold_expires_at), and emails the client.
 //   2. Single-job mode (`{ jobId: "..." }`) — processes one specific job,
 //      same conditions. Used by EsperandoProveedor.tsx when the client-side
 //      countdown hits zero so the user sees the "no match" state immediately.
+//
+// The Stripe visit-fee hold is NOT cancelled here — the client gets 2 hours
+// to retry without losing their spot. auto-complete-jobs cancels the hold
+// once hold_expires_at passes.
 //
 // Idempotent: the filter requires status='searching' + deadline past, so
 // re-running on an already-processed job is a no-op.
 //
 // Auth: service role key is used internally; no user auth is enforced because
-// the function only operates on DB state (expired searching jobs) and cannot
-// be abused to cancel arbitrary Stripe holds.
+// the function only operates on DB state (expired searching jobs).
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
-import Stripe from "https://esm.sh/stripe@18.5.0";
 
 const POSTMARK_API_KEY = Deno.env.get("POSTMARK_API_KEY") as string;
+const HOLD_GRACE_HOURS = 2;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -39,35 +42,19 @@ interface ExpiredJob {
 
 async function processExpiredJob(
   supabase: ReturnType<typeof createClient>,
-  stripe: Stripe,
   job: ExpiredJob
 ) {
-  // 1. Cancel the visit fee hold (idempotent — Stripe returns error if already
-  //    cancelled, we swallow it).
-  const { data: visitFeePayment } = await supabase
-    .from("payments")
-    .select("id, stripe_payment_intent_id")
-    .eq("job_id", job.id)
-    .eq("type", "visit_fee")
-    .eq("status", "authorized")
-    .maybeSingle();
-
-  if (visitFeePayment?.stripe_payment_intent_id) {
-    try {
-      await stripe.paymentIntents.cancel(visitFeePayment.stripe_payment_intent_id);
-    } catch (err) {
-      log("PI cancel failed (may already be cancelled)", { job_id: job.id, error: String(err) });
-    }
-    await supabase
-      .from("payments")
-      .update({ status: "cancelled" })
-      .eq("id", visitFeePayment.id);
-  }
-
-  // 2. Move job to no_match
+  // Move job to no_match and start a 2-hour grace window. The Stripe hold
+  // stays live so the client can retry without losing their spot;
+  // auto-complete-jobs will cancel the hold once hold_expires_at passes.
+  const holdExpiresAt = new Date(Date.now() + HOLD_GRACE_HOURS * 60 * 60 * 1000).toISOString();
   await supabase
     .from("jobs")
-    .update({ status: "no_match", updated_at: new Date().toISOString() })
+    .update({
+      status: "no_match",
+      hold_expires_at: holdExpiresAt,
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", job.id);
 
   // 3. Email client
@@ -103,12 +90,13 @@ async function processExpiredJob(
             No encontramos un Chambynauta
           </h1>
           <p style="margin:0 0 20px;font-size:14px;color:#666;line-height:1.6;">
-            Hola ${clientName}, lamentamos informarte que ningún proveedor pudo tomar tu solicitud
-            <strong>"${jobTitle}"</strong> en este momento.
+            Hola ${clientName}, no encontramos un proveedor disponible para tu solicitud
+            <strong>"${jobTitle}"</strong>.
           </p>
           <p style="margin:0 0 24px;font-size:14px;color:#666;line-height:1.6;">
-            Esto puede pasar en horarios de alta demanda o cuando no hay técnicos disponibles en tu zona.
-            Te recomendamos intentar de nuevo — muchas veces un proveedor se libera poco después.
+            <strong>Tienes 2 horas para intentar de nuevo sin perder tu lugar.</strong>
+            Tu reserva sigue activa — vuelve a buscar y nos reconectaremos con más técnicos.
+            Si prefieres cancelar, te reembolsamos el cargo.
           </p>
         </td></tr>
         <tr><td style="padding:0 28px 16px;" align="center">
@@ -143,9 +131,9 @@ async function processExpiredJob(
       body: JSON.stringify({
         From: "Chamby <notificaciones@chamby.mx>",
         To: userData.email,
-        Subject: "No encontramos un Chambynauta para tu solicitud",
+        Subject: "No encontramos un Chambynauta — tienes 2 horas para reintentar",
         HtmlBody: htmlBody,
-        TextBody: `Hola ${clientName}, lamentamos informarte que ningún proveedor pudo tomar tu solicitud "${jobTitle}" en este momento. Puedes intentar de nuevo aquí: ${retryUrl} o contactarnos por WhatsApp: ${whatsappUrl}`,
+        TextBody: `Hola ${clientName}, no encontramos un proveedor para "${jobTitle}". Tienes 2 horas para intentar de nuevo sin perder tu lugar: ${retryUrl}. WhatsApp: ${whatsappUrl}`,
         MessageStream: "outbound",
       }),
     });
@@ -168,10 +156,6 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
-
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") ?? "", {
-      apiVersion: "2025-03-31.basil",
-    });
 
     // Parse optional jobId from body (single-job mode)
     let targetJobId: string | null = null;
@@ -215,7 +199,7 @@ serve(async (req) => {
     let failed = 0;
     for (const job of jobs) {
       try {
-        await processExpiredJob(supabase, stripe, job);
+        await processExpiredJob(supabase, job);
         processed++;
       } catch (err) {
         failed++;

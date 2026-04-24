@@ -9,10 +9,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { GenericPageSkeleton } from "@/components/skeletons";
-import { RotateCcw, Home, MessageCircle, Loader2, ChevronLeft } from "lucide-react";
+import { RotateCcw, MessageCircle, Loader2, ChevronLeft } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
-const ASSIGNMENT_WINDOW_HOURS = 1;
+const ASSIGNMENT_WINDOW_MINUTES = 20;
 const CYCLE_INTERVAL_MS = 3800;
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 const GDL_CENTER = { lat: 20.6597, lng: -103.3496 };
@@ -162,11 +162,11 @@ const EsperandoProveedor = () => {
       }
       setVerifying(false); return;
     }
-    if (data.status === "unassigned") setIsExpired(true);
+    if (data.status === "no_match" || data.status === "unassigned") setIsExpired(true);
     if (data.status === "cancelled") { toast.info("Esta solicitud fue cancelada"); navigate("/user-landing"); return; }
 
     const hasValidPayment = data.stripe_visit_payment_intent_id || (data.visit_fee_paid && ["searching", "assigned"].includes(data.status));
-    if (!hasValidPayment && data.status !== "unassigned") {
+    if (!hasValidPayment && data.status !== "unassigned" && data.status !== "no_match") {
       toast.info("Aún no has completado el pago de visita");
       navigate(`/job/${jobId}/payment`); return;
     }
@@ -454,26 +454,40 @@ const EsperandoProveedor = () => {
   const handleCancel = async () => {
     if (!job) return;
     setCancelling(true);
-    const { error } = await supabase.from("jobs")
-      .update({ status: "cancelled", updated_at: new Date().toISOString() })
-      .eq("id", job.id);
+    // Route through cancel-job so the Stripe visit-fee hold is actually
+    // cancelled (the edge function handles PI + status + notifications).
+    // Works for no_match too — job.provider_id is null, isLate=false.
+    const { data, error: fnErr } = await supabase.functions.invoke("cancel-job", {
+      body: { job_id: job.id, cancelled_by: "client" },
+    });
     setCancelling(false);
-    if (error) toast.error("Error al cancelar");
-    else { toast.success("Solicitud cancelada"); navigate("/user-landing"); }
+    if (fnErr || data?.error) {
+      toast.error(data?.error || fnErr?.message || "Error al cancelar");
+      return;
+    }
+    toast.success("Solicitud cancelada. Tu cargo será reembolsado.");
+    navigate("/user-landing");
   };
 
   const handleRetry = async () => {
     if (!job) return;
     setRetrying(true);
-    const newDeadline = new Date(Date.now() + ASSIGNMENT_WINDOW_HOURS * 60 * 60 * 1000).toISOString();
+    const newDeadline = new Date(Date.now() + ASSIGNMENT_WINDOW_MINUTES * 60 * 1000).toISOString();
+    // Clear hold_expires_at so the auto-complete-jobs cron stops reaping
+    // this job's Stripe hold. Re-enter searching with a fresh 20-min window.
     const { error } = await supabase.from("jobs")
-      .update({ status: "searching", assignment_deadline: newDeadline, updated_at: new Date().toISOString() })
+      .update({
+        status: "searching",
+        assignment_deadline: newDeadline,
+        hold_expires_at: null,
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", job.id);
     setRetrying(false);
     if (error) { toast.error("Error al reintentar"); }
     else {
       setIsExpired(false);
-      setJob((p: any) => p ? { ...p, status: "searching", assignment_deadline: newDeadline } : p);
+      setJob((p: any) => p ? { ...p, status: "searching", assignment_deadline: newDeadline, hold_expires_at: null } : p);
       toast.success("¡Búsqueda reiniciada!");
       fetchProviders();
     }
@@ -654,7 +668,7 @@ const EsperandoProveedor = () => {
           </h1>
           <p className="text-[13px] text-[#686860] leading-[1.55] mb-3.5">
             {isExpired
-              ? "Ningún Chambynauta tomó tu trabajo en este momento. Puedes intentarlo de nuevo."
+              ? "No encontramos un proveedor disponible. Tienes 2 horas para intentar de nuevo sin perder tu lugar."
               : "Notificamos a los proveedores más cercanos. Suelen responder en menos de 5 minutos."}
           </p>
 
@@ -726,25 +740,26 @@ const EsperandoProveedor = () => {
             <>
               <button
                 onClick={handleRetry}
-                disabled={retrying}
+                disabled={retrying || cancelling}
                 className="w-full h-[50px] rounded-full bg-[#0F0F0E] text-white text-[14px] font-semibold flex items-center justify-center gap-2 disabled:opacity-60 transition-opacity hover:opacity-85"
               >
                 <RotateCcw className="w-4 h-4" />
                 {retrying ? "Reintentando…" : "Intentar de nuevo"}
               </button>
               <button
+                onClick={handleCancel}
+                disabled={retrying || cancelling}
+                className="w-full h-[50px] rounded-full border-[1.5px] border-[#C8C8C0] text-[#0F0F0E] text-[14px] font-semibold flex items-center justify-center gap-2 transition-colors hover:border-[#0F0F0E] disabled:opacity-60"
+              >
+                {cancelling ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                {cancelling ? "Cancelando…" : "Cancelar y reembolsar"}
+              </button>
+              <button
                 onClick={() => window.open("https://wa.me/523325520551", "_blank")}
-                className="w-full h-[50px] rounded-full border-[1.5px] border-[#0D9E6A] text-[#0D9E6A] text-[14px] font-semibold flex items-center justify-center gap-2 transition-colors hover:bg-[#E6F7F1]"
+                className="w-full h-[46px] rounded-full text-[13px] font-medium text-[#686860] hover:text-[#0F0F0E] transition-colors flex items-center justify-center gap-2"
               >
                 <MessageCircle className="w-4 h-4" />
                 Contactar por WhatsApp
-              </button>
-              <button
-                onClick={() => navigate("/")}
-                className="w-full h-[50px] rounded-full border-[1.5px] border-[#C8C8C0] text-[#686860] text-[14px] font-semibold flex items-center justify-center gap-2 transition-colors hover:border-[#0F0F0E] hover:text-[#0F0F0E]"
-              >
-                <Home className="w-4 h-4" />
-                Volver al inicio
               </button>
             </>
           ) : (

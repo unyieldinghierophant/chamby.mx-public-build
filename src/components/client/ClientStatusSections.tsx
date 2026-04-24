@@ -1,13 +1,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader2, Check, Phone, Mail, MapPin, AlertTriangle } from "lucide-react";
+import { Loader2, Check, Phone, Mail, MapPin, AlertTriangle, RotateCcw } from "lucide-react";
 import { ClientQuoteReview } from "@/components/quotes/ClientQuoteReview";
 import { QuotePaymentCard } from "@/components/payments/QuotePaymentCard";
 import { formatMXN, PRICING } from "@/utils/pricingConfig";
 import { SearchingForProvider } from "@/components/client/SearchingForProvider";
 import { SomethingWentWrongSheet } from "@/components/client/SomethingWentWrongSheet";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const SUPPORT_PHONE = "+523312345678";
+const ASSIGNMENT_WINDOW_MINUTES = 20;
 
 interface ClientStatusSectionsProps {
   job: {
@@ -36,8 +39,38 @@ export const ClientStatusSections = ({
 }: ClientStatusSectionsProps) => {
   const navigate = useNavigate();
   const [problemSheetOpen, setProblemSheetOpen] = useState(false);
+  const [noMatchBusy, setNoMatchBusy] = useState<null | "retry" | "cancel">(null);
   const { status, invoice, provider } = job;
   const initials = provider?.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'P';
+
+  const handleNoMatchRetry = async () => {
+    setNoMatchBusy("retry");
+    const newDeadline = new Date(Date.now() + ASSIGNMENT_WINDOW_MINUTES * 60 * 1000).toISOString();
+    const { error } = await supabase.from("jobs").update({
+      status: "searching",
+      assignment_deadline: newDeadline,
+      hold_expires_at: null,
+      updated_at: new Date().toISOString(),
+    }).eq("id", job.id);
+    setNoMatchBusy(null);
+    if (error) { toast.error("Error al reintentar"); return; }
+    toast.success("¡Búsqueda reiniciada!");
+    navigate(`/esperando-proveedor?job_id=${job.id}`);
+  };
+
+  const handleNoMatchCancel = async () => {
+    setNoMatchBusy("cancel");
+    const { data, error: fnErr } = await supabase.functions.invoke("cancel-job", {
+      body: { job_id: job.id, cancelled_by: "client" },
+    });
+    setNoMatchBusy(null);
+    if (fnErr || data?.error) {
+      toast.error(data?.error || fnErr?.message || "Error al cancelar");
+      return;
+    }
+    toast.success("Solicitud cancelada. Tu cargo será reembolsado.");
+    onRefresh();
+  };
 
   /* ====== SEARCHING / PENDING ====== */
   if (status === 'searching' || status === 'pending') {
@@ -266,6 +299,42 @@ export const ClientStatusSections = ({
           </div>
           <h3 className="text-[20px] font-bold text-white mb-1.5">Trabajo completado</h3>
           <p className="text-[13px] text-white/60">Se procesó el reembolso de $429 a tu método de pago original.</p>
+        </div>
+      </div>
+    );
+  }
+
+  /* ====== NO MATCH — 2h grace window ====== */
+  if (status === 'no_match') {
+    return (
+      <div className="font-['DM_Sans',sans-serif] px-4 py-6">
+        <div className="w-14 h-14 rounded-full bg-[hsl(40,8%,92%)] flex items-center justify-center mx-auto mb-4">
+          <AlertTriangle className="w-6 h-6 text-[hsl(40,4%,50%)]" />
+        </div>
+        <h3 className="text-[17px] font-semibold text-[hsl(0,0%,6%)] text-center mb-1.5">
+          No encontramos a nadie
+        </h3>
+        <p className="text-[13px] text-[hsl(0,0%,40%)] text-center leading-[1.5] mb-5 px-2">
+          No encontramos un proveedor disponible. Tienes 2 horas para intentar
+          de nuevo sin perder tu lugar.
+        </p>
+        <div className="flex flex-col gap-2 max-w-md mx-auto">
+          <button
+            onClick={handleNoMatchRetry}
+            disabled={noMatchBusy !== null}
+            className="w-full h-[50px] rounded-full bg-[hsl(0,0%,6%)] text-white text-[14px] font-semibold flex items-center justify-center gap-2 disabled:opacity-60 hover:opacity-85 transition-opacity"
+          >
+            {noMatchBusy === "retry" ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
+            {noMatchBusy === "retry" ? "Reintentando…" : "Intentar de nuevo"}
+          </button>
+          <button
+            onClick={handleNoMatchCancel}
+            disabled={noMatchBusy !== null}
+            className="w-full h-[50px] rounded-full border-[1.5px] border-[hsl(40,6%,80%)] text-[hsl(0,0%,6%)] text-[14px] font-semibold flex items-center justify-center gap-2 disabled:opacity-60 hover:border-[hsl(0,0%,6%)] transition-colors"
+          >
+            {noMatchBusy === "cancel" ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+            {noMatchBusy === "cancel" ? "Cancelando…" : "Cancelar y reembolsar"}
+          </button>
         </div>
       </div>
     );
