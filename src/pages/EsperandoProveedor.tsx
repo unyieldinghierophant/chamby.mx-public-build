@@ -261,7 +261,8 @@ const EsperandoProveedor = () => {
       const diff = new Date(job.assignment_deadline).getTime() - Date.now();
       if (diff <= 0) {
         setIsExpired(true);
-        supabase.from("jobs").update({ status: "unassigned" }).eq("id", job.id).then();
+        // notify-no-provider handles the full transition: cancels the Stripe
+        // hold, flips status to `no_match`, and emails the client.
         supabase.functions.invoke("notify-no-provider", { body: { jobId: job.id } }).catch(console.error);
       }
     };
