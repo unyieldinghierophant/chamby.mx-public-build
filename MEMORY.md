@@ -50,6 +50,16 @@
 - Cron: `supabase/functions/auto-complete-jobs/` auto-completes after 24h without client confirm and releases the visit-fee hold
 - No charge unless work is complete and client confirms
 
+### Visit fee — 20-min assignment window + 2-hour hold grace (as of 2026-04-24)
+- On booking, job enters `status='searching'` with `assignment_deadline = NOW() + 20 minutes` (was 4h). Set in `stripe-webhook` after the visit-fee checkout completes.
+- On expiry, `notify-no-provider` flips the job to `status='no_match'` and sets `hold_expires_at = NOW() + 2 hours`. **It does NOT cancel the Stripe hold** — the client has 2 hours to retry without losing their spot.
+- Scheduled: pg_cron runs `notify-no-provider` every 30 min (`notify-no-provider-30min`). Also callable directly with `{ jobId }` from EsperandoProveedor when the client-side countdown hits zero, so the user sees the no-match state immediately instead of waiting up to 30 min for the cron.
+- Client in `no_match`: two options rendered by `ClientStatusSections` and `EsperandoProveedor`:
+  - **Intentar de nuevo** — UPDATE status='searching', assignment_deadline=+20min, hold_expires_at=null. Direct DB update (no edge function).
+  - **Cancelar y reembolsar** — routes through `cancel-job` edge function (which cancels the PI). Works for no_match because provider_id is null and isLate=false.
+- If the 2-hour grace passes without retry or cancel, `auto-complete-jobs` third pass reaps it: cancels the PI, clears hold_expires_at, notifies the client ("Tu reserva fue cancelada y el cargo fue reembolsado."). Job stays at `no_match`.
+- `jobs.hold_expires_at timestamptz` column added in migration `20260424000001`. Partial index on `(hold_expires_at) WHERE status='no_match' AND hold_expires_at IS NOT NULL` for the reaper query.
+
 ### Provider payout (5-day hold, as of 2026-04-23)
 - Provider receives **90%** of the invoice `total_customer_amount`. Chamby keeps **10%** on each side (20% total spread).
 - All Stripe amounts in MXN centavos.
@@ -79,14 +89,6 @@ These are **separate money flows**. The visit fee hold is cancelled/released to 
 | Password reset role-based redirect broken | `AuthCallback.tsx` + `ResetPassword.tsx` | Pre-March |
 | Postmark SMTP disconnected from Supabase | Reconnected in Supabase dashboard | Pre-March |
 | `open-dispute` allowed `cancelled` jobs (inconsistent with state machine `cancelled: []`) — failed downstream, surfaced as generic "non-2xx" to the client | `supabase/functions/open-dispute/index.ts` + client guards in `ActiveJobs.tsx` / `JobTimelinePage.tsx` + error parsing in `DisputeModal.tsx` | 2026-04-23 |
-
----
-
-## Known issues (open)
-
-| Issue | Notes |
-|---|---|
-| Zombie `searching` jobs with expired `assignment_deadline` | Jobs whose 4-hour assignment window has passed stay at `status='searching'` and disappear from the provider feed (feed filters by deadline), but the client still sees them in Active. Fix requires verifying `notify-no-provider` cron is running on schedule — it's supposed to flip expired `searching` → `no_match` and cancel the visit fee hold. Do NOT change the feed query; the cron is the authoritative path. |
 
 ---
 
@@ -137,6 +139,10 @@ Location: Google Cloud Console → APIs & Services → OAuth consent screen
 ## Changelog
 
 <!-- Append new entries at the top. Format: [YYYY-MM-DD] Short description -->
+
+[2026-04-24] Assignment window 4h → 20 min, with a new 2-hour grace period on the Stripe visit-fee hold. When `searching` expires, `notify-no-provider` (now also scheduled via pg_cron every 30 min) flips to `no_match` and sets `hold_expires_at = NOW() + 2h` instead of cancelling the hold. Client UI in `EsperandoProveedor` and `ClientStatusSections` gets two actions: **Intentar de nuevo** (direct DB update, fresh 20-min window, clears hold_expires_at) and **Cancelar y reembolsar** (via `cancel-job`). `auto-complete-jobs` gets a third pass that reaps holds past `hold_expires_at`. New migration `20260424000001` adds `jobs.hold_expires_at timestamptz`. `notify-no-provider` lost its admin-only auth gate because it was silently breaking the client-side fallback from EsperandoProveedor.
+
+[2026-04-24] `ClientStatusSections`: new "¿Algo salió mal?" flow for `provider_done`. Replaces the dead disabled "Reportar" button with a bottom sheet (`SomethingWentWrongSheet`) offering four softer reasons ("El proveedor no terminó el trabajo", "no se presentó", "quedó mal hecho", "Otro problema") + free-text detail. "Enviar reporte" inserts into `admin_notifications` as type `support_report`; "Abrir disputa formal" opens the existing `DisputeModal` (unchanged — dispute flow itself was not modified, only the entry point). Tone: "Cuéntanos qué pasó y lo resolveremos."
 
 [2026-04-24] `cancel-job` hardened: all three `jobs.update()` paths now throw on DB errors so failures return 500 instead of a silent 200 that moved the job to history on the client. `ActiveJobs.confirmCancelJob` now extracts the edge function's error body via `fnErr.context.json()` (same pattern as DisputeModal) so users see the real cause. Also fixed `stripe-webhook` assignment_deadline: code was setting 1h but the comment (and intent) said 4h — bumped to `4 * 60 * 60 * 1000`. Logged open issue: zombie `searching` jobs with expired deadlines linger until `notify-no-provider` cron runs — verify the cron schedule, don't patch the feed query.
 
