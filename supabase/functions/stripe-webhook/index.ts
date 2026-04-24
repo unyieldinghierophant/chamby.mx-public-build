@@ -188,7 +188,7 @@ serve(async (req) => {
             logStep("Skipping visit_fee processing — job already processed", { jobId, currentStatus: currentJob.status });
           } else {
             // Update job status — enters 'searching' state with 4-hour assignment window
-            const assignmentDeadline = new Date(Date.now() + 1 * 60 * 60 * 1000).toISOString();
+            const assignmentDeadline = new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString();
             // Extract payment intent ID — handle both string ID and expanded object
             const paymentIntentId = typeof session.payment_intent === "string"
               ? session.payment_intent

@@ -100,11 +100,12 @@ serve(async (req) => {
           }
         }
 
-        await supabase.from("jobs").update({
+        const { error: updErr } = await supabase.from("jobs").update({
           status: "cancelled",
           cancellation_requested_by: "client",
           cancellation_requested_at: new Date().toISOString(),
         }).eq("id", job_id);
+        if (updErr) throw new Error(`Failed to cancel job: ${updErr.message}`);
 
         if (job.provider_id) {
           await supabase.from("notifications").insert({
@@ -143,12 +144,13 @@ serve(async (req) => {
         }
       }
 
-      await supabase.from("jobs").update({
+      const { error: updErrLate } = await supabase.from("jobs").update({
         status: "cancelled",
         cancellation_requested_by: "client",
         cancellation_requested_at: new Date().toISOString(),
         late_cancellation_penalty_applied: true,
       }).eq("id", job_id);
+      if (updErrLate) throw new Error(`Failed to cancel job: ${updErrLate.message}`);
 
       const { newFlagCount, newStatus } = await applyFlag(job.client_id, "Cancelación tardía");
       await supabase.from("users").update({
@@ -193,12 +195,13 @@ serve(async (req) => {
       }
     }
 
-    await supabase.from("jobs").update({
+    const { error: updErrProv } = await supabase.from("jobs").update({
       status: "cancelled",
       cancellation_requested_by: "provider",
       cancellation_requested_at: new Date().toISOString(),
       ...(isLate ? { late_cancellation_penalty_applied: true } : {}),
     }).eq("id", job_id);
+    if (updErrProv) throw new Error(`Failed to cancel job: ${updErrProv.message}`);
 
     if (cancel_reason) {
       await supabase.from("messages").insert({

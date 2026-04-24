@@ -346,7 +346,18 @@ const ActiveJobs = () => {
         body: { job_id: cancelModal.job.id, cancelled_by: "client" },
       });
       if (fnErr || data?.error) {
-        toast.error(data?.error || fnErr?.message || "Error al cancelar");
+        // Supabase's functions.invoke returns a bare "non-2xx" message for 4xx/5xx
+        // responses and doesn't parse the body — pull the error out of the raw
+        // Response so users see the real cause instead of a silent "success".
+        let message = data?.error;
+        if (!message && fnErr) {
+          try {
+            const body = await (fnErr as any)?.context?.json?.();
+            if (body?.error) message = body.error;
+          } catch { /* fallthrough */ }
+          message ||= fnErr.message;
+        }
+        toast.error(message || "Error al cancelar");
         return;
       }
       toast.success("Trabajo cancelado");

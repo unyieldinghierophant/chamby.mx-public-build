@@ -82,6 +82,14 @@ These are **separate money flows**. The visit fee hold is cancelled/released to 
 
 ---
 
+## Known issues (open)
+
+| Issue | Notes |
+|---|---|
+| Zombie `searching` jobs with expired `assignment_deadline` | Jobs whose 4-hour assignment window has passed stay at `status='searching'` and disappear from the provider feed (feed filters by deadline), but the client still sees them in Active. Fix requires verifying `notify-no-provider` cron is running on schedule — it's supposed to flip expired `searching` → `no_match` and cancel the visit fee hold. Do NOT change the feed query; the cron is the authoritative path. |
+
+---
+
 ## Architecture decisions
 
 | Decision | Reason |
@@ -129,6 +137,8 @@ Location: Google Cloud Console → APIs & Services → OAuth consent screen
 ## Changelog
 
 <!-- Append new entries at the top. Format: [YYYY-MM-DD] Short description -->
+
+[2026-04-24] `cancel-job` hardened: all three `jobs.update()` paths now throw on DB errors so failures return 500 instead of a silent 200 that moved the job to history on the client. `ActiveJobs.confirmCancelJob` now extracts the edge function's error body via `fnErr.context.json()` (same pattern as DisputeModal) so users see the real cause. Also fixed `stripe-webhook` assignment_deadline: code was setting 1h but the comment (and intent) said 4h — bumped to `4 * 60 * 60 * 1000`. Logged open issue: zombie `searching` jobs with expired deadlines linger until `notify-no-provider` cron runs — verify the cron schedule, don't patch the feed query.
 
 [2026-04-23] 5-day automated provider-payout hold shipped. Completion no longer transfers to Stripe — payouts land as `holding` with `release_after = +5d`; `auto-complete-jobs` cron auto-releases them. Admin PagosView gets a payout dashboard (summary cards, filter tabs, Liberar ahora / Cancelar actions). Provider earnings page shows held balance + per-row countdown.
 [2026-04-23] AdminJobDetail god-mode gaps closed: capture-button bug fix, release-hold + payout override actions, chronological status timeline, Ver perfil links, Favor cliente/proveedor quick-resolve buttons, mobile layout stacking, tabbed chat.
