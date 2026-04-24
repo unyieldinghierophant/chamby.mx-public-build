@@ -1,9 +1,13 @@
-import { Loader2, Check, Phone, Mail, MapPin, Clock, AlertTriangle } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Loader2, Check, Phone, Mail, MapPin, AlertTriangle } from "lucide-react";
 import { ClientQuoteReview } from "@/components/quotes/ClientQuoteReview";
 import { QuotePaymentCard } from "@/components/payments/QuotePaymentCard";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { formatMXN, PRICING } from "@/utils/pricingConfig";
 import { SearchingForProvider } from "@/components/client/SearchingForProvider";
+import { SomethingWentWrongSheet } from "@/components/client/SomethingWentWrongSheet";
+
+const SUPPORT_PHONE = "+523312345678";
 
 interface ClientStatusSectionsProps {
   job: {
@@ -30,6 +34,8 @@ export const ClientStatusSections = ({
   onTransition,
   onRefresh,
 }: ClientStatusSectionsProps) => {
+  const navigate = useNavigate();
+  const [problemSheetOpen, setProblemSheetOpen] = useState(false);
   const { status, invoice, provider } = job;
   const initials = provider?.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'P';
 
@@ -100,10 +106,17 @@ export const ClientStatusSections = ({
             <div className="bg-[hsl(152,60%,94%)] text-[hsl(155,85%,34%)] rounded-full px-[10px] py-1 text-[11px] font-semibold flex-shrink-0">Verificado</div>
           </div>
           <div className="flex gap-2 mt-[10px]">
-            <button className="flex-1 p-[9px] border border-[hsl(40,8%,88%)] rounded-lg bg-white text-[12px] font-semibold cursor-pointer font-['DM_Sans',sans-serif] flex items-center justify-center gap-1.5 hover:border-[hsl(40,4%,65%)] transition-colors">
-              <Phone className="w-[14px] h-[14px]" /> Llamar
-            </button>
-            <button className="flex-1 p-[9px] border border-[hsl(40,8%,88%)] rounded-lg bg-white text-[12px] font-semibold cursor-pointer font-['DM_Sans',sans-serif] flex items-center justify-center gap-1.5 hover:border-[hsl(40,4%,65%)] transition-colors">
+            <a
+              href={`tel:${SUPPORT_PHONE}`}
+              className="flex-1 p-[9px] border border-[hsl(40,8%,88%)] rounded-lg bg-white text-[12px] font-semibold cursor-pointer font-['DM_Sans',sans-serif] flex items-center justify-center gap-1.5 hover:border-[hsl(40,4%,65%)] transition-colors no-underline text-[hsl(0,0%,6%)]"
+            >
+              <Phone className="w-[14px] h-[14px]" /> Llamar a soporte
+            </a>
+            <button
+              type="button"
+              onClick={() => navigate(`/messages?jobId=${job.id}`)}
+              className="flex-1 p-[9px] border border-[hsl(40,8%,88%)] rounded-lg bg-white text-[12px] font-semibold cursor-pointer font-['DM_Sans',sans-serif] flex items-center justify-center gap-1.5 hover:border-[hsl(40,4%,65%)] transition-colors"
+            >
               <Mail className="w-[14px] h-[14px]" /> Mensaje
             </button>
           </div>
@@ -224,11 +237,21 @@ export const ClientStatusSections = ({
               {transitioning ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
               Confirmar
             </button>
-            <button disabled className="flex-1 bg-transparent text-[hsl(0,0%,6%)] border-[1.5px] border-[hsl(40,6%,80%)] rounded-full py-4 text-[15px] font-semibold font-['DM_Sans',sans-serif] flex items-center justify-center gap-2 opacity-50">
-              <AlertTriangle className="w-5 h-5" /> Reportar
+            <button
+              type="button"
+              onClick={() => setProblemSheetOpen(true)}
+              className="flex-1 bg-transparent text-[hsl(0,0%,6%)] border-[1.5px] border-[hsl(40,6%,80%)] rounded-full py-4 text-[15px] font-semibold font-['DM_Sans',sans-serif] flex items-center justify-center gap-2 hover:border-[hsl(0,0%,6%)] transition-colors"
+            >
+              <AlertTriangle className="w-5 h-5" /> ¿Algo salió mal?
             </button>
           </div>
         </div>
+        <SomethingWentWrongSheet
+          jobId={job.id}
+          open={problemSheetOpen}
+          onOpenChange={setProblemSheetOpen}
+          onResolved={onRefresh}
+        />
       </div>
     );
   }

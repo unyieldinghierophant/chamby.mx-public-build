@@ -536,7 +536,9 @@ const JobTimelinePage = () => {
   const statusConfig = JOB_STATUS_CONFIG[currentStatus] || JOB_STATUS_CONFIG.active;
   const currentIndex = STATUS_ORDER.indexOf(currentStatus);
   const isTerminal = currentStatus === 'completed' || currentStatus === 'cancelled';
-  const isPostPayment = ['job_paid', 'in_progress', 'provider_done'].includes(currentStatus);
+  // Once the client accepts the quote (quote_accepted) or pays (job_paid+),
+  // provider self-cancel is disabled. Only option: contact support.
+  const isPostPayment = ['quote_accepted', 'job_paid', 'in_progress', 'provider_done'].includes(currentStatus);
   const actions = isTerminal ? [] : (STATUS_ACTIONS[currentStatus] || []);
 
 

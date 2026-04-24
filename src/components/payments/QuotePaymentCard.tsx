@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, CreditCard, Info, CheckCircle } from "lucide-react";
+import { Loader2, CreditCard, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { formatMXN, PRICING } from "@/utils/pricingConfig";
+import { formatMXN } from "@/utils/pricingConfig";
 import { toast } from "sonner";
 
 interface QuotePaymentCardProps {
@@ -47,11 +47,11 @@ export const QuotePaymentCard = ({ jobId, invoice, onPaymentStarted }: QuotePaym
     }
   };
 
-  const providerQuote = invoice.subtotal_provider;
-  const surcharge = invoice.client_surcharge_amount ?? providerQuote * 0.10;
-  const subtotal = providerQuote + surcharge;
-  const vat = invoice.vat_amount;
+  // Invoice display — never show visit fee here; visit fee is a separate
+  // transaction. Subtotal / IVA / Total only.
   const total = invoice.total_customer_amount;
+  const subtotal = total / 1.16;
+  const vat = total - subtotal;
   const totalCents = Math.round(total * 100);
 
   return (
@@ -63,38 +63,20 @@ export const QuotePaymentCard = ({ jobId, invoice, onPaymentStarted }: QuotePaym
         </CardTitle>
       </CardHeader>
       <CardContent className="px-4 pb-4 space-y-4">
-        {/* Breakdown */}
+        {/* Breakdown — subtotal / IVA / total only. Visit fee is NOT on the invoice. */}
         <div className="bg-muted/50 rounded-xl p-3 space-y-2 text-sm">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Cotización del proveedor</span>
-            <span className="font-semibold">
-              ${providerQuote.toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN
-            </span>
-          </div>
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Comisión de servicio (10%)</span>
-            <span>+${surcharge.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span>
-          </div>
-          <div className="flex justify-between border-t border-border/50 pt-1.5">
             <span className="text-muted-foreground">Subtotal</span>
-            <span>${subtotal.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span>
+            <span>${subtotal.toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN</span>
           </div>
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>IVA (16%)</span>
-            <span>+${vat.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">IVA (16%)</span>
+            <span>${vat.toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN</span>
           </div>
           <div className="flex justify-between font-bold text-base border-t border-border/50 pt-2">
             <span>Total a pagar</span>
             <span className="text-primary">{formatMXN(totalCents)}</span>
           </div>
-        </div>
-
-        {/* Refund note */}
-        <div className="flex items-start gap-2 bg-emerald-500/5 rounded-lg p-2.5 border border-emerald-500/20">
-          <Info className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
-          <p className="text-xs text-emerald-700">
-            Tu pago de diagnóstico ({formatMXN(PRICING.VISIT_FEE.CLIENT_TOTAL_CENTS)}) será reembolsado al completarse el trabajo.
-          </p>
         </div>
 
         {/* Pay button */}

@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ChevronLeft, Calendar, XCircle, Plus, MessageCircle, MapPin, Clock, AlertTriangle } from "lucide-react";
+import { ArrowLeft, ChevronLeft, Calendar, XCircle, MessageCircle, MapPin, Clock, AlertTriangle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { getStatusLabel, getStatusColor, JOB_STATUS_CONFIG, CLIENT_ACTIVE_STATES } from "@/utils/jobStateMachine";
 import { InvoiceCard } from "@/components/provider-portal/InvoiceCard";
@@ -407,14 +407,31 @@ const ActiveJobs = () => {
     if (!selectedJob || !user) return;
     setClientTransitioning(true);
     try {
-      const { data, error: fnError } = await supabase.functions.invoke('transition-job-status', {
-        body: { job_id: selectedJob.id, new_status: newStatus },
-      });
+      // Completion goes through complete-job (which runs settlement: refund
+      // visit fee + schedule provider payout hold). Other status transitions
+      // continue to use transition-job-status.
+      const isCompletion = newStatus === 'completed';
+      const { data, error: fnError } = isCompletion
+        ? await supabase.functions.invoke('complete-job', {
+            body: { job_id: selectedJob.id, action: 'client_confirm' },
+          })
+        : await supabase.functions.invoke('transition-job-status', {
+            body: { job_id: selectedJob.id, new_status: newStatus },
+          });
       if (fnError || data?.error) {
         toast.error(data?.error || fnError?.message || 'Error al actualizar');
         return;
       }
-      toast.success('¡Trabajo confirmado! El pago será liberado al proveedor.');
+      if (isCompletion) {
+        const warrantyDate = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000)
+          .toLocaleDateString('es-MX', { day: 'numeric', month: 'long' });
+        toast.success(
+          `¡Trabajo completado! Tu garantía de 5 días está activa. Si algo falla, puedes reportarlo antes del ${warrantyDate}.`,
+          { duration: 8000 }
+        );
+      } else {
+        toast.success('¡Trabajo confirmado! El pago será liberado al proveedor.');
+      }
       fetchActiveJobs();
       checkForRatingJob();
     } catch (err) {
@@ -725,16 +742,13 @@ const ActiveJobs = () => {
           <div className="grid grid-cols-2 gap-3">
             <Button
               variant="outline"
+              className="col-span-2"
               onClick={() => setRescheduleDialogOpen(true)}
               disabled={!!(job.reschedule_requested_at && !job.reschedule_agreed)}
               title={job.reschedule_requested_at && !job.reschedule_agreed ? "Ya hay una solicitud de reagendamiento pendiente" : undefined}
             >
               <Calendar className="mr-2 h-4 w-4" />
               Reagendar
-            </Button>
-            <Button variant="outline" onClick={() => navigate(`/book-job?category=${job.category}`)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Agregar servicios
             </Button>
             {["completed", "in_progress"].includes(job.status) &&
               !job.has_open_dispute && (

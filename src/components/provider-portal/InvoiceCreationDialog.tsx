@@ -327,9 +327,6 @@ export function InvoiceCreationDialog({
                     })} MXN
                   </span>
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  * El costo de la visita ($350 MXN) será reembolsado automáticamente al cliente cuando pague esta factura
-                </p>
               </CardContent>
             </Card>
 

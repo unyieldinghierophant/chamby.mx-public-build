@@ -6,7 +6,6 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { formatMXN, PRICING } from "@/utils/pricingConfig";
 import { toast } from "sonner";
 
 interface ClientQuoteReviewProps {
@@ -47,11 +46,11 @@ export const ClientQuoteReview = ({ jobId, invoice, onResponse }: ClientQuoteRev
     }
   };
 
-  const providerQuote = invoice.subtotal_provider;
-  const surcharge = invoice.client_surcharge_amount ?? providerQuote * 0.10;
-  const vat = invoice.vat_amount;
+  // Invoice display — never show visit fee here; visit fee is a separate
+  // transaction. Subtotal / IVA / Total only.
   const total = invoice.total_customer_amount;
-  const visitFeePesos = PRICING.VISIT_FEE.BASE_AMOUNT_CENTS / 100;
+  const subtotal = total / 1.16;
+  const vat = total - subtotal;
 
   // Timer
   const getTimeRemaining = () => {
@@ -88,23 +87,15 @@ export const ClientQuoteReview = ({ jobId, invoice, onResponse }: ClientQuoteRev
           </div>
           <div className="text-[13px] text-[hsl(0,0%,40%)]">Precio total por el trabajo completo</div>
 
-          {/* Breakdown */}
+          {/* Breakdown — subtotal / IVA / total only. Visit fee is NOT on the invoice. */}
           <div className="bg-[hsl(40,8%,95%)] rounded-[14px] p-[12px_14px] mt-[14px]">
             <div className="flex justify-between text-[12px] py-1 text-[hsl(0,0%,40%)]">
-              <span>Cotización del proveedor</span>
-              <span>${providerQuote.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span>
-            </div>
-            <div className="flex justify-between text-[12px] py-1 text-[hsl(0,0%,40%)]">
-              <span>Comisión de servicio (10%)</span>
-              <span>+${surcharge.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span>
+              <span>Subtotal</span>
+              <span>${subtotal.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span>
             </div>
             <div className="flex justify-between text-[12px] py-1 text-[hsl(0,0%,40%)]">
               <span>IVA (16%)</span>
-              <span>+${vat.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span>
-            </div>
-            <div className="flex justify-between text-[12px] py-1 text-[hsl(155,85%,34%)]">
-              <span>Cuota diagnóstico (se descuenta)</span>
-              <span>−${visitFeePesos.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span>
+              <span>${vat.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span>
             </div>
             <div className="flex justify-between text-[13px] font-semibold text-[hsl(0,0%,6%)] border-t border-[hsl(40,8%,88%)] mt-1.5 pt-2">
               <span>Total a pagar</span>
