@@ -39,5 +39,5 @@ jobs:
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
         run: |
           encoded=$(python3 -c "import urllib.parse, os; print(urllib.parse.quote(os.environ['SUPABASE_DB_PASSWORD'], safe=''))")
-          supabase db push --include-all \
+          supabase db push \
             --db-url "postgresql://postgres.uiyjmjibshnkhwewtkoz:${encoded}@aws-1-us-east-2.pooler.supabase.com:6543/postgres"
