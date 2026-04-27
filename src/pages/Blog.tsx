@@ -3,6 +3,7 @@ import { ArrowLeft, Calendar, Clock, User } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Footer from "@/components/Footer";
+import { useSeo } from "@/lib/seo";
 
 const blogPosts = [
   {
@@ -68,6 +69,12 @@ const blogPosts = [
 ];
 
 const Blog = () => {
+  useSeo({
+    title: "Blog de Chamby — Consejos para el hogar y servicios profesionales",
+    description: "Guías y consejos sobre servicios para el hogar: cómo elegir profesionales, mantenimiento preventivo, limpieza, jardinería y reparaciones de emergencia.",
+    path: "/blog",
+  });
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
       <header className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-50">

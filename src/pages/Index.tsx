@@ -16,9 +16,16 @@ import { ReviewsCarousel } from "@/components/ReviewsCarousel";
 import { FullPageSkeleton } from "@/components/skeletons";
 import { LandingPageSkeleton } from "@/components/LandingPageSkeleton";
 import { useLandingSkeleton } from "@/hooks/useLandingSkeleton";
+import { useSeo } from "@/lib/seo";
 
 
 const Index = () => {
+  useSeo({
+    title: "Chamby — Servicios del hogar con proveedores verificados en México",
+    description: "Chamby es el marketplace de servicios para el hogar en México con proveedores verificados, pagos protegidos y garantía de satisfacción.",
+    path: "/",
+  });
+
   const {
     user,
     loading

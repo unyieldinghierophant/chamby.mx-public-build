@@ -1,12 +1,14 @@
-import { useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import HowItWorks from "@/components/HowItWorks";
+import { useSeo } from "@/lib/seo";
 
 const HowItWorksPage = () => {
-  useEffect(() => {
-    document.title = "Cómo funciona — Chamby.mx | Solicita servicios del hogar fácilmente";
-  }, []);
+  useSeo({
+    title: "Cómo funciona Chamby — Servicios a domicilio seguros y verificados",
+    description: "Aprende cómo funciona Chamby paso a paso: solicita un servicio, recibe a un proveedor verificado y paga con confianza. Pago protegido por escrow.",
+    path: "/how-it-works",
+  });
 
   return (
     <>

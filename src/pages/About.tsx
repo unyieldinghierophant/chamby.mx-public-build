@@ -1,11 +1,13 @@
-import { useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useSeo } from "@/lib/seo";
 
 const About = () => {
-  useEffect(() => {
-    document.title = "Sobre nosotros — Chamby.mx | Servicios del hogar en Guadalajara";
-  }, []);
+  useSeo({
+    title: "Sobre Chamby — Construyendo confianza en servicios a domicilio en México",
+    description: "Conoce la historia de Chamby: un marketplace que verifica a cada proveedor, protege cada pago por escrow y respalda cada servicio con garantía de satisfacción.",
+    path: "/about",
+  });
 
   return (
     <>

@@ -57,8 +57,15 @@ export interface JobInfo {
 import { useScrollParallax } from "@/hooks/useScrollParallax";
 import { useLandingSkeleton } from "@/hooks/useLandingSkeleton";
 import { ProviderLandingSkeleton } from "@/components/ProviderLandingSkeleton";
+import { useSeo } from "@/lib/seo";
 
 const ProviderLanding = () => {
+  useSeo({
+    title: "Trabaja con Chamby — Gana más ofreciendo servicios a domicilio",
+    description: "Únete a Chamby como profesional verificado en Guadalajara. Recibe trabajos cerca de ti, cobra de forma segura y haz crecer tu negocio con respaldo y soporte real.",
+    path: "/provider-landing",
+  });
+
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { role } = useUserRole();

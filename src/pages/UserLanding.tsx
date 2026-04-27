@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { FullPageSkeleton } from "@/components/skeletons";
 import { ROUTES } from "@/constants/routes";
+import { useSeo } from "@/lib/seo";
 import { CLIENT_ACTIVE_STATES } from "@/utils/jobStateMachine";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -105,6 +106,12 @@ interface LastJob {
 }
 
 const UserLanding = () => {
+  useSeo({
+    title: "Servicios a domicilio verificados en Guadalajara | Chamby",
+    description: "Encuentra fontaneros, electricistas, jardineros, limpieza y más en Guadalajara. Proveedores verificados, pago protegido y garantía de satisfacción.",
+    path: "/user-landing",
+  });
+
   const { user, loading: authLoading, signOut } = useAuth();
   const { role, isAdmin, loading: roleLoading } = useUserRole();
   const { profile } = useProfile();
