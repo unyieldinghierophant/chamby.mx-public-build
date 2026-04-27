@@ -37,4 +37,5 @@ jobs:
       - name: Push migrations
         run: |
           supabase db push --include-all \
-            --db-url "postgresql://postgres:${{ secrets.SUPABASE_DB_PASSWORD }}@db.uiyjmjibshnkhwewtkoz.supabase.co:5432/postgres"
+            -p '${{ secrets.SUPABASE_DB_PASSWORD }}' \
+            --db-url 'postgresql://postgres@db.uiyjmjibshnkhwewtkoz.supabase.co:5432/postgres'
