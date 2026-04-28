@@ -1,7 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import { componentTagger } from "lovable-tagger";
 import prerender from "@prerenderer/rollup-plugin";
 import chromium from "@sparticuz/chromium";
 
@@ -35,7 +34,6 @@ export default defineConfig(async ({ mode }) => ({
   },
   plugins: [
     react(),
-    mode === "development" && componentTagger(),
     mode !== "development" && prerender({
       routes: PRERENDER_ROUTES,
       renderer: "@prerenderer/renderer-puppeteer",

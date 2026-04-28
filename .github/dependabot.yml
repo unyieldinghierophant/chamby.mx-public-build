@@ -19,8 +19,6 @@ updates:
     ignore:
       - dependency-name: "vite"
         update-types: ["version-update:semver-major"]
-      - dependency-name: "lovable-tagger"
-        update-types: ["version-update:semver-major"]
       - dependency-name: "@vitejs/plugin-react-swc"
         update-types: ["version-update:semver-major"]
       - dependency-name: "react"
