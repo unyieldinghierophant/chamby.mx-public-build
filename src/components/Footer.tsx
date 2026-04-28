@@ -3,6 +3,18 @@ import { Link, useNavigate } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
 import { startBooking } from "@/lib/booking";
 
+// Categories must match the keys in src/data/categoryServices.ts.
+// `label` is the SEO-friendly anchor text shown in the footer.
+const FOOTER_SERVICES: { category: string; label: string }[] = [
+  { category: "Fontanería",       label: "Fontaneros en Guadalajara" },
+  { category: "Electricidad",     label: "Electricistas en Guadalajara" },
+  { category: "Limpieza",         label: "Limpieza a domicilio" },
+  { category: "Jardinería",       label: "Jardinería en Guadalajara" },
+  { category: "Pintura",          label: "Pintura e impermeabilización" },
+  { category: "Electrodomésticos", label: "Reparación de electrodomésticos" },
+  { category: "Handyman",         label: "Handyman y manitas" },
+];
+
 const Footer = () => {
   const { isAdmin } = useUserRole();
   const navigate = useNavigate();
@@ -40,36 +52,16 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-semibold mb-4">Servicios</h4>
             <ul className="space-y-2 text-muted-foreground">
-              <li>
-                <button onClick={() => startBooking(navigate, { serviceCategory: 'Fontanería', entrySource: 'footer' })} className="hover:text-primary transition-colors text-left">
-                  Fontanería en Guadalajara
-                </button>
-              </li>
-              <li>
-                <button onClick={() => startBooking(navigate, { serviceCategory: 'Electricidad', entrySource: 'footer' })} className="hover:text-primary transition-colors text-left">
-                  Electricistas en Guadalajara
-                </button>
-              </li>
-              <li>
-                <button onClick={() => startBooking(navigate, { serviceCategory: 'Jardinería', entrySource: 'footer' })} className="hover:text-primary transition-colors text-left">
-                  Jardinería
-                </button>
-              </li>
-              <li>
-                <button onClick={() => startBooking(navigate, { serviceCategory: 'Limpieza', entrySource: 'footer' })} className="hover:text-primary transition-colors text-left">
-                  Limpieza a domicilio
-                </button>
-              </li>
-              <li>
-                <button onClick={() => startBooking(navigate, { serviceCategory: 'Auto y Lavado', entrySource: 'footer' })} className="hover:text-primary transition-colors text-left">
-                  Lavado de auto a domicilio
-                </button>
-              </li>
-              <li>
-                <button onClick={() => startBooking(navigate, { serviceCategory: 'Handyman', entrySource: 'footer' })} className="hover:text-primary transition-colors text-left">
-                  Handyman y manitas
-                </button>
-              </li>
+              {FOOTER_SERVICES.map(({ category, label }) => (
+                <li key={category}>
+                  <button
+                    onClick={() => startBooking(navigate, { serviceCategory: category, entrySource: 'footer' })}
+                    className="hover:text-primary transition-colors text-left"
+                  >
+                    {label}
+                  </button>
+                </li>
+              ))}
             </ul>
           </div>
 

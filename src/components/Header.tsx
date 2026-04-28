@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AllCategoriesDialog } from "@/components/AllCategoriesDialog";
-import { HeaderSearchBar } from "@/components/HeaderSearchBar";
 import { ROUTES } from "@/constants/routes";
 
 const Header = () => {
@@ -63,9 +62,7 @@ const Header = () => {
           {/* Right */}
           <div className="ml-auto flex items-center">
             <div className="hidden lg:flex items-center gap-5">
-              <HeaderSearchBar />
-              
-              <button 
+              <button
                 onClick={() => setCategoriesDialogOpen(true)}
                 className="text-foreground/70 hover:text-foreground transition-colors text-sm font-medium whitespace-nowrap"
               >
