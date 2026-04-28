@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import prerender from "@prerenderer/rollup-plugin";
+import chromium from "@sparticuz/chromium";
 
 // Public, unauthenticated routes that benefit from SEO. Anything behind
 // auth (admin, provider portal, active jobs, login, etc.) is intentionally
@@ -19,8 +20,14 @@ const PRERENDER_ROUTES = [
   "/blog",
 ];
 
+// On Vercel build runners we need a Chromium that bundles the system
+// shared libraries (libnspr4.so, etc.) that the default headless Chrome
+// expects. @sparticuz/chromium ships those. Locally we let Puppeteer use
+// its own default Chrome, which works because macOS has the libs.
+const isVercel = !!process.env.VERCEL;
+
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
+export default defineConfig(async ({ mode }) => ({
   base: "/",
   server: {
     host: "::",
@@ -33,12 +40,15 @@ export default defineConfig(({ mode }) => ({
       routes: PRERENDER_ROUTES,
       renderer: "@prerenderer/renderer-puppeteer",
       rendererOptions: {
-        // Wait for the React app + lazy route chunks to render before
-        // snapshotting. 4s is enough headroom for the slowest lazy-loaded
-        // landing page on a cold cache.
         renderAfterTime: 4000,
         maxConcurrentRoutes: 2,
         headless: true,
+        ...(isVercel && {
+          launchOptions: {
+            args: chromium.args,
+            executablePath: await chromium.executablePath(),
+          },
+        }),
       },
     }),
   ].filter(Boolean),
