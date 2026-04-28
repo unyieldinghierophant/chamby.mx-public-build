@@ -4,9 +4,13 @@ type SeoOptions = {
   title: string;
   description: string;
   path: string;
+  // Optional per-route schema.org JSON-LD. Injected as a dedicated <script>
+  // tag so it doesn't collide with the global structured data in index.html.
+  jsonLd?: object;
 };
 
 const SITE = "https://chamby.mx";
+const ROUTE_JSONLD_ID = "route-jsonld";
 
 function setMeta(selector: string, attr: "name" | "property", key: string, value: string) {
   let el = document.head.querySelector<HTMLMetaElement>(selector);
@@ -28,7 +32,24 @@ function setLink(rel: string, href: string) {
   el.setAttribute("href", href);
 }
 
-export function useSeo({ title, description, path }: SeoOptions) {
+function setRouteJsonLd(data: object | undefined) {
+  const existing = document.getElementById(ROUTE_JSONLD_ID);
+  if (!data) {
+    existing?.remove();
+    return;
+  }
+  if (existing) {
+    existing.textContent = JSON.stringify(data);
+    return;
+  }
+  const el = document.createElement("script");
+  el.id = ROUTE_JSONLD_ID;
+  el.type = "application/ld+json";
+  el.textContent = JSON.stringify(data);
+  document.head.appendChild(el);
+}
+
+export function useSeo({ title, description, path, jsonLd }: SeoOptions) {
   useEffect(() => {
     const url = `${SITE}${path}`;
     document.title = title;
@@ -39,5 +60,6 @@ export function useSeo({ title, description, path }: SeoOptions) {
     setMeta(`meta[property="og:url"]`, "property", "og:url", url);
     setMeta(`meta[name="twitter:title"]`, "name", "twitter:title", title);
     setMeta(`meta[name="twitter:description"]`, "name", "twitter:description", description);
-  }, [title, description, path]);
+    setRouteJsonLd(jsonLd);
+  }, [title, description, path, jsonLd]);
 }

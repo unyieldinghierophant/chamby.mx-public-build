@@ -7,6 +7,20 @@ const About = () => {
     title: "Sobre Chamby — Construyendo confianza en servicios a domicilio en México",
     description: "Conoce la historia de Chamby: un marketplace que verifica a cada proveedor, protege cada pago por escrow y respalda cada servicio con garantía de satisfacción.",
     path: "/about",
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "AboutPage",
+      "name": "Sobre Chamby",
+      "url": "https://chamby.mx/about",
+      "description": "Historia, misión y valores de Chamby — el marketplace de servicios del hogar que verifica a cada proveedor y protege cada pago.",
+      "inLanguage": "es-MX",
+      "isPartOf": { "@type": "WebSite", "url": "https://chamby.mx" },
+      "about": {
+        "@type": "Organization",
+        "name": "Chamby",
+        "url": "https://chamby.mx",
+      },
+    },
   });
 
   return (

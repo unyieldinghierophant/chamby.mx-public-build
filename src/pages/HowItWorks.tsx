@@ -8,6 +8,40 @@ const HowItWorksPage = () => {
     title: "Cómo funciona Chamby — Servicios a domicilio seguros y verificados",
     description: "Aprende cómo funciona Chamby paso a paso: solicita un servicio, recibe a un proveedor verificado y paga con confianza. Pago protegido por escrow.",
     path: "/how-it-works",
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      "name": "Cómo contratar un servicio del hogar en Chamby",
+      "description": "Cuatro pasos para contratar un proveedor verificado en Guadalajara y pagar de forma segura.",
+      "inLanguage": "es-MX",
+      "totalTime": "PT5M",
+      "step": [
+        {
+          "@type": "HowToStep",
+          "position": 1,
+          "name": "Describe tu servicio",
+          "text": "Cuéntanos qué necesitas — fontanería, electricidad, limpieza, jardinería o cualquier otro servicio del hogar.",
+        },
+        {
+          "@type": "HowToStep",
+          "position": 2,
+          "name": "Recibe a un proveedor verificado",
+          "text": "Chamby asigna a un profesional con identidad, antecedentes y experiencia verificados que llega a tu domicilio.",
+        },
+        {
+          "@type": "HowToStep",
+          "position": 3,
+          "name": "Paga de forma segura",
+          "text": "Tu pago queda retenido por escrow hasta que el servicio esté completado y a tu satisfacción.",
+        },
+        {
+          "@type": "HowToStep",
+          "position": 4,
+          "name": "Califica al proveedor",
+          "text": "Comparte tu experiencia para ayudar a otros clientes y reconocer el trabajo bien hecho.",
+        },
+      ],
+    },
   });
 
   return (

@@ -73,6 +73,31 @@ const Blog = () => {
     title: "Blog de Chamby — Consejos para el hogar y servicios profesionales",
     description: "Guías y consejos sobre servicios para el hogar: cómo elegir profesionales, mantenimiento preventivo, limpieza, jardinería y reparaciones de emergencia.",
     path: "/blog",
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      "name": "Blog de Chamby",
+      "url": "https://chamby.mx/blog",
+      "description": "Guías y consejos sobre servicios del hogar.",
+      "inLanguage": "es-MX",
+      "isPartOf": { "@type": "WebSite", "url": "https://chamby.mx" },
+      "mainEntity": {
+        "@type": "ItemList",
+        "itemListElement": blogPosts.map((post, i) => ({
+          "@type": "ListItem",
+          "position": i + 1,
+          "item": {
+            "@type": "BlogPosting",
+            "headline": post.title,
+            "description": post.excerpt,
+            "datePublished": post.date,
+            "author": { "@type": "Organization", "name": post.author },
+            "image": post.image,
+            "articleSection": post.category,
+          },
+        })),
+      },
+    },
   });
 
   return (
