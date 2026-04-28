@@ -1,0 +1,44 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    # Cap open PRs so Dependabot doesn't pile up while you're focused on shipping.
+    open-pull-requests-limit: 3
+    # Group all minor + patch bumps into a single weekly PR. Major bumps still
+    # come as individual PRs (and most are ignored below — see "ignore").
+    groups:
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+    # Skip major bumps for build-tooling deps where Dependabot tends to
+    # propose versions that don't exist yet or break peer-dependency contracts
+    # (e.g., vite 8.x doesn't exist; bumping vite alone breaks plugin-react-swc).
+    ignore:
+      - dependency-name: "vite"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "lovable-tagger"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@vitejs/plugin-react-swc"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "tailwindcss"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-router-dom"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 1
+    groups:
+      gha-minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
