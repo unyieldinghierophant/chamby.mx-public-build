@@ -89,7 +89,6 @@ export const ProviderBottomNav = () => {
                   <span
                     className="text-[10.5px] transition-colors duration-150"
                     style={{
-                      fontFamily: "'Nunito', sans-serif",
                       fontWeight: active ? 800 : 600,
                       color: active ? '#0c55ad' : '#94a3b8',
                     }}

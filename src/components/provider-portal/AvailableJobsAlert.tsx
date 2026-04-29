@@ -251,7 +251,6 @@ export const AvailableJobsAlert = ({
                     background: "linear-gradient(135deg, #ff4d6a, #ff2d55)",
                     borderRadius: "99px",
                     border: "2.5px solid #060e1a",
-                    fontFamily: "'Plus Jakarta Sans', sans-serif",
                     fontSize: "11px",
                     fontWeight: 800,
                     color: "white",
@@ -270,7 +269,6 @@ export const AvailableJobsAlert = ({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
                 style={{
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
                   fontSize: "22px",
                   fontWeight: 800,
                   color: "white",
@@ -328,7 +326,6 @@ export const AvailableJobsAlert = ({
                   <div
                     className="truncate"
                     style={{
-                      fontFamily: "'Plus Jakarta Sans', sans-serif",
                       fontSize: "14px",
                       fontWeight: 700,
                       color: "#060e1a",
@@ -353,7 +350,6 @@ export const AvailableJobsAlert = ({
                 <div
                   className="whitespace-nowrap"
                   style={{
-                    fontFamily: "'Plus Jakarta Sans', sans-serif",
                     fontSize: "16px",
                     fontWeight: 800,
                     color: "#0c55ad",
@@ -393,7 +389,6 @@ export const AvailableJobsAlert = ({
                   fontSize: "12px",
                   fontWeight: 700,
                   color: "#92400e",
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
                 }}
               >
                 Expira pronto — sé el primero
@@ -404,7 +399,6 @@ export const AvailableJobsAlert = ({
                   fontSize: "12px",
                   fontWeight: 800,
                   color: "#ffb340",
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
                 }}
               >
                 {urgencyStr}
@@ -428,7 +422,6 @@ export const AvailableJobsAlert = ({
                   background: "linear-gradient(135deg, #0c55ad, #2e8fff)",
                   border: "none",
                   borderRadius: "15px",
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
                   fontSize: "15px",
                   fontWeight: 800,
                   color: "white",
@@ -461,7 +454,6 @@ export const AvailableJobsAlert = ({
                   background: "none",
                   border: "1.5px solid #e2e8f0",
                   borderRadius: "12px",
-                  fontFamily: "'Nunito', sans-serif",
                   fontSize: "14px",
                   fontWeight: 700,
                   color: "#64748b",
@@ -479,7 +471,6 @@ export const AvailableJobsAlert = ({
                   color: "#94a3b8",
                   fontWeight: 600,
                   paddingBottom: "4px",
-                  fontFamily: "'Nunito', sans-serif",
                 }}
               >
                 Este aviso desaparece en{" "}

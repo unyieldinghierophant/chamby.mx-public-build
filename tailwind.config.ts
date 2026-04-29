@@ -14,14 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        'dm-sans': ['DM Sans', 'sans-serif'],
-        'dm-mono': ['DM Mono', 'monospace'],
-        'dillan': ['Made Dillan', 'sans-serif'],
-        'hero': ['Outfit', 'sans-serif'],
-        'urbanist': ['Urbanist', 'sans-serif'],
-        'audiowide': ['Audiowide', 'sans-serif'],
-        'sf-pro': ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
-        'jakarta': ['Plus Jakarta Sans', 'sans-serif'],
+        sans: ['Plus Jakarta Sans', 'system-ui', '-apple-system', 'sans-serif'],
+        jakarta: ['Plus Jakarta Sans', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",

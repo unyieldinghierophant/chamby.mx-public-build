@@ -345,7 +345,6 @@ export const VisitFeeAuthorizationSection = ({
                 colorBackground: "#ffffff",
                 colorText: "#1a1a2e",
                 colorDanger: "#ef4444",
-                fontFamily: "Inter, system-ui, sans-serif",
                 borderRadius: "12px",
               },
             },

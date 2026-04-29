@@ -13,8 +13,8 @@ export const A = {
   accentText: '#0F47B8',    // readable blue for text on accentLight
   brandOrange: '#E86C25',   // Chamby secondary, reserved for hero accents
   rowHover: '#F5F5F2',
-  fontSans: "'DM Sans', sans-serif",
-  fontMono: "'DM Mono', monospace",
+  fontSans: "'Plus Jakarta Sans', system-ui, sans-serif",
+  fontMono: "ui-monospace, SFMono-Regular, Menlo, monospace",
 } as const;
 
 export const ADMIN_ID = '30c2aa13-4338-44ca-8c74-d60421ed9bfc';

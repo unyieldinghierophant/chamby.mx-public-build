@@ -126,7 +126,7 @@ export const JobCardMobile = ({ job, onAccept, onViewDetails, isMatch = false, i
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
           }}>
             <span className="text-[9px]">✦</span>
-            <span className="text-[10.5px] font-extrabold" style={{ color: '#0c55ad', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            <span className="text-[10.5px] font-extrabold" style={{ color: '#0c55ad' }}>
               Nuevo
             </span>
           </div>
@@ -137,7 +137,7 @@ export const JobCardMobile = ({ job, onAccept, onViewDetails, isMatch = false, i
           background: 'rgba(0,0,0,0.55)',
           backdropFilter: 'blur(8px)',
         }}>
-          <span className="text-[15px] font-extrabold text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <span className="text-[15px] font-extrabold text-white" style={{  }}>
             ${job.rate.toLocaleString('es-MX')}
           </span>
           <span className="text-[9px] font-medium text-white/70 ml-0.5">MXN</span>
@@ -174,7 +174,7 @@ export const JobCardMobile = ({ job, onAccept, onViewDetails, isMatch = false, i
         </div>
 
         {/* Title */}
-        <h3 className="text-[17px] font-extrabold leading-tight mb-1.5" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#060e1a', letterSpacing: '-0.02em' }}>
+        <h3 className="text-[17px] font-extrabold leading-tight mb-1.5" style={{ color: '#060e1a', letterSpacing: '-0.02em' }}>
           {job.title}
         </h3>
 
@@ -206,7 +206,7 @@ export const JobCardMobile = ({ job, onAccept, onViewDetails, isMatch = false, i
               </div>
             )}
           </div>
-          <span className="flex items-center gap-1 text-[12px] font-bold whitespace-nowrap" style={{ color: '#0c55ad', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <span className="flex items-center gap-1 text-[12px] font-bold whitespace-nowrap" style={{ color: '#0c55ad' }}>
             Ver →
           </span>
         </div>

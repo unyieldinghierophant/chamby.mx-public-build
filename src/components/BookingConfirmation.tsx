@@ -87,7 +87,7 @@ export const BookingConfirmation = ({
         <div className="w-full max-w-xl bg-card rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden animate-slide-in-from-bottom relative z-10">
           {/* Header inside card */}
           <div className="text-center space-y-1 px-6 pt-6 pb-4">
-            <h1 className="text-xl md:text-2xl font-bold text-foreground font-['Made_Dillan']">
+            <h1 className="text-xl md:text-2xl font-bold text-foreground">
               Preparando tu solicitud...
             </h1>
             <p className="text-sm text-muted-foreground">

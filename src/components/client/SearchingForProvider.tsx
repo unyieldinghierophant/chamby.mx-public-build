@@ -427,7 +427,7 @@ export const SearchingForProvider = ({ job, onTransition }: Props) => {
   return (
     <div
       className="flex flex-col bg-[#FAFAF8]"
-      style={{ fontFamily: "'DM Sans', sans-serif", WebkitFontSmoothing: 'antialiased' }}
+      style={{ WebkitFontSmoothing: 'antialiased' }}
     >
 
       {/* ── Nav bar ── */}
@@ -657,7 +657,7 @@ export const SearchingForProvider = ({ job, onTransition }: Props) => {
               exit={{ y: '100%' }}
               transition={{ type: 'spring', stiffness: 320, damping: 32 }}
               className="fixed bottom-0 left-0 right-0 z-50 bg-[#FAFAF8] rounded-[28px_28px_0_0] px-5 pb-8"
-              style={{ fontFamily: "'DM Sans', sans-serif" }}
+              style={{  }}
             >
               <div className="w-9 h-1 rounded-full bg-[#C8C8C0] mx-auto mt-3 mb-[18px]" />
               <div className="text-[18px] font-bold text-[#0F0F0E] mb-1.5">¿A dónde te avisamos?</div>
@@ -671,7 +671,7 @@ export const SearchingForProvider = ({ job, onTransition }: Props) => {
                 value={notifyPhone}
                 onChange={e => setNotifyPhone(e.target.value)}
                 className="w-full border border-[#C8C8C0] rounded-xl px-[14px] py-[13px] text-[15px] text-[#0F0F0E] bg-[#FAFAF8] outline-none mb-3 focus:border-[#0F0F0E] transition-colors"
-                style={{ fontFamily: "'DM Sans', sans-serif" }}
+                style={{  }}
               />
               <button
                 onClick={handleSavePhone}

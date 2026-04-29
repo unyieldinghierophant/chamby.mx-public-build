@@ -62,7 +62,7 @@ export const JobSuccessScreen = ({ jobId, onNavigate, visitFeeAuthorized = true 
 
       {/* Success Message */}
       <div className="space-y-3">
-        <h1 className="text-3xl md:text-4xl font-bold text-foreground font-['Made_Dillan']">
+        <h1 className="text-3xl md:text-4xl font-bold text-foreground">
           ¡Solicitud enviada!
         </h1>
         <p className="text-muted-foreground text-lg max-w-sm mx-auto">

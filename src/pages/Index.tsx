@@ -8,7 +8,6 @@ import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import ChambyLogoText from "@/components/ChambyLogoText";
 import { ModernButton } from "@/components/ui/modern-button";
-import { startBooking } from "@/lib/booking";
 import { Menu, X } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AllCategoriesDialog } from "@/components/AllCategoriesDialog";
@@ -34,10 +33,6 @@ const Index = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [categoriesDialogOpen, setCategoriesDialogOpen] = useState(false);
   const { isSkeletonVisible, onHeroMediaReady, onIconsReady } = useLandingSkeleton();
-
-  const handlePostJobClick = () => {
-    startBooking(navigate, { entrySource: 'hero_cta' });
-  };
 
   const handleHowItWorksClick = () => {
     const howItWorksSection = document.getElementById('how-it-works-section');
@@ -81,10 +76,7 @@ const Index = () => {
           <div className="ml-auto flex items-center">
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-6">
-              <button onClick={handlePostJobClick} className="px-6 py-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium">
-                Buscar Servicio
-              </button>
-              <button 
+              <button
                 onClick={() => setCategoriesDialogOpen(true)}
                 className="text-foreground hover:text-primary transition-colors font-medium"
               >
@@ -116,16 +108,7 @@ const Index = () => {
               </SheetTrigger>
               <SheetContent side="right" className="w-[300px] sm:w-[400px]">
                 <div className="flex flex-col gap-4 mt-8">
-                  <button 
-                    onClick={() => {
-                      handlePostJobClick();
-                      setMobileMenuOpen(false);
-                    }}
-                    className="px-6 py-3 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium text-center"
-                  >
-                    Buscar Servicio
-                  </button>
-                  <button 
+                  <button
                     onClick={() => {
                       setCategoriesDialogOpen(true);
                       setMobileMenuOpen(false);
